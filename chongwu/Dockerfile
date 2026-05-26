@@ -1,6 +1,8 @@
 # 使用 Node.js 官方镜像
 FROM node:20-slim
 
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+
 # 设置工作目录
 WORKDIR /app
 

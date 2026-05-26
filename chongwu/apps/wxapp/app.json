@@ -1,0 +1,57 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/service/service",
+    "pages/service-detail/service-detail",
+    "pages/service-order/service-order",
+    "pages/health/health",
+    "pages/pet-form/pet-form",
+    "pages/health-record/health-record",
+    "pages/idle/idle",
+    "pages/idle-detail/idle-detail",
+    "pages/idle-publish/idle-publish",
+    "pages/idle-order/idle-order",
+    "pages/profile/profile",
+    "pages/orders/orders"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#FF8C42",
+    "navigationBarTitleText": "宠享家",
+    "navigationBarTextStyle": "white"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#FF8C42",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "assets/icons/home.png",
+        "selectedIconPath": "assets/icons/home-active.png"
+      },
+      {
+        "pagePath": "pages/service/service",
+        "text": "服务",
+        "iconPath": "assets/icons/service.png",
+        "selectedIconPath": "assets/icons/service-active.png"
+      },
+      {
+        "pagePath": "pages/idle/idle",
+        "text": "闲置",
+        "iconPath": "assets/icons/idle.png",
+        "selectedIconPath": "assets/icons/idle-active.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "assets/icons/profile.png",
+        "selectedIconPath": "assets/icons/profile-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

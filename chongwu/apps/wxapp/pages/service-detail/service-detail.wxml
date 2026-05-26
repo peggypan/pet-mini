@@ -1,0 +1,54 @@
+<view class="container" wx:if="{{service}}">
+  <!-- 服务图片 -->
+  <swiper class="service-swiper" indicator-dots circular>
+    <swiper-item wx:for="{{service.coverUrls}}" wx:key="*this">
+      <image src="{{item}}" mode="aspectFill" class="swiper-image"></image>
+    </swiper-item>
+  </swiper>
+
+  <!-- 服务信息 -->
+  <view class="card service-info">
+    <text class="service-name">{{service.name}}</text>
+    <text class="service-subtitle">{{service.subtitle}}</text>
+    <view class="price-row">
+      <text class="price">¥{{service.price}}</text>
+      <text class="original-price" wx:if="{{service.originalPrice}}">¥{{service.originalPrice}}</text>
+      <text class="unit">/{{service.unit}}</text>
+    </view>
+    <view class="stats-row">
+      <text>已售 {{service.salesCount}}</text>
+      <text>{{service.rating}}分</text>
+    </view>
+  </view>
+
+  <!-- 商家信息 -->
+  <view class="card merchant-card">
+    <view class="merchant-header">
+      <image src="{{service.merchant?.logoUrl}}" class="merchant-logo"></image>
+      <view class="merchant-info">
+        <text class="merchant-name">{{service.merchant?.name}}</text>
+        <text class="merchant-address">{{service.merchant?.district}} {{service.merchant?.address}}</text>
+      </view>
+    </view>
+    <view class="merchant-rating">
+      <text>评分 {{service.merchant?.rating}}</text>
+      <text>评价 {{service.merchant?.reviewCount}}</text>
+      <text>订单 {{service.merchant?.orderCount}}</text>
+    </view>
+  </view>
+
+  <!-- 服务详情 -->
+  <view class="card">
+    <view class="section-title">服务详情</view>
+    <view class="description">{{service.description}}</view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="bottom-bar">
+    <view class="quantity-selector">
+      <text>数量:</text>
+      <input type="number" value="{{quantity}}" bindinput="onQuantityChange" class="quantity-input" />
+    </view>
+    <button class="btn-primary book-btn" bindtap="onBookTap">立即预约</button>
+  </view>
+</view>

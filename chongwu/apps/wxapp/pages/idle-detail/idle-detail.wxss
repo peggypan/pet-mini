@@ -1,0 +1,138 @@
+.item-swiper {
+  height: 500rpx;
+  margin: -20rpx -20rpx 20rpx;
+}
+
+.swiper-image {
+  width: 100%;
+  height: 100%;
+}
+
+.price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.price {
+  font-size: 48rpx;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.original-price {
+  font-size: 28rpx;
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.item-title {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: var(--text-primary);
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.item-meta {
+  display: flex;
+  gap: 16rpx;
+}
+
+.condition-tag {
+  font-size: 24rpx;
+  color: var(--secondary);
+  background: rgba(78, 205, 196, 0.1);
+  padding: 4rpx 16rpx;
+  border-radius: 8rpx;
+}
+
+.trade-type {
+  font-size: 24rpx;
+  color: var(--primary);
+  background: rgba(255, 140, 66, 0.1);
+  padding: 4rpx 16rpx;
+  border-radius: 8rpx;
+}
+
+.seller-card {
+  padding: 24rpx;
+}
+
+.seller-header {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.seller-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: #eee;
+}
+
+.seller-info {
+  flex: 1;
+}
+
+.seller-name {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: var(--text-primary);
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.seller-location {
+  font-size: 24rpx;
+  color: var(--text-muted);
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16rpx;
+}
+
+.description {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 24rpx;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 16rpx 0;
+  border-top: 1rpx solid var(--border-color);
+  font-size: 28rpx;
+}
+
+.detail-row .label {
+  color: var(--text-secondary);
+}
+
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg-white);
+  padding: 20rpx 30rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  display: flex;
+  gap: 20rpx;
+  box-shadow: 0 -2rpx 10rpx rgba(0,0,0,0.05);
+}
+
+.contact-btn {
+  flex: 1;
+}
+
+.buy-btn {
+  flex: 2;
+}

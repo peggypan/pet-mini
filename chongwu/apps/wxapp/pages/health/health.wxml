@@ -1,0 +1,67 @@
+<view class="container">
+  <!-- Tab切换 -->
+  <view class="tabs">
+    <view class="tab {{activeTab === 'pets' ? 'active' : ''}}" bindtap="onTabTap" data-tab="pets">
+      我的宠物
+    </view>
+    <view class="tab {{activeTab === 'reminders' ? 'active' : ''}}" bindtap="onTabTap" data-tab="reminders">
+      到期提醒
+      <text class="badge" wx:if="{{reminders.length > 0}}">{{reminders.length}}</text>
+    </view>
+  </view>
+
+  <!-- 宠物列表 -->
+  <view wx:if="{{activeTab === 'pets'}}">
+    <view class="pet-list">
+      <view class="pet-card" wx:for="{{pets}}" wx:key="id" bindtap="onPetTap" data-id="{{item.id}}">
+        <image src="{{item.avatarUrl || '/assets/default-pet.png'}}" class="pet-avatar"></image>
+        <view class="pet-info">
+          <text class="pet-name">{{item.name}}</text>
+          <view class="pet-tags">
+            <text class="tag">{{item.species === 1 ? '🐱' : '🐶'}} {{item.breedName || '未知品种'}}</text>
+            <text class="tag" wx:if="{{item.gender === 1}}">♂</text>
+            <text class="tag" wx:if="{{item.gender === 2}}">♀</text>
+            <text class="tag" wx:if="{{item.isSterilized}}">已绝育</text>
+          </view>
+          <text class="pet-birthday" wx:if="{{item.birthday}}">{{item.birthday}}</text>
+        </view>
+        <view class="pet-actions">
+          <button class="btn-small" bindtap="onAddRecord" data-pet-id="{{item.id}}">+记录</button>
+        </view>
+      </view>
+    </view>
+
+    <view class="empty-state" wx:if="{{pets.length === 0}}">
+      <text>还没有添加宠物</text>
+      <button class="btn-primary" bindtap="onAddPet">添加宠物</button>
+    </view>
+  </view>
+
+  <!-- 提醒列表 -->
+  <view wx:if="{{activeTab === 'reminders'}}">
+    <view class="reminder-list">
+      <view class="reminder-card" wx:for="{{reminders}}" wx:key="id">
+        <view class="reminder-header">
+          <image src="{{item.pet?.avatarUrl}}" class="reminder-pet-avatar"></image>
+          <view class="reminder-info">
+            <text class="pet-name">{{item.pet?.name}}</text>
+            <text class="item-name">{{item.itemName}}</text>
+          </view>
+        </view>
+        <view class="reminder-footer">
+          <text class="expire-date">到期时间: {{item.validUntil}}</text>
+          <text class="days-left">还有 {{Math.ceil((new Date(item.validUntil) - new Date()) / (1000 * 60 * 60 * 24))}} 天</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="empty-state" wx:if="{{reminders.length === 0}}">
+      <text>暂无到期提醒</text>
+    </view>
+  </view>
+
+  <!-- 添加宠物按钮 -->
+  <view class="fab" bindtap="onAddPet" wx:if="{{activeTab === 'pets'}}">
+    <text>+</text>
+  </view>
+</view>

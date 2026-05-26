@@ -1,0 +1,98 @@
+.pet-header {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.pet-avatar-large {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 50%;
+  background: #eee;
+}
+
+.pet-detail {
+  flex: 1;
+}
+
+.pet-detail .pet-name {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: block;
+  margin-bottom: 12rpx;
+}
+
+.pet-meta {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+}
+
+.record-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.record-item {
+  background: var(--bg-primary);
+  border-radius: 12rpx;
+  padding: 20rpx;
+}
+
+.record-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.record-type {
+  font-size: 26rpx;
+  color: var(--primary);
+  font-weight: 500;
+  background: rgba(255, 140, 66, 0.1);
+  padding: 4rpx 16rpx;
+  border-radius: 8rpx;
+}
+
+.record-date {
+  font-size: 24rpx;
+  color: var(--text-muted);
+}
+
+.record-name {
+  font-size: 30rpx;
+  color: var(--text-primary);
+  font-weight: 500;
+  display: block;
+  margin-bottom: 12rpx;
+}
+
+.record-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 24rpx;
+  color: var(--text-secondary);
+}
+
+.valid-date {
+  color: var(--secondary);
+}
+
+.cost {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.form-actions {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 40rpx;
+}
+
+.form-actions button {
+  flex: 1;
+  margin: 0;
+}

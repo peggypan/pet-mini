@@ -1,0 +1,46 @@
+<view class="container" wx:if="{{item}}">
+  <view class="card">
+    <view class="item-summary">
+      <image src="{{item.images[0]}}" class="item-thumb"></image>
+      <view class="item-info">
+        <text class="item-title">{{item.title}}</text>
+        <text class="item-price">¥{{item.price}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">交易信息</view>
+    
+    <view class="form-item">
+      <text class="label">交易方式</text>
+      <picker bindchange="onDeliveryTypeChange" range="{{['自提', '同城快递']}}">
+        <view class="picker">
+          <text>{{['自提', '同城快递'][deliveryType - 1]}}</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="label">地址/备注</text>
+      <textarea value="{{address}}" bindinput="onInputChange" placeholder="自提请填写见面地点，快递请填写收货地址" />
+    </view>
+  </view>
+
+  <view class="card price-card">
+    <view class="price-row">
+      <text>商品价格</text>
+      <text>¥{{item.price}}</text>
+    </view>
+    <view class="price-row">
+      <text>平台担保费</text>
+      <text>¥{{(item.price * 0.05).toFixed(2)}}</text>
+    </view>
+    <view class="total-row">
+      <text>合计</text>
+      <text class="total-price">¥{{item.price}}</text>
+    </view>
+  </view>
+
+  <button class="btn-primary submit-btn" bindtap="onSubmit">确认下单</button>
+</view>

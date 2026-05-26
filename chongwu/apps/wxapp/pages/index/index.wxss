@@ -1,0 +1,143 @@
+.banner {
+  margin: -20rpx -20rpx 20rpx;
+  height: 300rpx;
+}
+
+.banner-swiper {
+  height: 100%;
+}
+
+.banner-image {
+  width: 100%;
+  height: 100%;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20rpx;
+  padding: 30rpx 20rpx;
+}
+
+.category-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20rpx 0;
+}
+
+.category-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF8C42, #FFB380);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  margin-bottom: 12rpx;
+}
+
+.category-name {
+  font-size: 26rpx;
+  color: var(--text-primary);
+}
+
+.section-header {
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.service-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.service-item {
+  display: flex;
+  gap: 20rpx;
+  padding: 16rpx;
+  background: var(--bg-primary);
+  border-radius: 12rpx;
+}
+
+.service-cover {
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: 12rpx;
+  background: #eee;
+}
+
+.service-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.service-name {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.service-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.service-merchant {
+  font-size: 24rpx;
+  color: var(--text-muted);
+}
+
+.service-price {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.idle-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20rpx;
+}
+
+.idle-item {
+  background: var(--bg-primary);
+  border-radius: 12rpx;
+  overflow: hidden;
+}
+
+.idle-image {
+  width: 100%;
+  height: 240rpx;
+  background: #eee;
+}
+
+.idle-info {
+  padding: 16rpx;
+}
+
+.idle-title {
+  font-size: 28rpx;
+  color: var(--text-primary);
+  display: block;
+  margin-bottom: 8rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.idle-price {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--primary);
+}

@@ -1,0 +1,644 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             BigInt   @id @default(autoincrement())
+  openid         String   @unique @db.VarChar(100)
+  unionid        String?  @db.VarChar(100)
+  nickname       String?  @db.VarChar(100)
+  avatarUrl      String?
+  phone          String?  @db.VarChar(20)
+  phoneEncrypted String?  @db.VarChar(255)
+  realName       String?  @db.VarChar(100)
+  idNumber       String?  @db.VarChar(50)
+  idVerified     Boolean  @default(false)
+  gender         Int?     @db.SmallInt
+  birthday       DateTime? @db.Date
+  city           String?  @db.VarChar(50)
+  district       String?  @db.VarChar(50)
+  address        String?
+  longitude      Decimal? @db.Decimal(10, 7)
+  latitude       Decimal? @db.Decimal(10, 7)
+  memberLevel    Int      @default(0) @db.SmallInt
+  memberExpireAt DateTime? @db.Timestamptz()
+  status         Int      @default(1) @db.SmallInt
+  lastLoginAt    DateTime? @db.Timestamptz()
+  createdAt      DateTime @default(now()) @db.Timestamptz()
+  updatedAt      DateTime @updatedAt @db.Timestamptz()
+  deletedAt      DateTime? @db.Timestamptz()
+
+  addresses      UserAddress[]
+  pets           Pet[]
+  healthRecords  HealthRecord[]
+  merchants      Merchant[]
+  serviceOrders  ServiceOrder[]
+  productOrders  ProductOrder[]
+  idleItems      IdleItem[]
+  idleOrdersBuyer IdleOrder[] @relation("Buyer")
+  idleOrdersSeller IdleOrder[] @relation("Seller")
+  posts          Post[]
+  messages       Message[]
+  coupons        UserCoupon[]
+  memberships    Membership[]
+
+  @@index([openid])
+  @@index([phone])
+  @@index([city])
+  @@index([status])
+  @@map("users")
+}
+
+model UserAddress {
+  id           BigInt   @id @default(autoincrement())
+  userId       BigInt   @map("user_id")
+  contactName  String   @db.VarChar(100)
+  contactPhone String   @db.VarChar(20)
+  province     String   @db.VarChar(50)
+  city         String   @db.VarChar(50)
+  district     String   @db.VarChar(50)
+  detail       String
+  longitude    Decimal? @db.Decimal(10, 7)
+  latitude     Decimal? @db.Decimal(10, 7)
+  isDefault    Boolean  @default(false) @map("is_default")
+  tag          String?  @db.VarChar(20)
+  createdAt    DateTime @default(now()) @db.Timestamptz()
+  updatedAt    DateTime @updatedAt @db.Timestamptz()
+  deletedAt    DateTime? @db.Timestamptz()
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_addresses")
+}
+
+model Pet {
+  id             BigInt   @id @default(autoincrement())
+  userId         BigInt   @map("user_id")
+  name           String   @db.VarChar(100)
+  avatarUrl      String?
+  species        Int      @db.SmallInt
+  breedId        Int?     @map("breed_id")
+  breedName      String?  @db.VarChar(100)
+  gender         Int?     @db.SmallInt
+  birthday       DateTime? @db.Date
+  weight         Decimal? @db.Decimal(5, 2)
+  color          String?  @db.VarChar(100)
+  isSterilized   Boolean  @default(false) @map("is_sterilized")
+  microchip      String?  @db.VarChar(100)
+  medicalHistory String?  @map("medical_history")
+  allergyInfo    String?  @map("allergy_info")
+  remark         String?
+  status         Int      @default(1) @db.SmallInt
+  createdAt      DateTime @default(now()) @db.Timestamptz()
+  updatedAt      DateTime @updatedAt @db.Timestamptz()
+  deletedAt      DateTime? @db.Timestamptz()
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  healthRecords HealthRecord[]
+
+  @@index([userId])
+  @@map("pets")
+}
+
+model HealthRecord {
+  id           BigInt   @id @default(autoincrement())
+  petId        BigInt   @map("pet_id")
+  userId       BigInt   @map("user_id")
+  recordType   Int      @db.SmallInt @map("record_type")
+  itemName     String   @db.VarChar(200) @map("item_name")
+  itemBrand    String?  @db.VarChar(100) @map("item_brand")
+  itemBatch    String?  @db.VarChar(100) @map("item_batch")
+  doneAt       DateTime @db.Date @map("done_at")
+  validUntil   DateTime? @db.Date @map("valid_until")
+  clinicName   String?  @db.VarChar(200) @map("clinic_name")
+  doctorName   String?  @db.VarChar(100) @map("doctor_name")
+  cost         Decimal? @db.Decimal(10, 2)
+  photos       String[]
+  remark       String?
+  remindBefore Int      @default(7) @map("remind_before")
+  reminded     Boolean  @default(false)
+  createdAt    DateTime @default(now()) @db.Timestamptz()
+  updatedAt    DateTime @updatedAt @db.Timestamptz()
+  deletedAt    DateTime? @db.Timestamptz()
+
+  pet  Pet  @relation(fields: [petId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([petId])
+  @@index([userId])
+  @@index([recordType])
+  @@map("health_records")
+}
+
+model Merchant {
+  id                 BigInt   @id @default(autoincrement())
+  userId             BigInt   @map("user_id")
+  name               String   @db.VarChar(200)
+  logoUrl            String?
+  coverUrl           String?
+  type               Int      @db.SmallInt
+  description        String?
+  contactName        String?  @db.VarChar(100)
+  contactPhone       String?  @db.VarChar(20)
+  businessLicense    String?  @db.VarChar(100) @map("business_license")
+  businessLicenseUrl String?  @map("business_license_url")
+  qualificationUrls  String[] @map("qualification_urls")
+  province           String?  @db.VarChar(50)
+  city               String?  @default("北京市") @db.VarChar(50)
+  district           String   @db.VarChar(50)
+  address            String
+  longitude          Decimal? @db.Decimal(10, 7)
+  latitude           Decimal? @db.Decimal(10, 7)
+  businessHours      Json?    @map("business_hours")
+  rating             Decimal  @default(5.0) @db.Decimal(2, 1)
+  reviewCount        Int      @default(0) @map("review_count")
+  orderCount         Int      @default(0) @map("order_count")
+  serviceTypes       Int[]    @map("service_types")
+  hasMall            Boolean  @default(false) @map("has_mall")
+  status             Int      @default(0) @db.SmallInt
+  rejectReason       String?  @map("reject_reason")
+  commissionRate     Decimal  @default(0.10) @db.Decimal(4, 2) @map("commission_rate")
+  annualFee          Decimal  @default(0) @db.Decimal(10, 2) @map("annual_fee")
+  annualFeeExpireAt  DateTime? @db.Timestamptz() @map("annual_fee_expire_at")
+  createdAt          DateTime @default(now()) @db.Timestamptz()
+  updatedAt          DateTime @updatedAt @db.Timestamptz()
+  deletedAt          DateTime? @db.Timestamptz()
+
+  user     User      @relation(fields: [userId], references: [id])
+  services Service[]
+  products Product[]
+
+  @@index([userId])
+  @@index([city])
+  @@index([district])
+  @@index([status])
+  @@map("merchants")
+}
+
+model Service {
+  id              BigInt   @id @default(autoincrement())
+  merchantId      BigInt   @map("merchant_id")
+  categoryId      Int      @map("category_id")
+  name            String   @db.VarChar(200)
+  subtitle        String?  @db.VarChar(500)
+  description     String?
+  coverUrls       String[] @map("cover_urls")
+  detailImages    String[] @map("detail_images")
+  price           Decimal  @db.Decimal(10, 2)
+  originalPrice   Decimal? @db.Decimal(10, 2) @map("original_price")
+  unit            String   @default("次") @db.VarChar(20)
+  duration        Int?
+  serviceArea     Json?    @map("service_area")
+  needAddress     Boolean  @default(true) @map("need_address")
+  needAppointment Boolean  @default(true) @map("need_appointment")
+  availableTimes  Json?    @map("available_times")
+  salesCount      Int      @default(0) @map("sales_count")
+  rating          Decimal  @default(5.0) @db.Decimal(2, 1)
+  reviewCount     Int      @default(0) @map("review_count")
+  sortOrder       Int      @default(0) @map("sort_order")
+  status          Int      @default(1) @db.SmallInt
+  createdAt       DateTime @default(now()) @db.Timestamptz()
+  updatedAt       DateTime @updatedAt @db.Timestamptz()
+  deletedAt       DateTime? @db.Timestamptz()
+
+  merchant      Merchant       @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  orders        ServiceOrder[]
+
+  @@index([merchantId])
+  @@index([categoryId])
+  @@index([status])
+  @@map("services")
+}
+
+model ServiceOrder {
+  id              BigInt   @id @default(autoincrement())
+  orderNo         String   @unique @db.VarChar(32) @map("order_no")
+  userId          BigInt   @map("user_id")
+  merchantId      BigInt   @map("merchant_id")
+  serviceId       BigInt   @map("service_id")
+  serviceName     String?  @db.VarChar(200) @map("service_name")
+  servicePrice    Decimal? @db.Decimal(10, 2) @map("service_price")
+  quantity        Int      @default(1)
+  totalAmount     Decimal  @db.Decimal(10, 2) @map("total_amount")
+  discountAmount  Decimal  @default(0) @db.Decimal(10, 2) @map("discount_amount")
+  payAmount       Decimal  @db.Decimal(10, 2) @map("pay_amount")
+  platformFee     Decimal  @default(0) @db.Decimal(10, 2) @map("platform_fee")
+  merchantAmount  Decimal  @default(0) @db.Decimal(10, 2) @map("merchant_amount")
+  couponId        BigInt?  @map("coupon_id")
+  couponAmount    Decimal  @default(0) @db.Decimal(10, 2) @map("coupon_amount")
+  petId           BigInt?  @map("pet_id")
+  contactName     String?  @db.VarChar(100) @map("contact_name")
+  contactPhone    String?  @db.VarChar(20) @map("contact_phone")
+  addressId       BigInt?  @map("address_id")
+  address         String?
+  longitude       Decimal? @db.Decimal(10, 7)
+  latitude        Decimal? @db.Decimal(10, 7)
+  appointmentDate DateTime? @db.Date @map("appointment_date")
+  appointmentTime String?  @db.VarChar(20) @map("appointment_time")
+  remark          String?
+  merchantRemark  String?  @map("merchant_remark")
+  status          Int      @default(0) @db.SmallInt
+  paidAt          DateTime? @db.Timestamptz() @map("paid_at")
+  acceptedAt      DateTime? @db.Timestamptz() @map("accepted_at")
+  startedAt       DateTime? @db.Timestamptz() @map("started_at")
+  completedAt     DateTime? @db.Timestamptz() @map("completed_at")
+  cancelledAt     DateTime? @db.Timestamptz() @map("cancelled_at")
+  cancelReason    String?  @map("cancel_reason")
+  refundAmount    Decimal? @db.Decimal(10, 2) @map("refund_amount")
+  refundReason    String?  @map("refund_reason")
+  refundAt        DateTime? @db.Timestamptz() @map("refund_at")
+  createdAt       DateTime @default(now()) @db.Timestamptz()
+  updatedAt       DateTime @updatedAt @db.Timestamptz()
+  deletedAt       DateTime? @db.Timestamptz()
+
+  user     User     @relation(fields: [userId], references: [id])
+  merchant Merchant @relation(fields: [merchantId], references: [id])
+  service  Service  @relation(fields: [serviceId], references: [id])
+
+  @@index([orderNo])
+  @@index([userId])
+  @@index([merchantId])
+  @@index([status])
+  @@map("service_orders")
+}
+
+model Product {
+  id            BigInt   @id @default(autoincrement())
+  merchantId    BigInt   @map("merchant_id")
+  categoryId    Int      @map("category_id")
+  name          String   @db.VarChar(200)
+  subtitle      String?  @db.VarChar(500)
+  description   String?
+  detailHtml    String?  @map("detail_html")
+  coverUrls     String[] @map("cover_urls")
+  videoUrl      String?  @map("video_url")
+  brand         String?  @db.VarChar(100)
+  origin        String?  @db.VarChar(100)
+  weightInfo    String?  @db.VarChar(100) @map("weight_info")
+  deliveryType  Int      @default(1) @db.SmallInt @map("delivery_type")
+  salesCount    Int      @default(0) @map("sales_count")
+  rating        Decimal  @default(5.0) @db.Decimal(2, 1)
+  reviewCount   Int      @default(0) @map("review_count")
+  status        Int      @default(0) @db.SmallInt
+  rejectReason  String?  @map("reject_reason")
+  isTop         Boolean  @default(false) @map("is_top")
+  topExpireAt   DateTime? @db.Timestamptz() @map("top_expire_at")
+  sortOrder     Int      @default(0) @map("sort_order")
+  createdAt     DateTime @default(now()) @db.Timestamptz()
+  updatedAt     DateTime @updatedAt @db.Timestamptz()
+  deletedAt     DateTime? @db.Timestamptz()
+
+  merchant Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  skus     ProductSku[]
+
+  @@index([merchantId])
+  @@index([categoryId])
+  @@index([status])
+  @@map("products")
+}
+
+model ProductSku {
+  id             BigInt   @id @default(autoincrement())
+  productId      BigInt   @map("product_id")
+  skuCode        String?  @db.VarChar(100) @map("sku_code")
+  specs          Json
+  price          Decimal  @db.Decimal(10, 2)
+  originalPrice  Decimal? @db.Decimal(10, 2) @map("original_price")
+  stock          Int      @default(0)
+  salesCount     Int      @default(0) @map("sales_count")
+  imageUrl       String?  @map("image_url")
+  status         Int      @default(1) @db.SmallInt
+  createdAt      DateTime @default(now()) @db.Timestamptz()
+  updatedAt      DateTime @updatedAt @db.Timestamptz()
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_skus")
+}
+
+model ProductOrder {
+  id             BigInt   @id @default(autoincrement())
+  orderNo        String   @unique @db.VarChar(32) @map("order_no")
+  userId         BigInt   @map("user_id")
+  merchantId     BigInt   @map("merchant_id")
+  totalAmount    Decimal  @db.Decimal(10, 2) @map("total_amount")
+  discountAmount Decimal  @default(0) @db.Decimal(10, 2) @map("discount_amount")
+  deliveryFee    Decimal  @default(0) @db.Decimal(10, 2) @map("delivery_fee")
+  payAmount      Decimal  @db.Decimal(10, 2) @map("pay_amount")
+  platformFee    Decimal  @default(0) @db.Decimal(10, 2) @map("platform_fee")
+  merchantAmount Decimal  @default(0) @db.Decimal(10, 2) @map("merchant_amount")
+  couponId       BigInt?  @map("coupon_id")
+  couponAmount   Decimal  @default(0) @db.Decimal(10, 2) @map("coupon_amount")
+  deliveryType   Int      @db.SmallInt @map("delivery_type")
+  addressId      BigInt?  @map("address_id")
+  receiverName   String?  @db.VarChar(100) @map("receiver_name")
+  receiverPhone  String?  @db.VarChar(20) @map("receiver_phone")
+  address        String?
+  longitude      Decimal? @db.Decimal(10, 7)
+  latitude       Decimal? @db.Decimal(10, 7)
+  remark         String?
+  status         Int      @default(0) @db.SmallInt
+  paidAt         DateTime? @db.Timestamptz() @map("paid_at")
+  shippedAt      DateTime? @db.Timestamptz() @map("shipped_at")
+  receivedAt     DateTime? @db.Timestamptz() @map("received_at")
+  completedAt    DateTime? @db.Timestamptz() @map("completed_at")
+  cancelledAt    DateTime? @db.Timestamptz() @map("cancelled_at")
+  cancelReason   String?  @map("cancel_reason")
+  refundAmount   Decimal? @db.Decimal(10, 2) @map("refund_amount")
+  refundReason   String?  @map("refund_reason")
+  refundAt       DateTime? @db.Timestamptz() @map("refund_at")
+  createdAt      DateTime @default(now()) @db.Timestamptz()
+  updatedAt      DateTime @updatedAt @db.Timestamptz()
+  deletedAt      DateTime? @db.Timestamptz()
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([orderNo])
+  @@index([userId])
+  @@index([merchantId])
+  @@index([status])
+  @@map("product_orders")
+}
+
+model OrderItem {
+  id          BigInt   @id @default(autoincrement())
+  orderId     BigInt   @map("order_id")
+  productId   BigInt   @map("product_id")
+  skuId       BigInt   @map("sku_id")
+  productName String?  @db.VarChar(200) @map("product_name")
+  skuSpecs    Json?    @map("sku_specs")
+  skuImage    String?  @map("sku_image")
+  price       Decimal  @db.Decimal(10, 2)
+  quantity    Int
+  totalAmount Decimal  @db.Decimal(10, 2) @map("total_amount")
+  createdAt   DateTime @default(now()) @db.Timestamptz()
+
+  @@index([orderId])
+  @@index([productId])
+  @@map("order_items")
+}
+
+model IdleItem {
+  id             BigInt   @id @default(autoincrement())
+  userId         BigInt   @map("user_id")
+  categoryId     Int      @map("category_id")
+  title          String   @db.VarChar(200)
+  description    String?
+  images         String[]
+  price          Decimal  @db.Decimal(10, 2)
+  originalPrice  Decimal? @db.Decimal(10, 2) @map("original_price")
+  conditionLevel Int      @db.SmallInt @map("condition_level")
+  usageDesc      String?  @map("usage_desc")
+  tradeType      Int      @default(1) @db.SmallInt @map("trade_type")
+  location       String?
+  district       String?  @db.VarChar(50)
+  longitude      Decimal? @db.Decimal(10, 7)
+  latitude       Decimal? @db.Decimal(10, 7)
+  viewCount      Int      @default(0) @map("view_count")
+  collectCount   Int      @default(0) @map("collect_count")
+  isTop          Boolean  @default(false) @map("is_top")
+  topExpireAt    DateTime? @db.Timestamptz() @map("top_expire_at")
+  status         Int      @default(0) @db.SmallInt
+  soldAt         DateTime? @db.Timestamptz() @map("sold_at")
+  createdAt      DateTime @default(now()) @db.Timestamptz()
+  updatedAt      DateTime @updatedAt @db.Timestamptz()
+  deletedAt      DateTime? @db.Timestamptz()
+
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders IdleOrder[]
+
+  @@index([userId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([district])
+  @@map("idle_items")
+}
+
+model IdleOrder {
+  id           BigInt   @id @default(autoincrement())
+  orderNo      String   @unique @db.VarChar(32) @map("order_no")
+  buyerId      BigInt   @map("buyer_id")
+  sellerId     BigInt   @map("seller_id")
+  idleItemId   BigInt   @map("idle_item_id")
+  itemTitle    String?  @db.VarChar(200) @map("item_title")
+  itemPrice    Decimal? @db.Decimal(10, 2) @map("item_price")
+  totalAmount  Decimal  @db.Decimal(10, 2) @map("total_amount")
+  platformFee  Decimal  @default(0) @db.Decimal(10, 2) @map("platform_fee")
+  payAmount    Decimal  @db.Decimal(10, 2) @map("pay_amount")
+  sellerAmount Decimal  @db.Decimal(10, 2) @map("seller_amount")
+  deliveryType Int      @db.SmallInt @map("delivery_type")
+  address      String?
+  trackingNo   String?  @db.VarChar(100) @map("tracking_no")
+  status       Int      @default(0) @db.SmallInt
+  paidAt       DateTime? @db.Timestamptz() @map("paid_at")
+  shippedAt    DateTime? @db.Timestamptz() @map("shipped_at")
+  receivedAt   DateTime? @db.Timestamptz() @map("received_at")
+  completedAt  DateTime? @db.Timestamptz() @map("completed_at")
+  refundReason String?  @map("refund_reason")
+  refundAt     DateTime? @db.Timestamptz() @map("refund_at")
+  createdAt    DateTime @default(now()) @db.Timestamptz()
+  updatedAt    DateTime @updatedAt @db.Timestamptz()
+  deletedAt    DateTime? @db.Timestamptz()
+
+  buyer    User     @relation("Buyer", fields: [buyerId], references: [id])
+  seller   User     @relation("Seller", fields: [sellerId], references: [id])
+  idleItem IdleItem @relation(fields: [idleItemId], references: [id])
+
+  @@index([orderNo])
+  @@index([buyerId])
+  @@index([sellerId])
+  @@index([status])
+  @@map("idle_orders")
+}
+
+model Post {
+  id          BigInt   @id @default(autoincrement())
+  userId      BigInt   @map("user_id")
+  type        Int      @default(1) @db.SmallInt
+  content     String
+  images      String[]
+  videoUrl    String?  @map("video_url")
+  location    String?
+  longitude   Decimal? @db.Decimal(10, 7)
+  latitude    Decimal? @db.Decimal(10, 7)
+  likeCount   Int      @default(0) @map("like_count")
+  commentCount Int     @default(0) @map("comment_count")
+  shareCount  Int      @default(0) @map("share_count")
+  viewCount   Int      @default(0) @map("view_count")
+  isTop       Boolean  @default(false) @map("is_top")
+  status      Int      @default(1) @db.SmallInt
+  createdAt   DateTime @default(now()) @db.Timestamptz()
+  updatedAt   DateTime @updatedAt @db.Timestamptz()
+  deletedAt   DateTime? @db.Timestamptz()
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+  @@map("posts")
+}
+
+model Message {
+  id         BigInt   @id @default(autoincrement())
+  userId     BigInt   @map("user_id")
+  type       Int      @db.SmallInt
+  title      String   @db.VarChar(200)
+  content    String?
+  data       Json?
+  isRead     Boolean  @default(false) @map("is_read")
+  readAt     DateTime? @db.Timestamptz() @map("read_at")
+  senderId   BigInt?  @map("sender_id")
+  senderType Int      @default(1) @db.SmallInt @map("sender_type")
+  createdAt  DateTime @default(now()) @db.Timestamptz()
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([type])
+  @@map("messages")
+}
+
+model Coupon {
+  id                BigInt   @id @default(autoincrement())
+  code              String?  @unique @db.VarChar(50)
+  name              String   @db.VarChar(200)
+  type              Int      @db.SmallInt
+  merchantId        BigInt?  @map("merchant_id")
+  scope             Int      @db.SmallInt
+  targetIds         BigInt[] @map("target_ids")
+  discountType      Int      @db.SmallInt @map("discount_type")
+  thresholdAmount   Decimal? @db.Decimal(10, 2) @map("threshold_amount")
+  discountAmount    Decimal? @db.Decimal(10, 2) @map("discount_amount")
+  discountPercent   Decimal? @db.Decimal(3, 2) @map("discount_percent")
+  maxDiscount       Decimal? @db.Decimal(10, 2) @map("max_discount")
+  totalQuantity     Int      @map("total_quantity")
+  remainingQuantity Int      @map("remaining_quantity")
+  perUserLimit      Int      @default(1) @map("per_user_limit")
+  startAt           DateTime? @db.Timestamptz() @map("start_at")
+  endAt             DateTime? @db.Timestamptz() @map("end_at")
+  status            Int      @default(1) @db.SmallInt
+  createdAt         DateTime @default(now()) @db.Timestamptz()
+  updatedAt         DateTime @updatedAt @db.Timestamptz()
+  deletedAt         DateTime? @db.Timestamptz()
+
+  userCoupons UserCoupon[]
+
+  @@index([status])
+  @@map("coupons")
+}
+
+model UserCoupon {
+  id         BigInt   @id @default(autoincrement())
+  userId     BigInt   @map("user_id")
+  couponId   BigInt   @map("coupon_id")
+  status     Int      @default(0) @db.SmallInt
+  usedAt     DateTime? @db.Timestamptz() @map("used_at")
+  usedOrderNo String? @db.VarChar(32) @map("used_order_no")
+  expireAt   DateTime? @db.Timestamptz() @map("expire_at")
+  createdAt  DateTime @default(now()) @db.Timestamptz()
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  coupon Coupon @relation(fields: [couponId], references: [id])
+
+  @@unique([userId, couponId])
+  @@index([userId])
+  @@index([status])
+  @@map("user_coupons")
+}
+
+model Membership {
+  id           BigInt   @id @default(autoincrement())
+  userId       BigInt   @map("user_id")
+  type         Int      @default(1) @db.SmallInt
+  durationType Int      @db.SmallInt @map("duration_type")
+  price        Decimal  @db.Decimal(10, 2)
+  payAmount    Decimal  @db.Decimal(10, 2) @map("pay_amount")
+  startAt      DateTime @db.Timestamptz() @map("start_at")
+  endAt        DateTime @db.Timestamptz() @map("end_at")
+  autoRenew    Boolean  @default(false) @map("auto_renew")
+  status       Int      @default(1) @db.SmallInt
+  cancelledAt  DateTime? @db.Timestamptz() @map("cancelled_at")
+  createdAt    DateTime @default(now()) @db.Timestamptz()
+  updatedAt    DateTime @updatedAt @db.Timestamptz()
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@map("memberships")
+}
+
+model Transaction {
+  id            BigInt   @id @default(autoincrement())
+  transactionNo String   @unique @db.VarChar(32) @map("transaction_no")
+  userId        BigInt   @map("user_id")
+  merchantId    BigInt?  @map("merchant_id")
+  orderNo       String?  @db.VarChar(32) @map("order_no")
+  orderType     Int?     @db.SmallInt @map("order_type")
+  type          Int      @db.SmallInt
+  channel       Int      @default(1) @db.SmallInt
+  amount        Decimal  @db.Decimal(10, 2)
+  fee           Decimal  @default(0) @db.Decimal(10, 2)
+  status        Int      @default(0) @db.SmallInt
+  thirdPartyNo  String?  @db.VarChar(100) @map("third_party_no")
+  remark        String?
+  createdAt     DateTime @default(now()) @db.Timestamptz()
+  updatedAt     DateTime @updatedAt @db.Timestamptz()
+
+  @@index([userId])
+  @@index([orderNo])
+  @@index([type])
+  @@index([createdAt])
+  @@map("transactions")
+}
+
+model Banner {
+  id        Int      @id @default(autoincrement())
+  title     String?  @db.VarChar(200)
+  imageUrl  String   @map("image_url")
+  linkType  Int      @default(1) @db.SmallInt @map("link_type")
+  linkUrl   String?  @map("link_url")
+  targetId  BigInt?  @map("target_id")
+  sortOrder Int      @default(0) @map("sort_order")
+  startAt   DateTime? @db.Timestamptz() @map("start_at")
+  endAt     DateTime? @db.Timestamptz() @map("end_at")
+  status    Int      @default(1) @db.SmallInt
+  createdAt DateTime @default(now()) @db.Timestamptz()
+  updatedAt DateTime @updatedAt @db.Timestamptz()
+
+  @@index([status])
+  @@index([sortOrder])
+  @@map("banners")
+}
+
+model AppConfig {
+  id          Int      @id @default(autoincrement())
+  configKey   String   @unique @db.VarChar(100) @map("config_key")
+  configValue String?  @map("config_value")
+  description String?  @db.VarChar(500)
+  updatedAt   DateTime @updatedAt @db.Timestamptz()
+
+  @@map("app_configs")
+}
+
+model Region {
+  id         Int      @id @default(autoincrement())
+  code       String   @db.VarChar(20)
+  name       String   @db.VarChar(50)
+  parentCode String?  @db.VarChar(20) @map("parent_code")
+  level      Int      @db.SmallInt
+  sortOrder  Int      @default(0) @map("sort_order")
+  status     Int      @default(1) @db.SmallInt
+
+  @@map("regions")
+}

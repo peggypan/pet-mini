@@ -1,0 +1,137 @@
+import { PrismaService } from '../../prisma/prisma.service';
+export declare class AdminService {
+    private prisma;
+    constructor(prisma: PrismaService);
+    getDashboard(): Promise<{
+        userCount: number;
+        merchantCount: number;
+        serviceOrderCount: number;
+        idleOrderCount: number;
+        petCount: number;
+    }>;
+    getMerchants(query: any): Promise<{
+        list: ({
+            user: {
+                nickname: string;
+                phone: string;
+            };
+        } & {
+            city: string | null;
+            district: string;
+            address: string;
+            status: number;
+            createdAt: Date;
+            updatedAt: Date;
+            id: number;
+            name: string;
+            logoUrl: string | null;
+            coverUrl: string | null;
+            type: number;
+            description: string | null;
+            contactName: string | null;
+            contactPhone: string | null;
+            businessLicense: string | null;
+            businessLicenseUrl: string | null;
+            qualificationUrls: string;
+            province: string | null;
+            longitude: number | null;
+            latitude: number | null;
+            businessHours: string | null;
+            rating: number;
+            reviewCount: number;
+            orderCount: number;
+            serviceTypes: string;
+            hasMall: boolean;
+            rejectReason: string | null;
+            commissionRate: number;
+            annualFee: number;
+            annualFeeExpireAt: Date | null;
+            userId: number;
+        })[];
+        pagination: {
+            page: number;
+            pageSize: number;
+            total: number;
+        };
+    }>;
+    auditMerchant(id: number, dto: any): Promise<{
+        city: string | null;
+        district: string;
+        address: string;
+        status: number;
+        createdAt: Date;
+        updatedAt: Date;
+        id: number;
+        name: string;
+        logoUrl: string | null;
+        coverUrl: string | null;
+        type: number;
+        description: string | null;
+        contactName: string | null;
+        contactPhone: string | null;
+        businessLicense: string | null;
+        businessLicenseUrl: string | null;
+        qualificationUrls: string;
+        province: string | null;
+        longitude: number | null;
+        latitude: number | null;
+        businessHours: string | null;
+        rating: number;
+        reviewCount: number;
+        orderCount: number;
+        serviceTypes: string;
+        hasMall: boolean;
+        rejectReason: string | null;
+        commissionRate: number;
+        annualFee: number;
+        annualFeeExpireAt: Date | null;
+        userId: number;
+    }>;
+    getOrders(query: any): Promise<{
+        list: {
+            address: string | null;
+            status: number;
+            createdAt: Date;
+            updatedAt: Date;
+            id: number;
+            contactName: string | null;
+            contactPhone: string | null;
+            longitude: number | null;
+            latitude: number | null;
+            userId: number;
+            merchantId: number;
+            orderNo: string;
+            serviceName: string | null;
+            servicePrice: number | null;
+            quantity: number;
+            totalAmount: number;
+            discountAmount: number;
+            payAmount: number;
+            platformFee: number;
+            merchantAmount: number;
+            couponId: number | null;
+            couponAmount: number;
+            petId: number | null;
+            addressId: number | null;
+            appointmentDate: string | null;
+            appointmentTime: string | null;
+            remark: string | null;
+            merchantRemark: string | null;
+            paidAt: Date | null;
+            acceptedAt: Date | null;
+            startedAt: Date | null;
+            completedAt: Date | null;
+            cancelledAt: Date | null;
+            cancelReason: string | null;
+            refundAmount: number | null;
+            refundReason: string | null;
+            refundAt: Date | null;
+            serviceId: number;
+        }[];
+        pagination: {
+            page: number;
+            pageSize: number;
+            total: number;
+        };
+    }>;
+}

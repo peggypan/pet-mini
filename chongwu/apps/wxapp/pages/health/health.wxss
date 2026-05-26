@@ -1,0 +1,204 @@
+.tabs {
+  display: flex;
+  background: var(--bg-white);
+  border-radius: 16rpx;
+  margin-bottom: 20rpx;
+  overflow: hidden;
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 24rpx 0;
+  font-size: 30rpx;
+  color: var(--text-secondary);
+  position: relative;
+}
+
+.tab.active {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60rpx;
+  height: 4rpx;
+  background: var(--primary);
+  border-radius: 2rpx;
+}
+
+.badge {
+  display: inline-block;
+  background: var(--danger);
+  color: white;
+  font-size: 22rpx;
+  padding: 2rpx 12rpx;
+  border-radius: 20rpx;
+  margin-left: 8rpx;
+}
+
+.pet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.pet-card {
+  background: var(--bg-white);
+  border-radius: 16rpx;
+  padding: 24rpx;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.pet-avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  background: #eee;
+}
+
+.pet-info {
+  flex: 1;
+}
+
+.pet-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: block;
+  margin-bottom: 12rpx;
+}
+
+.pet-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.tag {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  background: var(--bg-primary);
+  padding: 4rpx 16rpx;
+  border-radius: 8rpx;
+}
+
+.pet-birthday {
+  font-size: 24rpx;
+  color: var(--text-muted);
+  margin-top: 8rpx;
+  display: block;
+}
+
+.pet-actions {
+  display: flex;
+  gap: 12rpx;
+}
+
+.btn-small {
+  background: var(--primary);
+  color: white;
+  font-size: 24rpx;
+  padding: 8rpx 20rpx;
+  border-radius: 8rpx;
+  border: none;
+}
+
+.btn-small::after {
+  border: none;
+}
+
+.reminder-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.reminder-card {
+  background: var(--bg-white);
+  border-radius: 16rpx;
+  padding: 24rpx;
+}
+
+.reminder-header {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-bottom: 16rpx;
+}
+
+.reminder-pet-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: #eee;
+}
+
+.reminder-info {
+  flex: 1;
+}
+
+.reminder-info .pet-name {
+  font-size: 30rpx;
+  margin-bottom: 4rpx;
+}
+
+.item-name {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+}
+
+.reminder-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16rpx;
+  border-top: 1rpx solid var(--border-color);
+}
+
+.expire-date {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+}
+
+.days-left {
+  font-size: 28rpx;
+  color: var(--danger);
+  font-weight: 500;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 120rpx 40rpx;
+}
+
+.empty-state text {
+  display: block;
+  font-size: 30rpx;
+  color: var(--text-muted);
+  margin-bottom: 40rpx;
+}
+
+.fab {
+  position: fixed;
+  right: 40rpx;
+  bottom: 120rpx;
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48rpx;
+  font-weight: 300;
+  box-shadow: 0 4rpx 20rpx rgba(255, 140, 66, 0.4);
+}

@@ -1,0 +1,78 @@
+<view class="container" wx:if="{{service}}">
+  <view class="card">
+    <view class="service-summary">
+      <image src="{{service.coverUrls[0]}}" class="service-thumb"></image>
+      <view class="service-info">
+        <text class="service-name">{{service.name}}</text>
+        <text class="service-price">¥{{service.price}} × {{quantity}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">预约信息</view>
+    
+    <view class="form-item">
+      <text class="label">选择宠物</text>
+      <picker bindchange="onPetSelect" value="{{selectedPetId}}" range="{{pets}}" range-key="name">
+        <view class="picker">
+          <text wx:if="{{selectedPetId}}">{{pets[pets.findIndex(p=>p.id==selectedPetId)]?.name}}</text>
+          <text wx:else class="placeholder">请选择宠物（可选）</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="label">联系人</text>
+      <input value="{{contactName}}" bindinput="onInputChange" data-field="contactName" placeholder="请输入联系人姓名" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">联系电话</text>
+      <input value="{{contactPhone}}" bindinput="onInputChange" data-field="contactPhone" placeholder="请输入联系电话" type="number" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">服务地址</text>
+      <picker bindchange="onAddressSelect" value="{{selectedAddressId}}" range="{{addresses}}" range-key="detail">
+        <view class="picker">
+          <text wx:if="{{selectedAddressId}}">{{addresses[addresses.findIndex(a=>a.id==selectedAddressId)]?.detail}}</text>
+          <text wx:else class="placeholder">请选择服务地址</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="label">预约日期</text>
+      <picker mode="date" bindchange="onDateChange">
+        <view class="picker">
+          <text wx:if="{{appointmentDate}}">{{appointmentDate}}</text>
+          <text wx:else class="placeholder">请选择预约日期</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="label">预约时段</text>
+      <picker mode="time" bindchange="onTimeChange">
+        <view class="picker">
+          <text wx:if="{{appointmentTime}}">{{appointmentTime}}</text>
+          <text wx:else class="placeholder">请选择预约时段</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="label">备注</text>
+      <textarea value="{{remark}}" bindinput="onInputChange" data-field="remark" placeholder="请输入备注信息（可选）" />
+    </view>
+  </view>
+
+  <view class="bottom-bar">
+    <view class="total-price">
+      <text>合计: </text>
+      <text class="price">¥{{service.price * quantity}}</text>
+    </view>
+    <button class="btn-primary submit-btn" bindtap="onSubmit">提交预约</button>
+  </view>
+</view>

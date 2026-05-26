@@ -1,4 +1,5 @@
-{
-  "id": "init",
-  "prev": null
-}
+# Please do not manually edit this file.
+# It should be added in your version-control system (e.g., Git).
+# This file is used to track the state of migrations.
+
+provider = "postgresql"

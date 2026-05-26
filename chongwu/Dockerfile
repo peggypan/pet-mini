@@ -8,7 +8,7 @@ WORKDIR /app
 COPY server/ ./
 
 # 安装依赖
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # 生成 Prisma 客户端
 RUN npx prisma generate

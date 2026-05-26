@@ -7,6 +7,8 @@ WORKDIR /app
 # 复制 server 目录内容
 COPY server/ ./
 
+RUN rm -f .env
+
 # 安装依赖
 RUN npm install --legacy-peer-deps
 

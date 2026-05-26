@@ -1,5 +1,5 @@
 # 使用 Node.js 官方镜像
-FROM node:20-alpine
+FROM node:20-slim
 
 # 设置工作目录
 WORKDIR /app

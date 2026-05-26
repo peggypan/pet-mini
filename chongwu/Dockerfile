@@ -11,8 +11,7 @@ COPY server/ ./
 
 RUN rm -f .env
 
-# 安装依赖
-RUN npm install --legacy-peer-deps
+RUN NODE_ENV=development npm install --legacy-peer-deps
 
 # 生成 Prisma 客户端
 RUN npx prisma generate

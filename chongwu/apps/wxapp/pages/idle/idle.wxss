@@ -197,7 +197,7 @@
 .fab {
   position: fixed;
   right: 40rpx;
-  bottom: 120rpx;
+  bottom: 160rpx;
   width: 140rpx;
   height: 140rpx;
   border-radius: 50%;
@@ -210,6 +210,7 @@
   box-shadow: var(--shadow-float);
   transition: all 0.3s ease;
   border: 4rpx solid rgba(255, 255, 255, 0.8);
+  z-index: 9998;
 }
 
 .fab:active {

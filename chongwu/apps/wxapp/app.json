@@ -21,6 +21,7 @@
     "navigationBarTextStyle": "white"
   },
   "tabBar": {
+    "custom": true,
     "color": "#B2BEC3",
     "selectedColor": "#FF8B7B",
     "backgroundColor": "#ffffff",
@@ -28,27 +29,19 @@
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "首页",
-        "iconPath": "assets/icons/home.png",
-        "selectedIconPath": "assets/icons/home-active.png"
+        "text": "首页"
       },
       {
         "pagePath": "pages/service/service",
-        "text": "服务",
-        "iconPath": "assets/icons/service.png",
-        "selectedIconPath": "assets/icons/service-active.png"
+        "text": "服务"
       },
       {
         "pagePath": "pages/idle/idle",
-        "text": "闲置",
-        "iconPath": "assets/icons/idle.png",
-        "selectedIconPath": "assets/icons/idle-active.png"
+        "text": "闲置"
       },
       {
         "pagePath": "pages/profile/profile",
-        "text": "我的",
-        "iconPath": "assets/icons/profile.png",
-        "selectedIconPath": "assets/icons/profile-active.png"
+        "text": "我的"
       }
     ]
   },

@@ -25,6 +25,12 @@ Page({
     }
   },
 
+  onShow() {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ selected: 1 });
+    }
+  },
+
   async loadServices(categoryId) {
     if (this.data.loading || !this.data.hasMore) return;
     

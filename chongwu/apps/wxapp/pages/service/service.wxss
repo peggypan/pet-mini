@@ -22,28 +22,39 @@ page {
   display: inline-flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   margin-right: 40rpx;
-  padding: 8rpx 0 12rpx;
+  padding: 12rpx 4rpx 16rpx;
   position: relative;
 }
 
-.tab-dot {
-  width: 12rpx;
-  height: 12rpx;
-  border-radius: 50%;
-  background: #FF9B7A;
-  margin-bottom: 10rpx;
-}
-
 .tab-text {
+  position: relative;
+  z-index: 1;
   font-size: 28rpx;
   color: #9A9A9A;
   font-weight: 500;
+  line-height: 1.3;
 }
 
 .tab-item.active .tab-text {
   color: #2A2A2A;
   font-weight: 700;
+}
+
+/* 小猫爪：浅淡色，叠在文字上像踩上去 */
+.tab-paw {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 52rpx;
+  height: 52rpx;
+  margin-left: -18rpx;
+  margin-top: -6rpx;
+  z-index: 2;
+  opacity: 0.65;
+  pointer-events: none;
+  transform: rotate(-14deg);
 }
 
 /* 一键预约卡 */

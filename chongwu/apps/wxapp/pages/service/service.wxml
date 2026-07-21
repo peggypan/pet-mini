@@ -10,8 +10,13 @@
         bindtap="onCategoryTap"
         data-id="{{item.id}}"
       >
-        <view class="tab-dot" wx:if="{{currentCategory === item.id}}"></view>
         <text class="tab-text">{{item.name}}</text>
+        <image
+          class="tab-paw"
+          src="/assets/icons/tab-paw.png"
+          mode="aspectFit"
+          wx:if="{{currentCategory === item.id}}"
+        ></image>
       </view>
     </scroll-view>
   </view>

@@ -22,7 +22,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
 
   const config = new DocumentBuilder()
-    .setTitle('宠享家 API')
+    .setTitle('宠头头 API')
     .setDescription('北京同城宠物服务平台接口文档')
     .setVersion('1.0')
     .addBearerAuth()

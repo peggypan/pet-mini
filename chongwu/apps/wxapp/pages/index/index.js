@@ -3,17 +3,69 @@ const {
   MOCK_PET,
   MOCK_FEED,
   MOCK_SERVICES_MINI,
+  MOCK_SOCIAL,
+  MOCK_MALL,
 } = require('../../utils/mock');
 
 Page({
   data: {
     pet: { ...MOCK_PET },
-    quickActions: [
-      { id: 1, name: '健康', icon: '💚', type: 'health', bg: 'rgba(111, 207, 151, 0.22)' },
-      { id: 2, name: '社交', icon: '👥', type: 'social', bg: 'rgba(126, 200, 163, 0.28)' },
-      { id: 3, name: '饮食', icon: '🦴', type: 'diet', bg: 'rgba(245, 194, 107, 0.28)' },
-      { id: 4, name: '指南', icon: '📄', type: 'guide', bg: 'rgba(168, 230, 195, 0.35)' },
+    modules: [
+      {
+        id: 1,
+        name: '同城服务',
+        tip: '上门喂养 · 美容 · 寄养',
+        icon: '🛁',
+        type: 'service',
+        tone: 'tone-mint',
+      },
+      {
+        id: 2,
+        name: '闲置集市',
+        tip: '赠送 · 置换 · 出售好物',
+        icon: '🎁',
+        type: 'idle',
+        tone: 'tone-peach',
+      },
+      {
+        id: 3,
+        name: '健康档案',
+        tip: '疫苗 · 驱虫 · 体重记录',
+        icon: '💚',
+        type: 'health',
+        tone: 'tone-leaf',
+      },
+      {
+        id: 4,
+        name: '一键预约',
+        tip: '精选服务，马上下单',
+        icon: '⚡',
+        type: 'book',
+        tone: 'tone-sky',
+      },
+      {
+        id: 5,
+        name: '宠物交友',
+        tip: '约局 · 发帖 · 留言',
+        icon: '🤝',
+        type: 'social',
+        tone: 'tone-lilac',
+      },
+      {
+        id: 6,
+        name: '宠物商城',
+        tip: '主粮 · 零食 · 玩具',
+        icon: '🛒',
+        type: 'mall',
+        tone: 'tone-warm',
+      },
     ],
+    socialActions: MOCK_SOCIAL.actions.slice(),
+    socialEvents: MOCK_SOCIAL.events.slice(),
+    socialPosts: MOCK_SOCIAL.posts.map((p) => ({ ...p })),
+    mallCategories: MOCK_MALL.categories.slice(),
+    mallCategory: 'food',
+    mallProducts: MOCK_MALL.products.slice(),
     feedMain: { ...MOCK_FEED.feedMain },
     feedSide: MOCK_FEED.feedSide.slice(),
     services: MOCK_SERVICES_MINI.slice(),
@@ -117,17 +169,93 @@ Page({
     wx.showToast({ title: '搜索功能开发中', icon: 'none' });
   },
 
-  onQuickAction(e) {
+  onFamilyTap() {
+    wx.switchTab({ url: '/pages/profile/profile' });
+  },
+
+  onModuleTap(e) {
     const { type } = e.currentTarget.dataset;
+    if (type === 'service' || type === 'book') {
+      wx.switchTab({ url: '/pages/service/service' });
+      return;
+    }
+    if (type === 'idle') {
+      wx.switchTab({ url: '/pages/idle/idle' });
+      return;
+    }
     if (type === 'health') {
       wx.navigateTo({ url: '/pages/health/health' });
       return;
     }
-    if (type === 'diet' || type === 'guide') {
-      wx.switchTab({ url: '/pages/service/service' });
+    if (type === 'social') {
+      wx.pageScrollTo({
+        selector: '.social-block',
+        duration: 300,
+      });
       return;
     }
-    wx.showToast({ title: '功能开发中', icon: 'none' });
+    if (type === 'mall') {
+      wx.pageScrollTo({
+        selector: '.mall-block',
+        duration: 300,
+      });
+      return;
+    }
+  },
+
+  onSocialMore() {
+    wx.showToast({ title: '交友广场即将开放', icon: 'none' });
+  },
+
+  onSocialAction(e) {
+    const { type } = e.currentTarget.dataset;
+    const tips = {
+      post: '发帖功能即将开放',
+      chat: '留言功能即将开放',
+      event: '活动报名即将开放',
+      nearby: '附近宠友即将开放',
+    };
+    wx.showToast({ title: tips[type] || '功能开发中', icon: 'none' });
+  },
+
+  onEventTap() {
+    wx.showToast({ title: '活动详情即将开放', icon: 'none' });
+  },
+
+  onLikeTap(e) {
+    const { id } = e.currentTarget.dataset;
+    const posts = this.data.socialPosts.map((p) => {
+      if (p.id !== id) return p;
+      const liked = !p.liked;
+      return {
+        ...p,
+        liked,
+        likes: liked ? p.likes + 1 : Math.max(0, p.likes - 1),
+      };
+    });
+    this.setData({ socialPosts: posts });
+  },
+
+  onCommentTap() {
+    wx.showToast({ title: '留言功能即将开放', icon: 'none' });
+  },
+
+  onChatTap() {
+    wx.showToast({ title: '私信功能即将开放', icon: 'none' });
+  },
+
+  onMallMore() {
+    wx.showToast({ title: '商城即将开放', icon: 'none' });
+  },
+
+  onMallCategory(e) {
+    const { id } = e.currentTarget.dataset;
+    this.setData({ mallCategory: id });
+    wx.showToast({ title: '已切换分类', icon: 'none' });
+  },
+
+  onMallProduct() {
+    wx.showToast({ title: '商品详情即将开放', icon: 'none' });
   },
 
   onFeedTap(e) {

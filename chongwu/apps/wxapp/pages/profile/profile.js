@@ -124,7 +124,7 @@ Page({
 
   onAboutTap() {
     wx.showModal({
-      title: '关于宠享家',
+      title: '关于宠头头',
       content: '用心守护每一个毛孩子',
       showCancel: false,
     });

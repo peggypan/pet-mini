@@ -198,6 +198,116 @@ const MOCK_HELP_CARDS = [
   },
 ];
 
+/** 宠物交友 / 社交动态 Mock */
+const MOCK_SOCIAL = {
+  actions: [
+    { id: 'post', name: '发帖', icon: '✎' },
+    { id: 'chat', name: '留言', icon: '💬' },
+    { id: 'event', name: '活动', icon: '🎉' },
+    { id: 'nearby', name: '附近', icon: '📍' },
+  ],
+  events: [
+    {
+      id: 'e1',
+      tag: '本周六',
+      title: '朝阳公园狗狗社交趴',
+      desc: '自带牵引绳 · 已有 28 人报名',
+      cover: REAL.pup,
+    },
+    {
+      id: 'e2',
+      tag: '本周日',
+      title: '喵星人咖啡馆见面会',
+      desc: '带疫苗本 · 已有 16 人报名',
+      cover: REAL.cat,
+    },
+  ],
+  posts: [
+    {
+      id: 'p1',
+      userName: '小橘妈',
+      petName: '橘子',
+      avatar: REAL.cat,
+      time: '10 分钟前',
+      content: '周末有没有朝阳附近一起遛狗的？豆豆最近交友欲超强 🐾',
+      likes: 24,
+      comments: 8,
+      liked: false,
+    },
+    {
+      id: 'p2',
+      userName: '阿柴爸爸',
+      petName: '团团',
+      avatar: REAL.avatar,
+      time: '1 小时前',
+      content: '分享一张团团第一次见朋友的照片，尾巴摇成螺旋桨了～',
+      likes: 56,
+      comments: 13,
+      liked: true,
+      image: REAL.tallDog,
+    },
+    {
+      id: 'p3',
+      userName: '奶盖屋',
+      petName: '奶盖',
+      avatar: REAL.svc2,
+      time: '昨天',
+      content: '求推荐温和的宠物社交场，家里宝宝有点社恐，想慢慢适应。',
+      likes: 18,
+      comments: 21,
+      liked: false,
+    },
+  ],
+};
+
+/** 宠物商城 Mock */
+const MOCK_MALL = {
+  categories: [
+    { id: 'food', name: '主粮', icon: '🥣' },
+    { id: 'snack', name: '零食', icon: '🦴' },
+    { id: 'toy', name: '玩具', icon: '🎾' },
+    { id: 'care', name: '护理', icon: '🧴' },
+  ],
+  products: [
+    {
+      id: 'm1',
+      name: '鲜肉无谷犬粮 2kg',
+      price: 129,
+      origin: 169,
+      tag: '热销',
+      sales: '已售 1.2k',
+      cover: REAL.svc1,
+    },
+    {
+      id: 'm2',
+      name: '冻干鸡肉零食罐',
+      price: 39.9,
+      origin: 49,
+      tag: '新品',
+      sales: '已售 860',
+      cover: REAL.cat,
+    },
+    {
+      id: 'm3',
+      name: '耐咬磨牙绳结球',
+      price: 25,
+      origin: 35,
+      tag: '包邮',
+      sales: '已售 2.4k',
+      cover: REAL.pup,
+    },
+    {
+      id: 'm4',
+      name: '温和沐浴露 500ml',
+      price: 58,
+      origin: 78,
+      tag: '推荐',
+      sales: '已售 640',
+      cover: REAL.svc2,
+    },
+  ],
+};
+
 module.exports = {
   REAL,
   AVATARS,
@@ -208,4 +318,6 @@ module.exports = {
   MOCK_PROVIDERS,
   MOCK_IDLE_ITEMS,
   MOCK_HELP_CARDS,
+  MOCK_SOCIAL,
+  MOCK_MALL,
 };

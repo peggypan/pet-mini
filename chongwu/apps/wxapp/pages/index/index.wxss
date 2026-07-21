@@ -8,53 +8,96 @@ page {
   box-sizing: border-box;
 }
 
-/* 顶部宠物身份 */
-.pet-header {
-  display: flex;
-  align-items: center;
-  padding: 12rpx 0 28rpx;
+/* 品牌区 */
+.brand-block {
+  padding: 8rpx 0 24rpx;
 }
 
-.pet-avatar {
+.brand-row {
+  display: flex;
+  align-items: center;
+}
+
+.brand-mark {
   width: 72rpx;
   height: 72rpx;
-  border-radius: 50%;
-  background: #EDE8E0;
-  border: 4rpx solid #fff;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
-  margin-right: 16rpx;
+  border-radius: 22rpx;
+  background: linear-gradient(145deg, #8FD4B0 0%, #6FCF97 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 18rpx;
   flex-shrink: 0;
+  box-shadow: 0 8rpx 20rpx rgba(111, 207, 151, 0.3);
+}
+
+.brand-mark-icon {
+  font-size: 36rpx;
+}
+
+.brand-text {
+  flex: 1;
+  min-width: 0;
+  margin-right: 12rpx;
+}
+
+.brand-name {
+  display: block;
+  font-size: 40rpx;
+  font-weight: 800;
+  color: #1F3D2E;
+  letter-spacing: 2rpx;
+  line-height: 1.2;
+  margin-bottom: 6rpx;
+}
+
+.brand-slogan {
+  display: block;
+  font-size: 22rpx;
+  color: #6B8A7A;
+  line-height: 1.4;
 }
 
 .pet-pill {
   display: flex;
   align-items: center;
-  padding: 14rpx 28rpx;
-  background: rgba(255, 255, 255, 0.85);
+  max-width: 280rpx;
+  padding: 8rpx 16rpx 8rpx 8rpx;
+  background: rgba(255, 255, 255, 0.82);
   border-radius: 40rpx;
   box-shadow: 0 6rpx 20rpx rgba(42, 42, 42, 0.05);
+  border: 1rpx solid rgba(255, 255, 255, 0.9);
+  flex-shrink: 0;
 }
 
-.pet-paw {
-  font-size: 26rpx;
-  margin-right: 8rpx;
+.pet-avatar {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  background: #E2EBF4;
+  margin-right: 10rpx;
+  flex-shrink: 0;
 }
 
 .pet-name {
-  font-size: 28rpx;
+  font-size: 24rpx;
   font-weight: 600;
   color: #2A2A2A;
+  margin-right: 6rpx;
+  flex-shrink: 0;
 }
 
 .pet-meta {
-  font-size: 24rpx;
+  font-size: 20rpx;
   color: #8A8A8A;
-  margin-left: 4rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* 搜索 */
 .search-row {
-  margin-bottom: 36rpx;
+  margin-bottom: 28rpx;
 }
 
 .search-box {
@@ -69,7 +112,7 @@ page {
 }
 
 .search-ph {
-  font-size: 28rpx;
+  font-size: 26rpx;
   color: #B0B0B0;
 }
 
@@ -90,48 +133,509 @@ page {
   font-weight: 600;
 }
 
-/* 快捷操作 */
-.quick-block {
+/* 核心功能模块 */
+.module-block {
   margin-bottom: 32rpx;
 }
 
-.quick-title {
+.module-header {
+  margin-bottom: 20rpx;
+}
+
+.module-title {
   display: block;
-  font-size: 34rpx;
+  font-size: 32rpx;
   font-weight: 700;
   color: #2A2A2A;
-  margin-bottom: 28rpx;
+  margin-bottom: 6rpx;
 }
 
-.quick-row {
+.module-desc {
+  display: block;
+  font-size: 22rpx;
+  color: #8A8A8A;
+}
+
+.module-grid {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
-  padding: 0 8rpx;
 }
 
-.quick-item {
+.module-card {
+  width: 48%;
+  margin-bottom: 16rpx;
+  padding: 22rpx 18rpx;
+  border-radius: 24rpx;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  width: 25%;
+  box-sizing: border-box;
+  box-shadow: 0 8rpx 24rpx rgba(42, 42, 42, 0.04);
 }
 
-.quick-icon {
-  width: 96rpx;
-  height: 96rpx;
-  border-radius: 50%;
+.module-card.tone-mint {
+  background: linear-gradient(145deg, rgba(184, 232, 207, 0.55) 0%, rgba(255, 255, 255, 0.9) 100%);
+}
+
+.module-card.tone-peach {
+  background: linear-gradient(145deg, rgba(255, 208, 186, 0.5) 0%, rgba(255, 255, 255, 0.9) 100%);
+}
+
+.module-card.tone-leaf {
+  background: linear-gradient(145deg, rgba(168, 230, 195, 0.45) 0%, rgba(255, 255, 255, 0.9) 100%);
+}
+
+.module-card.tone-sky {
+  background: linear-gradient(145deg, rgba(186, 220, 240, 0.55) 0%, rgba(255, 255, 255, 0.9) 100%);
+}
+
+.module-card.tone-lilac {
+  background: linear-gradient(145deg, rgba(220, 200, 240, 0.5) 0%, rgba(255, 255, 255, 0.9) 100%);
+}
+
+.module-card.tone-warm {
+  background: linear-gradient(145deg, rgba(255, 220, 180, 0.5) 0%, rgba(255, 255, 255, 0.9) 100%);
+}
+
+.module-icon-wrap {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 18rpx;
+  background: rgba(255, 255, 255, 0.75);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 40rpx;
-  margin-bottom: 14rpx;
-  box-shadow: 0 6rpx 18rpx rgba(42, 42, 42, 0.05);
+  margin-right: 12rpx;
+  flex-shrink: 0;
 }
 
-.quick-label {
+.module-icon {
+  font-size: 32rpx;
+}
+
+.module-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.module-name {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #2A2A2A;
+  margin-bottom: 4rpx;
+}
+
+.module-tip {
+  display: block;
+  font-size: 20rpx;
+  color: #7A7A7A;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.module-arrow {
+  font-size: 28rpx;
+  color: #C5C5C5;
+  margin-left: 4rpx;
+  flex-shrink: 0;
+}
+
+/* 宠物交友 */
+.social-block {
+  margin-bottom: 32rpx;
+  padding: 24rpx;
+  background: rgba(255, 255, 255, 0.72);
+  border-radius: 28rpx;
+  box-shadow: 0 8rpx 24rpx rgba(42, 42, 42, 0.04);
+}
+
+.social-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22rpx;
+}
+
+.social-title-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.social-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #2A2A2A;
+  margin-bottom: 6rpx;
+}
+
+.social-sub {
+  display: block;
+  font-size: 22rpx;
+  color: #8A8A8A;
+}
+
+.social-more {
   font-size: 24rpx;
+  color: #4DB87A;
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-left: 16rpx;
+}
+
+.social-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 22rpx;
+}
+
+.social-action {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.social-action-icon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: linear-gradient(145deg, rgba(184, 232, 207, 0.55), rgba(255, 255, 255, 0.95));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+  margin-bottom: 10rpx;
+  box-shadow: 0 4rpx 12rpx rgba(111, 207, 151, 0.15);
+}
+
+.social-action-name {
+  font-size: 22rpx;
   color: #555;
   font-weight: 500;
+}
+
+.event-scroll {
+  white-space: nowrap;
+  margin-bottom: 20rpx;
+}
+
+.event-card {
+  display: inline-flex;
+  width: 420rpx;
+  margin-right: 16rpx;
+  padding: 14rpx;
+  background: #F5FAF7;
+  border-radius: 22rpx;
+  vertical-align: top;
+  white-space: normal;
+  box-sizing: border-box;
+}
+
+.event-cover {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 16rpx;
+  background: #E2EBF4;
+  margin-right: 14rpx;
+  flex-shrink: 0;
+}
+
+.event-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.event-tag {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 18rpx;
+  color: #4DB87A;
+  background: rgba(111, 207, 151, 0.18);
+  padding: 2rpx 10rpx;
+  border-radius: 8rpx;
+  margin-bottom: 6rpx;
+}
+
+.event-title {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #2A2A2A;
+  margin-bottom: 4rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.event-desc {
+  display: block;
+  font-size: 20rpx;
+  color: #8A8A8A;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.post-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.post-card {
+  padding: 20rpx 0;
+  border-top: 1rpx solid #EAF1F6;
+}
+
+.post-card:first-child {
+  border-top: none;
+  padding-top: 4rpx;
+}
+
+.post-head {
+  display: flex;
+  align-items: center;
+  margin-bottom: 14rpx;
+}
+
+.post-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: #E2EBF4;
+  margin-right: 14rpx;
+  flex-shrink: 0;
+}
+
+.post-user {
+  flex: 1;
+  min-width: 0;
+}
+
+.post-user-name {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #2A2A2A;
+  margin-bottom: 4rpx;
+}
+
+.post-time {
+  display: block;
+  font-size: 20rpx;
+  color: #9A9A9A;
+}
+
+.post-content {
+  display: block;
+  font-size: 26rpx;
+  color: #3A3A3A;
+  line-height: 1.55;
+  margin-bottom: 14rpx;
+}
+
+.post-image {
+  width: 100%;
+  height: 280rpx;
+  border-radius: 20rpx;
+  background: #E2EBF4;
+  margin-bottom: 14rpx;
+}
+
+.post-footer {
+  display: flex;
+  align-items: center;
+}
+
+.post-btn {
+  display: flex;
+  align-items: center;
+  margin-right: 36rpx;
+  font-size: 24rpx;
+  color: #6B6B6B;
+}
+
+.post-btn-num {
+  margin-left: 8rpx;
+  font-size: 22rpx;
+  color: #8A8A8A;
+}
+
+/* 宠物商城 */
+.mall-block {
+  margin-bottom: 32rpx;
+  padding: 24rpx;
+  background: rgba(255, 255, 255, 0.72);
+  border-radius: 28rpx;
+  box-shadow: 0 8rpx 24rpx rgba(42, 42, 42, 0.04);
+}
+
+.mall-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.mall-title-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.mall-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #2A2A2A;
+  margin-bottom: 6rpx;
+}
+
+.mall-sub {
+  display: block;
+  font-size: 22rpx;
+  color: #8A8A8A;
+}
+
+.mall-more {
+  font-size: 24rpx;
+  color: #4DB87A;
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-left: 16rpx;
+}
+
+.mall-cats {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.mall-cat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12rpx 0;
+  border-radius: 18rpx;
+}
+
+.mall-cat.on {
+  background: rgba(111, 207, 151, 0.16);
+}
+
+.mall-cat-icon {
+  font-size: 32rpx;
+  margin-bottom: 6rpx;
+}
+
+.mall-cat-name {
+  font-size: 22rpx;
+  color: #666;
+  font-weight: 500;
+}
+
+.mall-cat.on .mall-cat-name {
+  color: #2A2A2A;
+  font-weight: 700;
+}
+
+.mall-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.mall-card {
+  width: 48%;
+  margin-bottom: 16rpx;
+  background: #F7FAF8;
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.mall-cover-wrap {
+  position: relative;
+  width: 100%;
+  height: 200rpx;
+  background: #E2EBF4;
+}
+
+.mall-cover {
+  width: 100%;
+  height: 100%;
+}
+
+.mall-tag {
+  position: absolute;
+  left: 12rpx;
+  top: 12rpx;
+  font-size: 18rpx;
+  color: #fff;
+  background: rgba(77, 184, 122, 0.92);
+  padding: 4rpx 12rpx;
+  border-radius: 10rpx;
+}
+
+.mall-name {
+  display: block;
+  padding: 14rpx 14rpx 6rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #2A2A2A;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mall-price-row {
+  display: flex;
+  align-items: baseline;
+  padding: 0 14rpx;
+}
+
+.mall-price {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #4DB87A;
+  margin-right: 8rpx;
+}
+
+.mall-origin {
+  font-size: 20rpx;
+  color: #B0B0B0;
+  text-decoration: line-through;
+}
+
+.mall-sales {
+  display: block;
+  padding: 4rpx 14rpx 14rpx;
+  font-size: 20rpx;
+  color: #9A9A9A;
+}
+
+/* 发现流标题 */
+.feed-header {
+  margin-bottom: 18rpx;
+}
+
+.feed-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #2A2A2A;
+  margin-bottom: 6rpx;
+}
+
+.feed-sub {
+  display: block;
+  font-size: 22rpx;
+  color: #8A8A8A;
 }
 
 /* 瀑布流 */
@@ -234,15 +738,30 @@ page {
   margin-bottom: 20rpx;
 }
 
+.section-title-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
 .section-title {
+  display: block;
   font-size: 30rpx;
   font-weight: 700;
   color: #2A2A2A;
 }
 
+.section-sub {
+  display: block;
+  font-size: 20rpx;
+  color: #9A9A9A;
+  margin-top: 4rpx;
+}
+
 .section-more {
   font-size: 24rpx;
   color: #9A9A9A;
+  flex-shrink: 0;
+  margin-left: 16rpx;
 }
 
 .h-scroll {

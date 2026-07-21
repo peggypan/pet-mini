@@ -1,79 +1,84 @@
+<!-- 首页：宠物标签 + 搜索 + 快捷入口 + 瀑布流 -->
 <view class="page">
-  <!-- 顶部搜索栏 -->
-  <view class="search-bar">
-    <view class="search-box">
-      <text class="search-icon">🔍</text>
-      <text class="search-placeholder">搜索服务、闲置好物...</text>
+  <!-- 顶部宠物身份 -->
+  <view class="pet-header">
+    <image class="pet-avatar" src="{{pet.avatar}}" mode="aspectFill"></image>
+    <view class="pet-pill">
+      <text class="pet-paw">🐾</text>
+      <text class="pet-name">{{pet.name}}</text>
+      <text class="pet-meta">（{{pet.breed}} · {{pet.age}}）</text>
     </view>
   </view>
 
-  <!-- 分类图标 -->
-  <view class="category-scroll">
-    <scroll-view scroll-x class="category-scroll-inner">
-      <view class="category-item" wx:for="{{categories}}" wx:key="id" bindtap="onCategoryTap" data-id="{{item.id}}" data-name="{{item.name}}">
-        <view class="category-icon">{{item.icon}}</view>
-        <text class="category-name">{{item.name}}</text>
+  <!-- 搜索栏 -->
+  <view class="search-row">
+    <view class="search-box">
+      <text class="search-ph">搜索</text>
+      <view class="search-btn" bindtap="onSearchTap">
+        <text class="search-btn-icon">⌕</text>
       </view>
-    </scroll-view>
+    </view>
   </view>
 
-  <!-- 横幅轮播 -->
-  <view class="banner-section">
-    <swiper autoplay circular indicator-dots class="banner-swiper" indicator-color="rgba(255,255,255,0.5)" indicator-active-color="#FF8B7B">
-      <swiper-item wx:for="{{banners}}" wx:key="id">
-        <view class="banner-item" style="background: linear-gradient(135deg, {{item.color1}} 0%, {{item.color2}} 100%)">
-          <text class="banner-emoji">{{item.emoji}}</text>
-          <view class="banner-content">
-            <text class="banner-title">{{item.title}}</text>
-            <text class="banner-desc">{{item.desc}}</text>
+  <!-- 快捷操作 -->
+  <view class="quick-block">
+    <text class="quick-title">快捷操作</text>
+    <view class="quick-row">
+      <view class="quick-item" wx:for="{{quickActions}}" wx:key="id" bindtap="onQuickAction" data-type="{{item.type}}">
+        <view class="quick-icon" style="background: {{item.bg}}">
+          <text>{{item.icon}}</text>
+        </view>
+        <text class="quick-label">{{item.name}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 瀑布流内容 -->
+  <view class="masonry">
+    <view class="masonry-left">
+      <view class="feed-card tall" bindtap="onFeedTap" data-id="{{feedMain.id}}" data-kind="{{feedMain.kind}}">
+        <image class="feed-img" src="{{feedMain.image}}" mode="aspectFill"></image>
+        <view class="feed-paw">
+          <text>🐾</text>
+        </view>
+      </view>
+    </view>
+    <view class="masonry-right">
+      <view
+        class="feed-card short"
+        wx:for="{{feedSide}}"
+        wx:key="id"
+        bindtap="onFeedTap"
+        data-id="{{item.id}}"
+        data-kind="{{item.kind}}"
+      >
+        <image class="feed-img" src="{{item.image}}" mode="aspectFill"></image>
+        <view class="feed-caption">
+          <text class="feed-cap-title">{{item.title}}</text>
+          <view class="feed-stars" wx:if="{{item.rating}}">
+            <text class="star" wx:for="{{item.stars}}" wx:for-item="s" wx:key="*this">★</text>
           </view>
         </view>
-      </swiper-item>
-    </swiper>
+      </view>
+    </view>
   </view>
 
   <!-- 热门服务 -->
-  <view class="section">
+  <view class="section-block" wx:if="{{services.length}}">
     <view class="section-header">
       <text class="section-title">热门服务</text>
       <text class="section-more" bindtap="onMoreServices">更多 ›</text>
     </view>
-    <scroll-view scroll-x class="service-scroll">
-      <view class="service-scroll-inner">
-        <view class="service-card-small" wx:for="{{services}}" wx:key="id" bindtap="onServiceTap" data-id="{{item.id}}">
-          <image src="{{item.coverUrls[0] || '/assets/default-service.png'}}" class="service-thumb" mode="aspectFill"></image>
-          <text class="service-name-small">{{item.name}}</text>
-          <text class="service-price-small">¥{{item.price}}</text>
-        </view>
-        <view class="service-card-small placeholder" wx:if="{{services.length === 0}}">
-          <text class="empty-icon-small">🏥</text>
-          <text class="empty-text-small">暂无服务</text>
+    <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="h-scroll">
+      <view class="h-scroll-content">
+        <view class="service-card-mini" wx:for="{{services}}" wx:key="id" bindtap="onServiceTap" data-id="{{item.id}}">
+          <image src="{{item.coverUrls[0]}}" class="service-img-mini" mode="aspectFill"></image>
+          <text class="service-name-mini">{{item.name}}</text>
+          <text class="service-price-mini">¥{{item.price}}</text>
         </view>
       </view>
     </scroll-view>
   </view>
 
-  <!-- 精选闲置 -->
-  <view class="section">
-    <view class="section-header">
-      <text class="section-title">精选闲置</text>
-      <text class="section-more" bindtap="onMoreIdle">更多 ›</text>
-    </view>
-    <view class="idle-grid">
-      <view class="idle-card" wx:for="{{idleItems}}" wx:key="id" bindtap="onIdleTap" data-id="{{item.id}}">
-        <image src="{{item.images[0] || '/assets/default-idle.png'}}" class="idle-image" mode="aspectFill"></image>
-        <view class="idle-content">
-          <text class="idle-title">{{item.title}}</text>
-          <view class="idle-footer">
-            <text class="idle-price">¥{{item.price}}</text>
-            <text class="idle-likes">❤️ {{item.likes || 0}}</text>
-          </view>
-        </view>
-      </view>
-    </view>
-    <view class="empty-grid" wx:if="{{idleItems.length === 0}}">
-      <text class="empty-icon">🎁</text>
-      <text class="empty-text">闲置区空空如也</text>
-    </view>
-  </view>
+  <view class="page-bottom-space"></view>
 </view>

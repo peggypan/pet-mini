@@ -1,105 +1,107 @@
+<!-- 个人中心：宠物 Hero + 窄玻璃身份卡 + 数据条 + 功能格 + 设置 -->
 <view class="page">
-  <!-- 用户信息区 -->
-  <view class="user-header">
-    <view wx:if="{{isLogin && userInfo}}" class="user-info">
-      <image src="{{userInfo.avatarUrl || '/assets/default-avatar.png'}}" class="user-avatar"></image>
-      <view class="user-detail">
-        <text class="user-name">{{userInfo.nickname || '用户'}}</text>
-        <view class="user-tags" wx:if="{{userInfo.memberLevel > 0}}">
-          <text class="vip-tag">✨ 高级会员</text>
-        </view>
-      </view>
-      <view class="user-action">
-        <text class="action-icon">⚙</text>
+  <!-- Hero 区域 -->
+  <view class="hero">
+    <image class="hero-img" src="{{pet.cover || pet.avatar}}" mode="aspectFill"></image>
+    <view class="hero-mask"></view>
+    <view class="hero-status" style="padding-top: {{statusBarHeight}}px">
+      <view class="bell-btn" bindtap="onNotifyTap">
+        <text class="bell-icon">🔔</text>
       </view>
     </view>
 
-    <view wx:else class="login-area">
-      <image src="/assets/default-avatar.png" class="user-avatar-placeholder"></image>
-      <button class="login-btn" bindtap="onLogin">微信登录</button>
+    <!-- 窄版身份卡：叠在 Hero 底部，液态玻璃质感 -->
+    <view class="identity-wrap">
+      <view class="identity-card">
+        <view class="identity-card-inner">
+          <view class="qr-box">
+            <view class="qr-inner">
+              <view class="qr-grid">
+                <view class="qr-cell" wx:for="{{qrCells}}" wx:key="*this" style="opacity: {{item}}"></view>
+              </view>
+            </view>
+          </view>
+          <view class="identity-info">
+            <text class="id-name">{{pet.name}}</text>
+            <text class="id-age">年龄 · {{pet.age}}</text>
+            <text class="id-days">已陪伴你 {{pet.days}} 天</text>
+          </view>
+        </view>
+        <!-- 底部液态玻璃层 -->
+        <view class="liquid-glass"></view>
+      </view>
     </view>
+  </view>
+
+  <!-- 未登录提示 -->
+  <view class="login-tip" wx:if="{{!isLogin}}" bindtap="onLogin">
+    <text>点击登录，同步宠物档案 ›</text>
   </view>
 
   <!-- 数据统计 -->
-  <view class="stats-row" wx:if="{{isLogin}}">
-    <view class="stat-item" bindtap="onOrdersTap">
-      <text class="stat-num">{{stats.serviceOrders || 0}}</text>
-      <text class="stat-label">服务订单</text>
+  <view class="stats-bar">
+    <view class="stat-cell">
+      <text class="stat-val">{{pet.weight}}</text>
+      <text class="stat-lab">体重</text>
     </view>
-    <view class="stat-item" bindtap="onOrdersTap">
-      <text class="stat-num">{{stats.idleOrders || 0}}</text>
-      <text class="stat-label">闲置交易</text>
+    <view class="stat-divider"></view>
+    <view class="stat-cell">
+      <text class="stat-val">{{pet.recordDays}}</text>
+      <text class="stat-lab">驱虫</text>
     </view>
-    <view class="stat-item" bindtap="onHealthTap">
-      <text class="stat-num">{{stats.pets || 0}}</text>
-      <text class="stat-label">我的宠物</text>
-    </view>
-    <view class="stat-item" bindtap="onFavoriteTap">
-      <text class="stat-num">{{stats.favorites || 0}}</text>
-      <text class="stat-label">我的收藏</text>
+    <view class="stat-divider"></view>
+    <view class="stat-cell">
+      <text class="stat-val">{{pet.visits}}</text>
+      <text class="stat-lab">洗澡</text>
     </view>
   </view>
 
-  <!-- 功能菜单 -->
-  <view class="menu-section">
-    <view class="menu-item" bindtap="onOrdersTap">
-      <view class="menu-left">
-        <text class="menu-icon">📋</text>
-        <text class="menu-text">我的订单</text>
-      </view>
-      <text class="menu-arrow">›</text>
+  <!-- 2x2 功能格 -->
+  <view class="action-grid">
+    <view class="action-cell" bindtap="onOrdersTap">
+      <text class="action-icon">⇄</text>
+      <text class="action-label">订单/交换</text>
     </view>
-
-    <view class="menu-item" bindtap="onAddressTap">
-      <view class="menu-left">
-        <text class="menu-icon">📍</text>
-        <text class="menu-text">地址管理</text>
-      </view>
-      <text class="menu-arrow">›</text>
+    <view class="action-cell" bindtap="onHealthTap">
+      <text class="action-icon">✚</text>
+      <text class="action-label">医疗记录</text>
     </view>
-
-    <view class="menu-item" bindtap="onCouponTap">
-      <view class="menu-left">
-        <text class="menu-icon">🎫</text>
-        <text class="menu-text">优惠券</text>
-      </view>
-      <text class="menu-arrow">›</text>
+    <view class="action-cell" bindtap="onFavoriteTap">
+      <text class="action-icon">♡</text>
+      <text class="action-label">我的收藏</text>
+    </view>
+    <view class="action-cell" bindtap="onFamilyTap">
+      <text class="action-icon">☺</text>
+      <text class="action-label">我的家庭</text>
     </view>
   </view>
 
-  <!-- 更多服务 -->
-  <view class="menu-section">
-    <view class="menu-item" bindtap="onHealthTap">
-      <view class="menu-left">
-        <text class="menu-icon">💗</text>
-        <text class="menu-text">健康档案</text>
+  <!-- 设置列表 -->
+  <view class="settings-list">
+    <view class="setting-item" bindtap="onDarkModeTap">
+      <view class="setting-left">
+        <text class="setting-icon">☾</text>
+        <text class="setting-text">深色模式</text>
       </view>
-      <text class="menu-arrow">›</text>
+      <switch checked="{{false}}" color="#6FCF97" disabled />
     </view>
-
-    <view class="menu-item" bindtap="onHelpTap">
-      <view class="menu-left">
-        <text class="menu-icon">💬</text>
-        <text class="menu-text">客服中心</text>
+    <view class="setting-item" bindtap="onHelpTap">
+      <view class="setting-left">
+        <text class="setting-icon">?</text>
+        <text class="setting-text">帮助中心</text>
       </view>
-      <text class="menu-arrow">›</text>
+      <text class="setting-arrow">›</text>
     </view>
-
-    <view class="menu-item" bindtap="onAboutTap">
-      <view class="menu-left">
-        <text class="menu-icon">ℹ️</text>
-        <text class="menu-text">关于我们</text>
+    <view class="setting-item" bindtap="onAboutTap">
+      <view class="setting-left">
+        <text class="setting-icon">ⓘ</text>
+        <text class="setting-text">关于我们</text>
       </view>
-      <text class="menu-arrow">›</text>
+      <text class="setting-arrow">›</text>
     </view>
   </view>
 
-  <!-- 退出登录 -->
   <button class="logout-btn" bindtap="onLogout" wx:if="{{isLogin}}">退出登录</button>
 
-  <!-- 底部温馨语 -->
-  <view class="warm-footer">
-    <text class="warm-icon">💕</text>
-    <text class="warm-text">用心守护每一个毛孩子</text>
-  </view>
+  <view class="page-bottom-space"></view>
 </view>

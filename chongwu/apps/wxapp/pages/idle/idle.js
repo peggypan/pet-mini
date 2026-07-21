@@ -1,99 +1,135 @@
 const api = require('../../utils/request');
+const { MOCK_IDLE_ITEMS, MOCK_HELP_CARDS } = require('../../utils/mock');
+
+const CONDITION_MAP = ['全新', '九成新', '轻微使用', '明显使用'];
+const ICON_POOL = ['👕', '☕', '📦', '🦴', '🎾', '🧴', '🏠', '💊'];
 
 Page({
   data: {
-    categories: [
-      { id: 1, name: '食品', icon: '🍖' },
-      { id: 2, name: '日用品', icon: '🧴' },
-      { id: 3, name: '笼具', icon: '🏠' },
-      { id: 4, name: '服饰', icon: '👕' },
-      { id: 5, name: '玩具', icon: '🎾' },
-      { id: 6, name: '保健护理', icon: '💊' },
-      { id: 7, name: '其他', icon: '📦' },
+    modes: [
+      { id: 'gift', name: '免费赠送' },
+      { id: 'swap', name: '交换' },
+      { id: 'sell', name: '出售' },
     ],
+    currentMode: 'gift',
     currentCategory: null,
-    items: [],
+    items: MOCK_IDLE_ITEMS.slice(),
+    isMock: true,
     page: 1,
     pageSize: 20,
     loading: false,
     hasMore: true,
+    helpCards: MOCK_HELP_CARDS.slice(),
   },
 
   onLoad() {
-    this.loadCategories();
-    this.loadItems();
+    this.loadItems(true);
   },
 
   onShow() {
-    this.loadItems();
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 2 });
     }
   },
 
-  async loadCategories() {
-    try {
-      const res = await api.get('/idle/categories');
-      this.setData({ categories: [{ id: 0, name: '全部' }, ...(res.data || [])] });
-    } catch (e) {
-      console.error(e);
-    }
+  onPullDownRefresh() {
+    this.loadItems(true).finally(() => {
+      wx.stopPullDownRefresh();
+    });
   },
 
-  async loadItems() {
-    if (this.data.loading || !this.data.hasMore) return;
-    
+  /**
+   * 加载闲置列表；无数据时使用 Mock
+   * @param {boolean} reset
+   */
+  async loadItems(reset = false) {
+    if (this.data.loading) return;
+    if (!reset && !this.data.hasMore && !this.data.isMock) return;
+
+    if (reset) {
+      this.setData({ page: 1, hasMore: true, items: [], isMock: false });
+    }
+
     this.setData({ loading: true });
-    
+
     try {
       const res = await api.get('/idle', {
         categoryId: this.data.currentCategory || undefined,
         page: this.data.page,
         pageSize: this.data.pageSize,
       });
-      
-      const list = (res.data?.list || []).map(item => ({
-        ...item,
-        userAvatarUrl: item.user ? item.user.avatarUrl : '',
-        userNickname: item.user ? item.user.nickname : '匿名'
-      }));
-      this.setData({
-        items: this.data.page === 1 ? list : [...this.data.items, ...list],
-        hasMore: list.length === this.data.pageSize,
-        page: this.data.page + 1,
+
+      const list = (res.data?.list || []).map((item, index) => {
+        const level = item.conditionLevel || 2;
+        let conditionText = CONDITION_MAP[level - 1] || '九成新';
+        if (this.data.currentMode === 'gift' && Number(item.price) === 0) {
+          conditionText = '免费赠送';
+        } else if (this.data.currentMode === 'swap') {
+          conditionText = '可交换';
+        }
+
+        return {
+          ...item,
+          conditionText,
+          displayIcon: ICON_POOL[(item.id || index) % ICON_POOL.length],
+        };
       });
+
+      if (list.length) {
+        this.setData({
+          items: this.data.page === 1 ? list : [...this.data.items, ...list],
+          hasMore: list.length === this.data.pageSize,
+          page: this.data.page + 1,
+          isMock: false,
+        });
+      } else if (this.data.page === 1) {
+        // 按筛选模式微调 Mock 文案
+        const mockItems = MOCK_IDLE_ITEMS.map((item) => {
+          let conditionText = item.conditionText;
+          if (this.data.currentMode === 'gift') conditionText = item.price === 0 ? '免费赠送' : '九成新';
+          if (this.data.currentMode === 'swap') conditionText = '可交换';
+          if (this.data.currentMode === 'sell') conditionText = item.conditionText;
+          return { ...item, conditionText };
+        });
+        this.setData({
+          items: mockItems,
+          hasMore: false,
+          isMock: true,
+        });
+      } else {
+        this.setData({ hasMore: false });
+      }
     } catch (e) {
       console.error(e);
+      if (this.data.page === 1) {
+        this.setData({
+          items: MOCK_IDLE_ITEMS.slice(),
+          hasMore: false,
+          isMock: true,
+        });
+      }
     } finally {
       this.setData({ loading: false });
     }
   },
 
-  onCategoryTap(e) {
+  onModeTap(e) {
     const { id } = e.currentTarget.dataset;
-    this.setData({ currentCategory: id, page: 1, hasMore: true, items: [] });
-    this.loadItems();
+    this.setData({ currentMode: id });
+    this.loadItems(true);
   },
 
   onItemTap(e) {
     const { id } = e.currentTarget.dataset;
+    if (String(id).indexOf('mock-') === 0) {
+      wx.showToast({ title: '示例闲置好物', icon: 'none' });
+      return;
+    }
     wx.navigateTo({ url: `/pages/idle-detail/idle-detail?id=${id}` });
   },
 
   onPublishTap() {
     wx.navigateTo({ url: '/pages/idle-publish/idle-publish' });
-  },
-
-  onCategoryChange() {
-    // Scroll to top and suggest selecting a different category
-    wx.pageScrollTo({
-      scrollTop: 0,
-      duration: 300
-    });
-    wx.showToast({
-      title: '请选择其他分类',
-      icon: 'none'
-    });
   },
 
   onReachBottom() {

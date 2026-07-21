@@ -1,32 +1,39 @@
 page {
-  /* 温馨粉橙配色 - 充满爱与生活感 */
-  --primary: #FF8B7B;
-  --primary-light: #FFB5A8;
-  --primary-dark: #E67365;
-  --primary-bg: rgba(255, 139, 123, 0.12);
-  --secondary: #7EC8A3;
-  --secondary-bg: rgba(126, 200, 163, 0.12);
-  --accent: #FFD27D;
-  --accent-bg: rgba(255, 210, 125, 0.15);
+  /* Soft mint glass design tokens */
+  --primary: #6FCF97;
+  --primary-light: #A8E6C3;
+  --primary-dark: #4DB87A;
+  --primary-bg: rgba(111, 207, 151, 0.14);
+  --secondary: #FF9B7A;
+  --secondary-bg: rgba(255, 155, 122, 0.14);
+  --accent: #F5C26B;
+  --accent-bg: rgba(245, 194, 107, 0.16);
+  --mint: #7ED6A8;
+  --mint-deep: #5BBF88;
+  --cream: #EEF4FA;
+  --cream-deep: #E2EBF4;
+  --glass: rgba(255, 255, 255, 0.72);
+  --glass-strong: rgba(255, 255, 255, 0.88);
   --danger: #FF6B8A;
   --danger-bg: rgba(255, 107, 138, 0.12);
-  --success: #7EC8A3;
+  --success: #6FCF97;
   --warning: #FFB347;
-  --text-primary: #2C2C2C;
-  --text-secondary: #7A7A7A;
-  --text-muted: #AAAAAA;
+  --text-primary: #2A2A2A;
+  --text-secondary: #6B6B6B;
+  --text-muted: #9A9A9A;
   --text-light: #C5C5C5;
-  --bg-primary: #F8F6F3;
+  --bg-primary: #EEF4FA;
   --bg-white: #FFFEFB;
   --bg-card: #FFFEFB;
-  --bg-warm: #FFF9F5;
-  --border-color: #F5F0EB;
-  --border-light: #EDE8E3;
-  --shadow-soft: 0 4rpx 20rpx rgba(255, 139, 123, 0.08);
-  --shadow-card: 0 8rpx 32rpx rgba(199, 180, 168, 0.12);
-  --shadow-float: 0 12rpx 40rpx rgba(255, 139, 123, 0.15);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --bg-warm: #F5F9FC;
+  --border-color: #E3EBF3;
+  --border-light: #D8E3EE;
+  --shadow-soft: 0 8rpx 28rpx rgba(42, 42, 42, 0.05);
+  --shadow-card: 0 12rpx 40rpx rgba(42, 42, 42, 0.06);
+  --shadow-float: 0 16rpx 48rpx rgba(111, 207, 151, 0.22);
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
   background-color: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 page::-webkit-scrollbar {
@@ -41,11 +48,10 @@ page::-webkit-scrollbar {
 
 .card {
   background: var(--bg-card);
-  border-radius: 24rpx;
+  border-radius: 28rpx;
   padding: 32rpx;
   margin-bottom: 24rpx;
   box-shadow: var(--shadow-soft);
-  border: 1rpx solid var(--border-color);
 }
 
 .btn-primary {
@@ -59,8 +65,7 @@ page::-webkit-scrollbar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
-  box-shadow: 0 6rpx 20rpx rgba(255, 139, 123, 0.3);
+  box-shadow: 0 8rpx 24rpx rgba(111, 207, 151, 0.35);
 }
 
 .btn-primary::after {
@@ -74,7 +79,7 @@ page::-webkit-scrollbar {
 
 .btn-secondary {
   background: var(--bg-warm);
-  color: var(--primary);
+  color: var(--primary-dark);
   border: 2rpx solid var(--primary);
   border-radius: 56rpx;
   padding: 26rpx 52rpx;
@@ -93,7 +98,7 @@ page::-webkit-scrollbar {
   padding: 14rpx 28rpx;
   font-size: 24rpx;
   border: none;
-  box-shadow: 0 4rpx 12rpx rgba(255, 139, 123, 0.25);
+  box-shadow: 0 4rpx 12rpx rgba(111, 207, 151, 0.3);
 }
 
 .btn-small::after {
@@ -142,7 +147,6 @@ page::-webkit-scrollbar {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* 温馨空状态 */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -178,17 +182,16 @@ page::-webkit-scrollbar {
   padding: 24rpx 48rpx;
   font-size: 28rpx;
   margin-top: 32rpx;
-  box-shadow: 0 6rpx 20rpx rgba(255, 139, 123, 0.3);
+  box-shadow: 0 6rpx 20rpx rgba(111, 207, 151, 0.3);
 }
 
-/* 温馨标签 */
 .tag {
   display: inline-block;
   padding: 8rpx 20rpx;
   border-radius: 28rpx;
   font-size: 24rpx;
   background: var(--primary-bg);
-  color: var(--primary);
+  color: var(--primary-dark);
   font-weight: 500;
 }
 
@@ -202,7 +205,6 @@ page::-webkit-scrollbar {
   color: #E6A028;
 }
 
-/* 徽章 */
 .badge {
   background: var(--danger);
   color: white;
@@ -215,14 +217,12 @@ page::-webkit-scrollbar {
   font-weight: 500;
 }
 
-/* 分割线 */
 .divider {
   height: 1rpx;
   background: var(--border-color);
   margin: 24rpx 0;
 }
 
-/* 加载状态 */
 .loading {
   display: flex;
   justify-content: center;
@@ -238,20 +238,9 @@ page::-webkit-scrollbar {
   font-size: 24rpx;
 }
 
-/* 温馨卡片 */
 .warm-card {
-  background: linear-gradient(135deg, #FFFEFB 0%, #FFF9F5 100%);
+  background: linear-gradient(135deg, #FFFEFB 0%, #F3FBF6 100%);
   border-radius: 28rpx;
   padding: 32rpx;
-  border: 2rpx solid var(--border-color);
   box-shadow: var(--shadow-card);
-}
-
-/* 爱心装饰 */
-.heart-accent::before {
-  content: '♥';
-  color: var(--primary);
-  font-size: 24rpx;
-  margin-right: 8rpx;
-  opacity: 0.6;
 }

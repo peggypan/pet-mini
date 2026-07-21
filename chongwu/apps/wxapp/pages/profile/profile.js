@@ -1,10 +1,26 @@
 const app = getApp();
 const api = require('../../utils/request');
+const { MOCK_PET } = require('../../utils/mock');
+
+/** 生成简易二维码点阵样式数据 */
+function buildQrCells() {
+  return [
+    1, 1, 1, 0, 1, 1,
+    1, 0, 1, 1, 0, 1,
+    1, 1, 1, 0, 1, 0,
+    0, 1, 0, 1, 1, 1,
+    1, 0, 1, 0, 1, 0,
+    1, 1, 0, 1, 0, 1,
+  ];
+}
 
 Page({
   data: {
+    statusBarHeight: 20,
     userInfo: null,
     isLogin: false,
+    qrCells: buildQrCells(),
+    pet: { ...MOCK_PET },
     stats: {
       serviceOrders: 0,
       idleOrders: 0,
@@ -14,6 +30,8 @@ Page({
   },
 
   onLoad() {
+    const sys = wx.getSystemInfoSync();
+    this.setData({ statusBarHeight: sys.statusBarHeight || 20 });
     this.checkLogin();
   },
 
@@ -30,17 +48,33 @@ Page({
       this.setData({ isLogin: true });
       this.loadUserProfile();
     } else {
-      this.setData({ isLogin: false, userInfo: null });
+      // 未登录也展示 Mock 宠物档案，方便预览还原
+      this.setData({ isLogin: false, userInfo: null, pet: { ...MOCK_PET } });
     }
   },
 
   async loadUserProfile() {
     try {
       const res = await api.get('/users/profile');
-      this.setData({ userInfo: res.data });
+      const userInfo = res.data;
+      const firstPet = userInfo?.pets?.[0];
+      const pet = firstPet
+        ? {
+            ...MOCK_PET,
+            name: firstPet.name || MOCK_PET.name,
+            age: firstPet.age ? `${firstPet.age}岁` : MOCK_PET.age,
+            days: firstPet.accompanyDays || firstPet.days || MOCK_PET.days,
+            weight: firstPet.weight ? `${firstPet.weight} kg` : MOCK_PET.weight,
+            avatar: firstPet.avatarUrl || firstPet.avatar || MOCK_PET.avatar,
+            cover: firstPet.coverUrl || firstPet.avatarUrl || firstPet.avatar || MOCK_PET.cover,
+          }
+        : { ...MOCK_PET };
+
+      this.setData({ userInfo, pet });
       this.loadStats();
     } catch (e) {
       console.error(e);
+      this.setData({ pet: { ...MOCK_PET } });
     }
   },
 
@@ -51,10 +85,14 @@ Page({
         api.get('/idle/orders/my'),
       ]);
 
+      const serviceOrders = serviceRes.data?.length || 0;
+      const idleOrders =
+        (idleRes.data?.buyOrders?.length || 0) + (idleRes.data?.sellOrders?.length || 0);
+
       this.setData({
         stats: {
-          serviceOrders: serviceRes.data?.length || 0,
-          idleOrders: (idleRes.data?.buyOrders?.length || 0) + (idleRes.data?.sellOrders?.length || 0),
+          serviceOrders,
+          idleOrders,
           pets: this.data.userInfo?.pets?.length || 0,
           favorites: 0,
         },
@@ -64,12 +102,20 @@ Page({
     }
   },
 
+  onNotifyTap() {
+    wx.showToast({ title: '暂无新消息', icon: 'none' });
+  },
+
   onFavoriteTap() {
     wx.showToast({ title: '功能开发中', icon: 'none' });
   },
 
-  onCouponTap() {
-    wx.showToast({ title: '功能开发中', icon: 'none' });
+  onFamilyTap() {
+    wx.navigateTo({ url: '/pages/health/health' });
+  },
+
+  onDarkModeTap() {
+    wx.showToast({ title: '深色模式开发中', icon: 'none' });
   },
 
   onHelpTap() {
@@ -77,7 +123,11 @@ Page({
   },
 
   onAboutTap() {
-    wx.showToast({ title: '功能开发中', icon: 'none' });
+    wx.showModal({
+      title: '关于宠享家',
+      content: '用心守护每一个毛孩子',
+      showCancel: false,
+    });
   },
 
   async onLogin() {
@@ -95,15 +145,7 @@ Page({
   },
 
   onHealthTap() {
-    wx.switchTab({ url: '/pages/health/health' });
-  },
-
-  onAddressTap() {
-    wx.showToast({ title: '功能开发中', icon: 'none' });
-  },
-
-  onSettingsTap() {
-    wx.showToast({ title: '功能开发中', icon: 'none' });
+    wx.navigateTo({ url: '/pages/health/health' });
   },
 
   onLogout() {
@@ -114,7 +156,7 @@ Page({
         if (res.confirm) {
           wx.removeStorageSync('token');
           app.globalData.token = null;
-          this.setData({ isLogin: false, userInfo: null });
+          this.setData({ isLogin: false, userInfo: null, pet: { ...MOCK_PET } });
         }
       },
     });

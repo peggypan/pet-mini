@@ -1,67 +1,79 @@
+<!-- 服务页：分类 Tab + 一键预约卡 + 服务商列表 -->
 <view class="page">
-  <!-- 页面标题 -->
-  <view class="page-header">
-    <text class="page-title">贴心服务</text>
-    <text class="page-subtitle">为毛孩子找到最好的照顾</text>
-  </view>
-
   <!-- 分类标签 -->
-  <view class="category-tabs">
-    <scroll-view scroll-x class="tabs-scroll">
-      <view class="tab-item {{currentCategory === null ? 'active' : ''}}" bindtap="onCategoryTap" data-id="">
-        <text class="tab-icon">🌟</text>
-        <text class="tab-text">全部</text>
-      </view>
-      <view class="tab-item {{currentCategory === item.id ? 'active' : ''}}" wx:for="{{categories}}" wx:key="id" bindtap="onCategoryTap" data-id="{{item.id}}">
-        <text class="tab-icon">{{item.icon}}</text>
+  <view class="tabs-wrap">
+    <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="tabs-scroll">
+      <view
+        class="tab-item {{currentCategory === item.id ? 'active' : ''}}"
+        wx:for="{{categories}}"
+        wx:key="id"
+        bindtap="onCategoryTap"
+        data-id="{{item.id}}"
+      >
+        <view class="tab-dot" wx:if="{{currentCategory === item.id}}"></view>
         <text class="tab-text">{{item.name}}</text>
       </view>
     </scroll-view>
   </view>
 
-  <!-- 服务列表 -->
-  <view class="service-list" wx:if="{{services.length > 0}}">
-    <view class="service-card" wx:for="{{services}}" wx:key="id" bindtap="onServiceTap" data-id="{{item.id}}">
-      <image src="{{item.coverUrls[0] || '/assets/default-service.png'}}" class="service-image" mode="aspectFill"></image>
-      <view class="service-info">
-        <text class="service-title">{{item.name}}</text>
-        <text class="service-subtitle">{{item.subtitle || '用心服务，品质保证'}}</text>
-        <view class="service-meta">
-          <view class="merchant-info">
-            <image src="{{item.merchantLogoUrl}}" class="merchant-avatar"></image>
-            <text class="merchant-name">{{item.merchantName}}</text>
-          </view>
-          <view class="rating-info">
-            <text class="star">★</text>
-            <text class="rating">{{item.merchantRating || 5.0}}</text>
-          </view>
-        </view>
-        <view class="service-footer">
-          <view class="price-area">
-            <text class="price">{{item.price}}</text>
-            <text class="unit">/{{item.unit || '次'}}</text>
-          </view>
-          <button class="book-btn-mini">预订</button>
-        </view>
+  <!-- 一键预约卡片 -->
+  <view class="book-card">
+    <view class="book-glass">
+      <view class="book-icon-box">
+        <text class="book-icon">🐾</text>
       </view>
+      <view class="book-info">
+        <text class="book-title">一键快速预约</text>
+        <text class="book-desc">精选同城服务 · 专业宠物护理</text>
+      </view>
+    </view>
+    <button class="book-now-btn" bindtap="onQuickBook">立即预约</button>
+    <view class="book-dots">
+      <view class="dot active"></view>
+      <view class="dot"></view>
+      <view class="dot"></view>
     </view>
   </view>
 
-  <!-- 空状态 -->
-  <view class="empty-state" wx:if="{{!loading && services.length === 0}}">
-    <text class="empty-icon">🌱</text>
-    <text class="empty-title">该分类暂无服务</text>
-    <text class="empty-desc">优质服务正在持续上线中...</text>
+  <!-- 服务商列表 -->
+  <view class="provider-list" wx:if="{{services.length > 0}}">
+    <view
+      class="provider-card"
+      wx:for="{{services}}"
+      wx:key="id"
+      bindtap="onServiceTap"
+      data-id="{{item.id}}"
+    >
+      <image
+        class="provider-avatar"
+        src="{{item.merchantLogoUrl || item.coverUrls[0]}}"
+        mode="aspectFill"
+      ></image>
+      <view class="provider-body">
+        <text class="provider-name">{{item.merchantName || item.name}}</text>
+        <view class="provider-stars">
+          <text class="star" wx:for="{{[1,2,3,4,5]}}" wx:for-item="s" wx:key="*this">★</text>
+        </view>
+        <text class="provider-desc">{{item.subtitle || item.name || '专业宠物服务，品质保障'}}</text>
+      </view>
+      <view class="provider-arrow">›</view>
+    </view>
   </view>
 
-  <!-- 加载状态 -->
-  <view class="loading-state" wx:if="{{loading}}">
-    <text class="loading-icon">⟳</text>
-    <text class="loading-text">加载中...</text>
+  <view class="loading-box" wx:if="{{loading}}">
+    <text class="loading-spinner">⟳</text>
+    <text class="loading-txt">加载中...</text>
   </view>
 
-  <!-- 底部提示 -->
-  <view class="bottom-tip" wx:if="{{!hasMore && services.length > 0}}">
+  <view class="bottom-hint" wx:if="{{!hasMore && services.length > 0 && !isMock}}">
     <text>— 已经到底啦 —</text>
   </view>
+
+  <!-- 地图视图切换 -->
+  <view class="map-fab" bindtap="onMapView">
+    <text class="map-fab-icon">◎</text>
+    <text class="map-fab-text">地图模式</text>
+  </view>
+
+  <view class="page-bottom-space"></view>
 </view>

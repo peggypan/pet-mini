@@ -16,16 +16,17 @@
   ],
   "window": {
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#FF8B7B",
+    "navigationBarBackgroundColor": "#EEF4FA",
     "navigationBarTitleText": "宠享家",
-    "navigationBarTextStyle": "white"
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#EEF4FA"
   },
   "tabBar": {
     "custom": true,
     "color": "#B2BEC3",
-    "selectedColor": "#FF8B7B",
-    "backgroundColor": "#ffffff",
-    "borderStyle": "black",
+    "selectedColor": "#6FCF97",
+    "backgroundColor": "#EEF4FA",
+    "borderStyle": "white",
     "list": [
       {
         "pagePath": "pages/index/index",

@@ -1,42 +1,39 @@
-<view class="container">
-  <!-- 顶部欢迎语 -->
+<view class="page">
+  <!-- 页面标题 -->
   <view class="page-header">
-    <text class="page-icon">🎁</text>
-    <view class="header-content">
-      <text class="page-title">闲置好物</text>
-      <text class="page-subtitle">好物流转，让爱延续</text>
+    <text class="page-title">闲置好物</text>
+    <text class="page-subtitle">好物流转，让爱延续</text>
+  </view>
+
+  <!-- 筛选栏 -->
+  <view class="filter-bar">
+    <view class="filter-tabs">
+      <view class="filter-tab {{currentCategory === null ? 'active' : ''}}" bindtap="onCategoryTap" data-id="">
+        <text>全部</text>
+      </view>
+      <view class="filter-tab {{currentCategory === item.id ? 'active' : ''}}" wx:for="{{categories}}" wx:key="id" bindtap="onCategoryTap" data-id="{{item.id}}">
+        <text class="tab-emoji">{{item.icon}}</text>
+        <text>{{item.name}}</text>
+      </view>
+    </view>
+    <view class="filter-more" bindtap="onFilterMore">
+      <text>筛选</text>
+      <text class="filter-icon">⚙</text>
     </view>
   </view>
 
-  <!-- 分类筛选 -->
-  <view class="category-tabs">
-    <scroll-view scroll-x class="tabs-scroll">
-      <view class="tab-item {{currentCategory === item.id ? 'active' : ''}}" wx:for="{{categories}}" wx:key="id" bindtap="onCategoryTap" data-id="{{item.id}}">
-        <text class="tab-icon">{{item.icon}}</text>
-        <text class="tab-text">{{item.name}}</text>
-      </view>
-    </scroll-view>
-  </view>
-
-  <!-- 闲置列表 -->
-  <view class="idle-grid" wx:if="{{items.length > 0}}">
-    <view class="idle-card" wx:for="{{items}}" wx:key="id" bindtap="onItemTap" data-id="{{item.id}}">
-      <image src="{{item.images[0] || '/assets/default-idle.png'}}" class="idle-image" mode="aspectFill"></image>
-      <view class="idle-content">
-        <text class="idle-title">{{item.title}}</text>
-        <view class="idle-meta">
-          <text class="condition">{{['全新', '几乎全新', '轻微使用', '明显使用'][item.conditionLevel - 1] || '未知'}}</text>
-          <text class="district">{{item.district || '未知'}}</text>
+  <!-- 商品网格 -->
+  <view class="goods-grid" wx:if="{{items.length > 0}}">
+    <view class="goods-card" wx:for="{{items}}" wx:key="id" bindtap="onItemTap" data-id="{{item.id}}">
+      <image src="{{item.images[0] || '/assets/default-idle.png'}}" class="goods-image" mode="aspectFill"></image>
+      <view class="goods-info">
+        <text class="goods-title">{{item.title}}</text>
+        <view class="goods-meta">
+          <text class="goods-condition">{{['全新', '几乎新', '轻微使用', '明显使用'][item.conditionLevel - 1] || '未知'}}</text>
         </view>
-        <view class="idle-footer">
-          <view class="price-info">
-            <text class="price">{{item.price}}</text>
-            <text class="original-price" wx:if="{{item.originalPrice && item.originalPrice > item.price}}">{{item.originalPrice}}</text>
-          </view>
-          <view class="seller-info">
-            <image src="{{item.userAvatarUrl || '/assets/default-avatar.png'}}" class="seller-avatar"></image>
-            <text class="seller-name">{{item.userNickname}}</text>
-          </view>
+        <view class="goods-footer">
+          <text class="goods-price">¥{{item.price}}</text>
+          <text class="goods-want">💬 {{item.wantCount || 0}}</text>
         </view>
       </view>
     </view>
@@ -45,13 +42,20 @@
   <!-- 空状态 -->
   <view class="empty-state" wx:if="{{!loading && items.length === 0}}">
     <text class="empty-icon">📭</text>
-    <text class="empty-text">闲置区空空如也</text>
-    <text class="empty-tip">来发布你的第一件闲置好物吧~</text>
-    <text class="empty-hint">让闲置物品找到新的主人</text>
+    <text class="empty-title">闲置区空空如也</text>
+    <text class="empty-desc">来发布你的第一件闲置好物吧~</text>
   </view>
 
-  <view class="loading-text" wx:if="{{loading}}"></view>
-  <view class="no-more" wx:if="{{!hasMore && items.length > 0}}">— 已经到底啦 —</view>
+  <!-- 加载状态 -->
+  <view class="loading-state" wx:if="{{loading}}">
+    <text class="loading-icon">⟳</text>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 底部提示 -->
+  <view class="bottom-tip" wx:if="{{!hasMore && items.length > 0}}">
+    <text>— 已经到底啦 —</text>
+  </view>
 
   <!-- 发布按钮 -->
   <view class="fab" bindtap="onPublishTap">

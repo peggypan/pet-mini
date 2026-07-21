@@ -8,8 +8,8 @@ Page({
         id: 1,
         title: '新手养宠指南',
         type: 'grooming',
-        color1: '#48C9B0',
-        color2: '#3AA896',
+        color1: '#FF8B7B',
+        color2: '#E67365',
         emoji: '🐕',
         desc: '从0到1照顾好毛孩子'
       },
@@ -17,8 +17,8 @@ Page({
         id: 2,
         title: '夏季宠物护理',
         type: 'medical',
-        color1: '#FF9A76',
-        color2: '#FF7B7B',
+        color1: '#7EC8A3',
+        color2: '#6BB88D',
         emoji: '☀️',
         desc: '高温天如何保护宠物'
       },
@@ -26,8 +26,8 @@ Page({
         id: 3,
         title: '闲置好物转让',
         type: 'idle',
-        color1: '#C8A8E9',
-        color2: '#9B7FC7',
+        color1: '#FFB347',
+        color2: '#FFA030',
         emoji: '🎁',
         desc: '好物流转，让爱延续'
       }

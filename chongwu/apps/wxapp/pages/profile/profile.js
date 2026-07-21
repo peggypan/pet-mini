@@ -9,6 +9,7 @@ Page({
       serviceOrders: 0,
       idleOrders: 0,
       pets: 0,
+      favorites: 0,
     },
   },
 
@@ -55,11 +56,28 @@ Page({
           serviceOrders: serviceRes.data?.length || 0,
           idleOrders: (idleRes.data?.buyOrders?.length || 0) + (idleRes.data?.sellOrders?.length || 0),
           pets: this.data.userInfo?.pets?.length || 0,
+          favorites: 0,
         },
       });
     } catch (e) {
       console.error(e);
     }
+  },
+
+  onFavoriteTap() {
+    wx.showToast({ title: '功能开发中', icon: 'none' });
+  },
+
+  onCouponTap() {
+    wx.showToast({ title: '功能开发中', icon: 'none' });
+  },
+
+  onHelpTap() {
+    wx.showToast({ title: '功能开发中', icon: 'none' });
+  },
+
+  onAboutTap() {
+    wx.showToast({ title: '功能开发中', icon: 'none' });
   },
 
   async onLogin() {

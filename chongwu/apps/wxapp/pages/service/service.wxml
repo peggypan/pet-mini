@@ -1,16 +1,17 @@
-<view class="container">
-  <!-- 顶部欢迎语 -->
+<view class="page">
+  <!-- 页面标题 -->
   <view class="page-header">
-    <text class="page-icon">🏥</text>
-    <view class="header-content">
-      <text class="page-title">贴心服务</text>
-      <text class="page-subtitle">为毛孩子找到最好的照顾</text>
-    </view>
+    <text class="page-title">贴心服务</text>
+    <text class="page-subtitle">为毛孩子找到最好的照顾</text>
   </view>
 
-  <!-- 分类筛选 -->
+  <!-- 分类标签 -->
   <view class="category-tabs">
     <scroll-view scroll-x class="tabs-scroll">
+      <view class="tab-item {{currentCategory === null ? 'active' : ''}}" bindtap="onCategoryTap" data-id="">
+        <text class="tab-icon">🌟</text>
+        <text class="tab-text">全部</text>
+      </view>
       <view class="tab-item {{currentCategory === item.id ? 'active' : ''}}" wx:for="{{categories}}" wx:key="id" bindtap="onCategoryTap" data-id="{{item.id}}">
         <text class="tab-icon">{{item.icon}}</text>
         <text class="tab-text">{{item.name}}</text>
@@ -22,19 +23,25 @@
   <view class="service-list" wx:if="{{services.length > 0}}">
     <view class="service-card" wx:for="{{services}}" wx:key="id" bindtap="onServiceTap" data-id="{{item.id}}">
       <image src="{{item.coverUrls[0] || '/assets/default-service.png'}}" class="service-image" mode="aspectFill"></image>
-      <view class="service-content">
+      <view class="service-info">
         <text class="service-title">{{item.name}}</text>
         <text class="service-subtitle">{{item.subtitle || '用心服务，品质保证'}}</text>
-        <view class="service-footer">
+        <view class="service-meta">
           <view class="merchant-info">
-            <image src="{{item.merchantLogoUrl}}" class="merchant-logo"></image>
+            <image src="{{item.merchantLogoUrl}}" class="merchant-avatar"></image>
             <text class="merchant-name">{{item.merchantName}}</text>
-            <text class="merchant-rating">{{item.merchantRating}}</text>
           </view>
-          <view class="price-info">
+          <view class="rating-info">
+            <text class="star">★</text>
+            <text class="rating">{{item.merchantRating || 5.0}}</text>
+          </view>
+        </view>
+        <view class="service-footer">
+          <view class="price-area">
             <text class="price">{{item.price}}</text>
             <text class="unit">/{{item.unit || '次'}}</text>
           </view>
+          <button class="book-btn-mini">预订</button>
         </view>
       </view>
     </view>
@@ -43,11 +50,18 @@
   <!-- 空状态 -->
   <view class="empty-state" wx:if="{{!loading && services.length === 0}}">
     <text class="empty-icon">🌱</text>
-    <text class="empty-text">该分类暂无服务</text>
-    <text class="empty-tip">试试切换其他分类吧</text>
-    <text class="empty-hint">优质服务正在持续上线中...</text>
+    <text class="empty-title">该分类暂无服务</text>
+    <text class="empty-desc">优质服务正在持续上线中...</text>
   </view>
 
-  <view class="loading-text" wx:if="{{loading}}"></view>
-  <view class="no-more" wx:if="{{!hasMore && services.length > 0}}">— 已经到底啦 —</view>
+  <!-- 加载状态 -->
+  <view class="loading-state" wx:if="{{loading}}">
+    <text class="loading-icon">⟳</text>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 底部提示 -->
+  <view class="bottom-tip" wx:if="{{!hasMore && services.length > 0}}">
+    <text>— 已经到底啦 —</text>
+  </view>
 </view>

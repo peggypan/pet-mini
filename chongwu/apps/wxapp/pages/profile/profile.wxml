@@ -1,83 +1,105 @@
-<view class="container">
-  <!-- 用户信息 -->
-  <view class="card user-card">
-    <view wx:if="{{isLogin && userInfo}}">
-      <view class="user-info">
-        <image src="{{userInfo.avatarUrl || '/assets/default-avatar.png'}}" class="user-avatar"></image>
-        <view class="user-detail">
-          <text class="user-name">{{userInfo.nickname || '用户'}}</text>
-          <text class="user-phone" wx:if="{{userInfo.phone}}">{{userInfo.phone}}</text>
-          <view class="member-badge" wx:if="{{userInfo.memberLevel > 0}}">
-            <text>✨ 高级会员</text>
-          </view>
+<view class="page">
+  <!-- 用户信息区 -->
+  <view class="user-header">
+    <view wx:if="{{isLogin && userInfo}}" class="user-info">
+      <image src="{{userInfo.avatarUrl || '/assets/default-avatar.png'}}" class="user-avatar"></image>
+      <view class="user-detail">
+        <text class="user-name">{{userInfo.nickname || '用户'}}</text>
+        <view class="user-tags" wx:if="{{userInfo.memberLevel > 0}}">
+          <text class="vip-tag">✨ 高级会员</text>
         </view>
+      </view>
+      <view class="user-action">
+        <text class="action-icon">⚙</text>
       </view>
     </view>
 
-    <view wx:else class="login-section">
-      <view class="login-avatar">🐾</view>
-      <text class="login-tip">登录后体验更多功能</text>
-      <button class="btn-primary login-btn" bindtap="onLogin">微信一键登录</button>
-    </view>
-  </view>
-
-  <!-- 温馨问候 -->
-  <view class="greeting-card" wx:if="{{isLogin}}">
-    <text class="greeting-icon">🌸</text>
-    <view class="greeting-content">
-      <text class="greeting-text">感谢有你的陪伴，让爱宠生活更美好~</text>
+    <view wx:else class="login-area">
+      <image src="/assets/default-avatar.png" class="user-avatar-placeholder"></image>
+      <button class="login-btn" bindtap="onLogin">微信登录</button>
     </view>
   </view>
 
   <!-- 数据统计 -->
-  <view class="card stats-card" wx:if="{{isLogin}}">
+  <view class="stats-row" wx:if="{{isLogin}}">
     <view class="stat-item" bindtap="onOrdersTap">
-      <text class="stat-value">{{stats.serviceOrders || 0}}</text>
+      <text class="stat-num">{{stats.serviceOrders || 0}}</text>
       <text class="stat-label">服务订单</text>
     </view>
     <view class="stat-item" bindtap="onOrdersTap">
-      <text class="stat-value">{{stats.idleOrders || 0}}</text>
+      <text class="stat-num">{{stats.idleOrders || 0}}</text>
       <text class="stat-label">闲置交易</text>
     </view>
     <view class="stat-item" bindtap="onHealthTap">
-      <text class="stat-value">{{stats.pets || 0}}</text>
+      <text class="stat-num">{{stats.pets || 0}}</text>
       <text class="stat-label">我的宠物</text>
+    </view>
+    <view class="stat-item" bindtap="onFavoriteTap">
+      <text class="stat-num">{{stats.favorites || 0}}</text>
+      <text class="stat-label">我的收藏</text>
     </view>
   </view>
 
-  <!-- 菜单列表 -->
-  <view class="card menu-list">
+  <!-- 功能菜单 -->
+  <view class="menu-section">
     <view class="menu-item" bindtap="onOrdersTap">
-      <text class="menu-icon">📋</text>
-      <text class="menu-text">我的订单</text>
-      <text class="menu-arrow">›</text>
-    </view>
-
-    <view class="menu-item" bindtap="onHealthTap">
-      <text class="menu-icon">💊</text>
-      <text class="menu-text">健康档案</text>
+      <view class="menu-left">
+        <text class="menu-icon">📋</text>
+        <text class="menu-text">我的订单</text>
+      </view>
       <text class="menu-arrow">›</text>
     </view>
 
     <view class="menu-item" bindtap="onAddressTap">
-      <text class="menu-icon">📍</text>
-      <text class="menu-text">地址管理</text>
+      <view class="menu-left">
+        <text class="menu-icon">📍</text>
+        <text class="menu-text">地址管理</text>
+      </view>
       <text class="menu-arrow">›</text>
     </view>
 
-    <view class="menu-item" bindtap="onSettingsTap">
-      <text class="menu-icon">⚙️</text>
-      <text class="menu-text">设置</text>
+    <view class="menu-item" bindtap="onCouponTap">
+      <view class="menu-left">
+        <text class="menu-icon">🎫</text>
+        <text class="menu-text">优惠券</text>
+      </view>
+      <text class="menu-arrow">›</text>
+    </view>
+  </view>
+
+  <!-- 更多服务 -->
+  <view class="menu-section">
+    <view class="menu-item" bindtap="onHealthTap">
+      <view class="menu-left">
+        <text class="menu-icon">💗</text>
+        <text class="menu-text">健康档案</text>
+      </view>
+      <text class="menu-arrow">›</text>
+    </view>
+
+    <view class="menu-item" bindtap="onHelpTap">
+      <view class="menu-left">
+        <text class="menu-icon">💬</text>
+        <text class="menu-text">客服中心</text>
+      </view>
+      <text class="menu-arrow">›</text>
+    </view>
+
+    <view class="menu-item" bindtap="onAboutTap">
+      <view class="menu-left">
+        <text class="menu-icon">ℹ️</text>
+        <text class="menu-text">关于我们</text>
+      </view>
       <text class="menu-arrow">›</text>
     </view>
   </view>
 
   <!-- 退出登录 -->
-  <button class="btn-secondary logout-btn" bindtap="onLogout" wx:if="{{isLogin}}">退出登录</button>
+  <button class="logout-btn" bindtap="onLogout" wx:if="{{isLogin}}">退出登录</button>
 
   <!-- 底部温馨语 -->
   <view class="warm-footer">
-    <text class="warm-emoji">💕</text>
+    <text class="warm-icon">💕</text>
     <text class="warm-text">用心守护每一个毛孩子</text>
   </view>
 </view>

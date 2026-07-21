@@ -1,45 +1,31 @@
+page {
+  background: var(--bg-primary);
+}
+
 /* 页面头部 */
 .page-header {
-  display: flex;
-  align-items: center;
-  gap: 20rpx;
-  padding: 24rpx 20rpx;
-  background: linear-gradient(135deg, #FFE8D6 0%, #FFD6C6 100%);
-  border-radius: 24rpx;
-  margin-bottom: 28rpx;
-  box-shadow: 0 8rpx 24rpx rgba(255, 139, 123, 0.15);
-}
-
-.page-icon {
-  font-size: 64rpx;
-}
-
-.header-content {
-  flex: 1;
+  padding: 40rpx 20rpx 24rpx;
+  background: var(--bg-white);
 }
 
 .page-title {
   display: block;
-  font-size: 36rpx;
-  font-weight: 600;
+  font-size: 44rpx;
+  font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 4rpx;
+  margin-bottom: 8rpx;
 }
 
 .page-subtitle {
   font-size: 26rpx;
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
-/* 分类筛选 - 温馨带图标 */
+/* 分类标签 */
 .category-tabs {
   background: var(--bg-white);
-  padding: 24rpx 0;
-  margin-bottom: 28rpx;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 4rpx 20rpx rgba(199, 180, 168, 0.1);
+  padding: 20rpx 0;
+  margin-bottom: 16rpx;
 }
 
 .tabs-scroll {
@@ -49,211 +35,213 @@
 
 .tab-item {
   display: inline-flex;
-  flex-direction: column;
   align-items: center;
   gap: 8rpx;
-  padding: 12rpx 24rpx;
-  margin-right: 12rpx;
-  border-radius: 24rpx;
-  font-size: 24rpx;
-  color: var(--text-secondary);
+  padding: 16rpx 32rpx;
+  margin-right: 16rpx;
+  border-radius: 48rpx;
   background: var(--bg-primary);
-  transition: all 0.3s ease;
   border: 2rpx solid transparent;
-  min-width: 120rpx;
+  transition: all 0.3s;
 }
 
 .tab-item.active {
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-  color: white;
-  box-shadow: 0 6rpx 20rpx rgba(255, 139, 123, 0.35);
   border-color: transparent;
 }
 
+.tab-item.active .tab-text {
+  color: white;
+}
+
 .tab-icon {
-  font-size: 36rpx;
+  font-size: 32rpx;
 }
 
 .tab-text {
-  font-size: 24rpx;
+  font-size: 26rpx;
+  color: var(--text-secondary);
 }
 
-/* 服务列表 - 温馨卡片 */
+/* 服务列表 */
 .service-list {
+  padding: 0 20rpx 20rpx;
   display: flex;
   flex-direction: column;
-  gap: 24rpx;
+  gap: 16rpx;
 }
 
 .service-card {
+  display: flex;
   background: var(--bg-white);
   border-radius: 24rpx;
   overflow: hidden;
   box-shadow: var(--shadow-soft);
   border: 1rpx solid var(--border-color);
-  transition: all 0.3s ease;
-}
-
-.service-card:active {
-  transform: scale(0.98);
-  box-shadow: var(--shadow-card);
 }
 
 .service-image {
-  width: 240rpx;
-  height: 240rpx;
+  width: 220rpx;
+  height: 220rpx;
+  flex-shrink: 0;
   background: var(--bg-primary);
 }
 
-.service-content {
+.service-info {
   flex: 1;
-  padding: 28rpx;
+  padding: 24rpx;
   display: flex;
   flex-direction: column;
 }
 
 .service-title {
-  font-size: 34rpx;
+  font-size: 32rpx;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 12rpx;
+  margin-bottom: 8rpx;
 }
 
 .service-subtitle {
-  font-size: 26rpx;
+  font-size: 24rpx;
   color: var(--text-muted);
   margin-bottom: auto;
   line-height: 1.5;
+}
+
+.service-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.merchant-info {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.merchant-avatar {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  background: var(--bg-primary);
+}
+
+.merchant-name {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+}
+
+.rating-info {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  color: var(--warning);
+}
+
+.star {
+  font-size: 20rpx;
+}
+
+.rating {
+  font-size: 24rpx;
+  font-weight: 500;
 }
 
 .service-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 20rpx;
+  margin-top: auto;
 }
 
-.merchant-info {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-}
-
-.merchant-logo {
-  width: 48rpx;
-  height: 48rpx;
-  border-radius: 50%;
-  background: var(--bg-primary);
-  border: 2rpx solid var(--border-color);
-}
-
-.merchant-name {
-  font-size: 26rpx;
-  color: var(--text-secondary);
-  max-width: 180rpx;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.merchant-rating {
-  font-size: 24rpx;
-  color: var(--warning);
-  display: flex;
-  align-items: center;
-  gap: 4rpx;
-  font-weight: 500;
-}
-
-.merchant-rating::before {
-  content: '★';
-  font-size: 20rpx;
-}
-
-.price-info {
+.price-area {
   display: flex;
   align-items: baseline;
+  gap: 4rpx;
 }
 
 .price {
-  font-size: 44rpx;
-  font-weight: 600;
+  font-size: 40rpx;
+  font-weight: 700;
   color: var(--primary);
 }
 
 .price::before {
   content: '¥';
-  font-size: 28rpx;
+  font-size: 24rpx;
   margin-right: 2rpx;
 }
 
 .unit {
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: var(--text-muted);
-  margin-left: 4rpx;
 }
 
-/* 温馨空状态 */
+.book-btn-mini {
+  padding: 12rpx 28rpx;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: white;
+  font-size: 24rpx;
+  border-radius: 32rpx;
+  border: none;
+}
+
+.book-btn-mini::after {
+  border: none;
+}
+
+/* 空状态 */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   padding: 120rpx 60rpx;
-  background: var(--bg-warm);
-  border-radius: 28rpx;
-  border: 2rpx dashed var(--border-light);
 }
 
 .empty-icon {
-  font-size: 140rpx;
-  margin-bottom: 24rpx;
-  opacity: 0.6;
+  font-size: 120rpx;
+  margin-bottom: 20rpx;
+  opacity: 0.5;
 }
 
-.empty-text {
+.empty-title {
   font-size: 28rpx;
   color: var(--text-secondary);
-  margin-bottom: 12rpx;
-}
-
-.empty-tip {
-  font-size: 24rpx;
-  color: var(--text-muted);
   margin-bottom: 8rpx;
 }
 
-.empty-hint {
-  font-size: 22rpx;
-  color: var(--text-light);
+.empty-desc {
+  font-size: 24rpx;
+  color: var(--text-muted);
 }
 
 /* 加载状态 */
-.loading-text {
+.loading-state {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12rpx;
-  padding: 40rpx;
-  color: var(--text-muted);
-  font-size: 26rpx;
+  padding: 60rpx;
 }
 
-.loading-text::before {
-  content: '';
-  width: 32rpx;
-  height: 32rpx;
-  border: 3rpx solid var(--border-color);
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+.loading-icon {
+  font-size: 40rpx;
+  animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-.no-more {
+.loading-text {
+  font-size: 26rpx;
+  color: var(--text-muted);
+}
+
+/* 底部提示 */
+.bottom-tip {
   text-align: center;
   padding: 40rpx;
   color: var(--text-light);

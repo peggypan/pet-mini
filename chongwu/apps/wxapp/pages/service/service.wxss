@@ -1,0 +1,119 @@
+.category-tabs {
+  background: var(--bg-white);
+  padding: 20rpx 0;
+  margin: -20rpx -20rpx 20rpx;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.tabs-scroll {
+  white-space: nowrap;
+  padding: 0 20rpx;
+}
+
+.tab-item {
+  display: inline-block;
+  padding: 12rpx 32rpx;
+  margin-right: 16rpx;
+  border-radius: 32rpx;
+  font-size: 28rpx;
+  color: var(--text-secondary);
+  background: var(--bg-primary);
+}
+
+.tab-item.active {
+  background: var(--primary);
+  color: white;
+}
+
+.service-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.service-card {
+  background: var(--bg-white);
+  border-radius: 16rpx;
+  overflow: hidden;
+  display: flex;
+}
+
+.service-image {
+  width: 240rpx;
+  height: 240rpx;
+  background: #eee;
+}
+
+.service-content {
+  flex: 1;
+  padding: 20rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.service-title {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 8rpx;
+}
+
+.service-subtitle {
+  font-size: 24rpx;
+  color: var(--text-muted);
+  margin-bottom: auto;
+}
+
+.service-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.merchant-info {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.merchant-logo {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  background: #eee;
+}
+
+.merchant-name {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+}
+
+.merchant-rating {
+  font-size: 22rpx;
+  color: var(--warning);
+}
+
+.price-info {
+  display: flex;
+  align-items: baseline;
+}
+
+.price {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.unit {
+  font-size: 24rpx;
+  color: var(--text-muted);
+}
+
+.loading-text, .no-more {
+  text-align: center;
+  padding: 40rpx;
+  color: var(--text-muted);
+  font-size: 26rpx;
+}

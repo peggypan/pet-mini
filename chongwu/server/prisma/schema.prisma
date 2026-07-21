@@ -1,0 +1,299 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  openid     String   @unique
+  nickname   String?
+  avatarUrl  String?
+  phone      String?
+  realName   String?
+  gender     Int?
+  birthday   String?
+  city       String?
+  district   String?
+  address    String?
+  status     Int      @default(1)
+  lastLoginAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  pets          Pet[]
+  healthRecords HealthRecord[]
+  merchants     Merchant[]
+  serviceOrders ServiceOrder[]
+  idleItems     IdleItem[]
+
+  @@map("users")
+}
+
+model Pet {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  name         String
+  species      Int
+  breedName    String?
+  gender       Int?
+  birthday     String?
+  weight       Float?
+  color        String?
+  isSterilized Boolean  @default(false)
+  microchip    String?
+  remark       String?
+  status       Int      @default(1)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  healthRecords HealthRecord[]
+
+  @@map("pets")
+}
+
+model HealthRecord {
+  id         Int      @id @default(autoincrement())
+  petId      Int
+  userId     Int
+  recordType Int
+  itemName   String
+  itemBrand  String?
+  itemBatch  String?
+  doneAt     String
+  validUntil String?
+  clinicName String?
+  doctorName String?
+  cost       Float?
+  photos     String   @default("")
+  remark     String?
+  remindBefore Int    @default(7)
+  reminded   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  pet  Pet  @relation(fields: [petId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("health_records")
+}
+
+model Merchant {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  name       String
+  logoUrl    String?
+  coverUrl   String?
+  type       Int
+  description String?
+  contactName String?
+  contactPhone String?
+  businessLicense String?
+  businessLicenseUrl String?
+  qualificationUrls String @default("")
+  province   String?
+  city       String?  @default("北京市")
+  district   String
+  address    String
+  longitude  Float?
+  latitude   Float?
+  businessHours String?
+  rating     Float    @default(5.0)
+  reviewCount Int     @default(0)
+  orderCount Int      @default(0)
+  serviceTypes String @default("")
+  hasMall    Boolean  @default(false)
+  status     Int      @default(0)
+  rejectReason String?
+  commissionRate Float @default(0.10)
+  annualFee  Float    @default(0)
+  annualFeeExpireAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id])
+  services Service[]
+  serviceOrders ServiceOrder[]
+
+  @@map("merchants")
+}
+
+model Service {
+  id          Int      @id @default(autoincrement())
+  merchantId  Int
+  categoryId  Int
+  name        String
+  subtitle    String?
+  description String?
+  coverUrls   String   @default("")
+  detailImages String  @default("")
+  price       Float
+  originalPrice Float?
+  unit        String   @default("次")
+  duration    Int?
+  serviceArea String?
+  needAddress Boolean  @default(true)
+  needAppointment Boolean @default(true)
+  availableTimes String?
+  salesCount  Int      @default(0)
+  rating      Float    @default(5.0)
+  reviewCount Int      @default(0)
+  sortOrder   Int      @default(0)
+  status      Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  merchant      Merchant       @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  serviceOrders ServiceOrder[]
+
+  @@map("services")
+}
+
+model ServiceOrder {
+  id              Int      @id @default(autoincrement())
+  orderNo         String   @unique
+  userId          Int
+  merchantId      Int
+  serviceId       Int
+  serviceName     String?
+  servicePrice    Float?
+  quantity        Int      @default(1)
+  totalAmount     Float
+  discountAmount  Float    @default(0)
+  payAmount       Float
+  platformFee     Float    @default(0)
+  merchantAmount  Float    @default(0)
+  couponId        Int?
+  couponAmount    Float    @default(0)
+  petId           Int?
+  contactName     String?
+  contactPhone    String?
+  addressId       Int?
+  address         String?
+  longitude       Float?
+  latitude        Float?
+  appointmentDate String?
+  appointmentTime String?
+  remark          String?
+  merchantRemark  String?
+  status          Int      @default(0)
+  paidAt          DateTime?
+  acceptedAt      DateTime?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  cancelledAt     DateTime?
+  cancelReason    String?
+  refundAmount    Float?
+  refundReason    String?
+  refundAt        DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id])
+  merchant Merchant @relation(fields: [merchantId], references: [id])
+  service  Service  @relation(fields: [serviceId], references: [id])
+
+  @@map("service_orders")
+}
+
+model IdleItem {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  categoryId    Int
+  title         String
+  description   String
+  images        String   @default("")
+  price         Float
+  originalPrice Float?
+  conditionLevel Int
+  usageDesc     String?
+  tradeType     Int      @default(1)
+  location      String?
+  district      String?
+  longitude     Float?
+  latitude      Float?
+  viewCount     Int      @default(0)
+  collectCount  Int      @default(0)
+  isTop         Boolean  @default(false)
+  topExpireAt   DateTime?
+  status        Int      @default(0)
+  soldAt        DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders IdleOrder[]
+
+  @@map("idle_items")
+}
+
+model IdleOrder {
+  id           Int      @id @default(autoincrement())
+  orderNo      String   @unique
+  buyerId      Int
+  sellerId     Int
+  idleItemId   Int
+  itemTitle    String?
+  itemPrice    Float?
+  totalAmount  Float
+  platformFee  Float    @default(0)
+  payAmount    Float
+  sellerAmount Float
+  deliveryType Int
+  address      String?
+  trackingNo   String?
+  status       Int      @default(0)
+  paidAt       DateTime?
+  shippedAt    DateTime?
+  receivedAt   DateTime?
+  completedAt  DateTime?
+  refundReason String?
+  refundAt     DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  idleItem IdleItem @relation(fields: [idleItemId], references: [id])
+
+  @@map("idle_orders")
+}
+
+model Transaction {
+  id            Int      @id @default(autoincrement())
+  transactionNo String   @unique
+  userId        Int
+  merchantId    Int?
+  orderNo       String?
+  orderType     Int?
+  type          Int
+  channel       Int      @default(1)
+  amount        Float
+  fee           Float    @default(0)
+  status        Int      @default(0)
+  thirdPartyNo  String?
+  remark        String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("transactions")
+}
+
+model Banner {
+  id        Int      @id @default(autoincrement())
+  title     String?
+  imageUrl  String
+  linkType  Int      @default(1)
+  linkUrl   String?
+  targetId  Int?
+  sortOrder Int      @default(0)
+  startAt   DateTime?
+  endAt     DateTime?
+  status    Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("banners")
+}

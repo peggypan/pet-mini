@@ -1,0 +1,70 @@
+<view class="container">
+  <view class="card">
+    <view class="section-title">{{mode === 'add' ? '添加宠物' : '编辑宠物'}}</view>
+    
+    <view class="form-item">
+      <text class="label">名字 *</text>
+      <input value="{{name}}" bindinput="onInputChange" data-field="name" placeholder="请输入宠物名字" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">种类</text>
+      <picker bindchange="onSpeciesChange" value="{{species - 1}}" range="{{['狗', '猫', '其他']}}">
+        <view class="picker">
+          <text>{{species === 1 ? '猫' : species === 2 ? '狗' : '其他'}}</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="label">品种</text>
+      <input value="{{breedName}}" bindinput="onInputChange" data-field="breedName" placeholder="请输入品种" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">性别</text>
+      <picker bindchange="onGenderChange" value="{{gender}}" range="{{['未知', '公', '母']}}">
+        <view class="picker">
+          <text>{{gender === 0 ? '未知' : gender === 1 ? '公' : '母'}}</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="label">生日</text>
+      <picker mode="date" bindchange="onInputChange" data-field="birthday">
+        <view class="picker">
+          <text wx:if="{{birthday}}">{{birthday}}</text>
+          <text wx:else class="placeholder">请选择生日</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="label">体重(kg)</text>
+      <input value="{{weight}}" bindinput="onInputChange" data-field="weight" placeholder="请输入体重" type="digit" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">毛色</text>
+      <input value="{{color}}" bindinput="onInputChange" data-field="color" placeholder="请输入毛色" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">绝育状态</text>
+      <switch checked="{{isSterilized}}" bindchange="onSterilizedChange" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">芯片号</text>
+      <input value="{{microchip}}" bindinput="onInputChange" data-field="microchip" placeholder="请输入芯片号（可选）" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">备注</text>
+      <textarea value="{{remark}}" bindinput="onInputChange" data-field="remark" placeholder="请输入备注（可选）" />
+    </view>
+  </view>
+
+  <button class="btn-primary submit-btn" bindtap="onSubmit">保存</button>
+</view>

@@ -1,0 +1,48 @@
+<view class="container" wx:if="{{item}}">
+  <!-- 图片轮播 -->
+  <swiper class="item-swiper" indicator-dots circular wx:if="{{item.images.length > 0}}">
+    <swiper-item wx:for="{{item.images}}" wx:key="*this">
+      <image src="{{item}}" mode="aspectFill" class="swiper-image"></image>
+    </swiper-item>
+  </swiper>
+
+  <!-- 商品信息 -->
+  <view class="card">
+    <view class="price-row">
+      <text class="price">¥{{item.price}}</text>
+      <text class="original-price" wx:if="{{item.originalPrice}}">¥{{item.originalPrice}}</text>
+    </view>
+    <text class="item-title">{{item.title}}</text>
+    <view class="item-meta">
+      <text class="condition-tag">{{['全新', '几乎全新', '轻微使用', '明显使用'][item.conditionLevel - 1]}}</text>
+      <text class="trade-type">{{item.tradeType === 1 ? '自提' : item.tradeType === 2 ? '快递' : '自提/快递'}}</text>
+    </view>
+  </view>
+
+  <!-- 卖家信息 -->
+  <view class="card seller-card">
+    <view class="seller-header">
+      <image src="{{item.user?.avatarUrl}}" class="seller-avatar"></image>
+      <view class="seller-info">
+        <text class="seller-name">{{item.user?.nickname}}</text>
+        <text class="seller-location">{{item.district || item.location}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 商品详情 -->
+  <view class="card">
+    <view class="section-title">商品详情</view>
+    <text class="description">{{item.description}}</text>
+    <view class="detail-row" wx:if="{{item.usageDesc}}">
+      <text class="label">使用情况</text>
+      <text>{{item.usageDesc}}</text>
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="bottom-bar">
+    <button class="btn-secondary contact-btn" bindtap="onContactTap">联系卖家</button>
+    <button class="btn-primary buy-btn" bindtap="onBuyTap">立即购买</button>
+  </view>
+</view>

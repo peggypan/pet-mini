@@ -1,0 +1,150 @@
+.service-swiper {
+  height: 400rpx;
+  margin: -20rpx -20rpx 20rpx;
+}
+
+.swiper-image {
+  width: 100%;
+  height: 100%;
+}
+
+.service-info {
+  padding-bottom: 30rpx;
+}
+
+.service-name {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: block;
+  margin-bottom: 12rpx;
+}
+
+.service-subtitle {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+  display: block;
+  margin-bottom: 20rpx;
+}
+
+.price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+}
+
+.price {
+  font-size: 48rpx;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.original-price {
+  font-size: 28rpx;
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.unit {
+  font-size: 26rpx;
+  color: var(--text-muted);
+}
+
+.stats-row {
+  display: flex;
+  gap: 30rpx;
+  margin-top: 16rpx;
+  font-size: 24rpx;
+  color: var(--text-muted);
+}
+
+.merchant-card {
+  padding: 24rpx;
+}
+
+.merchant-header {
+  display: flex;
+  gap: 20rpx;
+  margin-bottom: 16rpx;
+}
+
+.merchant-logo {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: #eee;
+}
+
+.merchant-info {
+  flex: 1;
+}
+
+.merchant-name {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: var(--text-primary);
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.merchant-address {
+  font-size: 24rpx;
+  color: var(--text-muted);
+}
+
+.merchant-rating {
+  display: flex;
+  gap: 30rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid var(--border-color);
+  font-size: 24rpx;
+  color: var(--text-secondary);
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16rpx;
+}
+
+.description {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg-white);
+  padding: 20rpx 30rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  box-shadow: 0 -2rpx 10rpx rgba(0,0,0,0.05);
+}
+
+.quantity-selector {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  font-size: 28rpx;
+}
+
+.quantity-input {
+  width: 100rpx;
+  height: 56rpx;
+  border: 1rpx solid var(--border-color);
+  border-radius: 8rpx;
+  text-align: center;
+  font-size: 28rpx;
+}
+
+.book-btn {
+  flex: 1;
+  margin: 0;
+}

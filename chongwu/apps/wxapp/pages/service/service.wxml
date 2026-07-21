@@ -1,0 +1,35 @@
+<view class="container">
+  <!-- 分类筛选 -->
+  <view class="category-tabs">
+    <scroll-view scroll-x class="tabs-scroll">
+      <view class="tab-item {{currentCategory === item.id ? 'active' : ''}}" wx:for="{{categories}}" wx:key="id" bindtap="onCategoryTap" data-id="{{item.id}}">
+        <text>{{item.name}}</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 服务列表 -->
+  <view class="service-list">
+    <view class="service-card" wx:for="{{services}}" wx:key="id" bindtap="onServiceTap" data-id="{{item.id}}">
+      <image src="{{item.coverUrls[0] || '/assets/default-service.png'}}" class="service-image" mode="aspectFill"></image>
+      <view class="service-content">
+        <text class="service-title">{{item.name}}</text>
+        <text class="service-subtitle">{{item.subtitle}}</text>
+        <view class="service-footer">
+          <view class="merchant-info">
+            <image src="{{item.merchant?.logoUrl}}" class="merchant-logo"></image>
+            <text class="merchant-name">{{item.merchant?.name}}</text>
+            <text class="merchant-rating">{{item.merchant?.rating}}分</text>
+          </view>
+          <view class="price-info">
+            <text class="price">¥{{item.price}}</text>
+            <text class="unit">/{{item.unit}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="loading-text" wx:if="{{loading}}">加载中...</view>
+  <view class="no-more" wx:if="{{!hasMore && services.length > 0}}">没有更多了</view>
+</view>

@@ -1,0 +1,8 @@
+[phases.build]
+cmds = ["cd server && npm install && npx prisma generate && npm run build"]
+
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[start]
+cmd = "cd server && npx prisma migrate deploy && npm run start:prod"

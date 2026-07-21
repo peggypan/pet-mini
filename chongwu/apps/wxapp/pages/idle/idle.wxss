@@ -1,0 +1,139 @@
+.category-tabs {
+  background: var(--bg-white);
+  padding: 20rpx 0;
+  margin: -20rpx -20rpx 20rpx;
+}
+
+.tabs-scroll {
+  white-space: nowrap;
+  padding: 0 20rpx;
+}
+
+.tab-item {
+  display: inline-block;
+  padding: 12rpx 32rpx;
+  margin-right: 16rpx;
+  border-radius: 32rpx;
+  font-size: 28rpx;
+  color: var(--text-secondary);
+  background: var(--bg-primary);
+}
+
+.tab-item.active {
+  background: var(--primary);
+  color: white;
+}
+
+.idle-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20rpx;
+}
+
+.idle-card {
+  background: var(--bg-white);
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.idle-image {
+  width: 100%;
+  height: 280rpx;
+  background: #eee;
+}
+
+.idle-content {
+  padding: 16rpx;
+}
+
+.idle-title {
+  font-size: 28rpx;
+  color: var(--text-primary);
+  display: block;
+  margin-bottom: 12rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.idle-meta {
+  display: flex;
+  gap: 12rpx;
+  margin-bottom: 12rpx;
+}
+
+.condition {
+  font-size: 22rpx;
+  color: var(--secondary);
+  background: rgba(78, 205, 196, 0.1);
+  padding: 2rpx 10rpx;
+  border-radius: 6rpx;
+}
+
+.district {
+  font-size: 22rpx;
+  color: var(--text-muted);
+}
+
+.idle-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.price-info {
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
+}
+
+.price {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.original-price {
+  font-size: 24rpx;
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.seller-info {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.seller-avatar {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  background: #eee;
+}
+
+.seller-name {
+  font-size: 22rpx;
+  color: var(--text-muted);
+}
+
+.fab {
+  position: fixed;
+  right: 40rpx;
+  bottom: 120rpx;
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  box-shadow: 0 4rpx 20rpx rgba(255, 140, 66, 0.4);
+}
+
+.fab text {
+  font-size: 28rpx;
+}

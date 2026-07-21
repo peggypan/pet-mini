@@ -1,0 +1,68 @@
+<view class="container">
+  <!-- 用户信息 -->
+  <view class="card user-card">
+    <view wx:if="{{isLogin && userInfo}}">
+      <view class="user-info">
+        <image src="{{userInfo.avatarUrl || '/assets/default-avatar.png'}}" class="user-avatar"></image>
+        <view class="user-detail">
+          <text class="user-name">{{userInfo.nickname || '用户'}}</text>
+          <text class="user-phone" wx:if="{{userInfo.phone}}">{{userInfo.phone}}</text>
+          <view class="member-badge" wx:if="{{userInfo.memberLevel > 0}}">
+            <text>高级会员</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <view wx:else class="login-section">
+      <view class="login-avatar"></view>
+      <button class="btn-primary login-btn" bindtap="onLogin">微信一键登录</button>
+    </view>
+  </view>
+
+  <!-- 数据统计 -->
+  <view class="card stats-card" wx:if="{{isLogin}}">
+    <view class="stat-item" bindtap="onOrdersTap">
+      <text class="stat-value">{{stats.serviceOrders}}</text>
+      <text class="stat-label">服务订单</text>
+    </view>
+    <view class="stat-item" bindtap="onOrdersTap">
+      <text class="stat-value">{{stats.idleOrders}}</text>
+      <text class="stat-label">闲置交易</text>
+    </view>
+    <view class="stat-item" bindtap="onHealthTap">
+      <text class="stat-value">{{stats.pets}}</text>
+      <text class="stat-label">我的宠物</text>
+    </view>
+  </view>
+
+  <!-- 菜单列表 -->
+  <view class="card menu-list">
+    <view class="menu-item" bindtap="onOrdersTap">
+      <text class="menu-icon">📋</text>
+      <text class="menu-text">我的订单</text>
+      <text class="menu-arrow">></text>
+    </view>
+    
+    <view class="menu-item" bindtap="onHealthTap">
+      <text class="menu-icon">💊</text>
+      <text class="menu-text">健康档案</text>
+      <text class="menu-arrow">></text>
+    </view>
+    
+    <view class="menu-item" bindtap="onAddressTap">
+      <text class="menu-icon">📍</text>
+      <text class="menu-text">地址管理</text>
+      <text class="menu-arrow">></text>
+    </view>
+    
+    <view class="menu-item" bindtap="onSettingsTap">
+      <text class="menu-icon">⚙️</text>
+      <text class="menu-text">设置</text>
+      <text class="menu-arrow">></text>
+    </view>
+  </view>
+
+  <!-- 退出登录 -->
+  <button class="btn-secondary logout-btn" bindtap="onLogout" wx:if="{{isLogin}}">退出登录</button>
+</view>

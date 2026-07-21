@@ -1,0 +1,26 @@
+# 使用 Node.js 官方镜像
+FROM node:20-slim
+
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+
+# 设置工作目录
+WORKDIR /app
+
+# 复制 server 目录内容
+COPY server/ ./
+
+RUN rm -f .env
+
+RUN NODE_ENV=development npm install --legacy-peer-deps
+
+# 生成 Prisma 客户端
+RUN npx prisma generate
+
+# 构建 NestJS 应用
+RUN npm run build
+
+# 暴露端口
+EXPOSE 3000
+
+# 启动命令（先执行数据库迁移，再启动应用）
+CMD ["sh", "-c", "npx prisma migrate deploy && npm run start:prod"]

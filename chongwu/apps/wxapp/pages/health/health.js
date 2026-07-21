@@ -29,10 +29,22 @@ Page({
   async loadReminders() {
     try {
       const res = await api.get('/health/reminders');
-      this.setData({ reminders: res.data || [] });
+      const reminders = (res.data || []).map(item => ({
+        ...item,
+        daysLeft: this.calculateDaysLeft(item.validUntil)
+      }));
+      this.setData({ reminders });
     } catch (e) {
       console.error(e);
     }
+  },
+
+  calculateDaysLeft(validUntil) {
+    if (!validUntil) return 0;
+    const target = new Date(validUntil);
+    const now = new Date();
+    const diff = target - now;
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
   },
 
   onTabTap(e) {

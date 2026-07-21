@@ -9,7 +9,9 @@ Page({
     pets: [],
     addresses: [],
     selectedPetId: null,
+    selectedPetIndex: -1,
     selectedAddressId: null,
+    selectedAddressIndex: -1,
     contactName: '',
     contactPhone: '',
     appointmentDate: '',
@@ -54,11 +56,21 @@ Page({
   },
 
   onPetSelect(e) {
-    this.setData({ selectedPetId: e.detail.value });
+    const index = e.detail.value;
+    const pet = this.data.pets[index];
+    this.setData({
+      selectedPetId: pet ? pet.id : null,
+      selectedPetIndex: Number(index)
+    });
   },
 
   onAddressSelect(e) {
-    this.setData({ selectedAddressId: e.detail.value });
+    const index = e.detail.value;
+    const address = this.data.addresses[index];
+    this.setData({
+      selectedAddressId: address ? address.id : null,
+      selectedAddressIndex: Number(index)
+    });
   },
 
   onInputChange(e) {
@@ -72,6 +84,18 @@ Page({
 
   onTimeChange(e) {
     this.setData({ appointmentTime: e.detail.value });
+  },
+
+  getSelectedPetName() {
+    const { pets, selectedPetId } = this.data;
+    const pet = pets.find(p => p.id == selectedPetId);
+    return pet ? pet.name : '';
+  },
+
+  getSelectedAddressDetail() {
+    const { addresses, selectedAddressId } = this.data;
+    const address = addresses.find(a => a.id == selectedAddressId);
+    return address ? address.detail : '';
   },
 
   async onSubmit() {

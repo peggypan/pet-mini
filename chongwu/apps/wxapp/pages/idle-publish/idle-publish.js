@@ -12,6 +12,7 @@ Page({
       { id: 7, name: '其他' },
     ],
     categoryId: null,
+    selectedCategoryIndex: -1,
     title: '',
     description: '',
     images: [],
@@ -26,15 +27,20 @@ Page({
 
   onCategoryChange(e) {
     const index = Number(e.detail.value);
-    this.setData({ categoryId: this.data.categories[index].id });
+    this.setData({
+      categoryId: this.data.categories[index].id,
+      selectedCategoryIndex: index
+    });
   },
 
   onConditionChange(e) {
-    this.setData({ conditionLevel: Number(e.detail.value) + 1 });
+    const value = Number(e.currentTarget.dataset.value);
+    this.setData({ conditionLevel: value });
   },
 
   onTradeTypeChange(e) {
-    this.setData({ tradeType: Number(e.detail.value) + 1 });
+    const value = Number(e.currentTarget.dataset.value);
+    this.setData({ tradeType: value });
   },
 
   onInputChange(e) {

@@ -16,7 +16,11 @@ Page({
   async loadItemDetail(id) {
     try {
       const res = await api.get(`/idle/${id}`);
-      this.setData({ item: res.data });
+      const item = res.data;
+      this.setData({
+        item,
+        platformFee: (item.price * 0.05).toFixed(2)
+      });
     } catch (e) {
       console.error(e);
     }

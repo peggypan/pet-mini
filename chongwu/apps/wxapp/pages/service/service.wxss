@@ -1,10 +1,45 @@
+/* 页面头部 */
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 24rpx 20rpx;
+  background: linear-gradient(135deg, #FFE8D6 0%, #FFD6C6 100%);
+  border-radius: 24rpx;
+  margin-bottom: 28rpx;
+  box-shadow: 0 8rpx 24rpx rgba(255, 139, 123, 0.15);
+}
+
+.page-icon {
+  font-size: 64rpx;
+}
+
+.header-content {
+  flex: 1;
+}
+
+.page-title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4rpx;
+}
+
+.page-subtitle {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+}
+
+/* 分类筛选 - 温馨带图标 */
 .category-tabs {
   background: var(--bg-white);
-  padding: 20rpx 0;
-  margin: -20rpx -20rpx 20rpx;
+  padding: 24rpx 0;
+  margin-bottom: 28rpx;
   position: sticky;
   top: 0;
   z-index: 100;
+  box-shadow: 0 4rpx 20rpx rgba(199, 180, 168, 0.1);
 }
 
 .tabs-scroll {
@@ -13,86 +48,126 @@
 }
 
 .tab-item {
-  display: inline-block;
-  padding: 12rpx 32rpx;
-  margin-right: 16rpx;
-  border-radius: 32rpx;
-  font-size: 28rpx;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  padding: 12rpx 24rpx;
+  margin-right: 12rpx;
+  border-radius: 24rpx;
+  font-size: 24rpx;
   color: var(--text-secondary);
   background: var(--bg-primary);
+  transition: all 0.3s ease;
+  border: 2rpx solid transparent;
+  min-width: 120rpx;
 }
 
 .tab-item.active {
-  background: var(--primary);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
   color: white;
+  box-shadow: 0 6rpx 20rpx rgba(255, 139, 123, 0.35);
+  border-color: transparent;
 }
 
+.tab-icon {
+  font-size: 36rpx;
+}
+
+.tab-text {
+  font-size: 24rpx;
+}
+
+/* 服务列表 - 温馨卡片 */
 .service-list {
   display: flex;
   flex-direction: column;
-  gap: 20rpx;
+  gap: 24rpx;
 }
 
 .service-card {
   background: var(--bg-white);
-  border-radius: 16rpx;
+  border-radius: 24rpx;
   overflow: hidden;
-  display: flex;
+  box-shadow: var(--shadow-soft);
+  border: 1rpx solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.service-card:active {
+  transform: scale(0.98);
+  box-shadow: var(--shadow-card);
 }
 
 .service-image {
   width: 240rpx;
   height: 240rpx;
-  background: #eee;
+  background: var(--bg-primary);
 }
 
 .service-content {
   flex: 1;
-  padding: 20rpx;
+  padding: 28rpx;
   display: flex;
   flex-direction: column;
 }
 
 .service-title {
-  font-size: 30rpx;
-  font-weight: 500;
+  font-size: 34rpx;
+  font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 8rpx;
+  margin-bottom: 12rpx;
 }
 
 .service-subtitle {
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: var(--text-muted);
   margin-bottom: auto;
+  line-height: 1.5;
 }
 
 .service-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding-top: 20rpx;
 }
 
 .merchant-info {
   display: flex;
   align-items: center;
-  gap: 8rpx;
+  gap: 12rpx;
 }
 
 .merchant-logo {
-  width: 40rpx;
-  height: 40rpx;
+  width: 48rpx;
+  height: 48rpx;
   border-radius: 50%;
-  background: #eee;
+  background: var(--bg-primary);
+  border: 2rpx solid var(--border-color);
 }
 
 .merchant-name {
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: var(--text-secondary);
+  max-width: 180rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .merchant-rating {
-  font-size: 22rpx;
+  font-size: 24rpx;
   color: var(--warning);
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  font-weight: 500;
+}
+
+.merchant-rating::before {
+  content: '★';
+  font-size: 20rpx;
 }
 
 .price-info {
@@ -101,19 +176,86 @@
 }
 
 .price {
-  font-size: 36rpx;
+  font-size: 44rpx;
   font-weight: 600;
   color: var(--primary);
+}
+
+.price::before {
+  content: '¥';
+  font-size: 28rpx;
+  margin-right: 2rpx;
 }
 
 .unit {
   font-size: 24rpx;
   color: var(--text-muted);
+  margin-left: 4rpx;
 }
 
-.loading-text, .no-more {
-  text-align: center;
+/* 温馨空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 60rpx;
+  background: var(--bg-warm);
+  border-radius: 28rpx;
+  border: 2rpx dashed var(--border-light);
+}
+
+.empty-icon {
+  font-size: 140rpx;
+  margin-bottom: 24rpx;
+  opacity: 0.6;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+  margin-bottom: 12rpx;
+}
+
+.empty-tip {
+  font-size: 24rpx;
+  color: var(--text-muted);
+  margin-bottom: 8rpx;
+}
+
+.empty-hint {
+  font-size: 22rpx;
+  color: var(--text-light);
+}
+
+/* 加载状态 */
+.loading-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
   padding: 40rpx;
   color: var(--text-muted);
   font-size: 26rpx;
+}
+
+.loading-text::before {
+  content: '';
+  width: 32rpx;
+  height: 32rpx;
+  border: 3rpx solid var(--border-color);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.no-more {
+  text-align: center;
+  padding: 40rpx;
+  color: var(--text-light);
+  font-size: 24rpx;
 }

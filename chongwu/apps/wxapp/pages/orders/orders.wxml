@@ -19,10 +19,10 @@
         </view>
         
         <view class="order-body">
-          <image src="{{item.service?.coverUrls[0]}}" class="order-image"></image>
+          <image src="{{item.service.coverUrls[0] || '/assets/default-service.png'}}" class="order-image"></image>
           <view class="order-info">
             <text class="order-title">{{item.serviceName}}</text>
-            <text class="order-merchant">{{item.merchant?.name}}</text>
+            <text class="order-merchant">{{item.merchant.name || '商家'}}</text>
             <text class="order-time" wx:if="{{item.appointmentDate}}">预约: {{item.appointmentDate}}</text>
           </view>
         </view>
@@ -51,10 +51,10 @@
         </view>
         
         <view class="order-body">
-          <image src="{{item.idleItem?.images[0]}}" class="order-image"></image>
+          <image src="{{item.idleItem.images[0] || '/assets/default-idle.png'}}" class="order-image"></image>
           <view class="order-info">
             <text class="order-title">{{item.itemTitle}}</text>
-            <text class="order-seller">卖家: {{item.seller?.nickname}}</text>
+            <text class="order-seller">卖家: {{item.seller.nickname || '卖家'}}</text>
           </view>
         </view>
         
@@ -74,10 +74,10 @@
         </view>
         
         <view class="order-body">
-          <image src="{{item.idleItem?.images[0]}}" class="order-image"></image>
+          <image src="{{item.idleItem.images[0] || '/assets/default-idle.png'}}" class="order-image"></image>
           <view class="order-info">
             <text class="order-title">{{item.itemTitle}}</text>
-            <text class="order-buyer">买家: {{item.buyer?.nickname}}</text>
+            <text class="order-buyer">买家: {{item.buyer.nickname || '买家'}}</text>
           </view>
         </view>
         

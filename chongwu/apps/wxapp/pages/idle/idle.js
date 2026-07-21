@@ -2,8 +2,16 @@ const api = require('../../utils/request');
 
 Page({
   data: {
-    categories: [],
-    currentCategory: 0,
+    categories: [
+      { id: 1, name: '食品', icon: '🍖' },
+      { id: 2, name: '日用品', icon: '🧴' },
+      { id: 3, name: '笼具', icon: '🏠' },
+      { id: 4, name: '服饰', icon: '👕' },
+      { id: 5, name: '玩具', icon: '🎾' },
+      { id: 6, name: '保健护理', icon: '💊' },
+      { id: 7, name: '其他', icon: '📦' },
+    ],
+    currentCategory: null,
     items: [],
     page: 1,
     pageSize: 20,
@@ -41,7 +49,11 @@ Page({
         pageSize: this.data.pageSize,
       });
       
-      const list = res.data?.list || [];
+      const list = (res.data?.list || []).map(item => ({
+        ...item,
+        userAvatarUrl: item.user ? item.user.avatarUrl : '',
+        userNickname: item.user ? item.user.nickname : '匿名'
+      }));
       this.setData({
         items: this.data.page === 1 ? list : [...this.data.items, ...list],
         hasMore: list.length === this.data.pageSize,
@@ -67,6 +79,18 @@ Page({
 
   onPublishTap() {
     wx.navigateTo({ url: '/pages/idle-publish/idle-publish' });
+  },
+
+  onCategoryChange() {
+    // Scroll to top and suggest selecting a different category
+    wx.pageScrollTo({
+      scrollTop: 0,
+      duration: 300
+    });
+    wx.showToast({
+      title: '请选择其他分类',
+      icon: 'none'
+    });
   },
 
   onReachBottom() {

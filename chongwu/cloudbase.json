@@ -1,0 +1,28 @@
+{
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "services": [
+    {
+      "name": "pet-backend",
+      "type": "container",
+      "containerPort": 3000,
+      "cpu": 0.5,
+      "mem": 512,
+      "minReplicas": 0,
+      "maxReplicas": 10,
+      "dockerfile": "Dockerfile",
+      "envVariables": {
+        "DATABASE_URL": "${DATABASE_URL}",
+        "JWT_SECRET": "${JWT_SECRET}",
+        "JWT_EXPIRES_IN": "7d",
+        "WX_APPID": "${WX_APPID}",
+        "WX_SECRET": "${WX_SECRET}",
+        "COS_SECRET_ID": "${COS_SECRET_ID}",
+        "COS_SECRET_KEY": "${COS_SECRET_KEY}",
+        "COS_BUCKET": "${COS_BUCKET}",
+        "COS_REGION": "${COS_REGION}"
+      }
+    }
+  ]
+}

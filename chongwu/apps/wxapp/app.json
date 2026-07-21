@@ -16,13 +16,13 @@
   ],
   "window": {
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#FF8C42",
+    "navigationBarBackgroundColor": "#FF8B7B",
     "navigationBarTitleText": "宠享家",
     "navigationBarTextStyle": "white"
   },
   "tabBar": {
-    "color": "#999999",
-    "selectedColor": "#FF8C42",
+    "color": "#B2BEC3",
+    "selectedColor": "#FF8B7B",
     "backgroundColor": "#ffffff",
     "borderStyle": "black",
     "list": [

@@ -24,16 +24,16 @@
   <!-- 商家信息 -->
   <view class="card merchant-card">
     <view class="merchant-header">
-      <image src="{{service.merchant?.logoUrl}}" class="merchant-logo"></image>
+      <image src="{{service.merchant.logoUrl || '/assets/default-merchant.png'}}" class="merchant-logo"></image>
       <view class="merchant-info">
-        <text class="merchant-name">{{service.merchant?.name}}</text>
-        <text class="merchant-address">{{service.merchant?.district}} {{service.merchant?.address}}</text>
+        <text class="merchant-name">{{service.merchant.name || '商家'}}</text>
+        <text class="merchant-address">{{service.merchant.district || ''}} {{service.merchant.address || ''}}</text>
       </view>
     </view>
     <view class="merchant-rating">
-      <text>评分 {{service.merchant?.rating}}</text>
-      <text>评价 {{service.merchant?.reviewCount}}</text>
-      <text>订单 {{service.merchant?.orderCount}}</text>
+      <text>评分 {{service.merchant.rating || 5}}</text>
+      <text>评价 {{service.merchant.reviewCount || 0}}</text>
+      <text>订单 {{service.merchant.orderCount || 0}}</text>
     </view>
   </view>
 

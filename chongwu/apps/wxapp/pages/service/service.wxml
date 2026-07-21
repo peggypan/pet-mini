@@ -1,35 +1,53 @@
 <view class="container">
+  <!-- 顶部欢迎语 -->
+  <view class="page-header">
+    <text class="page-icon">🏥</text>
+    <view class="header-content">
+      <text class="page-title">贴心服务</text>
+      <text class="page-subtitle">为毛孩子找到最好的照顾</text>
+    </view>
+  </view>
+
   <!-- 分类筛选 -->
   <view class="category-tabs">
     <scroll-view scroll-x class="tabs-scroll">
       <view class="tab-item {{currentCategory === item.id ? 'active' : ''}}" wx:for="{{categories}}" wx:key="id" bindtap="onCategoryTap" data-id="{{item.id}}">
-        <text>{{item.name}}</text>
+        <text class="tab-icon">{{item.icon}}</text>
+        <text class="tab-text">{{item.name}}</text>
       </view>
     </scroll-view>
   </view>
 
   <!-- 服务列表 -->
-  <view class="service-list">
+  <view class="service-list" wx:if="{{services.length > 0}}">
     <view class="service-card" wx:for="{{services}}" wx:key="id" bindtap="onServiceTap" data-id="{{item.id}}">
       <image src="{{item.coverUrls[0] || '/assets/default-service.png'}}" class="service-image" mode="aspectFill"></image>
       <view class="service-content">
         <text class="service-title">{{item.name}}</text>
-        <text class="service-subtitle">{{item.subtitle}}</text>
+        <text class="service-subtitle">{{item.subtitle || '用心服务，品质保证'}}</text>
         <view class="service-footer">
           <view class="merchant-info">
-            <image src="{{item.merchant?.logoUrl}}" class="merchant-logo"></image>
-            <text class="merchant-name">{{item.merchant?.name}}</text>
-            <text class="merchant-rating">{{item.merchant?.rating}}分</text>
+            <image src="{{item.merchantLogoUrl}}" class="merchant-logo"></image>
+            <text class="merchant-name">{{item.merchantName}}</text>
+            <text class="merchant-rating">{{item.merchantRating}}</text>
           </view>
           <view class="price-info">
-            <text class="price">¥{{item.price}}</text>
-            <text class="unit">/{{item.unit}}</text>
+            <text class="price">{{item.price}}</text>
+            <text class="unit">/{{item.unit || '次'}}</text>
           </view>
         </view>
       </view>
     </view>
   </view>
 
-  <view class="loading-text" wx:if="{{loading}}">加载中...</view>
-  <view class="no-more" wx:if="{{!hasMore && services.length > 0}}">没有更多了</view>
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{!loading && services.length === 0}}">
+    <text class="empty-icon">🌱</text>
+    <text class="empty-text">该分类暂无服务</text>
+    <text class="empty-tip">试试切换其他分类吧</text>
+    <text class="empty-hint">优质服务正在持续上线中...</text>
+  </view>
+
+  <view class="loading-text" wx:if="{{loading}}"></view>
+  <view class="no-more" wx:if="{{!hasMore && services.length > 0}}">— 已经到底啦 —</view>
 </view>

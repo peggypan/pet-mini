@@ -1,11 +1,11 @@
 <view class="container">
-  <!-- Banner -->
-  <view class="banner">
-    <swiper autoplay circular indicator-dots class="banner-swiper">
-      <swiper-item wx:for="{{banners}}" wx:key="id">
-        <image src="{{item.imageUrl}}" mode="aspectFill" class="banner-image"></image>
-      </swiper-item>
-    </swiper>
+  <!-- 顶部欢迎区 -->
+  <view class="welcome-banner">
+    <text class="welcome-emoji">🌸</text>
+    <view class="welcome-content">
+      <text class="welcome-title">Hi~ 欢迎来到宠享家</text>
+      <text class="welcome-subtitle">让每一只毛孩子都被温柔以待</text>
+    </view>
   </view>
 
   <!-- 分类入口 -->
@@ -19,30 +19,41 @@
   <!-- 推荐服务 -->
   <view class="card">
     <view class="section-header flex-between">
-      <text class="section-title">热门服务</text>
-      <text class="text-primary" bindtap="onMoreServices">更多 ></text>
+      <view class="section-title-wrapper">
+        <text class="section-title">热门服务</text>
+        <text class="section-subtitle">精心挑选，值得信赖</text>
+      </view>
+      <text class="more-link" bindtap="onMoreServices">更多 →</text>
     </view>
-    <view class="service-list">
+    <view class="service-list" wx:if="{{services.length > 0}}">
       <view class="service-item" wx:for="{{services}}" wx:key="id" bindtap="onServiceTap" data-id="{{item.id}}">
         <image src="{{item.coverUrls[0] || '/assets/default-service.png'}}" class="service-cover" mode="aspectFill"></image>
         <view class="service-info">
           <text class="service-name">{{item.name}}</text>
           <view class="service-meta">
-            <text class="service-merchant">{{item.merchant?.name}}</text>
+            <text class="service-merchant">{{item.merchantName}}</text>
             <text class="service-price">¥{{item.price}}</text>
           </view>
         </view>
       </view>
+    </view>
+    <view class="empty-placeholder" wx:if="{{services.length === 0}}">
+      <text class="empty-placeholder-icon">🏥</text>
+      <text class="empty-placeholder-text">暂无服务</text>
+      <text class="empty-placeholder-tip">优质服务正在赶来...</text>
     </view>
   </view>
 
   <!-- 推荐闲置 -->
   <view class="card">
     <view class="section-header flex-between">
-      <text class="section-title">精选闲置</text>
-      <text class="text-primary" bindtap="onMoreIdle">更多 ></text>
+      <view class="section-title-wrapper">
+        <text class="section-title">精选闲置</text>
+        <text class="section-subtitle">好物流转，让爱延续</text>
+      </view>
+      <text class="more-link" bindtap="onMoreIdle">更多 →</text>
     </view>
-    <view class="idle-grid">
+    <view class="idle-grid" wx:if="{{idleItems.length > 0}}">
       <view class="idle-item" wx:for="{{idleItems}}" wx:key="id" bindtap="onIdleTap" data-id="{{item.id}}">
         <image src="{{item.images[0] || '/assets/default-idle.png'}}" class="idle-image" mode="aspectFill"></image>
         <view class="idle-info">
@@ -51,5 +62,16 @@
         </view>
       </view>
     </view>
+    <view class="empty-placeholder" wx:if="{{idleItems.length === 0}}">
+      <text class="empty-placeholder-icon">🎁</text>
+      <text class="empty-placeholder-text">闲置区空空如也</text>
+      <text class="empty-placeholder-tip">来分享你的闲置好物吧~</text>
+    </view>
+  </view>
+
+  <!-- 底部温馨语 -->
+  <view class="warm-footer">
+    <text class="warm-icon">💕</text>
+    <text class="warm-text">每一份爱心，都值得被传递</text>
   </view>
 </view>

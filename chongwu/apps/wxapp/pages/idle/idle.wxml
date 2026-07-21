@@ -1,42 +1,61 @@
 <view class="container">
+  <!-- 顶部欢迎语 -->
+  <view class="page-header">
+    <text class="page-icon">🎁</text>
+    <view class="header-content">
+      <text class="page-title">闲置好物</text>
+      <text class="page-subtitle">好物流转，让爱延续</text>
+    </view>
+  </view>
+
   <!-- 分类筛选 -->
   <view class="category-tabs">
     <scroll-view scroll-x class="tabs-scroll">
       <view class="tab-item {{currentCategory === item.id ? 'active' : ''}}" wx:for="{{categories}}" wx:key="id" bindtap="onCategoryTap" data-id="{{item.id}}">
-        <text>{{item.name}}</text>
+        <text class="tab-icon">{{item.icon}}</text>
+        <text class="tab-text">{{item.name}}</text>
       </view>
     </scroll-view>
   </view>
 
   <!-- 闲置列表 -->
-  <view class="idle-grid">
+  <view class="idle-grid" wx:if="{{items.length > 0}}">
     <view class="idle-card" wx:for="{{items}}" wx:key="id" bindtap="onItemTap" data-id="{{item.id}}">
       <image src="{{item.images[0] || '/assets/default-idle.png'}}" class="idle-image" mode="aspectFill"></image>
       <view class="idle-content">
         <text class="idle-title">{{item.title}}</text>
         <view class="idle-meta">
-          <text class="condition">{{['全新', '几乎全新', '轻微使用', '明显使用'][item.conditionLevel - 1]}}</text>
-          <text class="district">{{item.district}}</text>
+          <text class="condition">{{['全新', '几乎全新', '轻微使用', '明显使用'][item.conditionLevel - 1] || '未知'}}</text>
+          <text class="district">{{item.district || '未知'}}</text>
         </view>
         <view class="idle-footer">
           <view class="price-info">
-            <text class="price">¥{{item.price}}</text>
-            <text class="original-price" wx:if="{{item.originalPrice}}">¥{{item.originalPrice}}</text>
+            <text class="price">{{item.price}}</text>
+            <text class="original-price" wx:if="{{item.originalPrice && item.originalPrice > item.price}}">{{item.originalPrice}}</text>
           </view>
           <view class="seller-info">
-            <image src="{{item.user?.avatarUrl}}" class="seller-avatar"></image>
-            <text class="seller-name">{{item.user?.nickname}}</text>
+            <image src="{{item.userAvatarUrl || '/assets/default-avatar.png'}}" class="seller-avatar"></image>
+            <text class="seller-name">{{item.userNickname}}</text>
           </view>
         </view>
       </view>
     </view>
   </view>
 
-  <view class="loading-text" wx:if="{{loading}}">加载中...</view>
-  <view class="no-more" wx:if="{{!hasMore && items.length > 0}}">没有更多了</view>
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{!loading && items.length === 0}}">
+    <text class="empty-icon">📭</text>
+    <text class="empty-text">闲置区空空如也</text>
+    <text class="empty-tip">来发布你的第一件闲置好物吧~</text>
+    <text class="empty-hint">让闲置物品找到新的主人</text>
+  </view>
+
+  <view class="loading-text" wx:if="{{loading}}"></view>
+  <view class="no-more" wx:if="{{!hasMore && items.length > 0}}">— 已经到底啦 —</view>
 
   <!-- 发布按钮 -->
   <view class="fab" bindtap="onPublishTap">
-    <text>发布</text>
+    <text class="fab-icon">✨</text>
+    <text class="fab-text">发布</text>
   </view>
 </view>

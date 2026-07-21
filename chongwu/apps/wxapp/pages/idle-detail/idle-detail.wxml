@@ -22,9 +22,9 @@
   <!-- 卖家信息 -->
   <view class="card seller-card">
     <view class="seller-header">
-      <image src="{{item.user?.avatarUrl}}" class="seller-avatar"></image>
+      <image src="{{item.user.avatarUrl || '/assets/default-avatar.png'}}" class="seller-avatar"></image>
       <view class="seller-info">
-        <text class="seller-name">{{item.user?.nickname}}</text>
+        <text class="seller-name">{{item.user.nickname || '卖家'}}</text>
         <text class="seller-location">{{item.district || item.location}}</text>
       </view>
     </view>

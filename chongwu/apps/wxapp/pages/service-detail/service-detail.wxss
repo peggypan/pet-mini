@@ -1,6 +1,9 @@
+/* 轮播图 */
 .service-swiper {
-  height: 400rpx;
-  margin: -20rpx -20rpx 20rpx;
+  height: 440rpx;
+  margin: -20rpx -20rpx 28rpx;
+  border-radius: 0 0 40rpx 40rpx;
+  overflow: hidden;
 }
 
 .swiper-image {
@@ -8,16 +11,18 @@
   height: 100%;
 }
 
+/* 服务信息 */
 .service-info {
   padding-bottom: 30rpx;
 }
 
 .service-name {
-  font-size: 36rpx;
+  font-size: 40rpx;
   font-weight: 600;
   color: var(--text-primary);
   display: block;
   margin-bottom: 12rpx;
+  line-height: 1.4;
 }
 
 .service-subtitle {
@@ -25,18 +30,26 @@
   color: var(--text-secondary);
   display: block;
   margin-bottom: 20rpx;
+  line-height: 1.5;
 }
 
 .price-row {
   display: flex;
   align-items: baseline;
   gap: 12rpx;
+  margin-bottom: 8rpx;
 }
 
 .price {
-  font-size: 48rpx;
+  font-size: 56rpx;
   font-weight: 600;
   color: var(--primary);
+}
+
+.price::before {
+  content: '¥';
+  font-size: 36rpx;
+  margin-right: 2rpx;
 }
 
 .original-price {
@@ -58,8 +71,18 @@
   color: var(--text-muted);
 }
 
+.stats-row text {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+}
+
+/* 商家卡片 */
 .merchant-card {
-  padding: 24rpx;
+  padding: 28rpx;
+  background: var(--bg-warm);
+  border-radius: 24rpx;
+  border: 1rpx solid var(--border-color);
 }
 
 .merchant-header {
@@ -69,10 +92,11 @@
 }
 
 .merchant-logo {
-  width: 80rpx;
-  height: 80rpx;
+  width: 88rpx;
+  height: 88rpx;
   border-radius: 50%;
-  background: #eee;
+  background: var(--bg-primary);
+  border: 3rpx solid rgba(255, 139, 123, 0.15);
 }
 
 .merchant-info {
@@ -90,22 +114,40 @@
 .merchant-address {
   font-size: 24rpx;
   color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
 }
 
 .merchant-rating {
   display: flex;
   gap: 30rpx;
-  padding-top: 16rpx;
+  padding-top: 20rpx;
   border-top: 1rpx solid var(--border-color);
   font-size: 24rpx;
   color: var(--text-secondary);
 }
 
+/* 区块标题 */
 .section-title {
   font-size: 32rpx;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 16rpx;
+  position: relative;
+  padding-left: 16rpx;
+}
+
+.section-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6rpx;
+  height: 32rpx;
+  background: linear-gradient(to bottom, var(--primary), var(--primary-light));
+  border-radius: 3rpx;
 }
 
 .description {
@@ -114,18 +156,20 @@
   line-height: 1.6;
 }
 
+/* 温馨底部操作栏 */
 .bottom-bar {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   background: var(--bg-white);
-  padding: 20rpx 30rpx;
-  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  padding: 24rpx 30rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
   display: flex;
   align-items: center;
   gap: 20rpx;
-  box-shadow: 0 -2rpx 10rpx rgba(0,0,0,0.05);
+  box-shadow: 0 -4rpx 20rpx rgba(199, 180, 168, 0.12);
+  border-top: 1rpx solid var(--border-color);
 }
 
 .quantity-selector {
@@ -137,11 +181,12 @@
 
 .quantity-input {
   width: 100rpx;
-  height: 56rpx;
-  border: 1rpx solid var(--border-color);
-  border-radius: 8rpx;
+  height: 60rpx;
+  border: 2rpx solid var(--border-color);
+  border-radius: 16rpx;
   text-align: center;
   font-size: 28rpx;
+  background: var(--bg-warm);
 }
 
 .book-btn {

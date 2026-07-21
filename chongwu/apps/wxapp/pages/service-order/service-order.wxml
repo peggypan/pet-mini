@@ -16,7 +16,7 @@
       <text class="label">选择宠物</text>
       <picker bindchange="onPetSelect" value="{{selectedPetId}}" range="{{pets}}" range-key="name">
         <view class="picker">
-          <text wx:if="{{selectedPetId}}">{{pets[pets.findIndex(p=>p.id==selectedPetId)]?.name}}</text>
+          <text wx:if="{{selectedPetId}}">{{pets[selectedPetIndex].name}}</text>
           <text wx:else class="placeholder">请选择宠物（可选）</text>
         </view>
       </picker>
@@ -34,9 +34,9 @@
 
     <view class="form-item">
       <text class="label">服务地址</text>
-      <picker bindchange="onAddressSelect" value="{{selectedAddressId}}" range="{{addresses}}" range-key="detail">
+      <picker bindchange="onAddressSelect" value="{{selectedAddressIndex}}" range="{{addresses}}" range-key="detail">
         <view class="picker">
-          <text wx:if="{{selectedAddressId}}">{{addresses[addresses.findIndex(a=>a.id==selectedAddressId)]?.detail}}</text>
+          <text wx:if="{{selectedAddressIndex >= 0}}">{{addresses[selectedAddressIndex].detail}}</text>
           <text wx:else class="placeholder">请选择服务地址</text>
         </view>
       </picker>

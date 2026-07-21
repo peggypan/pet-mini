@@ -1,78 +1,234 @@
-<view class="container">
-  <view class="card">
-    <view class="section-title">发布闲置</view>
-    
-    <view class="form-item">
-      <text class="label">分类 *</text>
-      <picker bindchange="onCategoryChange" range="{{categories}}" range-key="name">
-        <view class="picker">
-          <text wx:if="{{categoryId}}">{{categories.find(c=>c.id===categoryId)?.name}}</text>
-          <text wx:else class="placeholder">请选择分类</text>
-        </view>
-      </picker>
-    </view>
+<!-- ========================================
+   发布闲置页面 - 宠享家
+   ======================================== -->
+<view class="page">
+  <!-- 页面头部 -->
+  <view class="page-header">
+    <text class="page-title">🎁 发布闲置</text>
+    <text class="page-subtitle">让闲置物品找到新主人</text>
+  </view>
 
-    <view class="form-item">
-      <text class="label">标题 *</text>
-      <input value="{{title}}" bindinput="onInputChange" data-field="title" placeholder="请输入标题" />
-    </view>
-
-    <view class="form-item">
-      <text class="label">描述 *</text>
-      <textarea value="{{description}}" bindinput="onInputChange" data-field="description" placeholder="请详细描述物品情况" />
-    </view>
-
-    <view class="form-item">
-      <text class="label">图片</text>
-      <view class="image-list">
+  <!-- 表单卡片 -->
+  <view class="form-container">
+    <!-- 图片上传 -->
+    <view class="form-section">
+      <view class="section-header">
+        <text class="section-title">📷 商品图片</text>
+        <text class="section-hint">{{images.length}}/9</text>
+      </view>
+      <view class="image-grid">
         <view class="image-item" wx:for="{{images}}" wx:key="*this">
-          <image src="{{item}}" class="uploaded-image" mode="aspectFill"></image>
-          <view class="remove-btn" bindtap="onRemoveImage" data-index="{{index}}">×</view>
+          <image src="{{item}}" mode="aspectFill" class="uploaded-image"/>
+          <view class="remove-btn" bindtap="onRemoveImage" data-index="{{index}}">
+            <text class="remove-icon">×</text>
+          </view>
         </view>
         <view class="upload-btn" bindtap="onChooseImage" wx:if="{{images.length < 9}}">
-          <text>+</text>
+          <view class="upload-content">
+            <text class="upload-icon">+</text>
+            <text class="upload-text">添加图片</text>
+          </view>
         </view>
       </view>
     </view>
 
-    <view class="form-item">
-      <text class="label">价格 *</text>
-      <input value="{{price}}" bindinput="onInputChange" data-field="price" placeholder="请输入价格" type="digit" />
+    <!-- 基本信息 -->
+    <view class="form-section">
+      <view class="section-header">
+        <text class="section-title">📝 基本信息</text>
+      </view>
+
+      <view class="form-group">
+        <view class="form-label required">分类</view>
+        <picker bindchange="onCategoryChange" value="{{selectedCategoryIndex}}" range="{{categories}}" range-key="name">
+          <view class="form-picker {{selectedCategoryIndex >= 0 ? 'filled' : ''}}">
+            <text class="picker-value">{{selectedCategoryIndex >= 0 ? categories[selectedCategoryIndex].name : '请选择分类'}}</text>
+            <text class="picker-arrow">›</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="form-group">
+        <view class="form-label required">标题</view>
+        <input
+          value="{{title}}"
+          bindinput="onInputChange"
+          data-field="title"
+          placeholder="给物品起个吸引人的标题"
+          class="form-input"
+          maxlength="50"
+        />
+        <text class="input-count">{{title.length}}/50</text>
+      </view>
+
+      <view class="form-group">
+        <view class="form-label required">描述</view>
+        <textarea
+          value="{{description}}"
+          bindinput="onInputChange"
+          data-field="description"
+          placeholder="详细描述物品的品牌、规格、购买时间、使用情况等..."
+          class="form-textarea"
+          maxlength="500"
+          auto-height
+        />
+        <text class="input-count">{{description.length}}/500</text>
+      </view>
     </view>
 
-    <view class="form-item">
-      <text class="label">原价</text>
-      <input value="{{originalPrice}}" bindinput="onInputChange" data-field="originalPrice" placeholder="请输入原价（可选）" type="digit" />
-    </view>
+    <!-- 价格信息 -->
+    <view class="form-section">
+      <view class="section-header">
+        <text class="section-title">💰 价格信息</text>
+      </view>
 
-    <view class="form-item">
-      <text class="label">成色</text>
-      <picker bindchange="onConditionChange" range="{{['全新', '几乎全新', '轻微使用', '明显使用']}}">
-        <view class="picker">
-          <text>{{['全新', '几乎全新', '轻微使用', '明显使用'][conditionLevel - 1]}}</text>
+      <view class="price-input-group">
+        <view class="form-group flex-1">
+          <view class="form-label required">售价</view>
+          <view class="price-input-wrapper">
+            <text class="price-symbol">¥</text>
+            <input
+              value="{{price}}"
+              bindinput="onInputChange"
+              data-field="price"
+              placeholder="0.00"
+              type="digit"
+              class="price-input"
+            />
+          </view>
         </view>
-      </picker>
-    </view>
-
-    <view class="form-item">
-      <text class="label">使用情况</text>
-      <textarea value="{{usageDesc}}" bindinput="onInputChange" data-field="usageDesc" placeholder="请描述使用情况（可选）" />
-    </view>
-
-    <view class="form-item">
-      <text class="label">交易方式</text>
-      <picker bindchange="onTradeTypeChange" range="{{['自提', '同城快递', '都支持']}}">
-        <view class="picker">
-          <text>{{['自提', '同城快递', '都支持'][tradeType - 1]}}</text>
+        <view class="form-group flex-1">
+          <view class="form-label">原价</view>
+          <view class="price-input-wrapper secondary">
+            <text class="price-symbol">¥</text>
+            <input
+              value="{{originalPrice}}"
+              bindinput="onInputChange"
+              data-field="originalPrice"
+              placeholder="原价"
+              type="digit"
+              class="price-input"
+            />
+          </view>
         </view>
-      </picker>
+      </view>
     </view>
 
-    <view class="form-item">
-      <text class="label">所在区域</text>
-      <input value="{{district}}" bindinput="onInputChange" data-field="district" placeholder="如：朝阳区" />
+    <!-- 物品详情 -->
+    <view class="form-section">
+      <view class="section-header">
+        <text class="section-title">📦 物品详情</text>
+      </view>
+
+      <view class="form-group">
+        <view class="form-label">成色</view>
+        <view class="condition-selector">
+          <view
+            class="condition-option {{conditionLevel === 1 ? 'active' : ''}}"
+            bindtap="onConditionChange"
+            data-value="1"
+          >
+            <text class="condition-emoji">✨</text>
+            <text class="condition-label">全新</text>
+          </view>
+          <view
+            class="condition-option {{conditionLevel === 2 ? 'active' : ''}}"
+            bindtap="onConditionChange"
+            data-value="2"
+          >
+            <text class="condition-emoji">🎈</text>
+            <text class="condition-label">95新</text>
+          </view>
+          <view
+            class="condition-option {{conditionLevel === 3 ? 'active' : ''}}"
+            bindtap="onConditionChange"
+            data-value="3"
+          >
+            <text class="condition-emoji">👌</text>
+            <text class="condition-label">9成新</text>
+          </view>
+          <view
+            class="condition-option {{conditionLevel === 4 ? 'active' : ''}}"
+            bindtap="onConditionChange"
+            data-value="4"
+          >
+            <text class="condition-emoji">😊</text>
+            <text class="condition-label">二手</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="form-group">
+        <view class="form-label">使用情况</view>
+        <textarea
+          value="{{usageDesc}}"
+          bindinput="onInputChange"
+          data-field="usageDesc"
+          placeholder="比如：购买时间、使用频率、有无维修等..."
+          class="form-textarea"
+          maxlength="200"
+        />
+      </view>
+    </view>
+
+    <!-- 交易信息 -->
+    <view class="form-section">
+      <view class="section-header">
+        <text class="section-title">🤝 交易信息</text>
+      </view>
+
+      <view class="form-group">
+        <view class="form-label">交易方式</view>
+        <view class="trade-selector">
+          <view
+            class="trade-option {{tradeType === 1 ? 'active' : ''}}"
+            bindtap="onTradeTypeChange"
+            data-value="1"
+          >
+            <text class="trade-icon">📍</text>
+            <text class="trade-label">自提</text>
+          </view>
+          <view
+            class="trade-option {{tradeType === 2 ? 'active' : ''}}"
+            bindtap="onTradeTypeChange"
+            data-value="2"
+          >
+            <text class="trade-icon">📦</text>
+            <text class="trade-label">快递</text>
+          </view>
+          <view
+            class="trade-option {{tradeType === 3 ? 'active' : ''}}"
+            bindtap="onTradeTypeChange"
+            data-value="3"
+          >
+            <text class="trade-icon">🔄</text>
+            <text class="trade-label">都行</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="form-group">
+        <view class="form-label">所在区域</view>
+        <input
+          value="{{district}}"
+          bindinput="onInputChange"
+          data-field="district"
+          placeholder="如：朝阳区望京"
+          class="form-input"
+        />
+      </view>
     </view>
   </view>
 
-  <button class="btn-primary submit-btn" bindtap="onSubmit">发布</button>
+  <!-- 底部操作栏 -->
+  <view class="bottom-bar">
+    <view class="tips">
+      <text class="tips-icon">💡</text>
+      <text class="tips-text">详细描述和清晰图片能更快卖出哦～</text>
+    </view>
+    <button class="submit-btn" bindtap="onSubmit">
+      <text class="submit-icon">🚀</text>
+      <text class="submit-text">立即发布</text>
+    </button>
+  </view>
 </view>

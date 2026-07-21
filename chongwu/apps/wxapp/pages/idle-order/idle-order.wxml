@@ -34,7 +34,7 @@
     </view>
     <view class="price-row">
       <text>平台担保费</text>
-      <text>¥{{(item.price * 0.05).toFixed(2)}}</text>
+      <text>¥{{platformFee}}</text>
     </view>
     <view class="total-row">
       <text>合计</text>

@@ -1,67 +1,121 @@
+/* 页面头部 */
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 24rpx 20rpx;
+  background: linear-gradient(135deg, #FFE8D6 0%, #FFD6C6 100%);
+  border-radius: 24rpx;
+  margin-bottom: 28rpx;
+  box-shadow: 0 8rpx 24rpx rgba(255, 139, 123, 0.15);
+}
+
+.page-icon {
+  font-size: 64rpx;
+}
+
+.header-content {
+  flex: 1;
+}
+
+.page-title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4rpx;
+}
+
+.page-subtitle {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+}
+
+/* 温馨Tab切换 */
 .tabs {
   display: flex;
   background: var(--bg-white);
-  border-radius: 16rpx;
-  margin-bottom: 20rpx;
+  border-radius: 24rpx;
+  margin-bottom: 28rpx;
   overflow: hidden;
+  box-shadow: var(--shadow-soft);
+  border: 1rpx solid var(--border-color);
 }
 
 .tab {
   flex: 1;
-  text-align: center;
-  padding: 24rpx 0;
-  font-size: 30rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  padding: 20rpx 0;
   color: var(--text-secondary);
+  transition: all 0.3s ease;
   position: relative;
 }
 
 .tab.active {
   color: var(--primary);
   font-weight: 600;
+  background: linear-gradient(135deg, var(--primary-bg) 0%, transparent 100%);
 }
 
-.tab.active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60rpx;
-  height: 4rpx;
-  background: var(--primary);
-  border-radius: 2rpx;
+.tab-icon {
+  font-size: 36rpx;
+}
+
+.tab-text {
+  font-size: 26rpx;
+}
+
+.tab-content {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
 }
 
 .badge {
   display: inline-block;
   background: var(--danger);
   color: white;
-  font-size: 22rpx;
-  padding: 2rpx 12rpx;
+  font-size: 20rpx;
+  padding: 4rpx 10rpx;
   border-radius: 20rpx;
-  margin-left: 8rpx;
+  min-width: 32rpx;
+  text-align: center;
+  font-weight: 500;
 }
 
+/* 宠物列表 */
 .pet-list {
   display: flex;
   flex-direction: column;
-  gap: 20rpx;
+  gap: 24rpx;
 }
 
 .pet-card {
   background: var(--bg-white);
-  border-radius: 16rpx;
-  padding: 24rpx;
+  border-radius: 24rpx;
+  padding: 28rpx;
   display: flex;
   align-items: center;
-  gap: 20rpx;
+  gap: 24rpx;
+  box-shadow: var(--shadow-soft);
+  border: 1rpx solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.pet-card:active {
+  transform: scale(0.98);
+  box-shadow: var(--shadow-card);
 }
 
 .pet-avatar {
   width: 120rpx;
   height: 120rpx;
   border-radius: 50%;
-  background: #eee;
+  background: var(--bg-primary);
+  border: 3rpx solid rgba(255, 139, 123, 0.2);
 }
 
 .pet-info {
@@ -69,7 +123,7 @@
 }
 
 .pet-name {
-  font-size: 32rpx;
+  font-size: 34rpx;
   font-weight: 600;
   color: var(--text-primary);
   display: block;
@@ -79,15 +133,16 @@
 .pet-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 12rpx;
+  gap: 8rpx;
 }
 
 .tag {
   font-size: 24rpx;
   color: var(--text-secondary);
   background: var(--bg-primary);
-  padding: 4rpx 16rpx;
-  border-radius: 8rpx;
+  padding: 8rpx 16rpx;
+  border-radius: 24rpx;
+  border: 1rpx solid var(--border-color);
 }
 
 .pet-birthday {
@@ -103,28 +158,32 @@
 }
 
 .btn-small {
-  background: var(--primary);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
   color: white;
   font-size: 24rpx;
-  padding: 8rpx 20rpx;
-  border-radius: 8rpx;
+  padding: 14rpx 24rpx;
+  border-radius: 36rpx;
   border: none;
+  box-shadow: 0 4rpx 12rpx rgba(255, 139, 123, 0.25);
 }
 
 .btn-small::after {
   border: none;
 }
 
+/* 提醒列表 */
 .reminder-list {
   display: flex;
   flex-direction: column;
-  gap: 20rpx;
+  gap: 24rpx;
 }
 
 .reminder-card {
   background: var(--bg-white);
-  border-radius: 16rpx;
-  padding: 24rpx;
+  border-radius: 24rpx;
+  padding: 28rpx;
+  box-shadow: var(--shadow-soft);
+  border: 1rpx solid var(--border-color);
 }
 
 .reminder-header {
@@ -138,7 +197,8 @@
   width: 80rpx;
   height: 80rpx;
   border-radius: 50%;
-  background: #eee;
+  background: var(--bg-primary);
+  border: 3rpx solid rgba(255, 139, 123, 0.15);
 }
 
 .reminder-info {
@@ -147,7 +207,9 @@
 
 .reminder-info .pet-name {
   font-size: 30rpx;
-  margin-bottom: 4rpx;
+  font-weight: 600;
+  margin-bottom: 6rpx;
+  color: var(--text-primary);
 }
 
 .item-name {
@@ -159,7 +221,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 16rpx;
+  padding-top: 20rpx;
   border-top: 1rpx solid var(--border-color);
 }
 
@@ -172,33 +234,68 @@
   font-size: 28rpx;
   color: var(--danger);
   font-weight: 500;
+  padding: 10rpx 24rpx;
+  background: var(--danger-bg);
+  border-radius: 28rpx;
 }
 
+/* 温馨空状态 */
 .empty-state {
-  text-align: center;
-  padding: 120rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 60rpx;
+  background: var(--bg-warm);
+  border-radius: 28rpx;
+  border: 2rpx dashed var(--border-light);
 }
 
-.empty-state text {
-  display: block;
-  font-size: 30rpx;
+.empty-icon {
+  font-size: 140rpx;
+  margin-bottom: 24rpx;
+  opacity: 0.6;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+  margin-bottom: 12rpx;
+}
+
+.empty-tip {
+  font-size: 24rpx;
   color: var(--text-muted);
-  margin-bottom: 40rpx;
+  margin-bottom: 8rpx;
 }
 
+.empty-hint {
+  font-size: 22rpx;
+  color: var(--text-light);
+}
+
+/* 温馨浮动按钮 */
 .fab {
   position: fixed;
   right: 40rpx;
   bottom: 120rpx;
-  width: 100rpx;
-  height: 100rpx;
+  width: 136rpx;
+  height: 136rpx;
   border-radius: 50%;
-  background: var(--primary);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: var(--shadow-float);
+  transition: all 0.3s ease;
+  border: 4rpx solid rgba(255, 255, 255, 0.8);
+}
+
+.fab:active {
+  transform: scale(0.9);
+}
+
+.fab-icon {
   font-size: 48rpx;
-  font-weight: 300;
-  box-shadow: 0 4rpx 20rpx rgba(255, 140, 66, 0.4);
 }

@@ -1,4 +1,3 @@
-<!-- /autoplan restore point: /Users/min/.gstack/projects//main-autoplan-restore-20260324-101744.md -->
 # 个人网站实现计划
 
 ## 项目概述
@@ -122,7 +121,7 @@
 - [ ] Google Search Console 集成
 - [ ] 性能监控（Core Web Vitals）
 
-### Phase 7: 测试（NEW）
+### Phase 7: 测试
 - [ ] 单元测试：组件渲染测试
 - [ ] 单元测试：工具函数测试
 - [ ] 集成测试：API 端点测试
@@ -275,8 +274,9 @@ url: "https://project-url.com"
 - Phase 4: 1 天
 - Phase 5: 1-2 天
 - Phase 6: 1 天
+- Phase 7: 1 天
 
-**总计**: 约 8-10 天（人工）/ 约 2-3 小时（AI 辅助）
+**总计**: 约 9-11 天（人工）/ 约 2-3 小时（AI 辅助）
 
 ---
 

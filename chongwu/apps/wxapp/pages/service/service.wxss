@@ -123,6 +123,22 @@ page {
   line-height: 1.4;
 }
 
+.guarantee-row {
+  display: flex;
+  margin-bottom: 20rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.guarantee-tag {
+  font-size: 20rpx;
+  color: #1F3D2E;
+  background: rgba(255, 255, 255, 0.45);
+  padding: 6rpx 14rpx;
+  border-radius: 12rpx;
+  margin-right: 10rpx;
+}
+
 .book-now-btn {
   width: 100%;
   height: 80rpx;
@@ -164,6 +180,41 @@ page {
   background: #fff;
   width: 22rpx;
   border-radius: 6rpx;
+}
+
+.demand-bar {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 24rpx;
+  margin-bottom: 20rpx;
+  border-radius: 22rpx;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 6rpx 20rpx rgba(42, 42, 42, 0.04);
+}
+
+.demand-title {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #2A2A2A;
+  margin-right: 12rpx;
+  flex-shrink: 0;
+}
+
+.demand-desc {
+  flex: 1;
+  font-size: 22rpx;
+  color: #8A8A8A;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.demand-go {
+  font-size: 22rpx;
+  color: #4DB87A;
+  font-weight: 600;
+  margin-left: 10rpx;
+  flex-shrink: 0;
 }
 
 /* 服务商列表 */
@@ -221,6 +272,22 @@ page {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.provider-guarantees {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 8rpx;
+}
+
+.provider-g-tag {
+  font-size: 18rpx;
+  color: #4DB87A;
+  background: rgba(111, 207, 151, 0.14);
+  padding: 2rpx 10rpx;
+  border-radius: 8rpx;
+  margin-right: 8rpx;
+  margin-top: 4rpx;
 }
 
 .provider-arrow {

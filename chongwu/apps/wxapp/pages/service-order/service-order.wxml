@@ -32,14 +32,19 @@
       <input value="{{contactPhone}}" bindinput="onInputChange" data-field="contactPhone" placeholder="请输入联系电话" type="number" />
     </view>
 
-    <view class="form-item">
-      <text class="label">服务地址</text>
+    <view class="form-item" wx:if="{{addresses.length}}">
+      <text class="label">常用地址</text>
       <picker bindchange="onAddressSelect" value="{{selectedAddressIndex}}" range="{{addresses}}" range-key="detail">
         <view class="picker">
           <text wx:if="{{selectedAddressIndex >= 0}}">{{addresses[selectedAddressIndex].detail}}</text>
           <text wx:else class="placeholder">请选择服务地址</text>
         </view>
       </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="label">上门地址</text>
+      <input value="{{addressText}}" bindinput="onInputChange" data-field="addressText" placeholder="请输入详细上门地址" />
     </view>
 
     <view class="form-item">

@@ -1,0 +1,73 @@
+<!-- 饮食记录：呕吐 / 软便等高频痛点 -->
+<view class="page">
+  <view class="hero">
+    <text class="hero-title">饮食与异常记录</text>
+    <text class="hero-desc">记录呕吐、软便、食欲变化，方便复诊对照</text>
+  </view>
+
+  <view class="pet-picker" wx:if="{{pets.length}}">
+    <text class="label">记录对象</text>
+    <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="pet-scroll">
+      <view
+        class="pet-chip {{currentPetId === item.id ? 'on' : ''}}"
+        wx:for="{{pets}}"
+        wx:key="id"
+        bindtap="onSelectPet"
+        data-id="{{item.id}}"
+      >
+        <image class="chip-avatar" src="{{item.avatarUrl || '/assets/mock/real_avatar.jpg'}}" mode="aspectFill"></image>
+        <text>{{item.name}}</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view class="form-card">
+    <text class="label">异常类型</text>
+    <view class="type-row">
+      <view
+        class="type-item {{recordType === item.id ? 'on' : ''}}"
+        wx:for="{{recordTypes}}"
+        wx:key="id"
+        bindtap="onSelectType"
+        data-id="{{item.id}}"
+      >
+        <text class="type-icon">{{item.icon}}</text>
+        <text class="type-name">{{item.name}}</text>
+      </view>
+    </view>
+
+    <text class="label">发生时间</text>
+    <picker mode="date" value="{{recordDate}}" bindchange="onDateChange">
+      <view class="picker-row">{{recordDate || '选择日期'}}</view>
+    </picker>
+
+    <text class="label">补充说明</text>
+    <textarea
+      class="textarea"
+      placeholder="例如：吃完罐头后呕吐一次，精神尚可…"
+      maxlength="200"
+      value="{{note}}"
+      bindinput="onNoteInput"
+    ></textarea>
+
+    <button class="submit-btn" bindtap="onSubmit">保存记录</button>
+  </view>
+
+  <view class="list-card">
+    <view class="list-header">
+      <text class="list-title">最近记录</text>
+      <text class="list-tip">本地暂存 · 可对接医院档案</text>
+    </view>
+    <view class="record-item" wx:for="{{records}}" wx:key="id">
+      <view class="record-top">
+        <text class="record-type">{{item.typeName}}</text>
+        <text class="record-date">{{item.date}}</text>
+      </view>
+      <text class="record-pet">{{item.petName}}</text>
+      <text class="record-note">{{item.note}}</text>
+    </view>
+    <view class="empty" wx:if="{{records.length === 0}}">
+      <text>还没有饮食异常记录</text>
+    </view>
+  </view>
+</view>

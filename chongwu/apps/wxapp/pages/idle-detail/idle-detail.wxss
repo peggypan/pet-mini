@@ -6,6 +6,20 @@
   overflow: hidden;
 }
 
+.item-placeholder {
+  height: 420rpx;
+  margin: -20rpx -20rpx 28rpx;
+  border-radius: 0 0 40rpx 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #E8F5EE 0%, #D4EBE0 100%);
+}
+
+.placeholder-icon {
+  font-size: 120rpx;
+}
+
 .swiper-image {
   width: 100%;
   height: 100%;

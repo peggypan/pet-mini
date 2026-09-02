@@ -1,4 +1,4 @@
-<!-- 首页：品牌定位 + 核心功能 + 发现流 -->
+<!-- 首页：对齐页面优化方案 -->
 <view class="page">
   <!-- 品牌区 -->
   <view class="brand-block">
@@ -8,7 +8,7 @@
       </view>
       <view class="brand-text">
         <text class="brand-name">宠头头</text>
-        <text class="brand-slogan">同城宠物服务 · 闲置流转 · 健康守护</text>
+        <text class="brand-slogan">养宠一站式服务社区</text>
       </view>
       <view class="pet-pill" bindtap="onFamilyTap">
         <image class="pet-avatar" src="{{pet.avatar}}" mode="aspectFill"></image>
@@ -18,31 +18,21 @@
     </view>
   </view>
 
-  <!-- 搜索栏（暂时隐藏）
-  <view class="search-row">
-    <view class="search-box" bindtap="onSearchTap">
-      <text class="search-ph">搜索上门服务、闲置好物...</text>
-      <view class="search-btn">
-        <text class="search-btn-icon">⌕</text>
-      </view>
-    </view>
-  </view>
-  -->
-
-  <!-- 核心功能模块 -->
+  <!-- 核心功能 6 宫格 -->
   <view class="module-block">
     <view class="module-header">
-      <text class="module-title">我能帮你做什么</text>
-      <text class="module-desc">一站搞定养宠日常</text>
+      <text class="module-title">养宠一站式服务社区</text>
+      <text class="module-desc">服务 · 闲置 · 健康 · 社交 · 商城</text>
     </view>
     <view class="module-grid">
       <view
-        class="module-card {{item.tone}}"
+        class="module-card"
         wx:for="{{modules}}"
         wx:key="id"
         bindtap="onModuleTap"
         data-type="{{item.type}}"
       >
+        <text class="module-badge" wx:if="{{item.badge}}">{{item.badge}}</text>
         <view class="module-icon-wrap">
           <text class="module-icon">{{item.icon}}</text>
         </view>
@@ -55,111 +45,90 @@
     </view>
   </view>
 
-  <!-- 宠物交友 -->
-  <view class="social-block">
+  <!-- 邀请裂变到账提示 -->
+  <view class="invite-toast" wx:if="{{inviteRewardVisible}}" bindtap="onCloseInviteReward">
+    <text class="invite-toast-title">🎉 好友邀请礼到账</text>
+    <text class="invite-toast-desc">{{inviteRewardText}}</text>
+  </view>
+
+  <!-- 宠物交友：首页精简入口 -->
+  <view class="social-block social-entry">
     <view class="social-header">
       <view class="social-title-wrap">
-        <text class="social-title">宠物交友</text>
-        <text class="social-sub">约局 · 发帖 · 留言 · 认识新朋友</text>
+        <text class="social-title">宠物交友广场</text>
+        <text class="social-sub">同城宠友 · 活动 · 寻宠互助</text>
       </view>
-      <text class="social-more" bindtap="onSocialMore">广场 ›</text>
+      <text class="social-more" bindtap="goSocial">全部 ›</text>
     </view>
 
-    <!-- 社交快捷入口 -->
-    <view class="social-actions">
-      <view
-        class="social-action"
-        wx:for="{{socialActions}}"
-        wx:key="id"
-        bindtap="onSocialAction"
-        data-type="{{item.id}}"
-      >
-        <view class="social-action-icon">
-          <text>{{item.icon}}</text>
-        </view>
-        <text class="social-action-name">{{item.name}}</text>
-      </view>
+    <view class="social-entry-actions">
+      <view class="entry-chip" bindtap="onCreatePost">发帖</view>
+      <view class="entry-chip" bindtap="onLostTap">寻宠招领</view>
+      <view class="entry-chip" bindtap="goSocialEvents">同城活动</view>
     </view>
 
-    <!-- 活动横滑 -->
-    <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="event-scroll">
+    <view class="post-list">
       <view
-        class="event-card"
-        wx:for="{{socialEvents}}"
+        class="post-card"
+        wx:for="{{previewPosts}}"
         wx:key="id"
-        bindtap="onEventTap"
+        bindtap="onPostTap"
         data-id="{{item.id}}"
       >
-        <image class="event-cover" src="{{item.cover}}" mode="aspectFill"></image>
-        <view class="event-body">
-          <text class="event-tag">{{item.tag}}</text>
-          <text class="event-title">{{item.title}}</text>
-          <text class="event-desc">{{item.desc}}</text>
-        </view>
-      </view>
-    </scroll-view>
-
-    <!-- 动态列表 -->
-    <view class="post-list">
-      <view class="post-card" wx:for="{{socialPosts}}" wx:key="id">
         <view class="post-head">
           <image class="post-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
           <view class="post-user">
-            <text class="post-user-name">{{item.userName}} · {{item.petName}}</text>
+            <view class="post-name-row">
+              <text class="post-user-name">{{item.userName}} · {{item.petName}}</text>
+              <text class="essence-tag" wx:if="{{item.essence}}">精华</text>
+            </view>
             <text class="post-time">{{item.time}}</text>
           </view>
+          <text class="post-enter">详情 ›</text>
         </view>
         <text class="post-content">{{item.content}}</text>
-        <image
-          class="post-image"
-          src="{{item.image}}"
-          mode="aspectFill"
-          wx:if="{{item.image}}"
-        ></image>
-        <view class="post-footer">
-          <view class="post-btn" catchtap="onLikeTap" data-id="{{item.id}}">
-            <text>{{item.liked ? '❤️' : '♡'}}</text>
-            <text class="post-btn-num">{{item.likes}}</text>
-          </view>
-          <view class="post-btn" catchtap="onCommentTap" data-id="{{item.id}}">
-            <text>💬</text>
-            <text class="post-btn-num">{{item.comments}}</text>
-          </view>
-          <view class="post-btn" catchtap="onChatTap" data-id="{{item.id}}">
-            <text>✉️ 私信</text>
-          </view>
-        </view>
       </view>
+    </view>
+
+    <view class="social-entry-footer" bindtap="goSocial">
+      <text>进入交友广场，查看更多动态</text>
     </view>
   </view>
 
-  <!-- 宠物商城 -->
-  <view class="mall-block">
+  <!-- 宠物商城：首页精简入口 -->
+  <view class="mall-block mall-entry">
     <view class="mall-header">
       <view class="mall-title-wrap">
         <text class="mall-title">宠物商城</text>
-        <text class="mall-sub">主粮 · 零食 · 玩具 · 护理好物</text>
+        <text class="mall-sub">用品零售 · 送检 · 营养咨询</text>
       </view>
-      <text class="mall-more" bindtap="onMallMore">进店 ›</text>
+      <text class="mall-more" bindtap="goMall">进店 ›</text>
     </view>
 
-    <view class="mall-cats">
+    <view class="mall-service-row">
       <view
-        class="mall-cat {{mallCategory === item.id ? 'on' : ''}}"
-        wx:for="{{mallCategories}}"
+        class="mall-service-card"
+        wx:for="{{mallServices}}"
         wx:key="id"
-        bindtap="onMallCategory"
+        bindtap="onMallService"
         data-id="{{item.id}}"
       >
-        <text class="mall-cat-icon">{{item.icon}}</text>
-        <text class="mall-cat-name">{{item.name}}</text>
+        <text class="mall-service-icon">{{item.icon}}</text>
+        <view class="mall-service-info">
+          <view class="mall-service-name-row">
+            <text class="mall-service-name">{{item.name}}</text>
+            <text class="mall-service-tag">{{item.tag}}</text>
+          </view>
+          <text class="mall-service-tip">{{item.tip}}</text>
+          <text class="mall-service-price">¥{{item.price}} 起</text>
+        </view>
       </view>
     </view>
 
-    <view class="mall-grid">
+    <view class="mall-preview-grid">
       <view
         class="mall-card"
-        wx:for="{{mallProducts}}"
+        wx:for="{{previewProducts}}"
         wx:key="id"
         bindtap="onMallProduct"
         data-id="{{item.id}}"
@@ -171,53 +140,21 @@
         <text class="mall-name">{{item.name}}</text>
         <view class="mall-price-row">
           <text class="mall-price">¥{{item.price}}</text>
-          <text class="mall-origin" wx:if="{{item.origin}}">¥{{item.origin}}</text>
         </view>
-        <text class="mall-sales">{{item.sales}}</text>
       </view>
+    </view>
+
+    <view class="mall-entry-footer" bindtap="goMall">
+      <text>进入商城，查看全部分类与商品</text>
     </view>
   </view>
 
-  <!-- 发现流 -->
-  <view class="feed-header">
-    <text class="feed-title">今日发现</text>
-    <text class="feed-sub">看看附近的毛孩子与好物</text>
-  </view>
-  <view class="masonry">
-    <view class="masonry-left">
-      <view class="feed-card tall" bindtap="onFeedTap" data-id="{{feedMain.id}}" data-kind="{{feedMain.kind}}">
-        <image class="feed-img" src="{{feedMain.image}}" mode="aspectFill"></image>
-        <view class="feed-paw">
-          <text>🐾</text>
-        </view>
-      </view>
-    </view>
-    <view class="masonry-right">
-      <view
-        class="feed-card short"
-        wx:for="{{feedSide}}"
-        wx:key="id"
-        bindtap="onFeedTap"
-        data-id="{{item.id}}"
-        data-kind="{{item.kind}}"
-      >
-        <image class="feed-img" src="{{item.image}}" mode="aspectFill"></image>
-        <view class="feed-caption">
-          <text class="feed-cap-title">{{item.title}}</text>
-          <view class="feed-stars" wx:if="{{item.rating}}">
-            <text class="star" wx:for="{{item.stars}}" wx:for-item="s" wx:key="*this">★</text>
-          </view>
-        </view>
-      </view>
-    </view>
-  </view>
-
-  <!-- 热门服务 -->
+  <!-- 热门服务（带保障标签） -->
   <view class="section-block" wx:if="{{services.length}}">
     <view class="section-header">
       <view class="section-title-wrap">
-        <text class="section-title">热门服务</text>
-        <text class="section-sub">上门喂养 · 美容 · 寄养</text>
+        <text class="section-title">宠友服务精选</text>
+        <text class="section-sub">实名认证 · 意外险 · 全程拍照</text>
       </view>
       <text class="section-more" bindtap="onMoreServices">更多 ›</text>
     </view>

@@ -1,4 +1,5 @@
 const api = require('../../utils/request');
+const { findService } = require('../../utils/catalog');
 
 Page({
   data: {
@@ -11,23 +12,41 @@ Page({
   },
 
   async loadServiceDetail(id) {
+    const fallback = findService(id);
     try {
       const res = await api.get(`/services/${id}`);
-      this.setData({ service: res.data });
+      if (res.data) {
+        this.setData({
+          service: {
+            ...fallback,
+            ...res.data,
+            coverUrls: res.data.coverUrls?.length
+              ? res.data.coverUrls
+              : fallback?.coverUrls || [],
+            merchant: res.data.merchant || fallback?.merchant,
+          },
+        });
+        return;
+      }
     } catch (e) {
-      console.error(e);
-      wx.showToast({ title: '加载失败', icon: 'none' });
+      // 无后端时走 Mock
+    }
+
+    if (fallback) {
+      this.setData({ service: fallback });
+    } else {
+      wx.showToast({ title: '服务不存在', icon: 'none' });
     }
   },
 
   onQuantityChange(e) {
-    this.setData({ quantity: e.detail.value });
+    const quantity = Math.max(1, Number(e.detail.value) || 1);
+    this.setData({ quantity });
   },
 
   onBookTap() {
     const { service, quantity } = this.data;
     if (!service) return;
-    
     wx.navigateTo({
       url: `/pages/service-order/service-order?serviceId=${service.id}&quantity=${quantity}`,
     });

@@ -1,4 +1,9 @@
 <view class="container" wx:if="{{item}}">
+  <!-- 无图占位 -->
+  <view class="item-placeholder" wx:if="{{!item.images.length}}">
+    <text class="placeholder-icon">{{item.displayIcon || '📦'}}</text>
+  </view>
+
   <!-- 图片轮播 -->
   <swiper class="item-swiper" indicator-dots circular wx:if="{{item.images.length > 0}}">
     <swiper-item wx:for="{{item.images}}" wx:key="*this">

@@ -220,6 +220,15 @@
     </view>
   </view>
 
+  <!-- 发布规范：禁止活体 -->
+  <view class="rule-box" bindtap="onToggleRule">
+    <view class="rule-check {{agreeRule ? 'on' : ''}}">{{agreeRule ? '✓' : ''}}</view>
+    <view class="rule-content">
+      <text class="rule-title">我已阅读并同意发布规范</text>
+      <text class="rule-desc">禁止售卖活体宠物及繁殖配种信息；仅可发布粮、笼具、玩具、洗护等用品。违规将下架并封号。建议走平台担保交易。</text>
+    </view>
+  </view>
+
   <!-- 底部操作栏 -->
   <view class="bottom-bar">
     <view class="tips">

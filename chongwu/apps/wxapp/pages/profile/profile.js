@@ -1,6 +1,7 @@
 const app = getApp();
 const api = require('../../utils/request');
 const { MOCK_PET } = require('../../utils/mock');
+const store = require('../../utils/store');
 
 /** 生成简易二维码点阵样式数据 */
 function buildQrCells() {
@@ -21,6 +22,7 @@ Page({
     isLogin: false,
     qrCells: buildQrCells(),
     pet: { ...MOCK_PET },
+    unreadCount: 0,
     stats: {
       serviceOrders: 0,
       idleOrders: 0,
@@ -37,6 +39,7 @@ Page({
 
   onShow() {
     this.checkLogin();
+    this.loadLocalStats();
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 3 });
     }
@@ -44,13 +47,56 @@ Page({
 
   async checkLogin() {
     const token = wx.getStorageSync('token');
+    const cachedUser = wx.getStorageSync('userInfo');
     if (token) {
-      this.setData({ isLogin: true });
+      this.setData({
+        isLogin: true,
+        userInfo: cachedUser || this.data.userInfo,
+      });
+      // 本地 token 无法打真实 profile，只刷新本地宠物
+      if (String(token).startsWith('local_')) {
+        this.applyLocalPet();
+        this.loadLocalStats();
+        return;
+      }
       this.loadUserProfile();
     } else {
-      // 未登录也展示 Mock 宠物档案，方便预览还原
-      this.setData({ isLogin: false, userInfo: null, pet: { ...MOCK_PET } });
+      this.setData({ isLogin: false, userInfo: null });
+      this.applyLocalPet();
     }
+  },
+
+  applyLocalPet() {
+    const localPets = store.listPets();
+    if (localPets[0]) {
+      this.setData({
+        pet: {
+          ...MOCK_PET,
+          name: localPets[0].name || MOCK_PET.name,
+          age: localPets[0].birthday || MOCK_PET.age,
+          weight: localPets[0].weight ? `${localPets[0].weight} kg` : MOCK_PET.weight,
+          avatar: localPets[0].avatarUrl || MOCK_PET.avatar,
+        },
+      });
+    } else {
+      this.setData({ pet: { ...MOCK_PET } });
+    }
+  },
+
+  loadLocalStats() {
+    const serviceOrders = store.listServiceOrders().length;
+    const idleOrders = store.listIdleBuyOrders().length + store.listIdleSellOrders().length;
+    const pets = store.listPets().length || (this.data.userInfo?.pets?.length || 0);
+    const unreadCount = store.countUnreadMessages();
+    this.setData({
+      unreadCount,
+      stats: {
+        serviceOrders,
+        idleOrders,
+        pets,
+        favorites: 0,
+      },
+    });
   },
 
   async loadUserProfile() {
@@ -71,43 +117,19 @@ Page({
         : { ...MOCK_PET };
 
       this.setData({ userInfo, pet });
-      this.loadStats();
+      this.loadLocalStats();
     } catch (e) {
-      console.error(e);
-      this.setData({ pet: { ...MOCK_PET } });
-    }
-  },
-
-  async loadStats() {
-    try {
-      const [serviceRes, idleRes] = await Promise.all([
-        api.get('/services/orders/my'),
-        api.get('/idle/orders/my'),
-      ]);
-
-      const serviceOrders = serviceRes.data?.length || 0;
-      const idleOrders =
-        (idleRes.data?.buyOrders?.length || 0) + (idleRes.data?.sellOrders?.length || 0);
-
-      this.setData({
-        stats: {
-          serviceOrders,
-          idleOrders,
-          pets: this.data.userInfo?.pets?.length || 0,
-          favorites: 0,
-        },
-      });
-    } catch (e) {
-      console.error(e);
+      this.applyLocalPet();
+      this.loadLocalStats();
     }
   },
 
   onNotifyTap() {
-    wx.showToast({ title: '暂无新消息', icon: 'none' });
+    wx.navigateTo({ url: '/pages/messages/messages' });
   },
 
   onFavoriteTap() {
-    wx.showToast({ title: '功能开发中', icon: 'none' });
+    wx.showToast({ title: '收藏夹后续开放', icon: 'none' });
   },
 
   onFamilyTap() {
@@ -119,25 +141,57 @@ Page({
   },
 
   onHelpTap() {
-    wx.showToast({ title: '功能开发中', icon: 'none' });
+    wx.showModal({
+      title: '帮助',
+      content: 'MVP 路径：首页→服务预约 / 闲置买卖 / 健康本 / 商城下单，订单与消息在「我的」查看。',
+      showCancel: false,
+    });
   },
 
   onAboutTap() {
     wx.showModal({
       title: '关于宠头头',
-      content: '用心守护每一个毛孩子',
+      content: '用心守护每一个毛孩子 · MVP 演示版',
       showCancel: false,
     });
   },
 
-  async onLogin() {
-    try {
-      await app.login();
-      this.setData({ isLogin: true });
-      this.loadUserProfile();
-    } catch (e) {
-      wx.showToast({ title: '登录失败', icon: 'none' });
+  async onGetPhoneNumber(e) {
+    const detail = e.detail || {};
+    // 只有微信底部授权弹窗点「允许」后，才会带上 code / encryptedData
+    const ok =
+      detail.errMsg === 'getPhoneNumber:ok' ||
+      (!!detail.code || !!detail.encryptedData);
+
+    if (!ok) {
+      const msg =
+        detail.errno === 104 || (detail.errMsg || '').indexOf('privacy') > -1
+          ? '请先同意隐私协议后再授权手机号'
+          : '请在微信弹窗中允许手机号授权';
+      wx.showToast({ title: msg, icon: 'none' });
+      return;
     }
+
+    wx.showLoading({ title: '登录中', mask: true });
+    try {
+      const res = await app.loginByPhone(detail);
+      this.setData({ isLogin: true, userInfo: res.user || null });
+      if (res.token && String(res.token).startsWith('local_')) {
+        this.applyLocalPet();
+      } else {
+        this.loadUserProfile();
+      }
+      this.loadLocalStats();
+      wx.showToast({ title: '登录成功', icon: 'success' });
+    } catch (err) {
+      wx.showToast({ title: err.message || '登录失败', icon: 'none' });
+    } finally {
+      wx.hideLoading();
+    }
+  },
+
+  onAgreePrivacyAuthorization() {
+    // 用户已同意隐私协议，可继续走 getPhoneNumber 回调
   },
 
   onOrdersTap() {
@@ -154,9 +208,17 @@ Page({
       content: '确定要退出登录吗？',
       success: (res) => {
         if (res.confirm) {
-          wx.removeStorageSync('token');
-          app.globalData.token = null;
-          this.setData({ isLogin: false, userInfo: null, pet: { ...MOCK_PET } });
+          if (typeof app.logout === 'function') {
+            app.logout();
+          } else {
+            wx.removeStorageSync('token');
+            wx.removeStorageSync('userInfo');
+            app.globalData.token = null;
+            app.globalData.userInfo = null;
+          }
+          this.setData({ isLogin: false, userInfo: null });
+          this.applyLocalPet();
+          this.loadLocalStats();
         }
       },
     });

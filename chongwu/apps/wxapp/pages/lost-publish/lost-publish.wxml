@@ -1,0 +1,90 @@
+<!-- 寻宠 / 招领发布页 -->
+<view class="page">
+  <view class="tip-card">
+    <text class="tip-title">同城互助 · 禁止活体交易</text>
+    <text class="tip-desc">请如实填写特征与联系方式，方便邻里协助。不可借此买卖宠物。</text>
+  </view>
+
+  <view class="card">
+    <text class="label">信息类型</text>
+    <view class="type-row">
+      <view
+        class="type-item {{postType === 'lost' ? 'on' : ''}}"
+        bindtap="onType"
+        data-type="lost"
+      >
+        <text class="type-name">寻宠</text>
+        <text class="type-sub">我家毛孩子走失了</text>
+      </view>
+      <view
+        class="type-item {{postType === 'found' ? 'on' : ''}}"
+        bindtap="onType"
+        data-type="found"
+      >
+        <text class="type-name">招领</text>
+        <text class="type-sub">捡到待认领的宠物</text>
+      </view>
+    </view>
+
+    <text class="label">宠物类型</text>
+    <view class="zone-row">
+      <view
+        class="zone {{zone === item.id ? 'on' : ''}}"
+        wx:for="{{zones}}"
+        wx:key="id"
+        bindtap="onZone"
+        data-id="{{item.id}}"
+      >{{item.name}}</view>
+    </view>
+
+    <text class="label">发生地点</text>
+    <input
+      class="input"
+      placeholder="如：朝阳公园南门附近"
+      placeholder-class="ph"
+      value="{{location}}"
+      bindinput="onField"
+      data-field="location"
+    />
+
+    <text class="label">联系方式</text>
+    <input
+      class="input"
+      type="number"
+      maxlength="11"
+      placeholder="手机号，方便同城联系"
+      placeholder-class="ph"
+      value="{{phone}}"
+      bindinput="onField"
+      data-field="phone"
+    />
+
+    <text class="label">详细描述 *</text>
+    <textarea
+      class="textarea"
+      maxlength="500"
+      placeholder="{{placeholder}}"
+      placeholder-class="ph"
+      value="{{content}}"
+      bindinput="onField"
+      data-field="content"
+    ></textarea>
+    <text class="count">{{content.length}}/500</text>
+
+    <text class="label">照片（选填，最多 3 张）</text>
+    <view class="img-row">
+      <view class="img-item" wx:for="{{images}}" wx:key="*this">
+        <image class="img" src="{{item}}" mode="aspectFill"></image>
+        <view class="img-del" catchtap="onRemoveImage" data-index="{{index}}">×</view>
+      </view>
+      <view class="img-add" bindtap="onChooseImage" wx:if="{{images.length < 3}}">
+        <text class="img-add-icon">+</text>
+        <text class="img-add-text">添加</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="bottom">
+    <button class="submit" bindtap="onSubmit">发布到交友广场</button>
+  </view>
+</view>

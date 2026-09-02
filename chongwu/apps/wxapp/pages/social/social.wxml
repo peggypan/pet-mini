@@ -1,0 +1,142 @@
+<view class="page">
+  <view class="social-block">
+    <view class="social-header">
+      <view class="social-title-wrap">
+        <text class="social-title">宠物交友广场</text>
+        <text class="social-sub">发帖 · 活动 · 寻宠 · 话题</text>
+      </view>
+    </view>
+
+    <view class="invite-banner" bindtap="onInviteTap">
+      <view class="invite-banner-text">
+        <text class="invite-banner-title">{{invite.rewardTitle}}</text>
+        <text class="invite-banner-desc">{{invite.rewardDesc}}</text>
+      </view>
+      <button class="invite-share-btn" open-type="share" catchtap="onInviteShareReady">去分享</button>
+    </view>
+
+    <view class="lost-banner" bindtap="onLostTap">
+      <text class="lost-banner-icon">📢</text>
+      <view class="lost-banner-text">
+        <text class="lost-banner-title">寻宠 / 招领专区</text>
+        <text class="lost-banner-desc">走失快发帖 · 捡到快登记 · 同城互助</text>
+      </view>
+      <text class="lost-banner-go">去发布 ›</text>
+    </view>
+
+    <view class="social-actions">
+      <view
+        class="social-action"
+        wx:for="{{socialActions}}"
+        wx:key="id"
+        bindtap="onSocialAction"
+        data-type="{{item.id}}"
+      >
+        <view class="social-action-icon">
+          <text>{{item.icon}}</text>
+        </view>
+        <text class="social-action-name">{{item.name}}</text>
+      </view>
+    </view>
+
+    <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="zone-scroll">
+      <view
+        class="zone-pill {{socialFilter === item.id ? 'on' : ''}}"
+        wx:for="{{socialFilters}}"
+        wx:key="id"
+        bindtap="onSocialFilter"
+        data-id="{{item.id}}"
+      >
+        <text>{{item.name}}</text>
+      </view>
+    </scroll-view>
+
+    <scroll-view
+      scroll-x
+      enhanced
+      show-scrollbar="{{false}}"
+      class="event-scroll"
+      wx:if="{{(socialFilter === 'all' || socialFilter === 'event' || socialFilter === 'cat' || socialFilter === 'dog') && displayEvents.length}}"
+    >
+      <view
+        class="event-card"
+        wx:for="{{displayEvents}}"
+        wx:key="id"
+        bindtap="onEventTap"
+        data-id="{{item.id}}"
+      >
+        <image class="event-cover" src="{{item.cover}}" mode="aspectFill"></image>
+        <view class="event-body">
+          <text class="event-tag">{{item.tag}}</text>
+          <text class="event-title">{{item.title}}</text>
+          <view class="event-meta">
+            <text class="event-meta-item">{{item.fee}}</text>
+            <text class="event-meta-item">{{item.place}}</text>
+          </view>
+          <view class="event-meta">
+            <text class="event-meta-item warn">{{item.require}}</text>
+            <text class="event-meta-item">{{item.seats}}</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view class="rule-tip">社区禁止活体交易、私下诊疗，违规将下架处理</view>
+
+    <view class="post-list">
+      <view class="post-card" wx:for="{{displayPosts}}" wx:key="id" bindtap="onPostTap" data-id="{{item.id}}">
+        <view class="post-head">
+          <image class="post-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+          <view class="post-user">
+            <view class="post-name-row">
+              <text class="post-user-name">{{item.userName}} · {{item.petName}}</text>
+              <text class="essence-tag" wx:if="{{item.essence}}">精华</text>
+            </view>
+            <text class="post-time">{{item.time}}</text>
+          </view>
+          <text class="post-enter">详情 ›</text>
+        </view>
+        <text class="post-content">{{item.content}}</text>
+        <image class="post-image" src="{{item.mediaList[0].url}}" mode="aspectFill" wx:if="{{item.mediaList.length && item.mediaList[0].type === 'image'}}"></image>
+        <view class="post-video-wrap" wx:if="{{item.mediaList.length && item.mediaList[0].type === 'video'}}">
+          <video class="post-video" src="{{item.mediaList[0].url}}" controls="{{false}}" show-play-btn show-center-play-btn objectFit="cover"></video>
+          <text class="post-video-tag">视频</text>
+        </view>
+        <view class="media-tip" wx:if="{{item.imageCount + item.videoCount > 1}}">
+          <text>共 {{item.imageCount + item.videoCount}} 个媒体（{{item.imageCount}} 图 {{item.videoCount}} 视频）</text>
+        </view>
+        <view class="post-footer">
+          <view class="post-btn" catchtap="onLikeTap" data-id="{{item.id}}">
+            <text>{{item.liked ? '❤️' : '♡'}}</text>
+            <text class="post-btn-num">{{item.likes}}</text>
+          </view>
+          <view class="post-btn" catchtap="onCommentTap" data-id="{{item.id}}">
+            <text>💬</text>
+            <text class="post-btn-num">{{item.comments}}</text>
+          </view>
+          <button class="post-btn post-share-btn" open-type="share" catchtap="onShareTap" data-id="{{item.id}}">
+            <text>↗ 分享</text>
+            <text class="post-btn-num" wx:if="{{item.shares}}">{{item.shares}}</text>
+          </button>
+          <view class="post-btn" catchtap="onChatTap" data-id="{{item.id}}">
+            <text>✉️ 私信</text>
+          </view>
+        </view>
+      </view>
+      <view class="post-empty" wx:if="{{displayPosts.length === 0 && socialFilter !== 'event'}}">
+        <text>该分区暂无动态，换个标签看看～</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="share-mask" wx:if="{{sharePanelVisible}}" catchtap="onCloseSharePanel">
+    <view class="share-panel" catchtap="noop">
+      <text class="share-panel-title">分享给好友 / 群</text>
+      <text class="share-panel-desc">好友打开后双方各得 ¥5 商城券；分享优质帖可获得「精华」曝光加权。</text>
+      <button class="share-panel-btn" open-type="share">立即分享</button>
+      <text class="share-panel-cancel" bindtap="onCloseSharePanel">取消</text>
+    </view>
+  </view>
+
+  <view class="fab-post" bindtap="onCreatePost">+ 发帖</view>
+</view>

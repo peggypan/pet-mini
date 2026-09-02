@@ -1,0 +1,91 @@
+<view class="page" wx:if="{{post}}">
+  <view class="author-card">
+    <image class="avatar" src="{{post.avatar}}" mode="aspectFill"></image>
+    <view class="author-info">
+      <view class="name-row">
+        <text class="name">{{post.userName}} · {{post.petName}}</text>
+        <text class="essence" wx:if="{{post.essence}}">精华</text>
+      </view>
+      <text class="meta">{{zoneLabel}} · {{post.time}}</text>
+    </view>
+  </view>
+
+  <view class="content-card">
+    <text class="content">{{post.content}}</text>
+    <image
+      class="cover"
+      src="{{post.imageList[0]}}"
+      mode="widthFix"
+      wx:if="{{post.imageList && post.imageList.length === 1}}"
+      bindtap="onPreviewImage"
+      data-src="{{post.imageList[0]}}"
+    ></image>
+    <view class="img-grid" wx:if="{{post.imageList && post.imageList.length > 1}}">
+      <image
+        class="grid-img"
+        wx:for="{{post.imageList}}"
+        wx:key="*this"
+        src="{{item}}"
+        mode="aspectFill"
+        bindtap="onPreviewImage"
+        data-src="{{item}}"
+      ></image>
+    </view>
+    <view class="video-list" wx:if="{{post.videoList && post.videoList.length}}">
+      <video
+        class="video-item"
+        wx:for="{{post.videoList}}"
+        wx:key="url"
+        src="{{item.url}}"
+        poster="{{item.poster}}"
+        controls
+        show-center-play-btn
+        objectFit="cover"
+      ></video>
+    </view>
+  </view>
+
+  <view class="stat-row">
+    <text>{{post.likes || 0}} 赞</text>
+    <text>{{commentList.length}} 评论</text>
+    <text>{{post.shares || 0}} 分享</text>
+  </view>
+
+  <view class="comment-panel">
+    <text class="panel-title">评论</text>
+    <view class="comment-item" wx:for="{{commentList}}" wx:key="id">
+      <image class="c-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+      <view class="c-body">
+        <view class="c-top">
+          <text class="c-name">{{item.userName}}</text>
+          <text class="c-time">{{item.time}}</text>
+        </view>
+        <text class="c-text">{{item.content}}</text>
+      </view>
+    </view>
+    <view class="comment-empty" wx:if="{{commentList.length === 0}}">
+      <text>还没有评论，来抢沙发吧</text>
+    </view>
+  </view>
+
+  <view class="bottom-bar">
+    <view class="bar-like" bindtap="onLike">
+      <text class="bar-like-icon">{{post.liked ? '❤️' : '♡'}}</text>
+    </view>
+    <input
+      class="comment-input"
+      placeholder="写评论…"
+      placeholder-class="ph"
+      value="{{commentText}}"
+      bindinput="onCommentInput"
+      confirm-type="send"
+      bindconfirm="onSendComment"
+    />
+    <view class="bar-send" bindtap="onSendComment">发送</view>
+    <button class="bar-share" open-type="share" catchtap="onShare">分享</button>
+  </view>
+</view>
+
+<view class="empty" wx:else>
+  <text>动态不存在或已删除</text>
+</view>

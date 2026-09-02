@@ -1,109 +1,156 @@
-<view class="container">
-  <!-- 宠物信息 -->
-  <view class="card pet-header" wx:if="{{pet}}">
-    <image src="{{pet.avatarUrl || '/assets/default-pet.png'}}" class="pet-avatar-large"></image>
-    <view class="pet-detail">
-      <text class="pet-name">{{pet.name}}</text>
-      <view class="pet-meta">
-        <text>{{pet.species === 1 ? '猫' : '狗'}} · {{pet.breedName || '未知品种'}}</text>
+<view class="page">
+  <!-- 宠物条 -->
+  <view class="pet-bar" wx:if="{{pet}}">
+    <image
+      class="pet-bar-avatar"
+      src="{{pet.avatarUrl || '/assets/mock/real_avatar.jpg'}}"
+      mode="aspectFill"
+    ></image>
+    <view class="pet-bar-info">
+      <text class="pet-bar-name">{{pet.name}}</text>
+      <text class="pet-bar-meta">
+        {{pet.species === 1 ? '猫' : '狗'}} · {{pet.breedName || '品种待完善'}}
         <text wx:if="{{pet.birthday}}"> · {{pet.birthday}}</text>
-        <text wx:if="{{pet.weight}}"> · {{pet.weight}}kg</text>
-      </view>
+      </text>
     </view>
+    <button class="pet-bar-btn" wx:if="{{mode === 'view'}}" bindtap="onAddRecord">+ 记录</button>
   </view>
 
   <!-- 记录列表 -->
-  <view wx:if="{{mode === 'view'}}">
-    <view class="card">
-      <view class="section-header flex-between">
-        <text class="section-title">健康记录</text>
-        <button class="btn-small" bindtap="onAddRecord">+添加</button>
-      </view>
-      
-      <view class="record-list">
-        <view class="record-item" wx:for="{{records}}" wx:key="id">
-          <view class="record-header">
-            <text class="record-type">{{recordTypeOptions[item.recordType - 1]}}</text>
-            <text class="record-date">{{item.doneAt}}</text>
+  <view wx:if="{{mode === 'view'}}" class="panel">
+    <view class="panel-head">
+      <text class="panel-title">健康记录</text>
+      <text class="panel-count">共 {{records.length}} 条</text>
+    </view>
+
+    <view class="timeline" wx:if="{{records.length > 0}}">
+      <view class="timeline-item" wx:for="{{records}}" wx:key="id">
+        <view class="timeline-dot"></view>
+        <view class="timeline-card">
+          <view class="timeline-top">
+            <text class="type-pill">{{item.typeName || recordTypeOptions[item.recordType - 1]}}</text>
+            <text class="timeline-date">{{item.doneAt}}</text>
           </view>
-          <text class="record-name">{{item.itemName}}</text>
-          <view class="record-footer">
+          <text class="timeline-name">{{item.itemName}}</text>
+          <view class="timeline-meta">
             <text wx:if="{{item.clinicName}}">{{item.clinicName}}</text>
-            <text wx:if="{{item.validUntil}}" class="valid-date">有效期至: {{item.validUntil}}</text>
+            <text wx:if="{{item.validUntil}}" class="valid">至 {{item.validUntil}}</text>
             <text wx:if="{{item.cost}}" class="cost">¥{{item.cost}}</text>
           </view>
         </view>
       </view>
+    </view>
 
-      <view class="empty-state" wx:if="{{records.length === 0}}">
-        <text>暂无健康记录</text>
-      </view>
+    <view class="empty" wx:else>
+      <text class="empty-title">还没有健康记录</text>
+      <text class="empty-desc">记下疫苗、驱虫，到期会自动提醒</text>
+      <button class="empty-btn" bindtap="onAddRecord">添加第一条</button>
     </view>
   </view>
 
-  <!-- 添加记录表单 -->
-  <view wx:if="{{mode === 'add'}}">
-    <view class="card">
-      <view class="section-title">添加健康记录</view>
-      
-      <form bindsubmit="onSubmitRecord">
-        <view class="form-item">
-          <text class="label">记录类型</text>
-          <picker name="recordType" range="{{recordTypeOptions}}">
-            <view class="picker">
-              <text class="placeholder">请选择记录类型</text>
+  <!-- 表单 -->
+  <view wx:if="{{mode === 'add'}}" class="form-wrap">
+    <view class="panel">
+      <text class="panel-title">添加健康记录</text>
+      <text class="panel-hint">带 * 为必填 · 填写有效期可生成到期提醒</text>
+
+      <view class="field">
+        <text class="field-label">记录类型 *</text>
+        <picker range="{{recordTypeOptions}}" value="{{form.recordTypeIndex}}" bindchange="onTypeChange">
+          <view class="field-control">
+            <text class="{{form.recordTypeLabel ? '' : 'ph'}}">{{form.recordTypeLabel || '请选择类型'}}</text>
+            <text class="chev">›</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="field">
+        <text class="field-label">项目名称 *</text>
+        <input
+          class="field-input"
+          placeholder="如：狂犬疫苗、体内驱虫"
+          placeholder-class="ph"
+          value="{{form.itemName}}"
+          data-field="itemName"
+          bindinput="onFieldInput"
+        />
+      </view>
+
+      <view class="field">
+        <text class="field-label">品牌 / 批次</text>
+        <input
+          class="field-input"
+          placeholder="选填"
+          placeholder-class="ph"
+          value="{{form.itemBrand}}"
+          data-field="itemBrand"
+          bindinput="onFieldInput"
+        />
+      </view>
+
+      <view class="field-row">
+        <view class="field half">
+          <text class="field-label">完成日期 *</text>
+          <picker mode="date" value="{{form.doneAt}}" bindchange="onDoneAtChange">
+            <view class="field-control">
+              <text class="{{form.doneAt ? '' : 'ph'}}">{{form.doneAt || '选择日期'}}</text>
+              <text class="chev">›</text>
             </view>
           </picker>
         </view>
-
-        <view class="form-item">
-          <text class="label">项目名称</text>
-          <input name="itemName" placeholder="如：狂犬疫苗" />
-        </view>
-
-        <view class="form-item">
-          <text class="label">品牌/批次</text>
-          <input name="itemBrand" placeholder="请输入品牌（可选）" />
-        </view>
-
-        <view class="form-item">
-          <text class="label">完成日期</text>
-          <picker mode="date" name="doneAt">
-            <view class="picker">
-              <text class="placeholder">请选择完成日期</text>
+        <view class="field half">
+          <text class="field-label">有效期至</text>
+          <picker mode="date" value="{{form.validUntil}}" bindchange="onValidUntilChange">
+            <view class="field-control">
+              <text class="{{form.validUntil ? '' : 'ph'}}">{{form.validUntil || '选填'}}</text>
+              <text class="chev">›</text>
             </view>
           </picker>
         </view>
+      </view>
 
-        <view class="form-item">
-          <text class="label">有效期至</text>
-          <picker mode="date" name="validUntil">
-            <view class="picker">
-              <text class="placeholder">请选择有效期（可选）</text>
-            </view>
-          </picker>
-        </view>
+      <view class="field">
+        <text class="field-label">医院 / 机构</text>
+        <input
+          class="field-input"
+          placeholder="选填"
+          placeholder-class="ph"
+          value="{{form.clinicName}}"
+          data-field="clinicName"
+          bindinput="onFieldInput"
+        />
+      </view>
 
-        <view class="form-item">
-          <text class="label">医院/机构</text>
-          <input name="clinicName" placeholder="请输入医院名称（可选）" />
-        </view>
+      <view class="field">
+        <text class="field-label">费用（元）</text>
+        <input
+          class="field-input"
+          type="digit"
+          placeholder="选填"
+          placeholder-class="ph"
+          value="{{form.cost}}"
+          data-field="cost"
+          bindinput="onFieldInput"
+        />
+      </view>
 
-        <view class="form-item">
-          <text class="label">费用</text>
-          <input name="cost" type="digit" placeholder="请输入费用（可选）" />
-        </view>
+      <view class="field">
+        <text class="field-label">备注</text>
+        <textarea
+          class="field-textarea"
+          placeholder="症状、注意事项等（选填）"
+          placeholder-class="ph"
+          maxlength="200"
+          value="{{form.remark}}"
+          data-field="remark"
+          bindinput="onFieldInput"
+        ></textarea>
+      </view>
+    </view>
 
-        <view class="form-item">
-          <text class="label">备注</text>
-          <textarea name="remark" placeholder="请输入备注（可选）" />
-        </view>
-
-        <view class="form-actions">
-          <button class="btn-secondary" bindtap="onCancel">取消</button>
-          <button class="btn-primary" formType="submit">保存</button>
-        </view>
-      </form>
+    <view class="action-bar">
+      <button class="btn ghost" bindtap="onCancel">取消</button>
+      <button class="btn solid" bindtap="onSave">保存记录</button>
     </view>
   </view>
 </view>

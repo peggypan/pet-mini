@@ -9,6 +9,12 @@
     </view>
   </view>
 
+  <!-- 活体禁令提示 -->
+  <view class="ban-tip">
+    <text class="ban-tip-title">严禁售卖活体宠物</text>
+    <text class="ban-tip-desc">仅支持宠物粮、笼具、玩具、洗护等用品；违规将下架并封号。建议走平台担保交易。</text>
+  </view>
+
   <!-- 筛选 Tab -->
   <view class="filter-row">
     <view

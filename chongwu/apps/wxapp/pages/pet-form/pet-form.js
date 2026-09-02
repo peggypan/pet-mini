@@ -1,4 +1,6 @@
 const api = require('../../utils/request');
+const store = require('../../utils/store');
+const { getDefaultPets } = require('../../utils/catalog');
 
 Page({
   data: {
@@ -14,6 +16,7 @@ Page({
     isSterilized: false,
     microchip: '',
     remark: '',
+    submitting: false,
   },
 
   onLoad(options) {
@@ -24,24 +27,32 @@ Page({
   },
 
   async loadPetDetail(id) {
+    const local = store.getPet(id) || getDefaultPets().find((p) => String(p.id) === String(id));
     try {
       const res = await api.get(`/health/pets/${id}`);
-      const pet = res.data;
-      this.setData({
-        name: pet.name,
-        species: pet.species,
-        breedName: pet.breedName || '',
-        gender: pet.gender || 0,
-        birthday: pet.birthday || '',
-        weight: pet.weight || '',
-        color: pet.color || '',
-        isSterilized: pet.isSterilized,
-        microchip: pet.microchip || '',
-        remark: pet.remark || '',
-      });
+      if (res.data) {
+        this.applyPet(res.data);
+        return;
+      }
     } catch (e) {
-      console.error(e);
+      // local
     }
+    if (local) this.applyPet(local);
+  },
+
+  applyPet(pet) {
+    this.setData({
+      name: pet.name,
+      species: pet.species,
+      breedName: pet.breedName || '',
+      gender: pet.gender || 0,
+      birthday: pet.birthday || '',
+      weight: pet.weight || '',
+      color: pet.color || '',
+      isSterilized: !!pet.isSterilized,
+      microchip: pet.microchip || '',
+      remark: pet.remark || '',
+    });
   },
 
   onInputChange(e) {
@@ -62,35 +73,46 @@ Page({
   },
 
   async onSubmit() {
-    const { name, species, breedName, gender, birthday, weight, color, isSterilized, microchip, remark } = this.data;
-    
+    const {
+      name, species, breedName, gender, birthday, weight, color,
+      isSterilized, microchip, remark, mode, petId, submitting,
+    } = this.data;
+
+    if (submitting) return;
     if (!name) {
       wx.showToast({ title: '请输入宠物名字', icon: 'none' });
       return;
     }
 
+    this.setData({ submitting: true });
+    const payload = {
+      name,
+      species,
+      breedName,
+      gender,
+      birthday,
+      weight: weight ? Number(weight) : undefined,
+      color,
+      isSterilized,
+      microchip,
+      remark,
+    };
+
     try {
-      if (this.data.mode === 'add') {
-        await api.post('/health/pets', {
-          name,
-          species,
-          breedName,
-          gender,
-          birthday,
-          weight: weight ? Number(weight) : undefined,
-          color,
-          isSterilized,
-          microchip,
-          remark,
-        });
-        wx.showToast({ title: '添加成功', icon: 'success' });
+      if (mode === 'add') {
+        await api.post('/health/pets', payload);
       }
-      
-      setTimeout(() => {
-        wx.navigateBack();
-      }, 1500);
     } catch (e) {
-      wx.showToast({ title: '保存失败', icon: 'none' });
+      // local
     }
+
+    if (mode === 'add') {
+      store.addPet(payload);
+    } else if (petId) {
+      store.updatePet(petId, payload);
+    }
+
+    wx.showToast({ title: mode === 'add' ? '添加成功' : '保存成功', icon: 'success' });
+    setTimeout(() => wx.navigateBack(), 800);
   },
 });

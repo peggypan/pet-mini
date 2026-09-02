@@ -61,6 +61,7 @@ Page({
         merchantRating: item.merchant?.rating || 5,
         subtitle: item.subtitle || item.name || '专业宠物服务，品质保障',
         coverUrls: item.coverUrls?.length ? item.coverUrls : [MOCK_PROVIDERS[0].coverUrls[0]],
+        guarantees: item.guarantees || ['实名认证', '意外险', '全程拍照'],
       }));
 
       if (list.length) {
@@ -102,24 +103,24 @@ Page({
 
   onServiceTap(e) {
     const { id } = e.currentTarget.dataset;
-    if (String(id).indexOf('mock-') === 0) {
-      wx.showToast({ title: '示例服务商', icon: 'none' });
-      return;
-    }
     wx.navigateTo({ url: `/pages/service-detail/service-detail?id=${id}` });
   },
 
   onQuickBook() {
     const first = this.data.services[0];
-    if (first && String(first.id).indexOf('mock-') !== 0) {
+    if (first) {
       wx.navigateTo({ url: `/pages/service-detail/service-detail?id=${first.id}` });
     } else {
-      wx.showToast({ title: '示例预约入口', icon: 'none' });
+      wx.showToast({ title: '暂无可预约服务', icon: 'none' });
     }
   },
 
   onMapView() {
     wx.showToast({ title: '地图模式开发中', icon: 'none' });
+  },
+
+  onDemandTap() {
+    wx.showToast({ title: '需求单发布即将开放', icon: 'none' });
   },
 
   onReachBottom() {

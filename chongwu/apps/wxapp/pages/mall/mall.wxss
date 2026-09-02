@@ -1,0 +1,263 @@
+page {
+  background: #EEF4FA;
+  min-height: 100vh;
+}
+
+.page {
+  padding: 20rpx 28rpx calc(40rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+/* 宠物商城 */
+.mall-block {
+  margin-bottom: 0;
+  padding: 24rpx;
+  background: rgba(255, 255, 255, 0.72);
+  border-radius: 28rpx;
+  box-shadow: 0 8rpx 24rpx rgba(42, 42, 42, 0.04);
+}
+
+.mall-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.mall-title-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.mall-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #2A2A2A;
+  margin-bottom: 6rpx;
+}
+
+.mall-sub {
+  display: block;
+  font-size: 22rpx;
+  color: #8A8A8A;
+}
+
+.mall-more {
+  font-size: 24rpx;
+  color: #4DB87A;
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-left: 16rpx;
+}
+
+.mall-preview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx;
+  margin-bottom: 8rpx;
+}
+
+.mall-entry-footer {
+  margin-top: 12rpx;
+  padding: 20rpx 0 4rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: #4DB87A;
+  font-weight: 600;
+  border-top: 1rpx solid #EAF1F6;
+}
+
+.mall-service-row {
+  margin-bottom: 20rpx;
+}
+
+.mall-service-card {
+  display: flex;
+  align-items: center;
+  padding: 18rpx;
+  margin-bottom: 12rpx;
+  border-radius: 18rpx;
+  background: linear-gradient(135deg, rgba(111, 207, 151, 0.14), #F7FAF8);
+  border: 1rpx solid rgba(111, 207, 151, 0.2);
+}
+
+.mall-service-icon {
+  font-size: 40rpx;
+  margin-right: 14rpx;
+}
+
+.mall-service-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.mall-service-name-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4rpx;
+}
+
+.mall-service-name {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #2A2A2A;
+  margin-right: 10rpx;
+}
+
+.mall-service-tag {
+  font-size: 18rpx;
+  color: #fff;
+  background: #6FCF97;
+  padding: 2rpx 10rpx;
+  border-radius: 8rpx;
+}
+
+.mall-service-tip {
+  display: block;
+  font-size: 20rpx;
+  color: #7A7A7A;
+  margin-bottom: 4rpx;
+}
+
+.mall-service-price {
+  display: block;
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #4DB87A;
+}
+
+.mall-section-label {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #2A2A2A;
+  margin-bottom: 14rpx;
+}
+
+.mall-cats {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.mall-cat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12rpx 0;
+  border-radius: 18rpx;
+}
+
+.mall-cat.on {
+  background: rgba(111, 207, 151, 0.16);
+}
+
+.mall-cat-icon {
+  font-size: 32rpx;
+  margin-bottom: 6rpx;
+}
+
+.mall-cat-name {
+  font-size: 22rpx;
+  color: #666;
+  font-weight: 500;
+}
+
+.mall-cat.on .mall-cat-name {
+  color: #2A2A2A;
+  font-weight: 700;
+}
+
+.mall-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.mall-card {
+  width: 48%;
+  margin-bottom: 16rpx;
+  background: #F7FAF8;
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.mall-cover-wrap {
+  position: relative;
+  width: 100%;
+  height: 200rpx;
+  background: #E2EBF4;
+}
+
+.mall-cover {
+  width: 100%;
+  height: 100%;
+}
+
+.mall-tag {
+  position: absolute;
+  left: 12rpx;
+  top: 12rpx;
+  font-size: 18rpx;
+  color: #fff;
+  background: rgba(77, 184, 122, 0.92);
+  padding: 4rpx 12rpx;
+  border-radius: 10rpx;
+}
+
+.mall-name {
+  display: block;
+  padding: 14rpx 14rpx 6rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #2A2A2A;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mall-price-row {
+  display: flex;
+  align-items: baseline;
+  padding: 0 14rpx;
+}
+
+.mall-price {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #4DB87A;
+  margin-right: 8rpx;
+}
+
+.mall-origin {
+  font-size: 20rpx;
+  color: #B0B0B0;
+  text-decoration: line-through;
+}
+
+.mall-sales {
+  display: block;
+  padding: 4rpx 14rpx 14rpx;
+  font-size: 20rpx;
+  color: #9A9A9A;
+}
+
+.mall-tip {
+  margin-bottom: 20rpx;
+  padding: 18rpx 22rpx;
+  border-radius: 18rpx;
+  background: rgba(111, 207, 151, 0.12);
+  border: 1rpx solid rgba(111, 207, 151, 0.22);
+  font-size: 22rpx;
+  color: #5A7A68;
+  line-height: 1.45;
+}
+
+.mall-empty {
+  padding: 48rpx 0;
+  text-align: center;
+  font-size: 24rpx;
+  color: #9A9A9A;
+}

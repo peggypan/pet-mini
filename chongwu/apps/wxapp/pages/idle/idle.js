@@ -1,5 +1,7 @@
 const api = require('../../utils/request');
 const { MOCK_IDLE_ITEMS, MOCK_HELP_CARDS } = require('../../utils/mock');
+const store = require('../../utils/store');
+const { enrichIdle } = require('../../utils/catalog');
 
 const CONDITION_MAP = ['全新', '九成新', '轻微使用', '明显使用'];
 const ICON_POOL = ['👕', '☕', '📦', '🦴', '🎾', '🧴', '🏠', '💊'];
@@ -13,7 +15,7 @@ Page({
     ],
     currentMode: 'gift',
     currentCategory: null,
-    items: MOCK_IDLE_ITEMS.slice(),
+    items: [],
     isMock: true,
     page: 1,
     pageSize: 20,
@@ -27,6 +29,7 @@ Page({
   },
 
   onShow() {
+    this.loadItems(true);
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 2 });
     }
@@ -38,10 +41,18 @@ Page({
     });
   },
 
-  /**
-   * 加载闲置列表；无数据时使用 Mock
-   * @param {boolean} reset
-   */
+  buildMockList() {
+    const local = store.listLocalIdleItems().map((x) => enrichIdle(x));
+    const mockItems = MOCK_IDLE_ITEMS.map((item) => {
+      let conditionText = item.conditionText;
+      if (this.data.currentMode === 'gift') conditionText = item.price === 0 ? '免费赠送' : '九成新';
+      if (this.data.currentMode === 'swap') conditionText = '可交换';
+      if (this.data.currentMode === 'sell') conditionText = item.conditionText;
+      return enrichIdle({ ...item, conditionText });
+    });
+    return [...local, ...mockItems];
+  },
+
   async loadItems(reset = false) {
     if (this.data.loading) return;
     if (!reset && !this.data.hasMore && !this.data.isMock) return;
@@ -68,31 +79,25 @@ Page({
           conditionText = '可交换';
         }
 
-        return {
+        return enrichIdle({
           ...item,
           conditionText,
           displayIcon: ICON_POOL[(item.id || index) % ICON_POOL.length],
-        };
+        });
       });
 
       if (list.length) {
+        const local = store.listLocalIdleItems().map((x) => enrichIdle(x));
+        const merged = this.data.page === 1 ? [...local, ...list] : [...this.data.items, ...list];
         this.setData({
-          items: this.data.page === 1 ? list : [...this.data.items, ...list],
+          items: merged,
           hasMore: list.length === this.data.pageSize,
           page: this.data.page + 1,
           isMock: false,
         });
       } else if (this.data.page === 1) {
-        // 按筛选模式微调 Mock 文案
-        const mockItems = MOCK_IDLE_ITEMS.map((item) => {
-          let conditionText = item.conditionText;
-          if (this.data.currentMode === 'gift') conditionText = item.price === 0 ? '免费赠送' : '九成新';
-          if (this.data.currentMode === 'swap') conditionText = '可交换';
-          if (this.data.currentMode === 'sell') conditionText = item.conditionText;
-          return { ...item, conditionText };
-        });
         this.setData({
-          items: mockItems,
+          items: this.buildMockList(),
           hasMore: false,
           isMock: true,
         });
@@ -100,10 +105,9 @@ Page({
         this.setData({ hasMore: false });
       }
     } catch (e) {
-      console.error(e);
       if (this.data.page === 1) {
         this.setData({
-          items: MOCK_IDLE_ITEMS.slice(),
+          items: this.buildMockList(),
           hasMore: false,
           isMock: true,
         });
@@ -121,10 +125,6 @@ Page({
 
   onItemTap(e) {
     const { id } = e.currentTarget.dataset;
-    if (String(id).indexOf('mock-') === 0) {
-      wx.showToast({ title: '示例闲置好物', icon: 'none' });
-      return;
-    }
     wx.navigateTo({ url: `/pages/idle-detail/idle-detail?id=${id}` });
   },
 

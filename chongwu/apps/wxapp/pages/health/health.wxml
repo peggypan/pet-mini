@@ -1,85 +1,133 @@
-<view class="container">
-  <!-- 顶部欢迎语 -->
-  <view class="page-header">
-    <text class="page-icon">💗</text>
-    <view class="header-content">
-      <text class="page-title">健康档案</text>
-      <text class="page-subtitle">记录毛孩子的每一次成长</text>
+<view class="page">
+  <!-- 品牌头：与全局薄荷绿统一 -->
+  <view class="hero">
+    <view class="hero-orb hero-orb-a"></view>
+    <view class="hero-orb hero-orb-b"></view>
+    <view class="hero-inner">
+      <view class="hero-mark">
+        <text class="hero-mark-icon">宠</text>
+      </view>
+      <view class="hero-text">
+        <text class="hero-title">宠物健康本</text>
+        <text class="hero-sub">疫苗 · 驱虫 · 饮食档案</text>
+      </view>
     </view>
   </view>
 
-  <!-- Tab切换 -->
-  <view class="tabs">
-    <view class="tab {{activeTab === 'pets' ? 'active' : ''}}" bindtap="onTabTap" data-tab="pets">
-      <text class="tab-icon">🐾</text>
-      <text class="tab-text">我的宠物</text>
+  <!-- 分段 Tab -->
+  <view class="seg">
+    <view
+      class="seg-item {{activeTab === 'pets' ? 'on' : ''}}"
+      bindtap="onTabTap"
+      data-tab="pets"
+    >
+      <text>我的宠物</text>
     </view>
-    <view class="tab {{activeTab === 'reminders' ? 'active' : ''}}" bindtap="onTabTap" data-tab="reminders">
-      <text class="tab-icon">🔔</text>
-      <view class="tab-content">
-        <text class="tab-text">到期提醒</text>
-        <text class="badge" wx:if="{{reminders.length > 0}}">{{reminders.length}}</text>
+    <view
+      class="seg-item {{activeTab === 'reminders' ? 'on' : ''}}"
+      bindtap="onTabTap"
+      data-tab="reminders"
+    >
+      <text>到期提醒</text>
+      <text class="seg-badge" wx:if="{{reminders.length > 0}}">{{reminders.length}}</text>
+    </view>
+  </view>
+
+  <!-- 快捷入口 -->
+  <view class="quick-row" wx:if="{{activeTab === 'pets'}}">
+    <view class="quick-card" bindtap="onDietRecordTap">
+      <view class="quick-icon diet">记</view>
+      <view class="quick-body">
+        <text class="quick-title">饮食异常记录</text>
+        <text class="quick-desc">呕吐 · 软便 · 食欲</text>
       </view>
+      <text class="quick-arrow">›</text>
     </view>
   </view>
 
   <!-- 宠物列表 -->
   <view wx:if="{{activeTab === 'pets'}}">
     <view class="pet-list" wx:if="{{pets.length > 0}}">
-      <view class="pet-card" wx:for="{{pets}}" wx:key="id" bindtap="onPetTap" data-id="{{item.id}}">
-        <image src="{{item.avatarUrl || '/assets/default-pet.png'}}" class="pet-avatar"></image>
-        <view class="pet-info">
-          <text class="pet-name">{{item.name}}</text>
-          <view class="pet-tags">
-            <text class="tag">{{item.species === 1 ? '🐱 猫咪' : '🐶 狗狗'}}</text>
-            <text class="tag" wx:if="{{item.gender === 1}}">♂ 男生</text>
-            <text class="tag" wx:if="{{item.gender === 2}}">♀ 女生</text>
-            <text class="tag" wx:if="{{item.isSterilized}}">💕 已绝育</text>
+      <view
+        class="pet-card"
+        wx:for="{{pets}}"
+        wx:key="id"
+        bindtap="onPetTap"
+        data-id="{{item.id}}"
+      >
+        <image
+          class="pet-avatar"
+          src="{{item.avatarUrl || '/assets/mock/real_avatar.jpg'}}"
+          mode="aspectFill"
+        ></image>
+        <view class="pet-main">
+          <view class="pet-top">
+            <text class="pet-name">{{item.name}}</text>
+            <text class="pet-species">{{item.species === 1 ? '猫' : '狗'}}</text>
           </view>
-          <text class="pet-birthday" wx:if="{{item.birthday}}">🎂 生日: {{item.birthday}}</text>
+          <view class="pet-tags">
+            <text class="chip" wx:if="{{item.gender === 1}}">男生</text>
+            <text class="chip" wx:if="{{item.gender === 2}}">女生</text>
+            <text class="chip soft" wx:if="{{item.isSterilized}}">已绝育</text>
+            <text class="chip mute" wx:if="{{item.birthday}}">{{item.birthday}}</text>
+          </view>
         </view>
-        <view class="pet-actions">
-          <button class="btn-small" bindtap="onAddRecord" data-pet-id="{{item.id}}">+记录</button>
-        </view>
+        <button class="pet-btn" catchtap="onAddRecord" data-pet-id="{{item.id}}">记录</button>
       </view>
     </view>
 
-    <view class="empty-state" wx:if="{{pets.length === 0}}">
-      <text class="empty-icon">🐕</text>
-      <text class="empty-text">还没有添加宠物</text>
-      <text class="empty-tip">点击下方按钮添加你的第一只毛孩子</text>
-      <text class="empty-hint">记录从遇见它的第一天开始~</text>
+    <view class="empty" wx:if="{{pets.length === 0}}">
+      <view class="empty-ring">+</view>
+      <text class="empty-title">还没有宠物档案</text>
+      <text class="empty-desc">添加后可记录疫苗、驱虫与饮食异常</text>
+      <button class="empty-btn" bindtap="onAddPet">添加宠物</button>
     </view>
   </view>
 
   <!-- 提醒列表 -->
   <view wx:if="{{activeTab === 'reminders'}}">
+    <view class="notify-bar">
+      <view class="notify-text">
+        <text class="notify-title">到期提醒</text>
+        <text class="notify-desc">{{notifyEnabled ? '已开启本地提醒（演示）' : '疫苗 / 驱虫到期前通知你'}}</text>
+      </view>
+      <view class="notify-switch {{notifyEnabled ? 'on' : ''}}" bindtap="onEnableNotify">
+        <view class="notify-knob"></view>
+      </view>
+    </view>
+
     <view class="reminder-list" wx:if="{{reminders.length > 0}}">
-      <view class="reminder-card" wx:for="{{reminders}}" wx:key="id">
-        <view class="reminder-header">
-          <image src="{{item.pet.avatarUrl || '/assets/default-pet.png'}}" class="reminder-pet-avatar"></image>
-          <view class="reminder-info">
-            <text class="pet-name">{{item.pet.name}}</text>
-            <text class="item-name">{{item.itemName}} 即将到期</text>
-          </view>
+      <view
+        class="reminder-card {{item.urgent ? 'urgent' : ''}}"
+        wx:for="{{reminders}}"
+        wx:key="id"
+        bindtap="onReminderTap"
+        data-id="{{item.id}}"
+      >
+        <image
+          class="reminder-avatar"
+          src="{{item.pet.avatarUrl || '/assets/mock/real_avatar.jpg'}}"
+          mode="aspectFill"
+        ></image>
+        <view class="reminder-main">
+          <text class="reminder-pet">{{item.pet.name}}</text>
+          <text class="reminder-item">{{item.itemName}}</text>
+          <text class="reminder-date">有效期至 {{item.validUntil}}</text>
         </view>
-        <view class="reminder-footer">
-          <text class="expire-date">📅 {{item.validUntil}}</text>
-          <text class="days-left">还有 {{item.daysLeft}} 天</text>
+        <view class="reminder-side">
+          <text class="days {{item.urgent ? 'warn' : ''}}">{{item.daysLeft}}天</text>
+          <text class="days-label">剩余</text>
         </view>
       </view>
     </view>
 
-    <view class="empty-state" wx:if="{{reminders.length === 0}}">
-      <text class="empty-icon">✨</text>
-      <text class="empty-text">暂无到期提醒</text>
-      <text class="empty-tip">疫苗、驱虫到期时会在这里提醒你</text>
-      <text class="empty-hint">细心呵护，健康相伴~</text>
+    <view class="empty" wx:if="{{reminders.length === 0}}">
+      <text class="empty-title">暂无到期提醒</text>
+      <text class="empty-desc">添加带有效期的健康记录后会出现在这里</text>
     </view>
   </view>
 
-  <!-- 添加宠物按钮 -->
   <view class="fab" bindtap="onAddPet" wx:if="{{activeTab === 'pets'}}">
-    <text class="fab-icon">➕</text>
+    <text class="fab-plus">+</text>
   </view>
 </view>

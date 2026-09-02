@@ -48,7 +48,7 @@
     "disableSWC": true
   },
   "compileType": "miniprogram",
-  "libVersion": "2.30.0",
+  "libVersion": "3.5.5",
   "appid": "wxc785d4dce1a9df5c",
   "projectname": "petchongwu",
   "isGameTourist": false,

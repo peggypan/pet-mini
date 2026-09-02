@@ -198,7 +198,9 @@ page {
 }
 
 .login-tip {
-  margin: 56rpx 28rpx 12rpx;
+  position: relative;
+  z-index: 10;
+  margin: 72rpx 28rpx 12rpx;
   padding: 20rpx 28rpx;
   background: rgba(111, 207, 151, 0.14);
   border-radius: 20rpx;
@@ -206,6 +208,19 @@ page {
   font-size: 26rpx;
   color: #4DB87A;
   font-weight: 500;
+  line-height: 1.4;
+  border: none;
+  box-sizing: border-box;
+  width: auto;
+  display: block;
+}
+
+.login-tip::after {
+  border: none;
+}
+
+.login-tip-hover {
+  opacity: 0.85;
 }
 
 /* 统计条 */

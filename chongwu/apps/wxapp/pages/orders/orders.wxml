@@ -1,11 +1,13 @@
 <view class="container">
-  <!-- Tab切换 -->
   <view class="tabs">
     <view class="tab {{activeTab === 'service' ? 'active' : ''}}" bindtap="onTabTap" data-tab="service">
-      服务订单
+      服务
     </view>
     <view class="tab {{activeTab === 'idle' ? 'active' : ''}}" bindtap="onTabTap" data-tab="idle">
-      闲置订单
+      闲置
+    </view>
+    <view class="tab {{activeTab === 'mall' ? 'active' : ''}}" bindtap="onTabTap" data-tab="mall">
+      商城
     </view>
   </view>
 
@@ -15,18 +17,17 @@
       <view class="order-card" wx:for="{{serviceOrders}}" wx:key="id">
         <view class="order-header">
           <text class="order-no">{{item.orderNo}}</text>
-          <text class="order-status">{{getStatusText(item.status)}}</text>
+          <text class="order-status">{{item.statusText}}</text>
         </view>
-        
         <view class="order-body">
-          <image src="{{item.service.coverUrls[0] || '/assets/default-service.png'}}" class="order-image"></image>
+          <image src="{{item.cover}}" class="order-image" mode="aspectFill"></image>
           <view class="order-info">
             <text class="order-title">{{item.serviceName}}</text>
-            <text class="order-merchant">{{item.merchant.name || '商家'}}</text>
-            <text class="order-time" wx:if="{{item.appointmentDate}}">预约: {{item.appointmentDate}}</text>
+            <text class="order-merchant">{{item.merchantName}}</text>
+            <text class="order-time" wx:if="{{item.appointmentText}}">预约: {{item.appointmentText}}</text>
+            <text class="order-address" wx:if="{{item.addressText}}">地址: {{item.addressText}}</text>
           </view>
         </view>
-        
         <view class="order-footer">
           <text class="order-price">¥{{item.payAmount}}</text>
         </view>
@@ -41,46 +42,44 @@
 
   <!-- 闲置订单 -->
   <view wx:if="{{activeTab === 'idle'}}">
-    <!-- 我购买的 -->
     <view class="section-title">我购买的</view>
     <view class="order-list">
       <view class="order-card" wx:for="{{idleOrders.buyOrders}}" wx:key="id">
         <view class="order-header">
           <text class="order-no">{{item.orderNo}}</text>
-          <text class="order-status">{{getIdleStatusText(item.status)}}</text>
+          <text class="order-status">{{item.statusText}}</text>
         </view>
-        
         <view class="order-body">
-          <image src="{{item.idleItem.images[0] || '/assets/default-idle.png'}}" class="order-image"></image>
+          <view class="order-image order-icon" wx:if="{{!item.cover}}">{{item.icon}}</view>
+          <image src="{{item.cover}}" class="order-image" mode="aspectFill" wx:else></image>
           <view class="order-info">
             <text class="order-title">{{item.itemTitle}}</text>
-            <text class="order-seller">卖家: {{item.seller.nickname || '卖家'}}</text>
+            <text class="order-seller">卖家: {{item.peerName}}</text>
+            <text class="order-address" wx:if="{{item.address}}">地址: {{item.address}}</text>
           </view>
         </view>
-        
         <view class="order-footer">
           <text class="order-price">¥{{item.payAmount}}</text>
         </view>
       </view>
     </view>
 
-    <!-- 我出售的 -->
     <view class="section-title">我出售的</view>
     <view class="order-list">
       <view class="order-card" wx:for="{{idleOrders.sellOrders}}" wx:key="id">
         <view class="order-header">
           <text class="order-no">{{item.orderNo}}</text>
-          <text class="order-status">{{getIdleStatusText(item.status)}}</text>
+          <text class="order-status">{{item.statusText}}</text>
         </view>
-        
         <view class="order-body">
-          <image src="{{item.idleItem.images[0] || '/assets/default-idle.png'}}" class="order-image"></image>
+          <view class="order-image order-icon" wx:if="{{!item.cover}}">{{item.icon || '📦'}}</view>
+          <image src="{{item.cover}}" class="order-image" mode="aspectFill" wx:else></image>
           <view class="order-info">
             <text class="order-title">{{item.itemTitle}}</text>
-            <text class="order-buyer">买家: {{item.buyer.nickname || '买家'}}</text>
+            <text class="order-buyer">买家: {{item.peerName}}</text>
+            <text class="order-address" wx:if="{{item.address}}">地址: {{item.address}}</text>
           </view>
         </view>
-        
         <view class="order-footer">
           <text class="order-price">¥{{item.payAmount}}</text>
         </view>
@@ -90,6 +89,37 @@
     <view class="empty-state" wx:if="{{idleOrders.buyOrders.length === 0 && idleOrders.sellOrders.length === 0}}">
       <text>暂无闲置订单</text>
       <button class="btn-primary" bindtap="goIdle">去逛逛</button>
+    </view>
+  </view>
+
+  <!-- 商城订单 -->
+  <view wx:if="{{activeTab === 'mall'}}">
+    <view class="order-list">
+      <view class="order-card" wx:for="{{mallOrders}}" wx:key="id">
+        <view class="order-header">
+          <text class="order-no">{{item.orderNo}}</text>
+          <text class="order-status">{{item.statusText}}</text>
+        </view>
+        <view class="order-body">
+          <image src="{{item.cover || '/assets/mock/real_svc1.jpg'}}" class="order-image" mode="aspectFill"></image>
+          <view class="order-info">
+            <text class="order-title">{{item.productName}}</text>
+            <text class="order-merchant">{{item.kind === 'service' ? '专业服务' : '商城商品'}}</text>
+            <text class="order-address" wx:if="{{item.contactName || item.contactPhone}}">
+              收货: {{item.contactName || '-'}} {{item.contactPhone || ''}}
+            </text>
+            <text class="order-address" wx:if="{{item.address}}">地址: {{item.address}}</text>
+          </view>
+        </view>
+        <view class="order-footer">
+          <text class="order-price">¥{{item.payAmount}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="empty-state" wx:if="{{mallOrders.length === 0}}">
+      <text>暂无商城订单</text>
+      <button class="btn-primary" bindtap="goMall">去商城</button>
     </view>
   </view>
 </view>

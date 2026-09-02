@@ -1,0 +1,59 @@
+<!-- 商城商品下单 -->
+<view class="page" wx:if="{{product}}">
+  <image class="cover" src="{{product.cover}}" mode="aspectFill"></image>
+  <view class="card">
+    <view class="tag-row">
+      <text class="tag" wx:if="{{product.tag}}">{{product.tag}}</text>
+      <text class="sales">{{product.sales}}</text>
+    </view>
+    <text class="name">{{product.name}}</text>
+    <view class="price-row">
+      <text class="price">¥{{product.price}}</text>
+      <text class="origin" wx:if="{{product.origin}}">¥{{product.origin}}</text>
+    </view>
+    <text class="desc">常规用品 · 演示下单将写入本地订单，后端就绪后可切换真实支付。</text>
+  </view>
+
+  <!-- 收货地址卡片 -->
+  <view class="card address-card" bindtap="onSelectAddress">
+    <view class="address-header" wx:if="{{selectedAddress}}">
+      <view class="address-info">
+        <view class="contact-row">
+          <text class="contact-name">{{selectedAddress.contactName}}</text>
+          <text class="contact-phone">{{selectedAddress.contactPhone}}</text>
+          <text class="default-tag" wx:if="{{selectedAddress.isDefault}}">默认</text>
+        </view>
+        <text class="address-text">{{selectedAddress.address}}</text>
+      </view>
+      <text class="arrow">›</text>
+    </view>
+    <view class="address-empty" wx:else>
+      <text class="empty-icon">📍</text>
+      <text class="empty-text">选择收货地址</text>
+      <text class="empty-tip">或填写新地址</text>
+    </view>
+  </view>
+
+  <!-- 备注信息 -->
+  <view class="card" wx:if="{{selectedAddress}}">
+    <text class="label">订单备注（可选）</text>
+    <input class="input" placeholder="例如：放门口、工作日送达等" value="{{remark}}" data-field="remark" bindinput="onInput" />
+  </view>
+
+  <!-- 手动填写地址（当没有选择地址时显示） -->
+  <view class="card" wx:if="{{!selectedAddress}}">
+    <text class="label">收货人</text>
+    <input class="input" placeholder="请输入收货人姓名" value="{{contactName}}" data-field="contactName" bindinput="onInput" />
+    <text class="label">联系电话</text>
+    <input class="input" placeholder="请输入手机号" type="number" value="{{contactPhone}}" data-field="contactPhone" bindinput="onInput" />
+    <text class="label">收货地址</text>
+    <input class="input" placeholder="请输入详细地址" value="{{address}}" data-field="address" bindinput="onInput" />
+    <text class="label">备注（可选）</text>
+    <input class="input" placeholder="例如：放门口/工作日送达" value="{{remark}}" data-field="remark" bindinput="onInput" />
+  </view>
+
+  <view class="bottom">
+    <view class="total">合计 ¥{{product.price}}</view>
+    <button class="buy" bindtap="onBuy">立即购买</button>
+  </view>
+</view>

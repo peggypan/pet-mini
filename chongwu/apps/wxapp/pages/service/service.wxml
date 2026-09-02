@@ -28,9 +28,14 @@
         <text class="book-icon">🐾</text>
       </view>
       <view class="book-info">
-        <text class="book-title">一键快速预约</text>
-        <text class="book-desc">精选同城服务 · 专业宠物护理</text>
+        <text class="book-title">宠友服务 · 快速预约</text>
+        <text class="book-desc">上门喂养 · 美容 · 寄养 · 洗护</text>
       </view>
+    </view>
+    <view class="guarantee-row">
+      <text class="guarantee-tag">实名认证</text>
+      <text class="guarantee-tag">意外险</text>
+      <text class="guarantee-tag">全程拍照</text>
     </view>
     <button class="book-now-btn" bindtap="onQuickBook">立即预约</button>
     <view class="book-dots">
@@ -38,6 +43,13 @@
       <view class="dot"></view>
       <view class="dot"></view>
     </view>
+  </view>
+
+  <!-- 需求单入口 -->
+  <view class="demand-bar" bindtap="onDemandTap">
+    <text class="demand-title">发布需求单</text>
+    <text class="demand-desc">写下喂养/寄养需求，等待服务商接单</text>
+    <text class="demand-go">去发布 ›</text>
   </view>
 
   <!-- 服务商列表 -->
@@ -60,6 +72,9 @@
           <text class="star" wx:for="{{[1,2,3,4,5]}}" wx:for-item="s" wx:key="*this">★</text>
         </view>
         <text class="provider-desc">{{item.subtitle || item.name || '专业宠物服务，品质保障'}}</text>
+        <view class="provider-guarantees" wx:if="{{item.guarantees && item.guarantees.length}}">
+          <text class="provider-g-tag" wx:for="{{item.guarantees}}" wx:for-item="g" wx:key="*this">{{g}}</text>
+        </view>
       </view>
       <view class="provider-arrow">›</view>
     </view>

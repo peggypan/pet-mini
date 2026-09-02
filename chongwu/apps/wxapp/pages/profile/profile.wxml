@@ -33,10 +33,15 @@
     </view>
   </view>
 
-  <!-- 未登录提示 -->
-  <view class="login-tip" wx:if="{{!isLogin}}" bindtap="onLogin">
-    <text>点击登录，同步宠物档案 ›</text>
-  </view>
+  <!-- 未登录：必须用 button + getPhoneNumber，才会弹出微信底部手机号授权窗 -->
+  <button
+    class="login-tip"
+    wx:if="{{!isLogin}}"
+    open-type="getPhoneNumber|agreePrivacyAuthorization"
+    bindgetphonenumber="onGetPhoneNumber"
+    bindagreeprivacyauthorization="onAgreePrivacyAuthorization"
+    hover-class="login-tip-hover"
+  >手机号快捷登录，同步宠物档案 ›</button>
 
   <!-- 数据统计 -->
   <view class="stats-bar">

@@ -66,6 +66,8 @@ page::-webkit-scrollbar {
   align-items: center;
   justify-content: center;
   box-shadow: 0 8rpx 24rpx rgba(111, 207, 151, 0.35);
+  line-height: 1;
+  height: auto;
 }
 
 .btn-primary::after {
@@ -85,9 +87,26 @@ page::-webkit-scrollbar {
   padding: 26rpx 52rpx;
   font-size: 30rpx;
   font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  height: auto;
 }
 
 .btn-secondary::after {
+  border: none;
+}
+
+/* Fix button text alignment across all buttons */
+button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+button::after {
   border: none;
 }
 

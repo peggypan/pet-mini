@@ -1,0 +1,72 @@
+<view class="page">
+  <view class="mall-block">
+    <view class="mall-header">
+      <view class="mall-title-wrap">
+        <text class="mall-title">宠物商城</text>
+        <text class="mall-sub">常规用品 · 食品送检 · 营养咨询</text>
+      </view>
+    </view>
+
+    <view class="mall-tip">差异化服务可预约回访；用品支持演示下单，订单在「我的」查看。</view>
+
+    <view class="mall-section-label">专业服务</view>
+    <view class="mall-service-row">
+      <view
+        class="mall-service-card"
+        wx:for="{{mallServices}}"
+        wx:key="id"
+        bindtap="onMallService"
+        data-id="{{item.id}}"
+      >
+        <text class="mall-service-icon">{{item.icon}}</text>
+        <view class="mall-service-info">
+          <view class="mall-service-name-row">
+            <text class="mall-service-name">{{item.name}}</text>
+            <text class="mall-service-tag">{{item.tag}}</text>
+          </view>
+          <text class="mall-service-tip">{{item.tip}}</text>
+          <text class="mall-service-price">¥{{item.price}} 起</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="mall-section-label">常规用品零售</view>
+    <view class="mall-cats">
+      <view
+        class="mall-cat {{mallCategory === item.id ? 'on' : ''}}"
+        wx:for="{{mallCategories}}"
+        wx:key="id"
+        bindtap="onMallCategory"
+        data-id="{{item.id}}"
+      >
+        <text class="mall-cat-icon">{{item.icon}}</text>
+        <text class="mall-cat-name">{{item.name}}</text>
+      </view>
+    </view>
+
+    <view class="mall-grid">
+      <view
+        class="mall-card"
+        wx:for="{{displayProducts}}"
+        wx:key="id"
+        bindtap="onMallProduct"
+        data-id="{{item.id}}"
+      >
+        <view class="mall-cover-wrap">
+          <image class="mall-cover" src="{{item.cover}}" mode="aspectFill"></image>
+          <text class="mall-tag" wx:if="{{item.tag}}">{{item.tag}}</text>
+        </view>
+        <text class="mall-name">{{item.name}}</text>
+        <view class="mall-price-row">
+          <text class="mall-price">¥{{item.price}}</text>
+          <text class="mall-origin" wx:if="{{item.origin}}">¥{{item.origin}}</text>
+        </view>
+        <text class="mall-sales">{{item.sales}}</text>
+      </view>
+    </view>
+
+    <view class="mall-empty" wx:if="{{displayProducts.length === 0}}">
+      <text>该分类暂无商品</text>
+    </view>
+  </view>
+</view>

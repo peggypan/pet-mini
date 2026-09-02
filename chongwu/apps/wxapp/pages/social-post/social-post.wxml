@@ -1,0 +1,47 @@
+<!-- 发帖页：社区最小闭环 -->
+<view class="page">
+  <view class="card">
+    <text class="label">分区</text>
+    <view class="zone-row">
+      <view
+        class="zone {{zone === item.id ? 'on' : ''}}"
+        wx:for="{{zones}}"
+        wx:key="id"
+        bindtap="onZone"
+        data-id="{{item.id}}"
+      >{{item.name}}</view>
+    </view>
+
+    <text class="label">内容</text>
+    <textarea
+      class="textarea"
+      maxlength="300"
+      placeholder="分享养宠日常、约遛、求助…（禁止活体交易与私下诊疗）"
+      value="{{content}}"
+      bindinput="onInput"
+    ></textarea>
+
+    <text class="label">媒体</text>
+    <view class="tool-row">
+      <button class="tool-btn" bindtap="onChooseImage">上传图片</button>
+      <button class="tool-btn" bindtap="onChooseVideo">上传视频</button>
+    </view>
+    <view class="media-grid" wx:if="{{mediaList.length}}">
+      <view class="media-item" wx:for="{{mediaList}}" wx:key="index">
+        <image class="media-thumb" src="{{item.url}}" mode="aspectFill" wx:if="{{item.type === 'image'}}"></image>
+        <view class="video-thumb" wx:if="{{item.type === 'video'}}">
+          <image class="media-thumb" src="{{item.poster || item.url}}" mode="aspectFill"></image>
+          <text class="video-flag">视频</text>
+        </view>
+        <view class="remove-media" data-index="{{index}}" bindtap="onRemoveMedia">×</view>
+      </view>
+    </view>
+
+    <text class="label">表情包</text>
+    <view class="emoji-wrap">
+      <view class="emoji-cell" wx:for="{{emojiPack}}" wx:key="*this" bindtap="onPickEmoji" data-emoji="{{item}}">{{item}}</view>
+    </view>
+
+    <button class="submit" bindtap="onSubmit">发布动态</button>
+  </view>
+</view>

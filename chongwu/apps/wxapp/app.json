@@ -7,12 +7,22 @@
     "pages/health/health",
     "pages/pet-form/pet-form",
     "pages/health-record/health-record",
+    "pages/diet-record/diet-record",
+    "pages/mall-service/mall-service",
+    "pages/mall-product/mall-product",
+    "pages/mall/mall",
+    "pages/social-post/social-post",
+    "pages/social/social",
+    "pages/social-detail/social-detail",
+    "pages/lost-publish/lost-publish",
+    "pages/messages/messages",
     "pages/idle/idle",
     "pages/idle-detail/idle-detail",
     "pages/idle-publish/idle-publish",
     "pages/idle-order/idle-order",
     "pages/profile/profile",
-    "pages/orders/orders"
+    "pages/orders/orders",
+    "pages/address-book/address-book"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -47,5 +57,6 @@
     ]
   },
   "style": "v2",
-  "sitemapLocation": "sitemap.json"
+  "sitemapLocation": "sitemap.json",
+  "__usePrivacyCheck__": true
 }

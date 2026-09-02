@@ -1,6 +1,6 @@
 <view class="container">
   <view class="card">
-    <view class="section-title">{{mode === 'add' ? '添加宠物' : '编辑宠物'}}</view>
+    <view class="section-title">{{mode === 'add' ? '创建宠物交友名片' : '编辑宠物交友名片'}}</view>
     
     <view class="form-item">
       <text class="label">名字 *</text>
@@ -56,8 +56,13 @@
     </view>
 
     <view class="form-item">
-      <text class="label">芯片号</text>
-      <input value="{{microchip}}" bindinput="onInputChange" data-field="microchip" placeholder="请输入芯片号（可选）" />
+      <text class="label">性格描述</text>
+      <input value="{{personality}}" bindinput="onInputChange" data-field="personality" placeholder="如：活泼外向 / 慢热粘人" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">交友标签</text>
+      <input value="{{socialTagsText}}" bindinput="onInputChange" data-field="socialTagsText" placeholder="用顿号分隔，如：爱遛狗、友好、已绝育" />
     </view>
 
     <view class="form-item">

@@ -1,0 +1,44 @@
+<view class="page" wx:if="{{event}}">
+  <image class="cover" src="{{event.cover}}" mode="aspectFill"></image>
+  <view class="card">
+    <text class="tag">{{event.tag}}</text>
+    <text class="title">{{event.title}}</text>
+    <text class="desc">{{event.desc}}</text>
+
+    <view class="info-row">
+      <text class="info-label">时间</text>
+      <text class="info-val">{{event.time}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">地点</text>
+      <text class="info-val">{{event.place}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">费用</text>
+      <text class="info-val">{{event.fee}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">名额</text>
+      <text class="info-val">{{event.seats}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">要求</text>
+      <text class="info-val warn">{{event.require}}</text>
+    </view>
+
+    <view class="host-row">
+      <image class="host-avatar" src="{{event.hostAvatar}}" mode="aspectFill"></image>
+      <view>
+        <text class="host-name">发起人 · {{event.host}}</text>
+        <text class="host-tip">活动主理人 · 可私信咨询</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="bottom">
+    <button class="btn-secondary" bindtap="onChatHost">联系主理人</button>
+    <button class="btn-primary" bindtap="onSignup" disabled="{{signedUp}}">
+      {{signedUp ? '已报名' : '立即报名'}}
+    </button>
+  </view>
+</view>

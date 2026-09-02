@@ -1,5 +1,5 @@
 const store = require('../../utils/store');
-const { MOCK_PET } = require('../../utils/mock');
+const { getDefaultPet } = require('../../utils/catalog');
 
 Page({
   onLoad() {
@@ -276,10 +276,11 @@ Page({
     }
 
     const imageUrls = mediaList.filter((m) => m.type === 'image').map((m) => m.url);
+    const pet = getDefaultPet();
     store.addSocialPost({
       userName: '我',
-      petName: MOCK_PET.name,
-      avatar: MOCK_PET.avatar,
+      petName: pet.name,
+      avatar: pet.avatar,
       zone,
       content: text,
       image: imageUrls[0] || '',

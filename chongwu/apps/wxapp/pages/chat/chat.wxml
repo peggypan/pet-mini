@@ -1,0 +1,41 @@
+<view class="page">
+  <view class="peer-bar" wx:if="{{peer}}">
+    <image class="peer-avatar" src="{{peer.avatar}}" mode="aspectFill"></image>
+    <view class="peer-info">
+      <text class="peer-name">{{peer.userName}} · {{peer.petName}}</text>
+      <text class="peer-tip">借宠交友 · 文明礼貌沟通</text>
+    </view>
+  </view>
+
+  <scroll-view scroll-y class="msg-scroll" scroll-into-view="{{scrollInto}}">
+    <view
+      class="msg-row {{item.from === 'me' ? 'me' : 'peer'}}"
+      wx:for="{{messages}}"
+      wx:key="id"
+      id="msg-{{index}}"
+    >
+      <image
+        class="msg-avatar"
+        src="{{item.from === 'me' ? '/assets/mock/real_avatar.jpg' : peer.avatar}}"
+        mode="aspectFill"
+        wx:if="{{item.from !== 'me' || true}}"
+      ></image>
+      <view class="bubble">{{item.content}}</view>
+    </view>
+    <view class="msg-empty" wx:if="{{messages.length === 0}}">
+      <text>打个招呼，开始聊吧～</text>
+    </view>
+  </scroll-view>
+
+  <view class="input-bar">
+    <input
+      class="msg-input"
+      placeholder="说点什么…"
+      value="{{inputText}}"
+      bindinput="onInput"
+      confirm-type="send"
+      bindconfirm="onSend"
+    />
+    <view class="send-btn" bindtap="onSend">发送</view>
+  </view>
+</view>

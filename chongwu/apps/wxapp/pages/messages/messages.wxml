@@ -1,16 +1,41 @@
 <view class="page">
-  <view class="tip">订单与健康提醒会汇总在这里（本地演示）</view>
-  <view class="list">
-    <view class="item {{item.read ? '' : 'unread'}}" wx:for="{{messages}}" wx:key="id">
-      <view class="top">
-        <text class="title">{{item.title}}</text>
-        <text class="time">{{item.timeText}}</text>
+  <view class="tabs">
+    <view class="tab {{tab === 'chat' ? 'on' : ''}}" bindtap="onTab" data-tab="chat">私信</view>
+    <view class="tab {{tab === 'notice' ? 'on' : ''}}" bindtap="onTab" data-tab="notice">通知</view>
+  </view>
+
+  <view wx:if="{{tab === 'chat'}}">
+    <view
+      class="chat-item"
+      wx:for="{{chats}}"
+      wx:key="id"
+      bindtap="onChatTap"
+      data-peerid="{{item.peerId}}"
+    >
+      <image class="avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+      <view class="chat-body">
+        <view class="chat-top">
+          <text class="chat-name">{{item.peerName}} · {{item.petName}}</text>
+          <text class="chat-time">{{item.lastTime}}</text>
+        </view>
+        <text class="chat-msg">{{item.lastMessage || '打个招呼吧～'}}</text>
       </view>
-      <text class="content">{{item.content}}</text>
+      <view class="unread" wx:if="{{item.unread > 0}}">{{item.unread}}</view>
+    </view>
+    <view class="empty" wx:if="{{chats.length === 0}}">
+      <text>还没有私信，去发现页找宠友吧</text>
+      <button class="empty-btn" bindtap="onDiscoverTap">去发现</button>
     </view>
   </view>
-  <view class="empty" wx:if="{{messages.length === 0}}">
-    <text>暂无消息</text>
-    <text class="sub">预约服务、下单或开启提醒后会出现</text>
+
+  <view wx:if="{{tab === 'notice'}}">
+    <view class="notice-item" wx:for="{{notices}}" wx:key="id">
+      <text class="notice-title">{{item.title}}</text>
+      <text class="notice-content">{{item.content}}</text>
+      <text class="notice-time">{{item.timeText}}</text>
+    </view>
+    <view class="empty" wx:if="{{notices.length === 0}}">
+      <text>暂无通知</text>
+    </view>
   </view>
 </view>

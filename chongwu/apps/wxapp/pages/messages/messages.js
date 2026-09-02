@@ -9,15 +9,34 @@ function formatTime(iso) {
 
 Page({
   data: {
-    messages: [],
+    tab: 'chat',
+    chats: [],
+    notices: [],
   },
 
   onShow() {
-    const messages = store.listMessages().map((m) => ({
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ selected: 2 });
+    }
+    const chats = store.listChatThreads();
+    const notices = store.listMessages().map((m) => ({
       ...m,
       timeText: formatTime(m.createdAt),
     }));
-    this.setData({ messages });
+    this.setData({ chats, notices });
     store.markMessagesRead();
+  },
+
+  onTab(e) {
+    this.setData({ tab: e.currentTarget.dataset.tab });
+  },
+
+  onChatTap(e) {
+    const { peerid } = e.currentTarget.dataset;
+    wx.navigateTo({ url: `/pages/chat/chat?peerId=${peerid}` });
+  },
+
+  onDiscoverTap() {
+    wx.switchTab({ url: '/pages/discover/discover' });
   },
 });

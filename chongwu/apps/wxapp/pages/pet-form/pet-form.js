@@ -15,6 +15,8 @@ Page({
     color: '',
     isSterilized: false,
     microchip: '',
+    personality: '',
+    socialTagsText: '',
     remark: '',
     submitting: false,
   },
@@ -51,6 +53,8 @@ Page({
       color: pet.color || '',
       isSterilized: !!pet.isSterilized,
       microchip: pet.microchip || '',
+      personality: pet.personality || '',
+      socialTagsText: (pet.socialTags || []).join('、'),
       remark: pet.remark || '',
     });
   },
@@ -75,7 +79,7 @@ Page({
   async onSubmit() {
     const {
       name, species, breedName, gender, birthday, weight, color,
-      isSterilized, microchip, remark, mode, petId, submitting,
+      isSterilized, microchip, personality, socialTagsText, remark, mode, petId, submitting,
     } = this.data;
 
     if (submitting) return;
@@ -85,6 +89,12 @@ Page({
     }
 
     this.setData({ submitting: true });
+    const socialTags = (socialTagsText || '')
+      .split(/[,，、\s]+/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .slice(0, 6);
+
     const payload = {
       name,
       species,
@@ -95,16 +105,10 @@ Page({
       color,
       isSterilized,
       microchip,
+      personality,
+      socialTags,
       remark,
     };
-
-    try {
-      if (mode === 'add') {
-        await api.post('/health/pets', payload);
-      }
-    } catch (e) {
-      // local
-    }
 
     if (mode === 'add') {
       store.addPet(payload);

@@ -1,0 +1,128 @@
+page { background: #F7FAF5; }
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: calc(120rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+.peer-bar {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 28rpx;
+  background: #fff;
+  border-bottom: 1rpx solid #EAF0EB;
+}
+
+.peer-avatar {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  margin-right: 16rpx;
+}
+
+.peer-name {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #2D4A38;
+}
+
+.peer-tip {
+  font-size: 22rpx;
+  color: #9BA89E;
+}
+
+.msg-scroll {
+  flex: 1;
+  padding: 24rpx 28rpx;
+  box-sizing: border-box;
+}
+
+.msg-row {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 20rpx;
+}
+
+.msg-row.me {
+  flex-direction: row-reverse;
+}
+
+.msg-avatar {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.msg-row.me .msg-avatar {
+  margin-left: 12rpx;
+}
+
+.msg-row.peer .msg-avatar {
+  margin-right: 12rpx;
+}
+
+.bubble {
+  max-width: 70%;
+  padding: 18rpx 22rpx;
+  border-radius: 22rpx;
+  font-size: 28rpx;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.msg-row.peer .bubble {
+  background: #fff;
+  color: #2D4A38;
+  border-top-left-radius: 6rpx;
+}
+
+.msg-row.me .bubble {
+  background: linear-gradient(135deg, #7ED6A8, #5BBF88);
+  color: #fff;
+  border-top-right-radius: 6rpx;
+}
+
+.msg-empty {
+  padding: 80rpx 0;
+  text-align: center;
+  color: #9BA89E;
+  font-size: 26rpx;
+}
+
+.input-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 16rpx 24rpx calc(16rpx + env(safe-area-inset-bottom));
+  background: rgba(255, 255, 255, 0.98);
+  border-top: 1rpx solid #EAF0EB;
+}
+
+.msg-input {
+  flex: 1;
+  height: 72rpx;
+  padding: 0 24rpx;
+  background: #F0F5F1;
+  border-radius: 36rpx;
+  font-size: 28rpx;
+}
+
+.send-btn {
+  padding: 0 28rpx;
+  height: 72rpx;
+  line-height: 72rpx;
+  border-radius: 36rpx;
+  background: #5BBF88;
+  color: #fff;
+  font-size: 26rpx;
+  font-weight: 600;
+}

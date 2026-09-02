@@ -27,27 +27,28 @@ function getInviteCode() {
 
 Page({
   data: {
-    socialActions: MOCK_SOCIAL.actions.slice(),
-    socialFilters: MOCK_SOCIAL.filters.slice(),
+    socialActions: MOCK_SOCIAL.actions,
+    socialFilters: MOCK_SOCIAL.filters,
     socialFilter: 'all',
     socialEvents: MOCK_SOCIAL.events.slice(),
     displayEvents: MOCK_SOCIAL.events.slice(),
     socialPosts: [],
     displayPosts: [],
-    invite: { ...MOCK_SOCIAL.invite },
-    sharePanelVisible: false,
-    sharePostId: '',
+    invite: MOCK_SOCIAL.invite,
+    unreadCount: 0,
   },
 
   onLoad(options) {
-    if (options.filter) {
-      this.setData({ socialFilter: options.filter });
-    }
+    if (options.filter) this.setData({ socialFilter: options.filter });
     this.reloadSocialPosts();
   },
 
   onShow() {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ selected: 0 });
+    }
     this.reloadSocialPosts();
+    this.setData({ unreadCount: store.countUnreadMessages() });
   },
 
   reloadSocialPosts() {
@@ -94,16 +95,11 @@ Page({
       return;
     }
     if (type === 'nearby') {
-      this.setData({ socialFilter: 'all', ...this.applySocialFilter('all') });
-      wx.showToast({ title: '已展示同城动态', icon: 'none' });
+      wx.switchTab({ url: '/pages/discover/discover' });
       return;
     }
     if (type === 'topic') {
-      wx.showModal({
-        title: '话题广场',
-        content: '热门话题：#周末遛狗 #换粮经验 #幼宠适应（演示）',
-        showCancel: false,
-      });
+      wx.switchTab({ url: '/pages/discover/discover' });
     }
   },
 
@@ -111,8 +107,8 @@ Page({
     wx.navigateTo({ url: '/pages/social-post/social-post' });
   },
 
-  onLostTap() {
-    wx.navigateTo({ url: '/pages/lost-publish/lost-publish' });
+  onMessagesTap() {
+    wx.switchTab({ url: '/pages/messages/messages' });
   },
 
   onPostTap(e) {
@@ -141,7 +137,6 @@ Page({
 
   onShareTap(e) {
     const { id } = e.currentTarget.dataset;
-    this.setData({ sharePostId: id || '' });
     const socialPosts = this.data.socialPosts.map((p) => {
       if (p.id !== id) return p;
       const shares = (p.shares || 0) + 1;
@@ -155,56 +150,24 @@ Page({
   },
 
   onEventTap(e) {
-    const { id } = e.currentTarget.dataset;
-    const event = this.data.socialEvents.find((x) => x.id === id);
-    if (!event) return;
-    wx.showModal({
-      title: event.title,
-      content: `${event.place} · ${event.fee} · ${event.require}\n确认报名参加？`,
-      confirmText: '报名',
-      success: (res) => {
-        if (!res.confirm) return;
-        const result = store.addEventSignup(event);
-        wx.showToast({
-          title: result.duplicated ? '已报名过该活动' : '报名成功',
-          icon: result.duplicated ? 'none' : 'success',
-        });
-      },
-    });
+    wx.navigateTo({ url: `/pages/event-detail/event-detail?id=${e.currentTarget.dataset.id}` });
   },
 
-  onChatTap() {
+  onInviteTap() {
     wx.showModal({
-      title: '私信',
-      content: '演示环境暂未开通即时聊天，可通过活动报名或服务预约联系对方。',
+      title: this.data.invite.rewardTitle,
+      content: this.data.invite.rewardDesc,
+      confirmText: '去分享',
       showCancel: false,
     });
   },
 
-  onInviteTap() {
-    this.setData({ sharePanelVisible: true, sharePostId: '' });
-  },
-
-  onInviteShareReady() {
-    this.setData({ sharePostId: '' });
-  },
-
-  onCloseSharePanel() {
-    this.setData({ sharePanelVisible: false });
-  },
-
-  noop() {},
-
   onShareAppMessage() {
     const invite = getInviteCode();
-    const { sharePostId, socialPosts, invite: inviteCfg } = this.data;
-    const post = socialPosts.find((p) => p.id === sharePostId);
-    const title = post
-      ? `${post.userName}：${post.content.slice(0, 28)}…`
-      : (inviteCfg.shareTitle || '宠头头交友广场');
-    const path = post
-      ? `/pages/social-detail/social-detail?id=${post.id}&invite=${invite}`
-      : `/pages/social/social?invite=${invite}`;
-    return { title, path };
+    const { invite: inviteCfg } = this.data;
+    return {
+      title: inviteCfg.shareTitle,
+      path: `/pages/social/social?invite=${invite}`,
+    };
   },
 });

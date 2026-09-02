@@ -2,33 +2,17 @@ Component({
   data: {
     selected: 0,
     list: [
-      {
-        pagePath: "/pages/index/index",
-        icon: "/assets/icons/tab-home.png",
-        iconActive: "/assets/icons/tab-home-active.png"
-      },
-      {
-        pagePath: "/pages/service/service",
-        icon: "/assets/icons/tab-service.png",
-        iconActive: "/assets/icons/tab-service-active.png"
-      },
-      {
-        pagePath: "/pages/idle/idle",
-        icon: "/assets/icons/tab-idle.png",
-        iconActive: "/assets/icons/tab-idle-active.png"
-      },
-      {
-        pagePath: "/pages/profile/profile",
-        icon: "/assets/icons/tab-profile.png",
-        iconActive: "/assets/icons/tab-profile-active.png"
-      }
-    ]
+      { pagePath: '/pages/social/social', emoji: '🏡', label: '广场' },
+      { pagePath: '/pages/discover/discover', emoji: '🐾', label: '发现' },
+      { pagePath: '/pages/messages/messages', emoji: '💬', label: '消息' },
+      { pagePath: '/pages/profile/profile', emoji: '☺', label: '我的' },
+    ],
   },
   methods: {
     switchTab(e) {
-      const data = e.currentTarget.dataset;
-      const url = data.path;
-      wx.switchTab({ url });
-    }
-  }
+      const { path, index } = e.currentTarget.dataset;
+      wx.switchTab({ url: path });
+      this.setData({ selected: index });
+    },
+  },
 });

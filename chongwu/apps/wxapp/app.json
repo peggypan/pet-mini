@@ -1,59 +1,33 @@
 {
   "pages": [
-    "pages/index/index",
-    "pages/service/service",
-    "pages/service-detail/service-detail",
-    "pages/service-order/service-order",
-    "pages/health/health",
-    "pages/pet-form/pet-form",
-    "pages/health-record/health-record",
-    "pages/diet-record/diet-record",
-    "pages/mall-service/mall-service",
-    "pages/mall-product/mall-product",
-    "pages/mall/mall",
-    "pages/social-post/social-post",
     "pages/social/social",
-    "pages/social-detail/social-detail",
-    "pages/lost-publish/lost-publish",
+    "pages/discover/discover",
     "pages/messages/messages",
-    "pages/idle/idle",
-    "pages/idle-detail/idle-detail",
-    "pages/idle-publish/idle-publish",
-    "pages/idle-order/idle-order",
     "pages/profile/profile",
-    "pages/orders/orders",
-    "pages/address-book/address-book"
+    "pages/social-post/social-post",
+    "pages/social-detail/social-detail",
+    "pages/pet-form/pet-form",
+    "pages/chat/chat",
+    "pages/event-detail/event-detail"
   ],
   "window": {
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#EEF4FA",
+    "navigationBarBackgroundColor": "#F7FAF5",
     "navigationBarTitleText": "宠头头",
     "navigationBarTextStyle": "black",
-    "backgroundColor": "#EEF4FA"
+    "backgroundColor": "#F7FAF5"
   },
   "tabBar": {
     "custom": true,
-    "color": "#B2BEC3",
-    "selectedColor": "#6FCF97",
-    "backgroundColor": "#EEF4FA",
+    "color": "#9BA89E",
+    "selectedColor": "#5BBF88",
+    "backgroundColor": "#F7FAF5",
     "borderStyle": "white",
     "list": [
-      {
-        "pagePath": "pages/index/index",
-        "text": "首页"
-      },
-      {
-        "pagePath": "pages/service/service",
-        "text": "服务"
-      },
-      {
-        "pagePath": "pages/idle/idle",
-        "text": "闲置"
-      },
-      {
-        "pagePath": "pages/profile/profile",
-        "text": "我的"
-      }
+      { "pagePath": "pages/social/social", "text": "广场" },
+      { "pagePath": "pages/discover/discover", "text": "发现" },
+      { "pagePath": "pages/messages/messages", "text": "消息" },
+      { "pagePath": "pages/profile/profile", "text": "我的" }
     ]
   },
   "style": "v2",

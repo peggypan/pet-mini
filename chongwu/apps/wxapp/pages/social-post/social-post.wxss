@@ -1,4 +1,4 @@
-page { background: #EEF4FA; }
+page { background: #F7FAF5; }
 .page { padding: 24rpx 28rpx; }
 .card {
   background: rgba(255,255,255,0.92);

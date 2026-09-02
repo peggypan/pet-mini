@@ -1,112 +1,72 @@
-<!-- 个人中心：宠物 Hero + 窄玻璃身份卡 + 数据条 + 功能格 + 设置 -->
 <view class="page">
-  <!-- Hero 区域 -->
   <view class="hero">
-    <image class="hero-img" src="{{pet.cover || pet.avatar}}" mode="aspectFill"></image>
+    <image class="hero-bg" src="{{pet.cover || pet.avatar}}" mode="aspectFill"></image>
     <view class="hero-mask"></view>
-    <view class="hero-status" style="padding-top: {{statusBarHeight}}px">
-      <view class="bell-btn" bindtap="onNotifyTap">
-        <text class="bell-icon">🔔</text>
-      </view>
-    </view>
-
-    <!-- 窄版身份卡：叠在 Hero 底部，液态玻璃质感 -->
-    <view class="identity-wrap">
-      <view class="identity-card">
-        <view class="identity-card-inner">
-          <view class="qr-box">
-            <view class="qr-inner">
-              <view class="qr-grid">
-                <view class="qr-cell" wx:for="{{qrCells}}" wx:key="*this" style="opacity: {{item}}"></view>
-              </view>
-            </view>
-          </view>
-          <view class="identity-info">
-            <text class="id-name">{{pet.name}}</text>
-            <text class="id-age">年龄 · {{pet.age}}</text>
-            <text class="id-days">已陪伴你 {{pet.days}} 天</text>
+    <view class="hero-content">
+      <view class="pet-card">
+        <image class="pet-avatar" src="{{pet.avatar}}" mode="aspectFill"></image>
+        <view class="pet-info">
+          <text class="pet-name">{{pet.name}}</text>
+          <text class="pet-breed">{{pet.breed}} · {{pet.age}}</text>
+          <text class="pet-personality" wx:if="{{pet.personality}}">性格 · {{pet.personality}}</text>
+          <view class="tag-row" wx:if="{{pet.socialTags && pet.socialTags.length}}">
+            <text class="tag" wx:for="{{pet.socialTags}}" wx:key="*this">{{item}}</text>
           </view>
         </view>
-        <!-- 底部液态玻璃层 -->
-        <view class="liquid-glass"></view>
+        <view class="edit-btn" bindtap="onEditPet">编辑</view>
       </view>
     </view>
   </view>
 
-  <!-- 未登录：必须用 button + getPhoneNumber，才会弹出微信底部手机号授权窗 -->
   <button
-    class="login-tip"
+    class="login-bar"
     wx:if="{{!isLogin}}"
     open-type="getPhoneNumber|agreePrivacyAuthorization"
     bindgetphonenumber="onGetPhoneNumber"
     bindagreeprivacyauthorization="onAgreePrivacyAuthorization"
-    hover-class="login-tip-hover"
-  >手机号快捷登录，同步宠物档案 ›</button>
+  >手机号登录，开启交友之旅 ›</button>
 
-  <!-- 数据统计 -->
-  <view class="stats-bar">
-    <view class="stat-cell">
-      <text class="stat-val">{{pet.weight}}</text>
-      <text class="stat-lab">体重</text>
+  <view class="stats">
+    <view class="stat" bindtap="onMyPosts">
+      <text class="stat-num">{{stats.posts}}</text>
+      <text class="stat-lab">动态</text>
     </view>
-    <view class="stat-divider"></view>
-    <view class="stat-cell">
-      <text class="stat-val">{{pet.recordDays}}</text>
-      <text class="stat-lab">驱虫</text>
+    <view class="stat" bindtap="onMyEvents">
+      <text class="stat-num">{{stats.events}}</text>
+      <text class="stat-lab">约局</text>
     </view>
-    <view class="stat-divider"></view>
-    <view class="stat-cell">
-      <text class="stat-val">{{pet.visits}}</text>
-      <text class="stat-lab">洗澡</text>
+    <view class="stat" bindtap="onMyFriends">
+      <text class="stat-num">{{stats.friends}}</text>
+      <text class="stat-lab">宠友</text>
+    </view>
+    <view class="stat" bindtap="onMessagesTap">
+      <text class="stat-num">{{unreadCount}}</text>
+      <text class="stat-lab">消息</text>
     </view>
   </view>
 
-  <!-- 2x2 功能格 -->
-  <view class="action-grid">
-    <view class="action-cell" bindtap="onOrdersTap">
-      <text class="action-icon">⇄</text>
-      <text class="action-label">订单/交换</text>
+  <view class="menu">
+    <view class="menu-item" bindtap="onEditPet">
+      <text class="menu-icon">🐾</text>
+      <text class="menu-text">完善宠物交友名片</text>
+      <text class="menu-arrow">›</text>
     </view>
-    <view class="action-cell" bindtap="onHealthTap">
-      <text class="action-icon">✚</text>
-      <text class="action-label">医疗记录</text>
+    <view class="menu-item" bindtap="onMyFriends">
+      <text class="menu-icon">📍</text>
+      <text class="menu-text">附近宠友与关注</text>
+      <text class="menu-arrow">›</text>
     </view>
-    <view class="action-cell" bindtap="onFavoriteTap">
-      <text class="action-icon">♡</text>
-      <text class="action-label">我的收藏</text>
+    <view class="menu-item" bindtap="onHelpTap">
+      <text class="menu-icon">?</text>
+      <text class="menu-text">新手指南</text>
+      <text class="menu-arrow">›</text>
     </view>
-    <view class="action-cell" bindtap="onFamilyTap">
-      <text class="action-icon">☺</text>
-      <text class="action-label">我的家庭</text>
-    </view>
-  </view>
-
-  <!-- 设置列表 -->
-  <view class="settings-list">
-    <view class="setting-item" bindtap="onDarkModeTap">
-      <view class="setting-left">
-        <text class="setting-icon">☾</text>
-        <text class="setting-text">深色模式</text>
-      </view>
-      <switch checked="{{false}}" color="#6FCF97" disabled />
-    </view>
-    <view class="setting-item" bindtap="onHelpTap">
-      <view class="setting-left">
-        <text class="setting-icon">?</text>
-        <text class="setting-text">帮助中心</text>
-      </view>
-      <text class="setting-arrow">›</text>
-    </view>
-    <view class="setting-item" bindtap="onAboutTap">
-      <view class="setting-left">
-        <text class="setting-icon">ⓘ</text>
-        <text class="setting-text">关于我们</text>
-      </view>
-      <text class="setting-arrow">›</text>
+    <view class="menu-item" bindtap="onAboutTap">
+      <text class="menu-icon">ⓘ</text>
+      <text class="menu-text">关于宠头头</text>
+      <text class="menu-arrow">›</text>
     </view>
   </view>
 
-  <button class="logout-btn" bindtap="onLogout" wx:if="{{isLogin}}">退出登录</button>
-
-  <view class="page-bottom-space"></view>
+  <button class="logout" bindtap="onLogout" wx:if="{{isLogin}}">退出登录</button>
 </view>

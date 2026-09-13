@@ -1,0 +1,32 @@
+<view class="call-page">
+  <view class="remote-view">
+    <image class="remote-avatar" src="{{peer.avatar}}" mode="aspectFill"></image>
+    <view class="remote-overlay"></view>
+    <text class="remote-name">{{peer.userName}} · {{peer.petName}}</text>
+    <text class="call-status" wx:if="{{status === 'calling'}}">正在呼叫…</text>
+    <text class="call-status" wx:if="{{status === 'connected'}}">{{duration > 0 ? '' : '已接通'}}</text>
+    <text class="call-timer" wx:if="{{status === 'connected' && duration > 0}}">{{durationText}}</text>
+  </view>
+
+  <view class="local-view">
+    <image class="local-avatar" src="/assets/mock/real_avatar.jpg" mode="aspectFill"></image>
+    <text class="local-label">我</text>
+  </view>
+
+  <view class="controls">
+    <view class="ctrl-item" bindtap="onToggleMute">
+      <view class="ctrl-btn {{muted ? 'on' : ''}}">{{muted ? '🔇' : '🎤'}}</view>
+      <text class="ctrl-label">{{muted ? '已静音' : '静音'}}</text>
+    </view>
+    <view class="ctrl-item hangup" bindtap="onHangup">
+      <view class="ctrl-btn hangup-btn">📞</view>
+      <text class="ctrl-label">挂断</text>
+    </view>
+    <view class="ctrl-item" bindtap="onToggleCamera">
+      <view class="ctrl-btn {{cameraFront ? 'on' : ''}}">📷</view>
+      <text class="ctrl-label">翻转</text>
+    </view>
+  </view>
+
+  <text class="demo-tip">演示模式 · 正式版需接入 VoIP / TRTC</text>
+</view>

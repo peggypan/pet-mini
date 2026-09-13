@@ -1,0 +1,176 @@
+.composer-root.tools-open {
+  padding-bottom: 220rpx;
+}
+
+.composer-root.emoji-open {
+  padding-bottom: 420rpx;
+}
+
+.tool-panel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(104rpx + env(safe-area-inset-bottom));
+  display: flex;
+  justify-content: space-around;
+  padding: 32rpx 24rpx 28rpx;
+  background: #F7F7F7;
+  border-top: 1rpx solid #EBEBEB;
+  z-index: 20;
+}
+
+.tool-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+  min-width: 120rpx;
+}
+
+.tool-icon-box {
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 24rpx;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+.tool-glyph {
+  font-size: 44rpx;
+  color: #1A1A1A;
+  line-height: 1;
+}
+
+.tool-label {
+  font-size: 24rpx;
+  color: #666666;
+}
+
+.emoji-panel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(104rpx + env(safe-area-inset-bottom));
+  background: #FFFFFF;
+  border-top: 1rpx solid #EBEBEB;
+  z-index: 20;
+  max-height: 420rpx;
+}
+
+.emoji-tabs {
+  white-space: nowrap;
+  padding: 16rpx 20rpx 8rpx;
+}
+
+.emoji-tab {
+  display: inline-block;
+  padding: 10rpx 24rpx;
+  margin-right: 12rpx;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+  color: #999999;
+  background: #F5F5F5;
+}
+
+.emoji-tab.on {
+  background: rgba(197, 255, 74, 0.35);
+  color: #1A1A1A;
+  font-weight: 700;
+}
+
+.emoji-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  padding: 12rpx 20rpx 24rpx;
+  max-height: 280rpx;
+  overflow-y: auto;
+}
+
+.emoji-cell {
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-size: 36rpx;
+  border-radius: 12rpx;
+  background: #F9F9F9;
+}
+
+.input-bar {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 16rpx 20rpx calc(16rpx + env(safe-area-inset-bottom));
+  background: #FFFFFF;
+  border-top: 1rpx solid #EBEBEB;
+  box-sizing: border-box;
+}
+
+.input-bar.fixed {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+}
+
+.icon-btn {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: #F5F5F5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icon-glyph {
+  font-size: 32rpx;
+  line-height: 1;
+  color: #333333;
+}
+
+.plus-glyph {
+  font-size: 40rpx;
+  font-weight: 300;
+}
+
+.text-input {
+  flex: 1;
+  min-width: 0;
+  height: 72rpx;
+  padding: 18rpx 24rpx;
+  line-height: 36rpx;
+  background: #F5F5F5;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  color: #1A1A1A;
+  box-sizing: border-box;
+}
+
+.voice-hold {
+  flex: 1;
+  min-width: 0;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.4;
+  background: #F5F5F5;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  color: #333333;
+  font-weight: 600;
+}
+
+.voice-hold.recording {
+  background: rgba(197, 255, 74, 0.35);
+  color: #1A1A1A;
+}

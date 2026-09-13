@@ -1,72 +1,54 @@
 <view class="page">
-  <view class="hero">
-    <image class="hero-bg" src="{{pet.cover || pet.avatar}}" mode="aspectFill"></image>
-    <view class="hero-mask"></view>
-    <view class="hero-content">
-      <view class="pet-card">
-        <image class="pet-avatar" src="{{pet.avatar}}" mode="aspectFill"></image>
-        <view class="pet-info">
-          <text class="pet-name">{{pet.name}}</text>
-          <text class="pet-breed">{{pet.breed}} · {{pet.age}}</text>
-          <text class="pet-personality" wx:if="{{pet.personality}}">性格 · {{pet.personality}}</text>
-          <view class="tag-row" wx:if="{{pet.socialTags && pet.socialTags.length}}">
-            <text class="tag" wx:for="{{pet.socialTags}}" wx:key="*this">{{item}}</text>
-          </view>
-        </view>
-        <view class="edit-btn" bindtap="onEditPet">编辑</view>
-      </view>
+  <view class="header">
+    <image class="avatar" src="{{pet.avatar}}" mode="aspectFill"></image>
+    <view class="info">
+      <text class="name">{{isLogin ? (userInfo.nickname || '宠友') : '未登录'}}</text>
+      <text class="tags" bindtap="onCityTap">宠物 {{stats.posts >= 0 ? 1 : 0}} · 信用良好 · 📍 {{city}}</text>
     </view>
   </view>
 
-  <button
-    class="login-bar"
-    wx:if="{{!isLogin}}"
-    open-type="getPhoneNumber|agreePrivacyAuthorization"
-    bindgetphonenumber="onGetPhoneNumber"
-    bindagreeprivacyauthorization="onAgreePrivacyAuthorization"
-  >手机号登录，开启交友之旅 ›</button>
+  <button class="login-bar" wx:if="{{!isLogin}}" open-type="getPhoneNumber|agreePrivacyAuthorization" bindgetphonenumber="onGetPhoneNumber" bindagreeprivacyauthorization="onAgreePrivacyAuthorization">手机号登录 ›</button>
 
   <view class="stats">
-    <view class="stat" bindtap="onMyPosts">
-      <text class="stat-num">{{stats.posts}}</text>
-      <text class="stat-lab">动态</text>
-    </view>
-    <view class="stat" bindtap="onMyEvents">
-      <text class="stat-num">{{stats.events}}</text>
-      <text class="stat-lab">约局</text>
-    </view>
-    <view class="stat" bindtap="onMyFriends">
-      <text class="stat-num">{{stats.friends}}</text>
-      <text class="stat-lab">宠友</text>
-    </view>
-    <view class="stat" bindtap="onMessagesTap">
-      <text class="stat-num">{{unreadCount}}</text>
-      <text class="stat-lab">消息</text>
-    </view>
+    <view class="stat"><text class="num">{{stats.buddies}}</text><text class="lab">宠友</text></view>
+    <view class="stat"><text class="num">{{stats.posts}}</text><text class="lab">发布</text></view>
+    <view class="stat"><text class="num">{{stats.events}}</text><text class="lab">活动</text></view>
+    <view class="stat" bindtap="onMessages"><text class="num">{{unreadCount}}</text><text class="lab">消息</text></view>
   </view>
 
-  <view class="menu">
-    <view class="menu-item" bindtap="onEditPet">
-      <text class="menu-icon">🐾</text>
-      <text class="menu-text">完善宠物交友名片</text>
-      <text class="menu-arrow">›</text>
+  <view class="group">
+    <text class="group-title">我的宠物 · 电子宠证</text>
+    <view class="menu-item raise-entry" bindtap="onPetCert">
+      <view class="raise-left">
+        <text>🪪 电子宠证 & 数字宠物</text>
+        <text class="raise-sub">宠证信息 · 上传照片养成 · 喂食长大</text>
+      </view>
+      <text class="arrow">›</text>
     </view>
-    <view class="menu-item" bindtap="onMyFriends">
-      <text class="menu-icon">📍</text>
-      <text class="menu-text">附近宠友与关注</text>
-      <text class="menu-arrow">›</text>
-    </view>
-    <view class="menu-item" bindtap="onHelpTap">
-      <text class="menu-icon">?</text>
-      <text class="menu-text">新手指南</text>
-      <text class="menu-arrow">›</text>
-    </view>
-    <view class="menu-item" bindtap="onAboutTap">
-      <text class="menu-icon">ⓘ</text>
-      <text class="menu-text">关于宠头头</text>
-      <text class="menu-arrow">›</text>
-    </view>
+    <view class="menu-item" bindtap="onEditPet"><text>🐾 管理宠物档案</text><text class="arrow">›</text></view>
   </view>
 
-  <button class="logout" bindtap="onLogout" wx:if="{{isLogin}}">退出登录</button>
+  <view class="group">
+    <text class="group-title">消息中心</text>
+    <view class="menu-item" bindtap="onMessages"><text>💬 私信 / 通知</text><text class="arrow">›</text></view>
+  </view>
+
+  <view class="group">
+    <text class="group-title">我的业务</text>
+    <view class="menu-item" bindtap="onMyBuddy"><text>我发布的搭子</text><text class="arrow">›</text></view>
+    <view class="menu-item" bindtap="onMyPosts"><text>我发布的动态</text><text class="arrow">›</text></view>
+    <view class="menu-item" bindtap="onMyEvents"><text>我发起/报名的活动</text><text class="arrow">›</text></view>
+    <view class="menu-item" bindtap="onMyHelp"><text>🐕‍🦺 寻宠·领养救助</text><text class="arrow">›</text></view>
+  </view>
+
+  <view class="group">
+    <text class="group-title">订单与服务</text>
+    <view class="menu-item" bindtap="onOrders"><text>商家服务预约订单</text><text class="arrow">›</text></view>
+  </view>
+
+  <view class="group">
+    <view class="menu-item" bindtap="onAbout"><text>关于我们 / 用户协议</text><text class="arrow">›</text></view>
+  </view>
+
+  <button class="logout" wx:if="{{isLogin}}" bindtap="onLogout">退出登录</button>
 </view>

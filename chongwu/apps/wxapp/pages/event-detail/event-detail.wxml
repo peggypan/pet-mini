@@ -36,6 +36,7 @@
   </view>
 
   <view class="bottom">
+    <button class="btn-secondary" bindtap="onSharePoster">分享海报</button>
     <button class="btn-secondary" bindtap="onChatHost">联系主理人</button>
     <button class="btn-primary" bindtap="onSignup" disabled="{{signedUp}}">
       {{signedUp ? '已报名' : '立即报名'}}

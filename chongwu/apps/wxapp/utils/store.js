@@ -3,15 +3,28 @@
  */
 
 const { MOCK_CHATS } = require('./mock');
+const { DEPOSIT, getNextStep } = require('./event-qualify');
+const { seedCircleMessages } = require('./circle-community');
 
 const KEYS = {
   pets: 'social_pets',
   socialPosts: 'mvp_social_posts',
+  buddyPosts: 'mvp_buddy_posts',
   eventSignups: 'mvp_event_signups',
+  myEvents: 'mvp_my_events',
+  localPosts: 'mvp_local_posts',
+  mapPoints: 'mvp_map_points',
+  serviceBooks: 'mvp_service_books',
   messages: 'mvp_messages',
   follows: 'social_follows',
   chatThreads: 'social_chat_threads',
   chatMessages: 'social_chat_messages',
+  city: 'mvp_current_city',
+  cityLocation: 'mvp_city_location',
+  eventMerchantApply: 'mvp_event_merchant_apply',
+  eventIdentityVerify: 'mvp_event_identity_verify',
+  eventDeposits: 'mvp_event_deposits',
+  circleMessages: 'mvp_circle_messages',
 };
 
 function read(key, fallback) {
@@ -141,7 +154,10 @@ function addPostComment(postId, comment) {
     id: uid('cmt'),
     userName: comment.userName || '我',
     avatar: comment.avatar || '/assets/mock/real_avatar.jpg',
-    content: comment.content,
+    type: comment.type || 'text',
+    content: comment.content || '',
+    url: comment.url || '',
+    poster: comment.poster || '',
     time: '刚刚',
     createdAt: new Date().toISOString(),
   };
@@ -218,9 +234,42 @@ function listChatThreads() {
   return ensureChatThreads();
 }
 
+function ensureChatThread(thread) {
+  if (!thread || !thread.peerId) return null;
+  const threads = ensureChatThreads();
+  const existing = threads.find((t) => String(t.peerId) === String(thread.peerId));
+  if (existing) return existing;
+  const row = {
+    id: thread.id || `c_${thread.peerId}`,
+    peerId: thread.peerId,
+    peerName: thread.peerName || '用户',
+    petName: thread.petName || '宠物',
+    avatar: thread.avatar || '',
+    lastMessage: thread.lastMessage || '',
+    lastTime: thread.lastTime || '',
+    unread: 0,
+  };
+  const next = [row, ...threads.filter((t) => String(t.peerId) !== String(thread.peerId))];
+  write(KEYS.chatThreads, next.slice(0, 50));
+  return row;
+}
+
 function getChatMessages(threadId) {
   const all = read(KEYS.chatMessages, {});
   return all[threadId] || [];
+}
+
+function chatMessagePreview(message) {
+  const type = message.type || 'text';
+  if (type === 'image') return '[图片]';
+  if (type === 'video') return '[视频]';
+  if (type === 'location') return `[位置] ${(message.location && message.location.name) || '位置分享'}`;
+  if (type === 'call') {
+    if (message.callStatus === 'missed') return '[未接视频通话]';
+    if (message.duration) return `[视频通话] ${message.duration}s`;
+    return '[视频通话]';
+  }
+  return message.content || '';
 }
 
 function addChatMessage(threadId, message) {
@@ -229,7 +278,13 @@ function addChatMessage(threadId, message) {
   const row = {
     id: uid('chat'),
     from: message.from || 'me',
-    content: message.content,
+    type: message.type || 'text',
+    content: message.content || '',
+    url: message.url || '',
+    poster: message.poster || '',
+    location: message.location || null,
+    callStatus: message.callStatus || '',
+    duration: message.duration || 0,
     time: '刚刚',
     createdAt: new Date().toISOString(),
   };
@@ -237,11 +292,12 @@ function addChatMessage(threadId, message) {
   all[threadId] = list.slice(-200);
   write(KEYS.chatMessages, all);
 
+  const preview = chatMessagePreview(row);
   const threads = ensureChatThreads().map((t) => {
     if (String(t.id) !== String(threadId)) return t;
     return {
       ...t,
-      lastMessage: row.content,
+      lastMessage: preview,
       lastTime: '刚刚',
       unread: message.from === 'me' ? 0 : (t.unread || 0) + 1,
     };
@@ -274,6 +330,290 @@ function countUnreadMessages() {
   return sys + chat;
 }
 
+/** —— 搭子 —— */
+function listBuddyPosts() {
+  return read(KEYS.buddyPosts, []);
+}
+
+function addBuddyPost(post) {
+  const list = listBuddyPosts();
+  const row = {
+    id: uid('bd'),
+    time: '刚刚',
+    userName: '我',
+    verified: false,
+    zone: 'normal',
+    creditTags: [],
+    ...post,
+    createdAt: new Date().toISOString(),
+  };
+  list.unshift(row);
+  write(KEYS.buddyPosts, list.slice(0, 50));
+  pushMessage('搭子发布成功', '你的找搭子需求已提交审核（演示即时上架）', 'social');
+  return row;
+}
+
+function getBuddyPost(id) {
+  return listBuddyPosts().find((p) => String(p.id) === String(id)) || null;
+}
+
+/** —— 本地帖子（寻宠/领养/互助） —— */
+function listLocalPosts(type) {
+  const all = read(KEYS.localPosts, []);
+  return type ? all.filter((p) => p.type === type) : all;
+}
+
+function addLocalPost(post) {
+  const all = read(KEYS.localPosts, []);
+  const row = { id: uid('lp'), time: '刚刚', ...post, createdAt: new Date().toISOString() };
+  all.unshift(row);
+  write(KEYS.localPosts, all.slice(0, 50));
+  pushMessage('发布成功', '信息已提交，将在同城展示', 'social');
+  return row;
+}
+
+/** —— 地图点位 —— */
+function listMapPoints() {
+  return read(KEYS.mapPoints, []);
+}
+
+function addMapPoint(point) {
+  const list = listMapPoints();
+  const row = { id: uid('mp'), status: 'pending', ...point, createdAt: new Date().toISOString() };
+  list.unshift(row);
+  write(KEYS.mapPoints, list.slice(0, 50));
+  pushMessage('点位已提交', '审核通过后将展示在友好地图', 'social');
+  return row;
+}
+
+/** —— 活动发起 / 商家预约 —— */
+function listMyEvents() {
+  return read(KEYS.myEvents, []);
+}
+
+function addMyEvent(event) {
+  const list = listMyEvents();
+  const row = {
+    id: uid('mev'),
+    status: 'pending',
+    auditStatus: 'pending',
+    ...event,
+    createdAt: new Date().toISOString(),
+  };
+  list.unshift(row);
+  write(KEYS.myEvents, list);
+  pushMessage('活动已提交', '平台审核通过后将自动生成分享海报', 'social');
+  return row;
+}
+
+/** —— 活动发布资质 —— */
+function getMerchantApply() {
+  return read(KEYS.eventMerchantApply, null);
+}
+
+function submitMerchantApply(data) {
+  const row = {
+    id: uid('ema'),
+    status: 'pending',
+    companyName: data.companyName || '',
+    licenseNo: data.licenseNo || '',
+    legalPerson: data.legalPerson || '',
+    contactPhone: data.contactPhone || '',
+    licenseImage: data.licenseImage || '',
+    idFrontImage: data.idFrontImage || '',
+    idBackImage: data.idBackImage || '',
+    shopFrontImage: data.shopFrontImage || '',
+    submittedAt: new Date().toISOString(),
+  };
+  write(KEYS.eventMerchantApply, row);
+  pushMessage('商家入驻申请已提交', '平台将审核营业资质，请耐心等待', 'system');
+  return row;
+}
+
+function getIdentityVerify() {
+  return read(KEYS.eventIdentityVerify, null);
+}
+
+function submitIdentityVerify(data) {
+  const row = {
+    id: uid('eiv'),
+    status: 'pending',
+    realName: data.realName || '',
+    idCard: data.idCard || '',
+    contactPhone: data.contactPhone || '',
+    idFrontImage: data.idFrontImage || '',
+    idBackImage: data.idBackImage || '',
+    submittedAt: new Date().toISOString(),
+  };
+  write(KEYS.eventIdentityVerify, row);
+  pushMessage('身份认证已提交', '后台审核通过后可发起个人活动', 'system');
+  return row;
+}
+
+function getEventDeposit(role) {
+  const all = read(KEYS.eventDeposits, {});
+  const key = role === 'merchant' ? 'merchant' : 'personal';
+  return all[key] || { paid: false, amount: 0, paidAt: '' };
+}
+
+function payEventDeposit(role) {
+  const key = role === 'merchant' ? 'merchant' : 'personal';
+  const cfg = DEPOSIT[key];
+  const all = read(KEYS.eventDeposits, {});
+  all[key] = {
+    paid: true,
+    amount: cfg.amount,
+    paidAt: new Date().toISOString(),
+  };
+  write(KEYS.eventDeposits, all);
+  pushMessage('保证金缴纳成功', `已缴纳${cfg.label} ¥${cfg.amount}`, 'order');
+  return all[key];
+}
+
+function mockApproveQualify(role) {
+  if (role === 'merchant') {
+    const apply = getMerchantApply();
+    if (!apply || apply.status !== 'pending') return null;
+    const next = { ...apply, status: 'approved', approvedAt: new Date().toISOString() };
+    write(KEYS.eventMerchantApply, next);
+    pushMessage('商家入驻审核通过', '请缴纳保证金后即可发布活动', 'system');
+    return next;
+  }
+  const verify = getIdentityVerify();
+  if (!verify || verify.status !== 'pending') return null;
+  const next = { ...verify, status: 'approved', approvedAt: new Date().toISOString() };
+  write(KEYS.eventIdentityVerify, next);
+  pushMessage('身份认证审核通过', '请缴纳保证金后即可发布活动', 'system');
+  return next;
+}
+
+/** —— 社区圈子 —— */
+function listCircleMessages(circleId) {
+  const all = read(KEYS.circleMessages, {});
+  const stored = all[circleId] || [];
+  const seed = seedCircleMessages(circleId);
+  const seedIds = new Set(seed.map((m) => m.id));
+  const userMsgs = stored.filter((m) => !seedIds.has(m.id));
+  return [...userMsgs, ...seed].sort((a, b) => {
+    const ta = new Date(a.createdAt || 0).getTime();
+    const tb = new Date(b.createdAt || 0).getTime();
+    return tb - ta;
+  });
+}
+
+function addCircleMessage(circleId, message) {
+  const all = read(KEYS.circleMessages, {});
+  const list = all[circleId] || [];
+  const row = {
+    id: uid('cm'),
+    circleId,
+    from: 'me',
+    userName: message.userName || '我',
+    petName: message.petName || '',
+    avatar: message.avatar || '/assets/mock/real_avatar.jpg',
+    topic: message.topic || '',
+    content: message.content || '',
+    mediaList: message.mediaList || [],
+    time: '刚刚',
+    createdAt: new Date().toISOString(),
+  };
+  list.unshift(row);
+  all[circleId] = list.slice(0, 100);
+  write(KEYS.circleMessages, all);
+  return row;
+}
+
+function getCircleLastMessage(circleId) {
+  const list = listCircleMessages(circleId);
+  return list[0] || null;
+}
+
+function getEventPublishQualify(role) {
+  const r = role === 'merchant' ? 'merchant' : 'personal';
+  const depositCfg = DEPOSIT[r];
+  const deposit = getEventDeposit(r);
+
+  if (r === 'merchant') {
+    const apply = getMerchantApply();
+    const verifyStatus = apply?.status || 'none';
+    const nextStep = getNextStep(verifyStatus, deposit.paid);
+    return {
+      role: 'merchant',
+      verifyStatus,
+      verify: apply,
+      depositPaid: !!deposit.paid,
+      depositAmount: depositCfg.amount,
+      depositLabel: depositCfg.label,
+      canPublish: verifyStatus === 'approved' && deposit.paid,
+      nextStep,
+    };
+  }
+
+  const verify = getIdentityVerify();
+  const verifyStatus = verify?.status || 'none';
+  const nextStep = getNextStep(verifyStatus, deposit.paid);
+  return {
+    role: 'personal',
+    verifyStatus,
+    verify,
+    depositPaid: !!deposit.paid,
+    depositAmount: depositCfg.amount,
+    depositLabel: depositCfg.label,
+    canPublish: verifyStatus === 'approved' && deposit.paid,
+    nextStep,
+  };
+}
+
+function listServiceBooks() {
+  return read(KEYS.serviceBooks, []);
+}
+
+function addServiceBook(order) {
+  const list = listServiceBooks();
+  const row = { id: uid('sb'), status: '已预约', ...order, createdAt: new Date().toISOString() };
+  list.unshift(row);
+  write(KEYS.serviceBooks, list.slice(0, 50));
+  pushMessage('预约成功', `已预约「${order.merchantName}」`, 'order');
+  return row;
+}
+
+function getCityLocation() {
+  const loc = read(KEYS.cityLocation, null);
+  if (loc && loc.city) return loc;
+  const legacy = read(KEYS.city, '北京');
+  return {
+    city: legacy,
+    province: '',
+    lat: 0,
+    lng: 0,
+    auto: false,
+    updatedAt: '',
+  };
+}
+
+function setCityLocation(location) {
+  const row = {
+    city: location.city || '北京',
+    province: location.province || '',
+    lat: location.lat || 0,
+    lng: location.lng || 0,
+    auto: !!location.auto,
+    updatedAt: location.updatedAt || new Date().toISOString(),
+  };
+  write(KEYS.cityLocation, row);
+  write(KEYS.city, row.city);
+  return row;
+}
+
+function getCity() {
+  return getCityLocation().city || '北京';
+}
+
+function setCity(city) {
+  const prev = getCityLocation();
+  return setCityLocation({ ...prev, city, auto: false });
+}
+
 module.exports = {
   KEYS,
   listPets,
@@ -293,6 +633,7 @@ module.exports = {
   isFollowed,
   toggleFollow,
   listChatThreads,
+  ensureChatThread,
   getChatMessages,
   addChatMessage,
   markThreadRead,
@@ -300,4 +641,30 @@ module.exports = {
   markMessagesRead,
   countUnreadMessages,
   pushMessage,
+  listBuddyPosts,
+  addBuddyPost,
+  getBuddyPost,
+  listLocalPosts,
+  addLocalPost,
+  listMapPoints,
+  addMapPoint,
+  listMyEvents,
+  addMyEvent,
+  getMerchantApply,
+  submitMerchantApply,
+  getIdentityVerify,
+  submitIdentityVerify,
+  getEventDeposit,
+  payEventDeposit,
+  mockApproveQualify,
+  getEventPublishQualify,
+  listCircleMessages,
+  addCircleMessage,
+  getCircleLastMessage,
+  listServiceBooks,
+  addServiceBook,
+  getCity,
+  setCity,
+  getCityLocation,
+  setCityLocation,
 };

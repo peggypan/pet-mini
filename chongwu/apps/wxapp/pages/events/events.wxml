@@ -1,0 +1,22 @@
+<view class="page">
+  <view class="city-bar" bindtap="onCityTap">
+    <text class="city-bar-icon">📍</text>
+    <text class="city-bar-text">{{city}} · 同城活动</text>
+    <text class="city-bar-arrow">切换 ›</text>
+  </view>
+
+  <view class="actions">
+    <button class="act-btn" bindtap="onPublishEvent">发起活动</button>
+    <button class="act-btn outline" bindtap="onMyEvents">我的活动</button>
+  </view>
+
+  <view class="event-card" wx:for="{{events}}" wx:key="id" bindtap="onEventTap" data-id="{{item.id}}">
+    <image class="cover" src="{{item.cover}}" mode="aspectFill"></image>
+    <view class="body">
+      <text class="source">{{item.sourceText}}</text>
+      <text class="title">{{item.title}}</text>
+      <text class="meta">{{item.time}} · {{item.place}}</text>
+      <text class="meta">{{item.fee}} · 剩余{{item.remain}}名额</text>
+    </view>
+  </view>
+</view>

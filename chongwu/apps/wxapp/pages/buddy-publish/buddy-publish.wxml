@@ -1,0 +1,69 @@
+<view class="page">
+  <view class="card">
+    <text class="label">搭子类型</text>
+    <picker range="{{buddyTypes}}" bindchange="onTypeChange">
+      <view class="picker">{{buddyType}}</view>
+    </picker>
+
+    <text class="label">期望时间</text>
+    <view class="time-row">
+      <picker class="time-picker-wrap" mode="date" value="{{expectDate}}" start="{{minDate}}" bindchange="onExpectDateChange">
+        <view class="picker time-picker {{expectDate ? '' : 'is-placeholder'}}">
+          {{expectDateLabel || '选择日期'}}
+        </view>
+      </picker>
+      <picker class="time-picker-wrap" mode="time" value="{{expectTimeValue}}" bindchange="onExpectTimeChange">
+        <view class="picker time-picker {{expectTimeValue ? '' : 'is-placeholder'}}">
+          {{expectTimeValue || '选择时间'}}
+        </view>
+      </picker>
+    </view>
+    <text class="time-preview" wx:if="{{expectTime}}">已选：{{expectTime}}</text>
+
+    <text class="label">期望地点</text>
+    <input placeholder="如：朝阳公园" value="{{expectPlace}}" data-field="expectPlace" bindinput="onInput" />
+
+    <text class="label">需求描述 *</text>
+    <textarea placeholder="描述你的搭子需求、宠物情况等" value="{{desc}}" data-field="desc" bindinput="onInput" maxlength="300"></textarea>
+
+    <text class="label">宠物相册</text>
+    <text class="label-tip">上传图片或视频，展示宠物状态（最多 9 个，视频 ≤60 秒）</text>
+    <view class="tool-row">
+      <button class="tool-btn" bindtap="onChooseImage">📷 上传图片</button>
+      <button class="tool-btn" bindtap="onChooseVideo">🎬 上传视频</button>
+    </view>
+
+    <view class="media-grid" wx:if="{{mediaList.length}}">
+      <view
+        class="media-item"
+        wx:for="{{mediaList}}"
+        wx:key="index"
+        data-index="{{index}}"
+        bindtap="onPreviewMedia"
+      >
+        <image
+          class="media-thumb"
+          src="{{item.type === 'image' ? item.url : (item.poster || item.url)}}"
+          mode="aspectFill"
+        ></image>
+        <view class="video-badge" wx:if="{{item.type === 'video'}}">
+          <text class="video-icon">▶</text>
+          <text class="video-dur" wx:if="{{item.duration}}">{{item.duration}}s</text>
+        </view>
+        <view class="remove-media" data-index="{{index}}" catchtap="onRemoveMedia">×</view>
+      </view>
+    </view>
+
+    <view class="media-empty" wx:else bindtap="onChooseImage">
+      <text class="empty-icon">📷</text>
+      <text class="empty-text">点击上传宠物图片或视频</text>
+    </view>
+
+    <view class="switch-row">
+      <text>接受陌生人报名</text>
+      <switch checked="{{openSignup}}" bindchange="onSwitch" color="#4CE600" />
+    </view>
+
+    <button class="submit" bindtap="onSubmit">提交审核上架</button>
+  </view>
+</view>

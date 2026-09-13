@@ -3,5 +3,8 @@
   "navigationBarBackgroundColor": "#EEF4FA",
   "navigationBarTextStyle": "black",
   "backgroundColor": "#EEF4FA",
-  "enableShareAppMessage": true
+  "enableShareAppMessage": true,
+  "usingComponents": {
+    "chat-composer": "/components/chat-composer/chat-composer"
+  }
 }

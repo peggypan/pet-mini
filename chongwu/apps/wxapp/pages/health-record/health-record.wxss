@@ -228,13 +228,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  line-height: 88rpx;
 }
 
 .field-input {
-  display: flex;
-  align-items: center;
-  line-height: 88rpx;
+  padding: 26rpx 24rpx;
+  line-height: 36rpx;
 }
 
 .field-textarea {

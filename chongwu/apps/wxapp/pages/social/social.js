@@ -1,5 +1,6 @@
 const { MOCK_SOCIAL } = require('../../utils/mock');
 const store = require('../../utils/store');
+const { buildFeaturedCommunities } = require('../../utils/circle-community');
 
 function normalizePostMedia(post) {
   const mediaList = Array.isArray(post.mediaList) ? post.mediaList.slice() : [];
@@ -8,166 +9,108 @@ function normalizePostMedia(post) {
     const fallbackImages = images.length ? images : [post.image].filter(Boolean);
     fallbackImages.forEach((url) => mediaList.push({ type: 'image', url }));
   }
-  return {
-    ...post,
-    mediaList,
-    imageCount: mediaList.filter((m) => m.type === 'image').length,
-    videoCount: mediaList.filter((m) => m.type === 'video').length,
-  };
-}
-
-function getInviteCode() {
-  let code = wx.getStorageSync('my_invite_code');
-  if (!code) {
-    code = `CTT${Date.now().toString(36).toUpperCase().slice(-6)}`;
-    wx.setStorageSync('my_invite_code', code);
-  }
-  return code;
+  return { ...post, mediaList };
 }
 
 Page({
   data: {
-    socialActions: MOCK_SOCIAL.actions,
-    socialFilters: MOCK_SOCIAL.filters,
-    socialFilter: 'all',
-    socialEvents: MOCK_SOCIAL.events.slice(),
-    displayEvents: MOCK_SOCIAL.events.slice(),
-    socialPosts: [],
+    innerTab: 'all',
+    innerTabs: MOCK_SOCIAL.innerTabs,
+    circles: MOCK_SOCIAL.circles,
+    topics: MOCK_SOCIAL.topics,
+    qaList: MOCK_SOCIAL.qaList,
+    featuredCommunities: [],
+    posts: [],
     displayPosts: [],
-    invite: MOCK_SOCIAL.invite,
-    unreadCount: 0,
-  },
-
-  onLoad(options) {
-    if (options.filter) this.setData({ socialFilter: options.filter });
-    this.reloadSocialPosts();
+    city: '北京',
   },
 
   onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({ selected: 0 });
+      this.getTabBar().setData({ selected: 2 });
     }
-    this.reloadSocialPosts();
-    this.setData({ unreadCount: store.countUnreadMessages() });
+    const pendingTab = wx.getStorageSync('social_tab');
+    if (pendingTab) {
+      wx.removeStorageSync('social_tab');
+      this.setData({ innerTab: pendingTab });
+    }
+    this.setData({ city: store.getCity() });
+    this.reloadPosts();
+    this.reloadFeatured();
   },
 
-  reloadSocialPosts() {
-    const local = store.listSocialPosts();
-    const mock = MOCK_SOCIAL.posts.map((p) => {
-      const override = store.getSocialOverride(p.id);
-      return normalizePostMedia({ ...p, ...(override || {}) });
-    });
-    const socialPosts = [...local.map((p) => normalizePostMedia(p)), ...mock];
-    const filtered = this.applySocialFilter(this.data.socialFilter || 'all', socialPosts);
-    this.setData({ socialPosts, ...filtered });
+  onCityTap() {
+    wx.navigateTo({ url: '/pages/city-picker/city-picker' });
   },
 
-  applySocialFilter(filterId, posts) {
-    const socialPosts = posts || this.data.socialPosts;
-    const events = this.data.socialEvents;
-    let displayPosts = socialPosts;
-    let displayEvents = events;
-
-    if (filterId === 'cat' || filterId === 'dog' || filterId === 'other') {
-      displayPosts = socialPosts.filter((p) => p.zone === filterId);
-      displayEvents = events.filter((e) => e.zone === filterId);
-    } else if (filterId === 'event') {
-      displayPosts = [];
-      displayEvents = events;
-    }
-
-    return { displayPosts, displayEvents };
+  reloadPosts() {
+    const local = store.listSocialPosts().map((p) => normalizePostMedia(p));
+    const mock = MOCK_SOCIAL.posts.map((p) => normalizePostMedia({ ...p, ...(store.getSocialOverride(p.id) || {}) }));
+    const posts = [...local, ...mock];
+    this.setData({ posts, displayPosts: posts });
   },
 
-  onSocialFilter(e) {
-    const { id } = e.currentTarget.dataset;
-    this.setData({ socialFilter: id, ...this.applySocialFilter(id) });
+  reloadFeatured() {
+    const featuredCommunities = buildFeaturedCommunities((circleId) => store.getCircleLastMessage(circleId));
+    this.setData({ featuredCommunities });
   },
 
-  onSocialAction(e) {
-    const { type } = e.currentTarget.dataset;
-    if (type === 'post') {
-      wx.navigateTo({ url: '/pages/social-post/social-post' });
-      return;
-    }
-    if (type === 'event') {
-      this.setData({ socialFilter: 'event', ...this.applySocialFilter('event') });
-      return;
-    }
-    if (type === 'nearby') {
-      wx.switchTab({ url: '/pages/discover/discover' });
-      return;
-    }
-    if (type === 'topic') {
-      wx.switchTab({ url: '/pages/discover/discover' });
-    }
+  onInnerTab(e) {
+    this.setData({ innerTab: e.currentTarget.dataset.id });
   },
 
   onCreatePost() {
     wx.navigateTo({ url: '/pages/social-post/social-post' });
   },
 
-  onMessagesTap() {
-    wx.switchTab({ url: '/pages/messages/messages' });
-  },
-
   onPostTap(e) {
-    wx.navigateTo({ url: `/pages/social-detail/social-detail?id=${e.currentTarget.dataset.id}` });
-  },
-
-  onCommentTap(e) {
     wx.navigateTo({ url: `/pages/social-detail/social-detail?id=${e.currentTarget.dataset.id}` });
   },
 
   onLikeTap(e) {
     const { id } = e.currentTarget.dataset;
-    const socialPosts = this.data.socialPosts.map((p) => {
+    const posts = this.data.posts.map((p) => {
       if (p.id !== id) return p;
       const liked = !p.liked;
       const likes = liked ? (p.likes || 0) + 1 : Math.max(0, (p.likes || 0) - 1);
-      const patch = { liked, likes };
-      store.updateSocialPost(id, patch);
-      return { ...p, ...patch };
+      store.updateSocialPost(id, { liked, likes });
+      return { ...p, liked, likes };
     });
-    this.setData({
-      socialPosts,
-      ...this.applySocialFilter(this.data.socialFilter, socialPosts),
-    });
+    this.setData({ posts, displayPosts: posts });
   },
 
-  onShareTap(e) {
-    const { id } = e.currentTarget.dataset;
-    const socialPosts = this.data.socialPosts.map((p) => {
-      if (p.id !== id) return p;
-      const shares = (p.shares || 0) + 1;
-      store.updateSocialPost(id, { shares });
-      return { ...p, shares };
-    });
-    this.setData({
-      socialPosts,
-      ...this.applySocialFilter(this.data.socialFilter, socialPosts),
-    });
+  onSharePost(e) {
+    const id = e.currentTarget.dataset.id;
+    const post = this.data.posts.find((p) => p.id === id);
+    if (post) this.setData({ sharePost: post });
   },
 
-  onEventTap(e) {
-    wx.navigateTo({ url: `/pages/event-detail/event-detail?id=${e.currentTarget.dataset.id}` });
+  onEnterCircle(e) {
+    const id = e.currentTarget.dataset.id;
+    wx.navigateTo({ url: `/pages/circle-community/circle-community?id=${id}` });
   },
 
-  onInviteTap() {
-    wx.showModal({
-      title: this.data.invite.rewardTitle,
-      content: this.data.invite.rewardDesc,
-      confirmText: '去分享',
-      showCancel: false,
-    });
+  onTopicTap(e) {
+    const topic = e.currentTarget.dataset.name;
+    wx.navigateTo({ url: `/pages/social-post/social-post?topic=${encodeURIComponent(topic)}` });
+  },
+
+  onCircleTap(e) {
+    this.onEnterCircle(e);
   },
 
   onShareAppMessage() {
-    const invite = getInviteCode();
-    const { invite: inviteCfg } = this.data;
+    const { sharePost } = this.data;
+    if (sharePost) {
+      const topic = sharePost.topic ? `${sharePost.topic} ` : '';
+      return {
+        title: `${topic}${sharePost.userName}：${(sharePost.content || '').slice(0, 28)}`,
+        path: `/pages/social-detail/social-detail?id=${sharePost.id}`,
+      };
+    }
     return {
-      title: inviteCfg.shareTitle,
-      path: `/pages/social/social?invite=${invite}`,
+      title: '宠头头 · 社区精选',
+      path: '/pages/social/social',
     };
   },
 });

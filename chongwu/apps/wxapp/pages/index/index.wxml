@@ -63,7 +63,7 @@
 
     <view class="social-entry-actions">
       <view class="entry-chip" bindtap="onCreatePost">发帖</view>
-      <view class="entry-chip" bindtap="onLostTap">寻宠招领</view>
+      <view class="entry-chip" bindtap="onLostTap">寻宠·领养</view>
       <view class="entry-chip" bindtap="goSocialEvents">同城活动</view>
     </view>
 

@@ -1,95 +1,82 @@
 <view class="page">
-  <view class="top-bar">
-    <view class="brand">
-      <text class="brand-name">宠头头</text>
-      <text class="brand-tag">借宠交友 · 同城广场</text>
-    </view>
-    <view class="msg-btn" bindtap="onMessagesTap">
-      <text>💬</text>
-      <view class="badge" wx:if="{{unreadCount > 0}}">{{unreadCount > 99 ? '99+' : unreadCount}}</view>
-    </view>
+  <view class="city-bar" bindtap="onCityTap">
+    <text class="city-bar-icon">📍</text>
+    <text class="city-bar-text">{{city}} · 宠友圈</text>
+    <text class="city-bar-arrow">切换 ›</text>
   </view>
-
-  <view class="invite-card" bindtap="onInviteTap">
-    <view class="invite-text">
-      <text class="invite-title">{{invite.rewardTitle}}</text>
-      <text class="invite-desc">{{invite.rewardDesc}}</text>
-    </view>
-    <button class="invite-btn" open-type="share">分享</button>
-  </view>
-
-  <view class="action-grid">
-    <view
-      class="action-item"
-      wx:for="{{socialActions}}"
-      wx:key="id"
-      bindtap="onSocialAction"
-      data-type="{{item.id}}"
-    >
-      <view class="action-icon">{{item.icon}}</view>
-      <text class="action-name">{{item.name}}</text>
-      <text class="action-desc">{{item.desc}}</text>
-    </view>
-  </view>
-
-  <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="filter-scroll">
-    <view
-      class="filter-pill {{socialFilter === item.id ? 'on' : ''}}"
-      wx:for="{{socialFilters}}"
-      wx:key="id"
-      bindtap="onSocialFilter"
-      data-id="{{item.id}}"
-    >{{item.name}}</view>
+  <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="tabs">
+    <view class="tab {{innerTab === item.id ? 'on' : ''}}" wx:for="{{innerTabs}}" wx:key="id" data-id="{{item.id}}" bindtap="onInnerTab">{{item.name}}</view>
   </scroll-view>
 
-  <scroll-view
-    scroll-x
-    enhanced
-    show-scrollbar="{{false}}"
-    class="event-scroll"
-    wx:if="{{displayEvents.length && socialFilter !== 'cat' && socialFilter !== 'dog' && socialFilter !== 'other'}}"
-  >
-    <view class="event-card" wx:for="{{displayEvents}}" wx:key="id" bindtap="onEventTap" data-id="{{item.id}}">
-      <image class="event-cover" src="{{item.cover}}" mode="aspectFill"></image>
-      <view class="event-body">
-        <text class="event-tag">{{item.tag}}</text>
-        <text class="event-title">{{item.title}}</text>
-        <text class="event-meta">{{item.place}} · {{item.seats}}</text>
-      </view>
-    </view>
-  </scroll-view>
-
-  <view class="feed">
+  <view wx:if="{{innerTab === 'all'}}">
     <view class="post-card" wx:for="{{displayPosts}}" wx:key="id" bindtap="onPostTap" data-id="{{item.id}}">
-      <view class="post-head">
-        <image class="post-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
-        <view class="post-user">
-          <text class="post-name">{{item.userName}} · {{item.petName}}</text>
-          <text class="post-meta">{{item.time}}<text wx:if="{{item.topic}}"> · {{item.topic}}</text></text>
+      <view class="head">
+        <image class="avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+        <view class="user">
+          <text class="name">{{item.userName}} · {{item.petName}}</text>
+          <text class="meta">{{item.time}} · {{item.location || '同城'}}</text>
         </view>
-        <text class="essence" wx:if="{{item.essence}}">精华</text>
       </view>
-      <text class="post-content">{{item.content}}</text>
-      <image class="post-image" src="{{item.mediaList[0].url}}" mode="aspectFill" wx:if="{{item.mediaList.length && item.mediaList[0].type === 'image'}}"></image>
-      <view class="post-video-wrap" wx:if="{{item.mediaList.length && item.mediaList[0].type === 'video'}}">
-        <video class="post-video" src="{{item.mediaList[0].url}}" show-center-play-btn objectFit="cover"></video>
-      </view>
-      <view class="post-footer">
-        <view class="post-btn" catchtap="onLikeTap" data-id="{{item.id}}">
-          <text>{{item.liked ? '❤️' : '♡'}}</text>
-          <text class="num">{{item.likes}}</text>
-        </view>
-        <view class="post-btn" catchtap="onCommentTap" data-id="{{item.id}}">
-          <text>💬</text>
-          <text class="num">{{item.comments}}</text>
-        </view>
-        <button class="post-btn share-btn" open-type="share" catchtap="onShareTap" data-id="{{item.id}}">
-          <text>↗ {{item.shares || 0}}</text>
-        </button>
+      <text class="topic" wx:if="{{item.topic}}">{{item.topic}}</text>
+      <text class="content">{{item.content}}</text>
+      <image class="cover" wx:if="{{item.mediaList.length && item.mediaList[0].type === 'image'}}" src="{{item.mediaList[0].url}}" mode="aspectFill"></image>
+      <view class="footer">
+        <view class="btn" catchtap="onLikeTap" data-id="{{item.id}}">{{item.liked ? '❤️' : '♡'}} {{item.likes}}</view>
+        <view class="btn">💬 {{item.comments}}</view>
+        <button class="btn share-btn" open-type="share" catchtap="onSharePost" data-id="{{item.id}}">↗ 分享</button>
       </view>
     </view>
-    <view class="empty" wx:if="{{displayPosts.length === 0}}">
-      <text>这里还没有动态，发一条让毛孩子露个脸吧～</text>
+  </view>
+
+  <view wx:if="{{innerTab === 'featured'}}">
+    <view class="featured-card" wx:for="{{featuredCommunities}}" wx:key="id" bindtap="onEnterCircle" data-id="{{item.id}}">
+      <view class="featured-head">
+        <text class="featured-icon">{{item.icon}}</text>
+        <view class="featured-info">
+          <text class="featured-name">{{item.name}}</text>
+          <text class="featured-meta">{{item.members}} 成员 · {{item.active}}</text>
+        </view>
+        <text class="featured-enter">进入 ›</text>
+      </view>
+      <text class="featured-topic">{{item.lastTopic}}</text>
+      <text class="featured-preview">{{item.lastPreview}}</text>
+      <view class="featured-images {{item.previewImages.length === 1 ? 'single' : ''}}" wx:if="{{item.previewImages.length}}">
+        <image
+          class="featured-img"
+          wx:for="{{item.previewImages}}"
+          wx:for-item="imgUrl"
+          wx:key="*this"
+          src="{{imgUrl}}"
+          mode="aspectFill"
+        ></image>
+      </view>
+      <view class="featured-tags">
+        <text class="featured-tag">💬 私聊</text>
+        <text class="featured-tag">↗ 分享</text>
+        <text class="featured-tag"># 话题</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{innerTab === 'circle'}}" class="grid">
+    <view class="circle-card" wx:for="{{circles}}" wx:key="id" bindtap="onCircleTap" data-id="{{item.id}}">
+      <text class="icon">{{item.icon}}</text>
+      <text class="c-name">{{item.name}}</text>
+      <text class="c-num">{{item.members}} 成员</text>
+    </view>
+  </view>
+
+  <view wx:if="{{innerTab === 'topic'}}">
+    <view class="topic-row" wx:for="{{topics}}" wx:key="id" bindtap="onTopicTap" data-name="{{item.name}}">
+      <text class="t-name">{{item.name}}</text>
+      <text class="t-num">{{item.posts}} 讨论</text>
+    </view>
+  </view>
+
+  <view wx:if="{{innerTab === 'qa'}}">
+    <view class="qa-card" wx:for="{{qaList}}" wx:key="id">
+      <text class="q-title">{{item.title}}</text>
+      <text class="q-meta">{{item.userName}} · {{item.answers}} 回答</text>
     </view>
   </view>
 

@@ -1,0 +1,37 @@
+<view class="page">
+  <view class="amap-badge" wx:if="{{amapReady}}">高德地图</view>
+  <view class="amap-badge mock" wx:else>演示模式 · 配置 Key 后启用高德</view>
+
+  <map
+    id="friendlyMap"
+    class="map"
+    longitude="{{longitude}}"
+    latitude="{{latitude}}"
+    scale="{{scale}}"
+    markers="{{markers}}"
+    show-location
+    enable-zoom
+    enable-scroll
+    bindmarkertap="onMarkerTap"
+  ></map>
+
+  <view class="toolbar">
+    <view class="tool-btn" bindtap="onRelocate">📍 我的位置</view>
+    <view class="tool-btn primary" bindtap="onSubmitPoint">＋ 新增点位</view>
+  </view>
+
+  <view class="point-card" wx:if="{{selectedPoint}}">
+    <view class="card-head">
+      <text class="point-name">{{selectedPoint.name}}</text>
+      <text class="point-close" bindtap="onCloseCard">×</text>
+    </view>
+    <text class="point-type">{{selectedPoint.type}}</text>
+    <text class="point-addr">{{selectedPoint.address}}</text>
+    <text class="point-allow {{selectedPoint.allowPet ? 'ok' : 'no'}}">
+      {{selectedPoint.allowPet ? '✓ 允许携宠' : '✗ 禁止携宠'}}
+    </text>
+    <button class="nav-btn" bindtap="onNav">高德导航</button>
+  </view>
+
+  <view class="loading" wx:if="{{loading}}">加载地图中…</view>
+</view>

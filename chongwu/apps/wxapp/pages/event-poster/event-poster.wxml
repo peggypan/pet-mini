@@ -1,0 +1,55 @@
+<view class="page">
+  <view class="head" wx:if="{{event}}">
+    <text class="head-title">{{event.title}}</text>
+    <text class="head-sub">已自动生成 3 张不同风格海报，长按可预览大图</text>
+  </view>
+
+  <view class="loading" wx:if="{{generating}}">
+    <view class="loading-dot"></view>
+    <text>正在根据活动内容生成海报…</text>
+  </view>
+
+  <view class="error" wx:elif="{{error}}">
+    <text>{{error}}</text>
+    <button class="retry-btn" bindtap="onRetry">重新生成</button>
+  </view>
+
+  <block wx:else>
+    <swiper
+      class="poster-swiper"
+      circular
+      indicator-dots
+      indicator-color="rgba(0,0,0,0.15)"
+      indicator-active-color="#4CE600"
+      bindchange="onSwiperChange"
+    >
+      <swiper-item wx:for="{{posters}}" wx:key="id">
+        <view class="poster-wrap">
+          <image
+            class="poster-img"
+            src="{{item.url}}"
+            mode="widthFix"
+            bindtap="onPreview"
+            show-menu-by-longpress
+          ></image>
+          <text class="style-tag">{{item.name}}</text>
+        </view>
+      </swiper-item>
+    </swiper>
+
+    <view class="tips">
+      <text>· 海报含小程序码，好友扫码直达活动详情</text>
+      <text>· 左右滑动切换清新绿野 / 杂志封面 / 萌宠气泡</text>
+    </view>
+
+    <view class="actions">
+      <button class="btn-secondary" bindtap="onPreview">预览大图</button>
+      <button class="btn-primary" bindtap="onSave">保存当前海报</button>
+      <button class="btn-share" open-type="share">分享给好友</button>
+    </view>
+  </block>
+
+  <canvas type="2d" id="posterCanvas0" class="hidden-canvas"></canvas>
+  <canvas type="2d" id="posterCanvas1" class="hidden-canvas"></canvas>
+  <canvas type="2d" id="posterCanvas2" class="hidden-canvas"></canvas>
+</view>

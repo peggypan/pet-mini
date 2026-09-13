@@ -231,7 +231,8 @@
 
 .form-input {
   height: 88rpx;
-  line-height: 48rpx;
+  padding: 26rpx 24rpx;
+  line-height: 36rpx;
 }
 
 .form-textarea {

@@ -1,5 +1,6 @@
 const api = require('../../utils/request');
 const store = require('../../utils/store');
+const { chooseMedia: chooseMediaSafe } = require('../../utils/choose-media');
 
 const CONDITION_MAP = ['全新', '九成新', '轻微使用', '明显使用'];
 const ICON_POOL = ['👕', '☕', '📦', '🦴', '🎾', '🧴', '🏠', '💊'];
@@ -117,45 +118,36 @@ Page({
   },
 
   doChooseImage(remain) {
-    const chooseMedia = () => {
-      wx.chooseMedia({
-        count: remain,
-        mediaType: ['image'],
-        sourceType: ['album', 'camera'],
-        camera: 'back',
-        sizeType: ['compressed'],
-        success: (res) => {
-          console.log('选择图片成功:', res);
-          const newImages = res.tempFiles.map((file) => file.tempFilePath);
-          if (newImages.length === 0) {
-            wx.showToast({ title: '未选择图片', icon: 'none' });
-            return;
-          }
-          this.setData({ images: [...this.data.images, ...newImages] });
-        },
-        fail: (err) => {
-          console.error('选择图片失败:', err);
-          // 用户取消选择时不显示错误
-          if (err.errMsg && (err.errMsg.includes('cancel') || err.errMsg.includes('fail'))) {
-            return;
-          }
-          // 检查是否是权限问题
-          if (err.errMsg && err.errMsg.includes('permission')) {
-            this.showPermissionGuide();
-          } else {
-            // 尝试使用旧版 API
-            this.fallbackChooseImage(remain);
-          }
-        },
-      });
-    };
-
-    // 检查是否支持 chooseMedia
-    if (wx.chooseMedia) {
-      chooseMedia();
-    } else {
+    if (!wx.chooseMedia) {
       this.fallbackChooseImage(remain);
+      return;
     }
+    chooseMediaSafe({
+      count: remain,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      camera: 'back',
+      sizeType: ['compressed'],
+      success: (res) => {
+        const newImages = (res.tempFiles || []).map((file) => file.tempFilePath);
+        if (newImages.length === 0) {
+          wx.showToast({ title: '未选择图片', icon: 'none' });
+          return;
+        }
+        this.setData({ images: [...this.data.images, ...newImages] });
+      },
+      fail: (err) => {
+        const msg = (err && err.errMsg) || '';
+        if (msg.includes('cancel')) return;
+        if (msg.includes('permission')) {
+          this.showPermissionGuide();
+          return;
+        }
+        if (!msg.includes('privacy agreement')) {
+          this.fallbackChooseImage(remain);
+        }
+      },
+    }).catch(() => {});
   },
 
   // 降级使用旧版 API

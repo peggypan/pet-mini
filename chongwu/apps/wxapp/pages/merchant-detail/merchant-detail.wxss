@@ -1,0 +1,9 @@
+page { background: #F5F5F5; }
+.cover { width: 100%; height: 360rpx; }
+.card { margin: -32rpx 28rpx 0; padding: 28rpx; background: #fff; border-radius: 24rpx; position: relative; }
+.name { display: block; font-size: 34rpx; font-weight: 800; color: #1A1A1A; margin-bottom: 8rpx; }
+.cat, .rating, .desc { display: block; font-size: 24rpx; color: #666666; margin-bottom: 8rpx; line-height: 1.5; }
+.tags { display: flex; gap: 8rpx; margin: 12rpx 0 20rpx; flex-wrap: wrap; }
+.tag { font-size: 20rpx; color: #4CE600; background: rgba(197, 255, 74, 0.25); padding: 4rpx 12rpx; border-radius: 8rpx; }
+.book { background: linear-gradient(135deg, #D4FF00, #4CE600); color: #1A1A1A; border-radius: 44rpx; border: none; font-size: 28rpx; font-weight: 700; box-shadow: 0 6rpx 20rpx rgba(76, 230, 0, 0.3); }
+.book::after { border: none; }

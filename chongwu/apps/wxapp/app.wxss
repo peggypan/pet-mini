@@ -1,18 +1,24 @@
 page {
-  --primary: #5BBF88;
-  --primary-light: #A7E6C3;
-  --primary-dark: #3D8F66;
-  --primary-bg: rgba(91, 191, 136, 0.14);
+  --primary: #4CE600;
+  --primary-bright: #C5FF4A;
+  --primary-mint: #61E0B1;
+  --primary-light: #D4FF00;
+  --primary-dark: #2DB300;
+  --primary-bg: rgba(76, 230, 0, 0.12);
+  --primary-bg-soft: rgba(197, 255, 74, 0.18);
   --secondary: #FFB87A;
-  --cream: #F7FAF5;
-  --text-primary: #2D4A38;
-  --text-secondary: #6B8575;
-  --text-muted: #9BA89E;
-  --bg-primary: #F7FAF5;
+  --cream: #F5F5F5;
+  --text-primary: #1A1A1A;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+  --bg-primary: #F5F5F5;
   --bg-white: #FFFFFF;
   --bg-card: #FFFFFF;
-  --border-color: #EAF0EB;
-  --shadow-soft: 0 8rpx 28rpx rgba(91, 140, 110, 0.08);
+  --bg-gradient: linear-gradient(180deg, #E8F8EF 0%, #F5F5F5 360rpx);
+  --border-color: #F0F0F0;
+  --shadow-soft: 0 4rpx 24rpx rgba(0, 0, 0, 0.04);
+  --shadow-card: 0 8rpx 32rpx rgba(0, 0, 0, 0.06);
+  --shadow-green: 0 8rpx 28rpx rgba(76, 230, 0, 0.28);
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-primary);
@@ -20,6 +26,34 @@ page {
 
 page::-webkit-scrollbar {
   display: none;
+}
+
+.city-bar {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 20rpx;
+  margin-bottom: 16rpx;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 999rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+}
+
+.city-bar-icon {
+  font-size: 24rpx;
+  margin-right: 8rpx;
+}
+
+.city-bar-text {
+  flex: 1;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #1A1A1A;
+}
+
+.city-bar-arrow {
+  font-size: 22rpx;
+  color: #2DB300;
+  font-weight: 600;
 }
 
 .container {
@@ -30,24 +64,24 @@ page::-webkit-scrollbar {
 
 .card {
   background: var(--bg-card);
-  border-radius: 28rpx;
+  border-radius: 32rpx;
   padding: 32rpx;
   margin-bottom: 24rpx;
   box-shadow: var(--shadow-soft);
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-bright) 0%, var(--primary) 100%);
+  color: #1A1A1A;
   border-radius: 56rpx;
   padding: 28rpx 56rpx;
   font-size: 30rpx;
-  font-weight: 500;
+  font-weight: 600;
   border: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8rpx 24rpx rgba(111, 207, 151, 0.35);
+  box-shadow: var(--shadow-green);
   line-height: 1;
   height: auto;
 }
@@ -62,9 +96,9 @@ page::-webkit-scrollbar {
 }
 
 .btn-secondary {
-  background: var(--bg-warm);
-  color: var(--primary-dark);
-  border: 2rpx solid var(--primary);
+  background: var(--bg-white);
+  color: var(--text-primary);
+  border: 2rpx solid var(--border-color);
   border-radius: 56rpx;
   padding: 26rpx 52rpx;
   font-size: 30rpx;
@@ -80,12 +114,14 @@ page::-webkit-scrollbar {
   border: none;
 }
 
-/* Fix button text alignment across all buttons */
 button {
   display: flex;
   align-items: center;
   justify-content: center;
-  line-height: 1;
+  line-height: 1.4;
+  padding: 0;
+  box-sizing: border-box;
+  overflow: visible;
 }
 
 button::after {
@@ -93,13 +129,14 @@ button::after {
 }
 
 .btn-small {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-bright) 0%, var(--primary) 100%);
+  color: #1A1A1A;
   border-radius: 36rpx;
   padding: 14rpx 28rpx;
   font-size: 24rpx;
+  font-weight: 600;
   border: none;
-  box-shadow: 0 4rpx 12rpx rgba(111, 207, 151, 0.3);
+  box-shadow: var(--shadow-green);
 }
 
 .btn-small::after {
@@ -107,15 +144,11 @@ button::after {
 }
 
 .text-primary {
-  color: var(--primary);
+  color: var(--primary-dark);
 }
 
 .text-secondary {
   color: var(--secondary);
-}
-
-.text-danger {
-  color: var(--danger);
 }
 
 .text-muted {
@@ -154,9 +187,9 @@ button::after {
   align-items: center;
   justify-content: center;
   padding: 120rpx 60rpx;
-  background: var(--bg-warm);
-  border-radius: 28rpx;
-  border: 2rpx dashed var(--border-light);
+  background: var(--bg-white);
+  border-radius: 32rpx;
+  border: 2rpx dashed var(--border-color);
 }
 
 .empty-icon {
@@ -177,37 +210,28 @@ button::after {
 }
 
 .empty-action {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-bright) 0%, var(--primary) 100%);
+  color: #1A1A1A;
   border-radius: 56rpx;
   padding: 24rpx 48rpx;
   font-size: 28rpx;
+  font-weight: 600;
   margin-top: 32rpx;
-  box-shadow: 0 6rpx 20rpx rgba(111, 207, 151, 0.3);
+  box-shadow: var(--shadow-green);
 }
 
 .tag {
   display: inline-block;
-  padding: 8rpx 20rpx;
-  border-radius: 28rpx;
-  font-size: 24rpx;
-  background: var(--primary-bg);
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  background: var(--primary-bg-soft);
   color: var(--primary-dark);
-  font-weight: 500;
-}
-
-.tag-secondary {
-  background: var(--secondary-bg);
-  color: var(--secondary);
-}
-
-.tag-warm {
-  background: var(--accent-bg);
-  color: #E6A028;
+  font-weight: 600;
 }
 
 .badge {
-  background: var(--danger);
+  background: #FF4D4F;
   color: white;
   font-size: 20rpx;
   padding: 6rpx 14rpx;
@@ -235,13 +259,74 @@ button::after {
 .no-more {
   text-align: center;
   padding: 40rpx;
-  color: var(--text-light);
+  color: var(--text-muted);
   font-size: 24rpx;
 }
 
 .warm-card {
-  background: linear-gradient(135deg, #FFFEFB 0%, #F3FBF6 100%);
-  border-radius: 28rpx;
+  background: var(--bg-white);
+  border-radius: 32rpx;
   padding: 32rpx;
   box-shadow: var(--shadow-card);
+}
+
+/* 通用 Tab 下划线样式 */
+.tab-underline {
+  display: inline-block;
+  padding: 16rpx 28rpx 20rpx;
+  margin-right: 8rpx;
+  font-size: 28rpx;
+  color: var(--text-muted);
+  position: relative;
+  background: transparent;
+}
+
+.tab-underline.on {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.tab-underline.on::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 4rpx;
+  transform: translateX(-50%);
+  width: 48rpx;
+  height: 8rpx;
+  border-radius: 4rpx;
+  background: var(--primary-bright);
+}
+
+/* 表单控件基线 — 防止 input / picker 文字上下被裁切 */
+input {
+  box-sizing: border-box;
+  height: 88rpx;
+  min-height: 88rpx;
+  padding: 26rpx 24rpx;
+  font-size: 28rpx;
+  line-height: 36rpx;
+  color: var(--text-primary);
+}
+
+textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 160rpx;
+  height: auto;
+  padding: 20rpx 24rpx;
+  font-size: 28rpx;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.picker {
+  box-sizing: border-box;
+  min-height: 88rpx;
+  padding: 0 24rpx;
+  font-size: 28rpx;
+  display: flex;
+  align-items: center;
+  line-height: 1.5;
+  color: var(--text-primary);
 }

@@ -1,0 +1,16 @@
+page { background: #F5F5F5; }
+.page { padding: 24rpx 28rpx; }
+.card { padding: 28rpx; background: #fff; border-radius: 24rpx; }
+.label { display: block; font-size: 24rpx; color: #666666; margin: 14rpx 0 8rpx; }
+input, textarea, .picker {
+  width: 100%;
+  background: #F5F5F5;
+  border-radius: 14rpx;
+  box-sizing: border-box;
+}
+
+input, .picker { margin-bottom: 8rpx; }
+
+textarea { min-height: 160rpx; margin-bottom: 8rpx; }
+.submit { margin-top: 20rpx; background: linear-gradient(135deg, #D4FF00, #4CE600); color: #1A1A1A; border-radius: 44rpx; border: none; font-weight: 700; box-shadow: 0 6rpx 20rpx rgba(76, 230, 0, 0.3); }
+.submit::after { border: none; }

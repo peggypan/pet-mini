@@ -1,0 +1,268 @@
+page {
+  background: linear-gradient(180deg, #E8F8EF 0%, #F5F5F5 280rpx, #F5F5F5 100%);
+}
+
+.page {
+  padding: 20rpx 28rpx calc(160rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+.zone-tabs {
+  display: flex;
+  gap: 32rpx;
+  margin-bottom: 20rpx;
+  padding: 0 8rpx;
+}
+
+.zone-tab {
+  position: relative;
+  padding: 12rpx 4rpx 20rpx;
+  font-size: 30rpx;
+  color: #999999;
+  background: transparent;
+}
+
+.zone-tab.on {
+  color: #1A1A1A;
+  font-weight: 800;
+}
+
+.zone-tab.on::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 48rpx;
+  height: 8rpx;
+  border-radius: 4rpx;
+  background: #C5FF4A;
+}
+
+.match-tip {
+  padding: 16rpx 20rpx;
+  margin-bottom: 16rpx;
+  border-radius: 20rpx;
+  background: #FFF9E6;
+  font-size: 22rpx;
+  color: #996600;
+  line-height: 1.5;
+}
+
+.filter-scroll {
+  white-space: nowrap;
+  margin-bottom: 20rpx;
+}
+
+.filter {
+  display: inline-block;
+  padding: 12rpx 24rpx;
+  margin-right: 12rpx;
+  border-radius: 999rpx;
+  background: #FFFFFF;
+  font-size: 24rpx;
+  color: #666666;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.03);
+}
+
+.filter.on {
+  background: rgba(197, 255, 74, 0.35);
+  color: #1A1A1A;
+  font-weight: 700;
+}
+
+.card {
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+  background: #FFFFFF;
+  border-radius: 28rpx;
+  box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.04);
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.avatar {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  margin-right: 16rpx;
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #1A1A1A;
+}
+
+.meta {
+  font-size: 22rpx;
+  color: #999999;
+}
+
+.verified {
+  font-size: 20rpx;
+  color: #2DB300;
+  background: rgba(197, 255, 74, 0.25);
+  padding: 6rpx 14rpx;
+  border-radius: 8rpx;
+  font-weight: 600;
+}
+
+.pet-card {
+  padding: 16rpx;
+  margin-bottom: 14rpx;
+  border-radius: 16rpx;
+  background: #F5F5F5;
+}
+
+.pet-line {
+  display: block;
+  font-size: 24rpx;
+  color: #666666;
+  margin-bottom: 10rpx;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.tag {
+  font-size: 20rpx;
+  color: #2DB300;
+  background: rgba(197, 255, 74, 0.25);
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  font-weight: 600;
+}
+
+.desc {
+  display: block;
+  font-size: 28rpx;
+  color: #333333;
+  line-height: 1.6;
+  margin-bottom: 10rpx;
+}
+
+.media-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin-bottom: 10rpx;
+  align-items: center;
+}
+
+.media-row.single .media-thumb-wrap {
+  width: 100%;
+  height: 320rpx;
+}
+
+.media-thumb-wrap {
+  position: relative;
+  width: calc((100% - 20rpx) / 3);
+  height: 200rpx;
+  border-radius: 12rpx;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.media-thumb {
+  width: 100%;
+  height: 100%;
+  background: #E8F8EF;
+}
+
+.media-video-mask {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.media-video-tag {
+  font-size: 40rpx;
+  color: #FFFFFF;
+  line-height: 1;
+  margin-bottom: 6rpx;
+}
+
+.media-video-dur {
+  font-size: 20rpx;
+  color: #FFFFFF;
+  background: rgba(0, 0, 0, 0.45);
+  padding: 2rpx 10rpx;
+  border-radius: 999rpx;
+}
+
+.media-more {
+  width: 80rpx;
+  height: 160rpx;
+  border-radius: 12rpx;
+  background: #F5F5F5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.expect {
+  display: block;
+  font-size: 22rpx;
+  color: #999999;
+  margin-bottom: 10rpx;
+}
+
+.credit {
+  display: flex;
+  gap: 8rpx;
+  flex-wrap: wrap;
+}
+
+.credit-tag {
+  font-size: 20rpx;
+  color: #FF6B35;
+  background: rgba(255, 107, 53, 0.12);
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+}
+
+.empty {
+  padding: 80rpx;
+  text-align: center;
+  color: #999999;
+  font-size: 26rpx;
+}
+
+.fab {
+  position: fixed;
+  right: 32rpx;
+  bottom: calc(150rpx + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 36rpx;
+  height: 88rpx;
+  line-height: 1.4;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #D4FF00 0%, #4CE600 100%);
+  color: #1A1A1A;
+  font-size: 28rpx;
+  font-weight: 700;
+  box-shadow: 0 8rpx 28rpx rgba(76, 230, 0, 0.4);
+  z-index: 20;
+}

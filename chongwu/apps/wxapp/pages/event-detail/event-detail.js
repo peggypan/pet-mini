@@ -1,4 +1,5 @@
 const { findEvent } = require('../../utils/catalog');
+const { RISK_TIPS } = require('../../utils/mock');
 const store = require('../../utils/store');
 
 Page({
@@ -29,7 +30,36 @@ Page({
     this.setData({ signedUp: true });
   },
 
+  onSharePoster() {
+    const { event } = this.data;
+    if (!event) return;
+    wx.navigateTo({ url: `/pages/event-poster/event-poster?id=${event.id}` });
+  },
+
   onChatHost() {
-    wx.showToast({ title: '已通过活动群发起联系', icon: 'none' });
+    const { event } = this.data;
+    if (!event) return;
+    const peerId = event.hostId || `host_${event.id}`;
+    const peerName = encodeURIComponent(event.host || '主理人');
+    const petName = encodeURIComponent(event.hostPetName || '活动主理');
+    const avatar = encodeURIComponent(event.hostAvatar || '');
+    wx.showModal({
+      title: '联系主理人',
+      content: `将向「${event.host}」发起私信。${RISK_TIPS.meet}`,
+      confirmText: '发起私聊',
+      success: (res) => {
+        if (!res.confirm) return;
+        store.ensureChatThread({
+          id: `c_${peerId}`,
+          peerId,
+          peerName: event.host || '主理人',
+          petName: event.hostPetName || '活动主理',
+          avatar: event.hostAvatar || '',
+        });
+        wx.navigateTo({
+          url: `/pages/chat/chat?peerId=${peerId}&peerName=${peerName}&petName=${petName}&avatar=${avatar}`,
+        });
+      },
+    });
   },
 });

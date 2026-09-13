@@ -1,0 +1,157 @@
+page {
+  background: #F5F5F5;
+}
+
+.page {
+  padding: 24rpx 28rpx calc(32rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+.head {
+  margin-bottom: 24rpx;
+}
+
+.head-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 800;
+  color: #1A1A1A;
+  margin-bottom: 8rpx;
+}
+
+.head-sub {
+  display: block;
+  font-size: 24rpx;
+  color: #999999;
+  line-height: 1.5;
+}
+
+.loading,
+.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 520rpx;
+  color: #666666;
+  font-size: 28rpx;
+}
+
+.loading-dot {
+  width: 48rpx;
+  height: 48rpx;
+  margin-bottom: 20rpx;
+  border-radius: 50%;
+  border: 4rpx solid rgba(76, 230, 0, 0.25);
+  border-top-color: #4CE600;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.retry-btn {
+  margin-top: 24rpx;
+  background: linear-gradient(135deg, #D4FF00, #4CE600);
+  color: #1A1A1A;
+  border-radius: 999rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  border: none;
+}
+
+.retry-btn::after {
+  border: none;
+}
+
+.poster-swiper {
+  height: 980rpx;
+}
+
+.poster-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.poster-img {
+  width: 100%;
+  border-radius: 24rpx;
+  box-shadow: 0 12rpx 40rpx rgba(0, 0, 0, 0.12);
+  background: #FFFFFF;
+}
+
+.style-tag {
+  margin-top: 16rpx;
+  padding: 8rpx 24rpx;
+  border-radius: 999rpx;
+  background: rgba(76, 230, 0, 0.15);
+  color: #2DB300;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.tips {
+  margin: 20rpx 0 24rpx;
+  padding: 20rpx 24rpx;
+  background: #FFFFFF;
+  border-radius: 20rpx;
+}
+
+.tips text {
+  display: block;
+  font-size: 22rpx;
+  color: #999999;
+  line-height: 1.6;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-share {
+  margin: 0;
+  height: 88rpx;
+  padding: 0 24rpx;
+  border-radius: 44rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  border: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #D4FF00, #4CE600);
+  color: #1A1A1A;
+  box-shadow: 0 6rpx 20rpx rgba(76, 230, 0, 0.3);
+}
+
+.btn-secondary {
+  background: #FFFFFF;
+  color: #1A1A1A;
+}
+
+.btn-share {
+  background: #1A1A1A;
+  color: #FFFFFF;
+}
+
+.btn-primary::after,
+.btn-secondary::after,
+.btn-share::after {
+  border: none;
+}
+
+.hidden-canvas {
+  position: fixed;
+  left: -9999px;
+  top: 0;
+  width: 750px;
+  height: 1200px;
+  opacity: 0;
+  pointer-events: none;
+}

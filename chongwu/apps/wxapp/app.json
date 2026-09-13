@@ -1,31 +1,69 @@
 {
   "pages": [
+    "pages/home/home",
+    "pages/events/events",
+    "pages/buddy/buddy",
     "pages/social/social",
-    "pages/discover/discover",
-    "pages/messages/messages",
+    "pages/local/local",
     "pages/profile/profile",
+    "pages/buddy-detail/buddy-detail",
+    "pages/buddy-publish/buddy-publish",
     "pages/social-post/social-post",
     "pages/social-detail/social-detail",
+    "pages/circle-community/circle-community",
+    "pages/city-picker/city-picker",
+    "pages/friendly-map/friendly-map",
+    "pages/event-detail/event-detail",
+    "pages/event-poster/event-poster",
+    "pages/event-publish/event-publish",
+    "pages/event-qualify/event-qualify",
+    "pages/my-events/my-events",
+    "pages/pet-rescue/pet-rescue",
+    "pages/lost-publish/lost-publish",
+    "pages/adopt-publish/adopt-publish",
+    "pages/help-publish/help-publish",
+    "pages/map-submit/map-submit",
+    "pages/merchant-detail/merchant-detail",
+    "pages/service-book/service-book",
+    "pages/messages/messages",
     "pages/pet-form/pet-form",
+    "pages/pet-cert/pet-cert",
+    "pages/pet-raise/pet-raise",
     "pages/chat/chat",
-    "pages/event-detail/event-detail"
+    "pages/chat-call/chat-call"
   ],
+  "requiredPrivateInfos": [
+    "chooseLocation",
+    "getLocation"
+  ],
+  "permission": {
+    "scope.userLocation": {
+      "desc": "你的位置信息将用于自动定位当前城市、发送碰面地点及同城推荐"
+    },
+    "scope.record": {
+      "desc": "你的麦克风将用于发送语音消息"
+    },
+    "scope.writePhotosAlbum": {
+      "desc": "你的相册权限将用于保存活动分享海报"
+    }
+  },
   "window": {
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#F7FAF5",
+    "navigationBarBackgroundColor": "#E8F8EF",
     "navigationBarTitleText": "宠头头",
     "navigationBarTextStyle": "black",
-    "backgroundColor": "#F7FAF5"
+    "backgroundColor": "#F5F5F5"
   },
   "tabBar": {
     "custom": true,
-    "color": "#9BA89E",
-    "selectedColor": "#5BBF88",
-    "backgroundColor": "#F7FAF5",
+    "color": "#999999",
+    "selectedColor": "#1A1A1A",
+    "backgroundColor": "#FFFFFF",
     "borderStyle": "white",
     "list": [
-      { "pagePath": "pages/social/social", "text": "广场" },
-      { "pagePath": "pages/discover/discover", "text": "发现" },
+      { "pagePath": "pages/home/home", "text": "首页" },
+      { "pagePath": "pages/events/events", "text": "活动" },
+      { "pagePath": "pages/social/social", "text": "宠友圈" },
       { "pagePath": "pages/messages/messages", "text": "消息" },
       { "pagePath": "pages/profile/profile", "text": "我的" }
     ]

@@ -4,50 +4,444 @@
   right: 0;
   bottom: 0;
   z-index: 9999;
-  padding: 0 32rpx;
-  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
-  pointer-events: none;
+  background: #FFFFFF;
+  padding-bottom: env(safe-area-inset-bottom);
+  box-shadow: 0 -2rpx 16rpx rgba(0, 0, 0, 0.04);
+  overflow: visible;
 }
 
-.tab-bar {
+/* —— 遮罩 —— */
+.quick-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 9998;
+}
+
+/* —— 快捷导航面板（上二下一） —— */
+.quick-panel {
+  position: fixed;
+  left: 24rpx;
+  right: 24rpx;
+  bottom: calc(120rpx + env(safe-area-inset-bottom));
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(40rpx);
+  pointer-events: none;
+  transition: opacity 0.28s ease, transform 0.32s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+.quick-panel.show {
+  opacity: 1;
+  transform: translateY(0);
   pointer-events: auto;
-  height: 112rpx;
-  background: rgba(255, 255, 255, 0.92);
-  border-radius: 56rpx;
+}
+
+.quick-row {
   display: flex;
-  align-items: stretch;
-  border: 1rpx solid rgba(91, 191, 136, 0.12);
-  box-shadow: 0 12rpx 40rpx rgba(91, 140, 110, 0.14);
-  backdrop-filter: blur(20px);
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.quick-card {
+  position: relative;
+  border-radius: 28rpx;
+  overflow: hidden;
+  min-height: 176rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.08);
+}
+
+.quick-card:active {
+  transform: scale(0.98);
+  opacity: 0.92;
+}
+
+.quick-row .quick-card {
+  flex: 1;
+}
+
+.card-buddy {
+  background: linear-gradient(135deg, #D4FFAA 0%, #E8FFD0 45%, #F5FFE8 100%);
+}
+
+.card-social {
+  background: linear-gradient(135deg, #B8E4FF 0%, #D4EEFF 45%, #EBF6FF 100%);
+}
+
+.card-event {
+  background: linear-gradient(135deg, #C5FF4A 0%, #9EF01A 35%, #7AE582 100%);
+  min-height: 160rpx;
+  display: flex;
+  align-items: center;
+}
+
+.card-copy {
+  position: relative;
+  z-index: 2;
+  padding: 28rpx 24rpx;
+}
+
+.card-copy.wide {
+  flex: 1;
+  padding: 32rpx 28rpx;
+}
+
+.card-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 800;
+  color: #1A1A1A;
+  line-height: 1.2;
+  margin-bottom: 8rpx;
+}
+
+.card-title.lg {
+  font-size: 36rpx;
+}
+
+.card-sub {
+  display: block;
+  font-size: 22rpx;
+  color: rgba(0, 0, 0, 0.45);
+  line-height: 1.4;
+}
+
+/* —— 扁平插画 —— */
+.illus {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+}
+
+.illus-buddy {
+  width: 140rpx;
+  height: 130rpx;
+}
+
+.illus-social {
+  width: 130rpx;
+  height: 120rpx;
+}
+
+.illus-event {
+  width: 220rpx;
+  height: 140rpx;
+  right: 16rpx;
+  bottom: 8rpx;
+}
+
+.fig {
+  position: absolute;
+}
+
+/* 找搭子 · 人+狗 */
+.fig-dog {
+  width: 36rpx;
+  height: 28rpx;
+  right: 20rpx;
+  bottom: 18rpx;
+  background: #FFB347;
+  border-radius: 50% 50% 40% 40%;
+}
+
+.fig-dog::before {
+  content: '';
+  position: absolute;
+  width: 10rpx;
+  height: 14rpx;
+  background: #FFB347;
+  border-radius: 50%;
+  left: -6rpx;
+  top: -4rpx;
+}
+
+.fig-dog::after {
+  content: '';
+  position: absolute;
+  width: 10rpx;
+  height: 14rpx;
+  background: #FFB347;
+  border-radius: 50%;
+  right: -6rpx;
+  top: -4rpx;
+}
+
+.fig-person.p1 {
+  width: 28rpx;
+  height: 28rpx;
+  background: #FFD93D;
+  border-radius: 50%;
+  right: 52rpx;
+  bottom: 42rpx;
+}
+
+.fig-person.p1::after {
+  content: '';
+  position: absolute;
+  width: 32rpx;
+  height: 36rpx;
+  background: #6BCB77;
+  border-radius: 12rpx 12rpx 4rpx 4rpx;
+  left: -2rpx;
+  top: 24rpx;
+}
+
+.fig-leash {
+  width: 40rpx;
+  height: 3rpx;
+  background: #666;
+  right: 38rpx;
+  bottom: 32rpx;
+  transform: rotate(-15deg);
+  border-radius: 2rpx;
+}
+
+/* 宠友圈 · 聊天气泡 */
+.fig-bubble {
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+}
+
+.fig-bubble.b1 {
+  width: 48rpx;
+  height: 32rpx;
+  right: 16rpx;
+  bottom: 36rpx;
+}
+
+.fig-bubble.b2 {
+  width: 56rpx;
+  height: 36rpx;
+  right: 48rpx;
+  bottom: 58rpx;
+}
+
+.fig-person.p2 {
+  width: 32rpx;
+  height: 32rpx;
+  background: #FF9A8B;
+  border-radius: 50%;
+  right: 28rpx;
+  bottom: 16rpx;
+}
+
+.fig-person.p2::after {
+  content: '';
+  position: absolute;
+  width: 36rpx;
+  height: 40rpx;
+  background: #54A0FF;
+  border-radius: 14rpx 14rpx 6rpx 6rpx;
+  left: -2rpx;
+  top: 26rpx;
+}
+
+/* 发活动 · 人+旗+宠 */
+.fig-flag {
+  width: 6rpx;
+  height: 56rpx;
+  background: #333;
+  right: 48rpx;
+  bottom: 28rpx;
+  border-radius: 2rpx;
+}
+
+.fig-flag::after {
+  content: '';
+  position: absolute;
+  width: 32rpx;
+  height: 24rpx;
+  background: #FF6B6B;
+  left: 6rpx;
+  top: 0;
+  border-radius: 0 6rpx 6rpx 0;
+}
+
+.fig-person.p3 {
+  width: 24rpx;
+  height: 24rpx;
+  background: #FFD93D;
+  border-radius: 50%;
+  right: 80rpx;
+  bottom: 52rpx;
+}
+
+.fig-person.p3::after {
+  content: '';
+  position: absolute;
+  width: 28rpx;
+  height: 32rpx;
+  background: #FF9F43;
+  border-radius: 10rpx;
+  left: -2rpx;
+  top: 20rpx;
+}
+
+.fig-person.p4 {
+  width: 22rpx;
+  height: 22rpx;
+  background: #FFCBE4;
+  border-radius: 50%;
+  right: 110rpx;
+  bottom: 38rpx;
+}
+
+.fig-person.p4::after {
+  content: '';
+  position: absolute;
+  width: 26rpx;
+  height: 30rpx;
+  background: #54A0FF;
+  border-radius: 10rpx;
+  left: -2rpx;
+  top: 18rpx;
+}
+
+.fig-person.p5 {
+  width: 20rpx;
+  height: 20rpx;
+  background: #C4F1FF;
+  border-radius: 50%;
+  right: 136rpx;
+  bottom: 48rpx;
+}
+
+.fig-person.p5::after {
+  content: '';
+  position: absolute;
+  width: 24rpx;
+  height: 28rpx;
+  background: #6BCB77;
+  border-radius: 8rpx;
+  left: -2rpx;
+  top: 16rpx;
+}
+
+.fig-pet {
+  width: 28rpx;
+  height: 22rpx;
+  background: #FFF;
+  border-radius: 50%;
+  right: 68rpx;
+  bottom: 22rpx;
+  border: 3rpx solid #FFB347;
+}
+
+/* —— 底部 TabBar —— */
+.tab-bar {
+  height: 100rpx;
+  position: relative;
+  z-index: 10000;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+.tab-bar-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+.tab-nav {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-evenly;
+  width: 100%;
+  height: 100%;
+  padding: 0 12rpx 8rpx;
+  box-sizing: border-box;
+}
+
+.tab-fab-item {
+  z-index: 3;
+}
+
+.tab-fab-item .tab-icon-wrap {
+  width: 88rpx;
+  height: 56rpx;
+  overflow: visible;
+}
+
+.tab-label-placeholder {
+  color: transparent;
 }
 
 .tab-item {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-end;
+  gap: 6rpx;
+  box-sizing: border-box;
+}
+
+.tab-icon-wrap {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 4rpx;
-  border-radius: 56rpx;
-  transition: all 0.2s ease;
+  position: relative;
+  overflow: visible;
 }
 
-.tab-item.active {
-  background: linear-gradient(180deg, rgba(167, 230, 195, 0.35) 0%, rgba(255, 255, 255, 0) 100%);
-}
-
-.tab-emoji {
-  font-size: 36rpx;
+.tab-icon-emoji {
+  font-size: 44rpx;
   line-height: 1;
+  opacity: 0.55;
+}
+
+.tab-icon-emoji.active-emoji {
+  opacity: 1;
+}
+
+.tab-icon-img {
+  width: 44rpx;
+  height: 44rpx;
+  opacity: 0.55;
+}
+
+.tab-item.is-selected .tab-icon-img {
+  opacity: 1;
+}
+
+.center-btn {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #E8FF5A 0%, #B8F018 50%, #8AE62E 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(184, 240, 24, 0.5);
+  transition: transform 0.28s ease, background 0.28s ease, box-shadow 0.28s ease;
+}
+
+.center-btn.open {
+  transform: rotate(45deg);
+  background: linear-gradient(145deg, #FFFFFF 0%, #F0F0F0 100%);
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+}
+
+.center-plus {
+  font-size: 56rpx;
+  color: #1A1A1A;
+  font-weight: 300;
+  line-height: 1;
+  margin-top: -6rpx;
 }
 
 .tab-label {
   font-size: 20rpx;
-  color: #9BA89E;
+  color: #999999;
   font-weight: 500;
 }
 
-.tab-item.active .tab-label {
-  color: #3D8F66;
-  font-weight: 700;
+.tab-label.active-label {
+  color: #FF4D4F;
+  font-weight: 600;
 }

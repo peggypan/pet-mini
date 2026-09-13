@@ -1,0 +1,183 @@
+<view class="page">
+  <view class="top">
+    <view class="search-row">
+      <view class="search" bindtap="onSearch">
+        <text class="search-icon">🔍</text>
+        <text class="search-ph">搜搭子、活动、友好点位、商家</text>
+      </view>
+      <view class="city" bindtap="onCityTap">
+        <text class="city-locate" catchtap="onQuickLocate">📍</text>
+        <text>{{city}}</text>
+        <text class="city-auto" wx:if="{{cityAuto}}">定位</text>
+        <text> ▾</text>
+      </view>
+    </view>
+  </view>
+
+  <swiper class="banner" autoplay circular indicator-dots indicator-color="rgba(255,255,255,0.4)" indicator-active-color="#fff">
+    <swiper-item wx:for="{{banners}}" wx:key="id">
+      <view class="banner-item">
+        <image class="banner-img" src="{{item.cover}}" mode="aspectFill"></image>
+        <text class="banner-title">{{item.title}}</text>
+      </view>
+    </swiper-item>
+  </swiper>
+
+  <!-- 布丁风格 bento 宫格 -->
+  <view class="pudding-board">
+    <view class="pudding-row pudding-row-main">
+      <!-- 左侧大卡：宠友搭子 -->
+      <view
+        class="pudding-tile tile-large theme-blue"
+        bindtap="onFeatureTap"
+        data-id="buddy"
+      >
+        <view class="tile-glow tile-glow-blue"></view>
+        <view class="tile-copy tile-copy-light">
+          <text class="tile-title">{{tiles.buddy.name}} ›</text>
+          <text class="tile-sub">{{tiles.buddy.subtitle}}</text>
+        </view>
+        <view class="tile-thumbs">
+          <image
+            class="tile-thumb"
+            wx:for="{{tiles.buddy.thumbs}}"
+            wx:key="*this"
+            src="{{item}}"
+            mode="aspectFill"
+          ></image>
+        </view>
+      </view>
+
+      <view class="pudding-col">
+        <!-- 右上：发起活动 -->
+        <view
+          class="pudding-tile tile-wide theme-yellow"
+          bindtap="onFeatureTap"
+          data-id="event"
+        >
+          <view class="tile-copy">
+            <text class="tile-title tile-title-dark">{{tiles.event.name}} ›</text>
+            <text class="tile-sub tile-sub-dark">{{tiles.event.subtitle}}</text>
+          </view>
+        </view>
+
+        <!-- 右下：寻宠领养 + 电子宠证 -->
+        <view class="pudding-mini-row">
+          <view
+            class="pudding-tile tile-small theme-pink"
+            bindtap="onFeatureTap"
+            data-id="rescue"
+          >
+            <view class="tile-copy">
+              <text class="tile-title tile-title-dark">{{tiles.rescue.name}} ›</text>
+              <text class="tile-sub tile-sub-dark">{{tiles.rescue.subtitle}}</text>
+            </view>
+          </view>
+          <view
+            class="pudding-tile tile-small theme-gold"
+            bindtap="onFeatureTap"
+            data-id="cert"
+          >
+            <view class="tile-copy">
+              <text class="tile-title tile-title-dark">{{tiles.cert.name}} ›</text>
+              <text class="tile-sub tile-sub-dark">{{tiles.cert.subtitle}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 第二行：友好地图 + 本地服务 -->
+    <view class="pudding-row pudding-row-sub">
+      <view
+        class="pudding-tile tile-half theme-green"
+        bindtap="onFeatureTap"
+        data-id="map"
+      >
+        <view class="tile-copy">
+          <text class="tile-title tile-title-dark">{{tiles.map.name}} ›</text>
+          <text class="tile-sub tile-sub-dark">{{tiles.map.subtitle}}</text>
+        </view>
+      </view>
+      <view
+        class="pudding-tile tile-half theme-cyan"
+        bindtap="onFeatureTap"
+        data-id="service"
+      >
+        <view class="tile-copy">
+          <text class="tile-title tile-title-dark">{{tiles.service.name}} ›</text>
+          <text class="tile-sub tile-sub-dark">{{tiles.service.subtitle}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-head">
+      <text class="section-title">推荐搭子</text>
+      <text class="section-more" bindtap="onMoreBuddy">更多 ›</text>
+    </view>
+    <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="h-scroll">
+      <view class="buddy-card" wx:for="{{buddies}}" wx:key="id" bindtap="onBuddyTap" data-id="{{item.id}}">
+        <image class="buddy-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+        <text class="buddy-name">{{item.userName}} · {{item.petName}}</text>
+        <text class="buddy-meta">{{item.buddyType}} · {{item.distance}}</text>
+        <view class="buddy-tags">
+          <text class="tag" wx:if="{{item.verified}}">已核验</text>
+          <text class="tag soft">{{item.breed}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view class="section">
+    <view class="section-head">
+      <text class="section-title">近期活动</text>
+    </view>
+    <view class="event-row" wx:for="{{events}}" wx:key="id" bindtap="onEventTap" data-id="{{item.id}}">
+      <image class="event-cover" src="{{item.cover}}" mode="aspectFill"></image>
+      <view class="event-body">
+        <view class="event-tags">
+          <text class="source">{{item.sourceText}}</text>
+          <text class="fee">{{item.fee}}</text>
+        </view>
+        <text class="event-title">{{item.title}}</text>
+        <text class="event-meta">{{item.time}} · {{item.place}}</text>
+        <text class="event-seats">剩余 {{item.remain}} 名额</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-head">
+      <text class="section-title">宠友圈精选</text>
+      <text class="section-more" bindtap="onMoreSocial">更多 ›</text>
+    </view>
+    <view class="community-card" wx:for="{{featuredCommunities}}" wx:key="id" bindtap="onEnterCommunity" data-id="{{item.id}}">
+      <view class="community-head">
+        <text class="community-icon">{{item.icon}}</text>
+        <view class="community-info">
+          <text class="community-name">{{item.name}}</text>
+          <text class="community-meta">{{item.members}} 成员 · {{item.lastTopic}}</text>
+        </view>
+      </view>
+      <text class="community-preview">{{item.lastPreview}}</text>
+      <view class="community-images {{item.previewImages.length === 1 ? 'single' : ''}}" wx:if="{{item.previewImages.length}}">
+        <image
+          class="community-img"
+          wx:for="{{item.previewImages}}"
+          wx:for-item="imgUrl"
+          wx:key="*this"
+          src="{{imgUrl}}"
+          mode="aspectFill"
+        ></image>
+      </view>
+      <view class="community-tags">
+        <text class="community-tag">🐱 私聊</text>
+        <text class="community-tag">🦴 分享</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="risk-tip">⚠️ {{riskTip}}</view>
+</view>

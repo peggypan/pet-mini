@@ -167,7 +167,6 @@
   padding: 0 20rpx;
   font-size: 28rpx;
   color: var(--text-primary);
-  line-height: 88rpx;
   min-height: 88rpx;
   transition: all 0.2s ease;
   box-sizing: border-box;

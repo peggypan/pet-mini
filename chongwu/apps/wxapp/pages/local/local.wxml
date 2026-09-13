@@ -1,0 +1,98 @@
+<view class="page">
+  <view class="city-bar" bindtap="onCityTap">
+    <text class="city-bar-icon">📍</text>
+    <text class="city-bar-text">{{city}} · 本地生活</text>
+    <text class="city-bar-arrow">切换 ›</text>
+  </view>
+  <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="tabs">
+    <view class="tab {{tab === item.id ? 'on' : ''}}" wx:for="{{tabs}}" wx:key="id" data-id="{{item.id}}" bindtap="onTab">{{item.name}}</view>
+  </scroll-view>
+
+  <view wx:if="{{tab === 'event'}}">
+    <view class="actions">
+      <button class="act-btn" bindtap="onPublishEvent">发起活动</button>
+      <button class="act-btn outline" bindtap="onMyEvents">我的活动</button>
+    </view>
+    <view class="event-card" wx:for="{{events}}" wx:key="id" bindtap="onEventTap" data-id="{{item.id}}">
+      <image class="cover" src="{{item.cover}}" mode="aspectFill"></image>
+      <view class="body">
+        <text class="source">{{item.sourceText}}</text>
+        <text class="title">{{item.title}}</text>
+        <text class="meta">{{item.time}} · {{item.place}}</text>
+        <text class="meta">{{item.fee}} · 剩余{{item.remain}}名额</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{tab === 'map'}}">
+    <view class="map-preview-wrap" bindtap="onOpenFullMap">
+      <map
+        class="map-preview"
+        longitude="{{mapLongitude}}"
+        latitude="{{mapLatitude}}"
+        scale="13"
+        markers="{{mapMarkers}}"
+        enable-scroll="{{false}}"
+        enable-zoom="{{false}}"
+      ></map>
+      <view class="map-preview-mask">
+        <text class="map-preview-tag">{{amapReady ? '高德地图' : '地图预览'}}</text>
+        <text class="map-preview-tip">点击进入全屏友好地图 ›</text>
+      </view>
+    </view>
+    <view class="map-actions">
+      <button class="act-btn" bindtap="onOpenFullMap">🗺 全屏地图</button>
+      <button class="act-btn outline" bindtap="onMapSubmit">新增点位</button>
+    </view>
+    <view class="map-card" wx:for="{{mapPoints}}" wx:key="id">
+      <view class="map-head">
+        <text class="map-name">{{item.name}}</text>
+        <text class="map-type">{{item.type}}</text>
+      </view>
+      <text class="map-meta">{{item.distance}} · {{item.address}}</text>
+      <text class="map-allow {{item.allowPet ? 'ok' : 'no'}}">{{item.allowPet ? '允许携宠' : '禁止携宠'}}</text>
+      <button class="nav-btn" size="mini" bindtap="onNavMap" data-id="{{item.id}}">高德导航</button>
+    </view>
+  </view>
+
+  <view wx:if="{{tab === 'service'}}">
+    <view class="service-block">
+      <view class="block-head">
+        <text class="block-title">🦴 上门互助</text>
+        <view class="block-action" bindtap="onPublishHelp">发布需求 ›</view>
+      </view>
+      <text class="block-tip">{{helpTip}}</text>
+      <view
+        class="help-post"
+        wx:for="{{helpPosts}}"
+        wx:key="id"
+        bindtap="onHelpPostTap"
+        data-id="{{item.id}}"
+      >
+        <view class="help-post-head">
+          <text class="help-post-tag">互助</text>
+          <text class="help-post-time">{{item.time}}</text>
+        </view>
+        <text class="help-post-title">{{item.title}}</text>
+        <text class="help-post-preview">{{item.preview}}</text>
+      </view>
+      <view class="help-empty" wx:if="{{helpPosts.length === 0}}">
+        <text>暂无互助需求，点击右上角发布</text>
+      </view>
+    </view>
+
+    <view class="service-block">
+      <view class="block-head">
+        <text class="block-title">✂️ 商家服务</text>
+      </view>
+      <view class="merchant-card" wx:for="{{merchants}}" wx:key="id" bindtap="onMerchantTap" data-id="{{item.id}}">
+        <image class="m-cover" src="{{item.cover}}" mode="aspectFill"></image>
+        <view class="m-body">
+          <text class="m-name">{{item.name}}</text>
+          <text class="m-cat">{{item.category}} · {{item.price}}</text>
+          <text class="m-rating">⭐ {{item.rating}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

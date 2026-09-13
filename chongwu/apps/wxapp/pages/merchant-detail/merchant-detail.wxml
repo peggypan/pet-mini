@@ -1,0 +1,13 @@
+<view class="page" wx:if="{{merchant}}">
+  <image class="cover" src="{{merchant.cover}}" mode="aspectFill"></image>
+  <view class="card">
+    <text class="name">{{merchant.name}}</text>
+    <text class="cat">{{merchant.category}} · {{merchant.price}}</text>
+    <text class="rating">⭐ {{merchant.rating}} · 资质已展示（演示）</text>
+    <view class="tags">
+      <text class="tag" wx:for="{{merchant.tags}}" wx:key="*this">{{item}}</text>
+    </view>
+    <text class="desc">提供同城宠物服务预约，支持在线下单。</text>
+    <button class="book" bindtap="onBook">在线预约</button>
+  </view>
+</view>

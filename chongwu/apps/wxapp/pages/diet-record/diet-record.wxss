@@ -110,18 +110,24 @@ page {
 }
 
 .picker-row {
-  padding: 18rpx 20rpx;
+  min-height: 88rpx;
+  padding: 0 24rpx;
+  display: flex;
+  align-items: center;
   background: #F5F8F6;
   border-radius: 14rpx;
   font-size: 26rpx;
+  line-height: 1.5;
   color: #2A2A2A;
   margin-bottom: 20rpx;
+  box-sizing: border-box;
 }
 
 .textarea {
   width: 100%;
   min-height: 160rpx;
-  padding: 18rpx;
+  padding: 20rpx 24rpx;
+  line-height: 1.6;
   background: #F5F8F6;
   border-radius: 14rpx;
   font-size: 26rpx;

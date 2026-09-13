@@ -25,7 +25,7 @@
 
   <!-- 空状态 -->
   <view class="empty-state" wx:if="{{addresses.length === 0}}">
-    <text class="empty-icon">📬</text>
+    <text class="empty-icon">🐾</text>
     <text class="empty-text">还没有收货地址</text>
     <text class="empty-tip">添加一个地址，下单更方便哦～</text>
   </view>
@@ -33,7 +33,7 @@
   <!-- 添加地址按钮 -->
   <view class="bottom-bar">
     <button class="add-btn" bindtap="onAddAddress">
-      <text class="add-icon">+</text>
+      <text class="add-icon">🐾</text>
       <text class="add-text">添加新地址</text>
     </button>
   </view>
@@ -105,7 +105,7 @@
 <view class="action-sheet-mask" wx:if="{{showActions}}" bindtap="onCloseActions">
   <view class="action-sheet" catchtap="onStopPropagation">
     <view class="action-sheet-item" bindtap="onEditAddress">
-      <text class="action-icon">✏️</text>
+      <text class="action-icon">🐾</text>
       <text class="action-text">编辑</text>
     </view>
     <view class="action-sheet-item" bindtap="onDeleteAddress" wx:if="{{!currentAddress.isDefault || addresses.length > 1}}">

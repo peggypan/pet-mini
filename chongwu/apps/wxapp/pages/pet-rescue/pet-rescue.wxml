@@ -1,0 +1,70 @@
+<view class="page">
+  <view class="hero">
+    <text class="hero-icon">🐕‍🦺</text>
+    <view class="hero-text">
+      <text class="hero-title">寻宠·领养救助</text>
+      <text class="hero-sub">走失寻回 · 拾获招领 · 爱心领养</text>
+    </view>
+  </view>
+
+  <view class="action-row">
+    <view class="action-card lost" bindtap="onPublishLost">
+      <text class="action-icon">🐕‍🦺</text>
+      <text class="action-name">寻宠 / 招领</text>
+      <text class="action-tip">定位 · 图片 · 视频 · 分享</text>
+    </view>
+    <view class="action-card adopt" bindtap="onPublishAdopt">
+      <text class="action-icon">🐱</text>
+      <text class="action-name">领养救助</text>
+      <text class="action-tip">发布领养 · 寻找新家</text>
+    </view>
+  </view>
+
+  <view class="tip-box">
+    <text class="tip-text">🐾 {{riskAdopt}}</text>
+  </view>
+
+  <view class="filters">
+    <view
+      class="filter {{filter === item.id ? 'on' : ''}}"
+      wx:for="{{filters}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="onFilter"
+    >{{item.name}}</view>
+  </view>
+
+  <view class="load-error" wx:if="{{loadError}}">{{loadError}}</view>
+
+  <view class="list">
+    <view
+      class="item"
+      wx:for="{{displayList}}"
+      wx:key="id"
+      bindtap="onItemTap"
+      data-id="{{item.id}}"
+    >
+      <image class="cover" wx:if="{{item.cover}}" src="{{item.cover}}" mode="aspectFill"></image>
+      <view class="cover cover-placeholder" wx:else>
+        <text>{{item.tag}}</text>
+      </view>
+      <view class="body">
+        <view class="item-head">
+          <text class="tag tag-lost" wx:if="{{item.kind === 'lost'}}">寻宠</text>
+          <text class="tag tag-found" wx:if="{{item.kind === 'found'}}">招领</text>
+          <text class="tag tag-adopt" wx:if="{{item.kind === 'adopt'}}">领养</text>
+          <text class="time">{{item.time}}</text>
+        </view>
+        <text class="title">{{item.title}}</text>
+        <text class="preview">{{item.preview}}</text>
+        <text class="loc" wx:if="{{item.location}}">🐾 {{item.location}}</text>
+      </view>
+    </view>
+
+    <view class="empty" wx:if="{{!loadError && displayList.length === 0}}">
+      <text class="empty-icon">🐾</text>
+      <text class="empty-title">暂无同城信息</text>
+      <text class="empty-desc">点击上方按钮发布寻宠、招领或领养</text>
+    </view>
+  </view>
+</view>

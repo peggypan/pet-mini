@@ -1,0 +1,112 @@
+<view class="page {{panelTools || panelEmoji || showTopicPicker ? 'panel-open' : ''}}">
+  <view class="header" wx:if="{{circle}}">
+    <view class="header-main">
+      <text class="circle-icon">{{circle.icon}}</text>
+      <view class="header-info">
+        <text class="circle-name">{{circle.name}}</text>
+        <text class="circle-meta">{{circle.members}} 成员 · 同城社区</text>
+      </view>
+    </view>
+    <button class="header-share" open-type="share">分享社区</button>
+  </view>
+
+  <scroll-view scroll-x class="topic-bar" enhanced show-scrollbar="{{false}}">
+    <view
+      class="topic-chip {{selectedTopic === item ? 'on' : ''}}"
+      wx:for="{{hotTopics}}"
+      wx:key="*this"
+      data-topic="{{item}}"
+      bindtap="onPickTopic"
+    >{{item}}</view>
+  </scroll-view>
+
+  <scroll-view scroll-y class="msg-scroll" scroll-into-view="{{scrollInto}}" scroll-with-animation>
+    <view
+      class="msg-card {{item.from === 'me' ? 'me' : ''}}"
+      wx:for="{{messages}}"
+      wx:key="id"
+      id="msg-{{index}}"
+    >
+      <image class="msg-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+      <view class="msg-body">
+        <view class="msg-head">
+          <text class="msg-name">{{item.userName}} · {{item.petName}}</text>
+          <text class="msg-time">{{item.time}}</text>
+        </view>
+        <text class="msg-topic" wx:if="{{item.topic}}">{{item.topic}}</text>
+        <text class="msg-text">{{item.content}}</text>
+        <view class="msg-images" wx:if="{{item.mediaList.length}}">
+          <image
+            class="msg-img"
+            wx:for="{{item.mediaList}}"
+            wx:for-item="media"
+            wx:for-index="mediaIndex"
+            wx:key="url"
+            wx:if="{{media.type === 'image'}}"
+            src="{{media.url}}"
+            mode="aspectFill"
+            data-msg-index="{{index}}"
+            data-url="{{media.url}}"
+            bindtap="onPreviewMsgImage"
+          ></image>
+        </view>
+        <view class="msg-actions">
+          <text
+            class="action"
+            catchtap="onPrivateChat"
+            data-peer-id="{{item.peerId || item.id}}"
+            data-user-name="{{item.userName}}"
+            data-pet-name="{{item.petName}}"
+            data-avatar="{{item.avatar}}"
+          >💬 私聊</text>
+          <button
+            class="action share-action"
+            open-type="share"
+            catchtap="onShareMsg"
+            data-index="{{index}}"
+          >↗ 分享</button>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view class="pending-bar" wx:if="{{pendingImages.length}}">
+    <view class="pending-item" wx:for="{{pendingImages}}" wx:key="*this">
+      <image class="pending-thumb" src="{{item}}" mode="aspectFill"></image>
+      <view class="pending-remove" data-index="{{index}}" catchtap="onRemovePending">×</view>
+    </view>
+  </view>
+
+  <view class="topic-panel" wx:if="{{showTopicPicker}}">
+    <text class="panel-title">选择 # 话题</text>
+    <view class="topic-grid">
+      <view
+        class="topic-cell"
+        wx:for="{{hotTopics}}"
+        wx:key="*this"
+        data-topic="{{item}}"
+        bindtap="onPickTopic"
+      >{{item}}</view>
+    </view>
+  </view>
+
+  <view class="composer-extra">
+    <view class="composer-tags" wx:if="{{selectedTopic}}">
+      <text class="selected-topic">{{selectedTopic}}</text>
+      <text class="clear-topic" bindtap="onClearTopic">×</text>
+    </view>
+    <view class="topic-entry" bindtap="onToggleTopicPicker">
+      <text class="topic-entry-btn"># 话题</text>
+    </view>
+  </view>
+
+  <chat-composer
+      value="{{inputText}}"
+      placeholder="和社区宠友聊聊…"
+      bind:input="onComposerInput"
+      bind:send="onComposerSend"
+      bind:tool="onComposerTool"
+      bind:voice="onComposerVoice"
+      bind:panelchange="onPanelChange"
+    />
+</view>

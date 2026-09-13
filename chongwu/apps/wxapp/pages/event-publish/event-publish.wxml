@@ -1,0 +1,76 @@
+<view class="page">
+  <view class="role-row">
+    <view class="role {{role === 'personal' ? 'on' : ''}}" data-role="personal" bindtap="onSwitchRole">个人发布</view>
+    <view class="role {{role === 'merchant' ? 'on' : ''}}" data-role="merchant" bindtap="onSwitchRole">商家发布</view>
+  </view>
+
+  <view class="qualify-banner {{qualify.canPublish ? 'ok' : ''}}" bindtap="onGoQualify">
+    <view class="banner-left">
+      <text class="banner-title">{{qualify.canPublish ? '✓ 发布资质已就绪' : '⚠ 需完成发布资质'}}</text>
+      <text class="banner-desc">{{stepHint}}</text>
+    </view>
+    <text class="banner-action">{{qualify.canPublish ? '查看' : '去完善 ›'}}</text>
+  </view>
+
+  <view class="card {{qualify.canPublish ? '' : 'disabled'}}">
+    <text class="label">活动名称 *</text>
+    <input data-field="title" value="{{title}}" bindinput="onInput" placeholder="如：周末遛狗局" disabled="{{!qualify.canPublish}}" />
+
+    <text class="label">时间</text>
+    <input data-field="time" value="{{time}}" bindinput="onInput" placeholder="周六 10:00" disabled="{{!qualify.canPublish}}" />
+
+    <text class="label">地点 *</text>
+    <input data-field="place" value="{{place}}" bindinput="onInput" placeholder="详细集合位置" disabled="{{!qualify.canPublish}}" />
+
+    <text class="label">报名费</text>
+    <input data-field="fee" value="{{fee}}" bindinput="onInput" disabled="{{!qualify.canPublish}}" />
+
+    <text class="label">人数上限</text>
+    <input data-field="maxPeople" value="{{maxPeople}}" bindinput="onInput" type="number" disabled="{{!qualify.canPublish}}" />
+
+    <text class="label">活动详情</text>
+    <textarea data-field="desc" value="{{desc}}" bindinput="onInput" placeholder="介绍、注意事项、宠物疫苗要求等" disabled="{{!qualify.canPublish}}"></textarea>
+
+    <text class="label">活动相册</text>
+    <text class="label-tip">上传图片或视频，展示活动现场氛围（最多 9 个，视频 ≤60 秒）</text>
+    <view class="tool-row" wx:if="{{qualify.canPublish}}">
+      <button class="tool-btn" bindtap="onChooseImage">📷 上传图片</button>
+      <button class="tool-btn" bindtap="onChooseVideo">🎬 上传视频</button>
+    </view>
+
+    <view class="media-grid" wx:if="{{mediaList.length}}">
+      <view
+        class="media-item"
+        wx:for="{{mediaList}}"
+        wx:key="index"
+        data-index="{{index}}"
+        bindtap="onPreviewMedia"
+      >
+        <image
+          class="media-thumb"
+          src="{{item.type === 'image' ? item.url : (item.poster || item.url)}}"
+          mode="aspectFill"
+        ></image>
+        <view class="video-badge" wx:if="{{item.type === 'video'}}">
+          <text class="video-icon">▶</text>
+          <text class="video-dur" wx:if="{{item.duration}}">{{item.duration}}s</text>
+        </view>
+        <view class="remove-media" wx:if="{{qualify.canPublish}}" data-index="{{index}}" catchtap="onRemoveMedia">×</view>
+      </view>
+    </view>
+
+    <view class="media-empty" wx:elif="{{qualify.canPublish}}" bindtap="onChooseImage">
+      <text class="empty-icon">📷</text>
+      <text class="empty-text">点击上传活动图片或视频</text>
+    </view>
+
+    <view class="rule-box">
+      <text class="rule-title">发布规则</text>
+      <text class="rule-item">· 商家发布：需入驻平台并提交营业资质，缴纳 ¥500 保证金</text>
+      <text class="rule-item">· 个人发布：需上传身份信息经后台审核，缴纳 ¥200 保证金</text>
+      <text class="rule-item">· 活动提交后平台二次审核，通过后自动生成分享海报</text>
+    </view>
+
+    <button class="submit" bindtap="onSubmit">{{qualify.canPublish ? '提交平台审核' : '请先完成资质认证'}}</button>
+  </view>
+</view>

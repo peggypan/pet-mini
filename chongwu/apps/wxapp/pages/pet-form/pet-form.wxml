@@ -1,7 +1,17 @@
 <view class="container">
   <view class="card">
     <view class="section-title">{{mode === 'add' ? '创建宠物交友名片' : '编辑宠物交友名片'}}</view>
-    
+
+    <view class="avatar-upload" bindtap="onChooseAvatar">
+      <image wx:if="{{avatarUrl}}" class="avatar-preview" src="{{avatarUrl}}" mode="aspectFill"></image>
+      <view wx:else class="avatar-placeholder">
+        <text class="avatar-icon">📷</text>
+        <text class="avatar-tip">上传宠物照片</text>
+        <text class="avatar-sub">用于生成数字宠物形象</text>
+      </view>
+      <text class="avatar-change" wx:if="{{avatarUrl}}">点击更换</text>
+    </view>
+
     <view class="form-item">
       <text class="label">名字 *</text>
       <input value="{{name}}" bindinput="onInputChange" data-field="name" placeholder="请输入宠物名字" />

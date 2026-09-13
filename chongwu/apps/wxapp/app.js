@@ -1,11 +1,29 @@
+const { autoLocateCity } = require('./utils/city-location');
+const store = require('./utils/store');
+
 App({
   globalData: {
     apiBaseUrl: 'http://localhost:3000/api/v1',
     token: null,
     userInfo: null,
+    resolvePrivacyAuthorization: null,
+  },
+
+  /** 隐私弹窗点「同意」后调用（配合 open-type="agreePrivacyAuthorization"） */
+  agreePrivacyAuthorization() {
+    const resolve = this.globalData.resolvePrivacyAuthorization;
+    if (typeof resolve === 'function') {
+      resolve({ event: 'agree', buttonId: 'agree-privacy-btn' });
+      this.globalData.resolvePrivacyAuthorization = null;
+    }
   },
 
   onLaunch() {
+    if (wx.onNeedPrivacyAuthorization) {
+      wx.onNeedPrivacyAuthorization((resolve) => {
+        this.globalData.resolvePrivacyAuthorization = resolve;
+      });
+    }
     const token = wx.getStorageSync('token');
     const userInfo = wx.getStorageSync('userInfo');
     if (token) {
@@ -14,6 +32,13 @@ App({
     if (userInfo) {
       this.globalData.userInfo = userInfo;
     }
+    this.tryAutoLocateCity();
+  },
+
+  tryAutoLocateCity() {
+    const loc = store.getCityLocation();
+    if (loc.updatedAt) return;
+    autoLocateCity({ silent: true, force: false }).catch(() => {});
   },
 
   login() {

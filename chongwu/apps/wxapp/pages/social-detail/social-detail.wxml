@@ -1,13 +1,28 @@
-<view class="page" wx:if="{{post}}">
+<view class="page {{panelTools ? 'tools-open' : ''}} {{panelEmoji ? 'emoji-open' : ''}} {{pendingMedia ? 'pending-open' : ''}}" wx:if="{{post}}">
   <view class="author-card">
     <image class="avatar" src="{{post.avatar}}" mode="aspectFill"></image>
     <view class="author-info">
       <view class="name-row">
         <text class="name">{{post.userName}} · {{post.petName}}</text>
+        <text class="lost-tag" wx:if="{{post.lostType}}">{{post.lostType === 'lost' ? '寻宠启事' : '招领信息'}}</text>
         <text class="essence" wx:if="{{post.essence}}">精华</text>
       </view>
       <text class="meta">{{zoneLabel}} · {{post.time}}</text>
     </view>
+  </view>
+
+  <view
+    class="loc-card"
+    wx:if="{{post.geoLocation}}"
+    bindtap="onOpenPostLocation"
+    data-lat="{{post.geoLocation.latitude}}"
+    data-lng="{{post.geoLocation.longitude}}"
+    data-name="{{post.geoLocation.name}}"
+    data-address="{{post.geoLocation.address}}"
+  >
+    <text class="loc-card-name">📍 {{post.geoLocation.name || '走失/发现地点'}}</text>
+    <text class="loc-card-addr">{{post.geoLocation.address}}</text>
+    <text class="loc-card-tip">点击查看地图导航</text>
   </view>
 
   <view class="content-card">
@@ -60,7 +75,26 @@
           <text class="c-name">{{item.userName}}</text>
           <text class="c-time">{{item.time}}</text>
         </view>
-        <text class="c-text">{{item.content}}</text>
+        <text class="c-text" wx:if="{{item.type === 'text' || !item.type}}">{{item.content}}</text>
+        <image
+          class="c-image"
+          wx:if="{{item.type === 'image'}}"
+          src="{{item.url}}"
+          mode="widthFix"
+          bindtap="onPreviewCommentImage"
+          data-url="{{item.url}}"
+        ></image>
+        <view
+          class="c-video"
+          wx:if="{{item.type === 'video'}}"
+          bindtap="onPreviewCommentVideo"
+          data-url="{{item.url}}"
+          data-poster="{{item.poster}}"
+        >
+          <image class="c-video-cover" src="{{item.poster || item.url}}" mode="aspectFill"></image>
+          <text class="c-video-play">▶</text>
+        </view>
+        <text class="c-text sub" wx:if="{{item.type !== 'text' && item.content && item.content !== '[图片]' && item.content !== '[视频]'}}">{{item.content}}</text>
       </view>
     </view>
     <view class="comment-empty" wx:if="{{commentList.length === 0}}">
@@ -68,22 +102,29 @@
     </view>
   </view>
 
-  <view class="bottom-bar">
-    <view class="bar-like" bindtap="onLike">
+  <!-- 待发送媒体预览 -->
+  <view class="pending-bar" wx:if="{{pendingMedia}}">
+    <view class="pending-inner">
+      <image class="pending-thumb" src="{{pendingMedia.type === 'image' ? pendingMedia.url : pendingMedia.poster}}" mode="aspectFill"></image>
+      <text class="pending-tag">{{pendingMedia.type === 'image' ? '图片' : '视频'}}</text>
+      <view class="pending-remove" bindtap="onClearPending">×</view>
+    </view>
+  </view>
+
+  <chat-composer
+    value="{{commentText}}"
+    placeholder="写评论…"
+    bind:input="onComposerInput"
+    bind:send="onComposerSend"
+    bind:tool="onComposerTool"
+    bind:voice="onComposerVoice"
+    bind:panelchange="onPanelChange"
+  >
+    <view slot="prefix" class="bar-like" bindtap="onLike">
       <text class="bar-like-icon">{{post.liked ? '❤️' : '♡'}}</text>
     </view>
-    <input
-      class="comment-input"
-      placeholder="写评论…"
-      placeholder-class="ph"
-      value="{{commentText}}"
-      bindinput="onCommentInput"
-      confirm-type="send"
-      bindconfirm="onSendComment"
-    />
-    <view class="bar-send" bindtap="onSendComment">发送</view>
-    <button class="bar-share" open-type="share" catchtap="onShare">分享</button>
-  </view>
+    <button slot="suffix" class="bar-share" open-type="share" wx:if="{{post.lostType}}">分享</button>
+  </chat-composer>
 </view>
 
 <view class="empty" wx:else>

@@ -1,15 +1,108 @@
 <view class="tab-bar-wrap">
+  <!-- 快捷导航 · 参考卡片布局 -->
+  <view class="quick-mask" wx:if="{{showQuickNav}}" bindtap="closeQuickNav"></view>
+  <view class="quick-panel {{showQuickNav ? 'show' : ''}}" wx:if="{{showQuickNav}}">
+    <view class="quick-row">
+      <!-- 找搭子 -->
+      <view class="quick-card card-buddy" data-action="buddy" catchtap="onQuickAction">
+        <view class="card-copy">
+          <text class="card-title">找搭子</text>
+          <text class="card-sub">同城宠友一键匹配</text>
+        </view>
+        <view class="illus illus-buddy">
+          <view class="fig fig-dog"></view>
+          <view class="fig fig-person p1"></view>
+          <view class="fig fig-leash"></view>
+        </view>
+      </view>
+      <!-- 宠友圈 -->
+      <view class="quick-card card-social" data-action="social" catchtap="onQuickAction">
+        <view class="card-copy">
+          <text class="card-title">宠友圈</text>
+          <text class="card-sub">晒宠日常交流</text>
+        </view>
+        <view class="illus illus-social">
+          <view class="fig fig-bubble b1"></view>
+          <view class="fig fig-bubble b2"></view>
+          <view class="fig fig-person p2"></view>
+        </view>
+      </view>
+    </view>
+    <!-- 发活动 · 通栏大卡 -->
+    <view class="quick-card card-event" data-action="event" catchtap="onQuickAction">
+      <view class="card-copy wide">
+        <text class="card-title lg">发活动</text>
+        <text class="card-sub">点击开启你的活动发布之旅</text>
+      </view>
+      <view class="illus illus-event">
+        <view class="fig fig-flag"></view>
+        <view class="fig fig-person p3"></view>
+        <view class="fig fig-person p4"></view>
+        <view class="fig fig-person p5"></view>
+        <view class="fig fig-pet"></view>
+      </view>
+    </view>
+  </view>
+
   <view class="tab-bar">
-    <view
-      wx:for="{{list}}"
-      wx:key="pagePath"
-      class="tab-item {{selected === index ? 'active' : ''}}"
-      data-path="{{item.pagePath}}"
-      data-index="{{index}}"
-      bindtap="switchTab"
-    >
-      <text class="tab-emoji">{{item.emoji}}</text>
-      <text class="tab-label">{{item.label}}</text>
+    <view class="tab-bar-inner">
+      <view class="tab-nav">
+        <view
+          wx:for="{{leftTabs}}"
+          wx:key="pagePath"
+          class="tab-item {{selected === item.tabIndex ? 'is-selected' : ''}}"
+          data-path="{{item.pagePath}}"
+          data-index="{{item.tabIndex}}"
+          bindtap="switchTab"
+        >
+          <view class="tab-icon-wrap">
+            <text wx:if="{{item.emoji}}" class="tab-icon-emoji {{selected === item.tabIndex ? 'active-emoji' : ''}}">{{item.emoji}}</text>
+            <image
+              wx:else
+              class="tab-icon-img"
+              src="{{selected === item.tabIndex ? item.iconActive : item.icon}}"
+              mode="aspectFit"
+            ></image>
+          </view>
+          <text class="tab-label {{selected === item.tabIndex ? 'active-label' : ''}}">{{item.label}}</text>
+        </view>
+
+        <view
+          wx:if="{{centerTab}}"
+          class="tab-item tab-fab-item"
+          data-path="{{centerTab.pagePath}}"
+          data-index="{{centerTab.tabIndex}}"
+          data-center="{{true}}"
+          bindtap="switchTab"
+        >
+          <view class="tab-icon-wrap">
+            <view class="center-btn {{showQuickNav ? 'open' : ''}}">
+              <text class="center-plus">{{showQuickNav ? '×' : '+'}}</text>
+            </view>
+          </view>
+          <text class="tab-label tab-label-placeholder">·</text>
+        </view>
+
+        <view
+          wx:for="{{rightTabs}}"
+          wx:key="pagePath"
+          class="tab-item {{selected === item.tabIndex ? 'is-selected' : ''}}"
+          data-path="{{item.pagePath}}"
+          data-index="{{item.tabIndex}}"
+          bindtap="switchTab"
+        >
+          <view class="tab-icon-wrap">
+            <text wx:if="{{item.emoji}}" class="tab-icon-emoji {{selected === item.tabIndex ? 'active-emoji' : ''}}">{{item.emoji}}</text>
+            <image
+              wx:else
+              class="tab-icon-img"
+              src="{{selected === item.tabIndex ? item.iconActive : item.icon}}"
+              mode="aspectFit"
+            ></image>
+          </view>
+          <text class="tab-label {{selected === item.tabIndex ? 'active-label' : ''}}">{{item.label}}</text>
+        </view>
+      </view>
     </view>
   </view>
 </view>

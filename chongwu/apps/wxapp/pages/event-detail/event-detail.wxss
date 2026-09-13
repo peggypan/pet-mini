@@ -1,11 +1,11 @@
-page { background: #F7FAF5; }
+page { background: #F5F5F5; }
 
 .page { padding-bottom: 160rpx; }
 
 .cover {
   width: 100%;
   height: 420rpx;
-  background: #E8F0EA;
+  background: #E8F8EF;
 }
 
 .card {
@@ -13,15 +13,15 @@ page { background: #F7FAF5; }
   padding: 32rpx 28rpx;
   border-radius: 28rpx;
   background: #fff;
-  box-shadow: 0 12rpx 40rpx rgba(91, 140, 110, 0.1);
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.06);
   position: relative;
 }
 
 .tag {
   display: inline-block;
   font-size: 22rpx;
-  color: #5BBF88;
-  background: rgba(91, 191, 136, 0.14);
+  color: #4CE600;
+  background: rgba(197, 255, 74, 0.25);
   padding: 4rpx 14rpx;
   border-radius: 8rpx;
   margin-bottom: 12rpx;
@@ -31,14 +31,14 @@ page { background: #F7FAF5; }
   display: block;
   font-size: 36rpx;
   font-weight: 800;
-  color: #2D4A38;
+  color: #1A1A1A;
   margin-bottom: 12rpx;
 }
 
 .desc {
   display: block;
   font-size: 26rpx;
-  color: #6B8575;
+  color: #666666;
   line-height: 1.6;
   margin-bottom: 24rpx;
 }
@@ -52,14 +52,14 @@ page { background: #F7FAF5; }
 .info-label {
   width: 100rpx;
   font-size: 24rpx;
-  color: #9BA89E;
+  color: #999999;
   flex-shrink: 0;
 }
 
 .info-val {
   flex: 1;
   font-size: 26rpx;
-  color: #2D4A38;
+  color: #1A1A1A;
 }
 
 .info-val.warn {
@@ -72,7 +72,7 @@ page { background: #F7FAF5; }
   margin-top: 24rpx;
   padding: 20rpx;
   border-radius: 18rpx;
-  background: #F7FAF5;
+  background: #F5F5F5;
 }
 
 .host-avatar {
@@ -86,12 +86,12 @@ page { background: #F7FAF5; }
   display: block;
   font-size: 26rpx;
   font-weight: 600;
-  color: #2D4A38;
+  color: #1A1A1A;
 }
 
 .host-tip {
   font-size: 22rpx;
-  color: #9BA89E;
+  color: #999999;
 }
 
 .bottom {
@@ -103,7 +103,7 @@ page { background: #F7FAF5; }
   gap: 16rpx;
   padding: 20rpx 28rpx calc(20rpx + env(safe-area-inset-bottom));
   background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 -8rpx 24rpx rgba(91, 140, 110, 0.08);
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.04);
 }
 
 .btn-primary,
@@ -111,26 +111,28 @@ page { background: #F7FAF5; }
   flex: 1;
   margin: 0;
   height: 88rpx;
-  line-height: 88rpx;
+  padding: 0 12rpx;
   border-radius: 44rpx;
   font-size: 28rpx;
   font-weight: 600;
   border: none;
+  white-space: nowrap;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #7ED6A8, #5BBF88);
-  color: #fff;
+  background: linear-gradient(135deg, #D4FF00, #4CE600);
+  color: #1A1A1A;
+  box-shadow: 0 6rpx 20rpx rgba(76, 230, 0, 0.3);
 }
 
 .btn-primary[disabled] {
   background: #E0E8E2;
-  color: #9BA89E;
+  color: #999999;
 }
 
 .btn-secondary {
-  background: #F0F5F1;
-  color: #3D8F66;
+  background: #F5F5F5;
+  color: #1A1A1A;
 }
 
 .btn-primary::after,

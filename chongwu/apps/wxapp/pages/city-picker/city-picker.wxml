@@ -1,0 +1,63 @@
+<view class="page">
+  <view class="search-bar">
+    <text class="search-icon">🔍</text>
+    <input
+      class="search-input"
+      placeholder="搜索全国城市"
+      value="{{keyword}}"
+      bindinput="onSearchInput"
+      confirm-type="search"
+    />
+    <text class="search-clear" wx:if="{{keyword}}" bindtap="onClearSearch">×</text>
+  </view>
+
+  <view class="locate-card" bindtap="onAutoLocate">
+    <text class="locate-icon">📍</text>
+    <view class="locate-info">
+      <text class="locate-title">{{locating ? '定位中…' : '定位当前城市'}}</text>
+      <text class="locate-desc">根据 GPS 自动识别所在城市{{currentCity ? ' · 当前 ' + currentCity : ''}}</text>
+    </view>
+    <text class="locate-arrow">›</text>
+  </view>
+
+  <view wx:if="{{isSearching}}">
+    <text class="section-title">搜索结果</text>
+    <view class="city-grid">
+      <view
+        class="city-cell {{currentCity === item.name ? 'on' : ''}}"
+        wx:for="{{searchResults}}"
+        wx:key="name"
+        data-city="{{item.name}}"
+        bindtap="onPickCity"
+      >{{item.name}}</view>
+    </view>
+    <view class="empty" wx:if="{{searchResults.length === 0}}">未找到相关城市</view>
+  </view>
+
+  <view wx:else>
+    <text class="section-title">热门城市</text>
+    <view class="city-grid">
+      <view
+        class="city-cell {{currentCity === item ? 'on' : ''}}"
+        wx:for="{{hotCities}}"
+        wx:key="*this"
+        data-city="{{item}}"
+        bindtap="onPickCity"
+      >{{item}}</view>
+    </view>
+
+    <view class="province-block" wx:for="{{provinceGroups}}" wx:key="province">
+      <text class="section-title">{{item.province}}</text>
+      <view class="city-grid">
+        <view
+          class="city-cell {{currentCity === city.name ? 'on' : ''}}"
+          wx:for="{{item.cities}}"
+          wx:for-item="city"
+          wx:key="name"
+          data-city="{{city.name}}"
+          bindtap="onPickCity"
+        >{{city.name}}</view>
+      </view>
+    </view>
+  </view>
+</view>

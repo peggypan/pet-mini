@@ -14,7 +14,7 @@
   overflow: hidden;
   border-radius: 28rpx;
   margin-bottom: 22rpx;
-  background: linear-gradient(135deg, #8FD9B0 0%, #6FCF97 48%, #5BBF88 100%);
+  background: linear-gradient(135deg, #8FD9B0 0%, #6FCF97 48%, #4CE600 100%);
   box-shadow: 0 16rpx 40rpx rgba(91, 191, 136, 0.28);
 }
 
@@ -229,7 +229,7 @@
 
 .pet-species {
   font-size: 22rpx;
-  color: #5BBF88;
+  color: #4CE600;
   background: rgba(111, 207, 151, 0.16);
   padding: 2rpx 12rpx;
   border-radius: 8rpx;
@@ -275,7 +275,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 6rpx 16rpx rgba(111, 207, 151, 0.35);
+  box-shadow: 0 6rpx 16rpx rgba(76, 230, 0, 0.28);
 }
 
 .pet-btn::after {
@@ -380,7 +380,7 @@
 .reminder-pet {
   display: block;
   font-size: 24rpx;
-  color: #5BBF88;
+  color: #4CE600;
   margin-bottom: 4rpx;
 }
 
@@ -436,9 +436,12 @@
 .empty-ring {
   width: 88rpx;
   height: 88rpx;
-  line-height: 80rpx;
   margin: 0 auto 24rpx;
   border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
   background: rgba(111, 207, 151, 0.16);
   color: #4DB87A;
   font-size: 48rpx;

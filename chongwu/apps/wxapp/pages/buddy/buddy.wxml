@@ -1,0 +1,62 @@
+<view class="page">
+  <view class="city-bar" bindtap="onCityTap">
+    <text class="city-bar-icon">📍</text>
+    <text class="city-bar-text">{{city}} · 全国同城</text>
+    <text class="city-bar-arrow">切换 ›</text>
+  </view>
+  <view class="zone-tabs">
+    <view class="zone-tab {{zoneTab === 'normal' ? 'on' : ''}}" data-zone="normal" bindtap="onZoneTab">普通搭子</view>
+    <view class="zone-tab {{zoneTab === 'match' ? 'on' : ''}}" data-zone="match" bindtap="onZoneTab">相亲&借配</view>
+  </view>
+  <view class="match-tip" wx:if="{{zoneTab === 'match'}}">⚠️ {{matchTip}}</view>
+
+  <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="filter-scroll">
+    <view class="filter {{filterType === '全部' ? 'on' : ''}}" data-type="全部" bindtap="onFilterType">全部</view>
+    <view class="filter {{filterType === item ? 'on' : ''}}" wx:for="{{buddyTypes}}" wx:key="*this" data-type="{{item}}" bindtap="onFilterType">{{item}}</view>
+    <view class="filter {{filterVerified ? 'on' : ''}}" bindtap="onToggleVerified">疫苗已核验</view>
+  </scroll-view>
+
+  <view class="list">
+    <view class="card" wx:for="{{list}}" wx:key="id" bindtap="onCardTap" data-id="{{item.id}}">
+      <view class="card-head">
+        <image class="avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+        <view class="info">
+          <text class="name">{{item.userName}} · {{item.petName}}</text>
+          <text class="meta">{{item.distance}} · {{item.buddyType}}</text>
+        </view>
+        <text class="verified" wx:if="{{item.verified}}">已核验</text>
+      </view>
+      <view class="pet-card">
+        <text class="pet-line">{{item.breed}} · {{item.age}} · {{item.personality}}</text>
+        <view class="tags">
+          <text class="tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag">{{tag}}</text>
+        </view>
+      </view>
+      <text class="desc">{{item.desc}}</text>
+      <view
+        class="media-row {{item.mediaList.length === 1 ? 'single' : ''}}"
+        wx:if="{{item.mediaList && item.mediaList.length}}"
+        catchtap="onPreviewMedia"
+        data-id="{{item.id}}"
+      >
+        <block wx:for="{{item.mediaList}}" wx:key="index" wx:for-item="media">
+          <view class="media-thumb-wrap" wx:if="{{index < 3}}" data-id="{{item.id}}" data-index="{{index}}" catchtap="onPreviewMedia">
+            <image class="media-thumb" src="{{media.type === 'image' ? media.url : (media.poster || media.url)}}" mode="aspectFill"></image>
+            <view class="media-video-mask" wx:if="{{media.type === 'video'}}">
+              <text class="media-video-tag">▶</text>
+              <text class="media-video-dur" wx:if="{{media.duration}}">{{media.duration}}s</text>
+            </view>
+          </view>
+        </block>
+        <view class="media-more" wx:if="{{item.mediaList.length > 3}}">+{{item.mediaList.length - 3}}</view>
+      </view>
+      <text class="expect">期望：{{item.expectTime}} · {{item.expectPlace}}</text>
+      <view class="credit" wx:if="{{item.creditTags.length}}">
+        <text class="credit-tag" wx:for="{{item.creditTags}}" wx:key="*this" wx:for-item="ct">{{ct}}</text>
+      </view>
+    </view>
+    <view class="empty" wx:if="{{list.length === 0}}"><text>暂无搭子，来发布第一条吧</text></view>
+  </view>
+
+  <view class="fab" bindtap="onPublish">发布找搭子</view>
+</view>

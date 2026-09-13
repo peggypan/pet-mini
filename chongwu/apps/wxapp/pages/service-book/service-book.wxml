@@ -1,0 +1,13 @@
+<view class="page" wx:if="{{merchant}}">
+  <view class="card">
+    <text class="name">{{merchant.name}}</text>
+    <text class="price">{{merchant.price}}</text>
+    <text class="label">预约日期</text>
+    <input data-field="date" value="{{date}}" bindinput="onInput" placeholder="如：2026-04-01" />
+    <text class="label">预约时段</text>
+    <input data-field="time" value="{{time}}" bindinput="onInput" placeholder="如：10:00" />
+    <text class="label">备注</text>
+    <input data-field="remark" value="{{remark}}" bindinput="onInput" placeholder="宠物情况、特殊需求" />
+    <button class="submit" bindtap="onSubmit">提交预约</button>
+  </view>
+</view>

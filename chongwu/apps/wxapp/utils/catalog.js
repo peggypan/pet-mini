@@ -1,4 +1,11 @@
-const { MOCK_SOCIAL, MOCK_NEARBY, MOCK_PET } = require('./mock');
+const {
+  MOCK_SOCIAL,
+  MOCK_BUDDY,
+  MOCK_EVENTS,
+  MOCK_MAP_POINTS,
+  MOCK_MERCHANTS,
+  MOCK_PET,
+} = require('./mock');
 const store = require('./store');
 
 function findSocialPost(id) {
@@ -11,12 +18,47 @@ function findSocialPost(id) {
   return { ...mock, ...(override || {}) };
 }
 
-function findEvent(id) {
-  return (MOCK_SOCIAL.events || []).find((e) => String(e.id) === String(id)) || null;
+function normalizeBuddyMedia(buddy) {
+  if (!buddy) return buddy;
+  if (Array.isArray(buddy.mediaList) && buddy.mediaList.length) {
+    return buddy;
+  }
+  const images = Array.isArray(buddy.images) ? buddy.images : [];
+  if (images.length) {
+    return {
+      ...buddy,
+      mediaList: images.map((url) => ({ type: 'image', url })),
+    };
+  }
+  if (buddy.cover) {
+    return {
+      ...buddy,
+      mediaList: [{ type: 'image', url: buddy.cover }],
+    };
+  }
+  return { ...buddy, mediaList: [] };
 }
 
-function findNearbyFriend(id) {
-  return MOCK_NEARBY.find((f) => String(f.id) === String(id)) || null;
+function findBuddy(id) {
+  const sid = String(id);
+  const raw = store.getBuddyPost(sid) || MOCK_BUDDY.find((b) => String(b.id) === sid) || null;
+  return normalizeBuddyMedia(raw);
+}
+
+function listAllBuddies() {
+  return [...store.listBuddyPosts(), ...MOCK_BUDDY].map(normalizeBuddyMedia);
+}
+
+function findEvent(id) {
+  return MOCK_EVENTS.find((e) => String(e.id) === String(id)) || null;
+}
+
+function findMerchant(id) {
+  return MOCK_MERCHANTS.find((m) => String(m.id) === String(id)) || null;
+}
+
+function listAllMapPoints() {
+  return [...store.listMapPoints(), ...MOCK_MAP_POINTS];
 }
 
 function getDefaultPet() {
@@ -40,8 +82,11 @@ function getDefaultPets() {
 
 module.exports = {
   findSocialPost,
+  findBuddy,
+  listAllBuddies,
   findEvent,
-  findNearbyFriend,
+  findMerchant,
+  listAllMapPoints,
   getDefaultPet,
   getDefaultPets,
 };

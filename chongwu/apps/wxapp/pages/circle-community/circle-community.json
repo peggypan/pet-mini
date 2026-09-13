@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "社区",
+  "enableShareAppMessage": true,
+  "usingComponents": {
+    "chat-composer": "/components/chat-composer/chat-composer"
+  }
+}

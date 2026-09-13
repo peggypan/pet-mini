@@ -1,13 +1,14 @@
-<view class="page">
+<view class="page {{panelTools ? 'tools-open' : ''}} {{panelEmoji ? 'emoji-open' : ''}}">
   <view class="peer-bar" wx:if="{{peer}}">
     <image class="peer-avatar" src="{{peer.avatar}}" mode="aspectFill"></image>
     <view class="peer-info">
       <text class="peer-name">{{peer.userName}} · {{peer.petName}}</text>
       <text class="peer-tip">借宠交友 · 文明礼貌沟通</text>
     </view>
+    <view class="call-entry" bindtap="onVideoCall">📹</view>
   </view>
 
-  <scroll-view scroll-y class="msg-scroll" scroll-into-view="{{scrollInto}}">
+  <scroll-view scroll-y class="msg-scroll" scroll-into-view="{{scrollInto}}" scroll-with-animation>
     <view
       class="msg-row {{item.from === 'me' ? 'me' : 'peer'}}"
       wx:for="{{messages}}"
@@ -18,24 +19,85 @@
         class="msg-avatar"
         src="{{item.from === 'me' ? '/assets/mock/real_avatar.jpg' : peer.avatar}}"
         mode="aspectFill"
-        wx:if="{{item.from !== 'me' || true}}"
       ></image>
-      <view class="bubble">{{item.content}}</view>
+
+      <view class="bubble" wx:if="{{item.type === 'text' || !item.type}}">{{item.content}}</view>
+
+      <view
+        class="bubble voice-bubble"
+        wx:if="{{item.type === 'voice'}}"
+        data-url="{{item.url}}"
+        bindtap="onPlayVoice"
+      >
+        <text class="voice-icon">🎙</text>
+        <text class="voice-dur">{{item.duration || 1}}"</text>
+      </view>
+
+      <view class="bubble media-bubble" wx:if="{{item.type === 'image'}}">
+        <image
+          class="msg-image"
+          src="{{item.url}}"
+          mode="widthFix"
+          data-url="{{item.url}}"
+          bindtap="onPreviewImage"
+        ></image>
+      </view>
+
+      <view class="bubble media-bubble" wx:if="{{item.type === 'video'}}">
+        <view
+          class="msg-video"
+          data-url="{{item.url}}"
+          data-poster="{{item.poster}}"
+          bindtap="onPreviewVideo"
+        >
+          <image class="msg-video-cover" src="{{item.poster || item.url}}" mode="aspectFill"></image>
+          <view class="play-icon">▶</view>
+        </view>
+      </view>
+
+      <view
+        class="bubble loc-bubble"
+        wx:if="{{item.type === 'location'}}"
+        data-lat="{{item.location.latitude}}"
+        data-lng="{{item.location.longitude}}"
+        data-name="{{item.location.name}}"
+        data-address="{{item.location.address}}"
+        bindtap="onOpenLocation"
+      >
+        <text class="loc-name">📍 {{item.location.name || '位置分享'}}</text>
+        <text class="loc-addr">{{item.location.address}}</text>
+        <text class="loc-tip">点击查看地图</text>
+      </view>
+
+      <view class="bubble event-bubble" wx:if="{{item.type === 'event'}}">
+        <text class="event-tag">📅 活动邀请</text>
+        <text class="event-title">{{item.eventTitle || item.content}}</text>
+        <text class="event-tip">点击查看同城活动</text>
+      </view>
+
+      <view class="bubble call-bubble" wx:if="{{item.type === 'call'}}">
+        <text class="call-icon">📹</text>
+        <view class="call-info">
+          <text class="call-title">视频通话</text>
+          <text class="call-meta" wx:if="{{item.duration}}">时长 {{item.duration}} 秒</text>
+          <text class="call-meta" wx:elif="{{item.callStatus === 'missed'}}">未接通</text>
+          <text class="call-meta" wx:else>已结束</text>
+        </view>
+      </view>
     </view>
+
     <view class="msg-empty" wx:if="{{messages.length === 0}}">
       <text>打个招呼，开始聊吧～</text>
     </view>
   </scroll-view>
 
-  <view class="input-bar">
-    <input
-      class="msg-input"
-      placeholder="说点什么…"
-      value="{{inputText}}"
-      bindinput="onInput"
-      confirm-type="send"
-      bindconfirm="onSend"
-    />
-    <view class="send-btn" bindtap="onSend">发送</view>
-  </view>
+  <chat-composer
+    value="{{inputText}}"
+    placeholder="说点什么…"
+    bind:input="onComposerInput"
+    bind:send="onComposerSend"
+    bind:tool="onComposerTool"
+    bind:voice="onComposerVoice"
+    bind:panelchange="onPanelChange"
+  />
 </view>

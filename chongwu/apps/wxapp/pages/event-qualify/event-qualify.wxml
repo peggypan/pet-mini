@@ -1,0 +1,151 @@
+<view class="page">
+  <view class="role-row">
+    <view class="role {{role === 'personal' ? 'on' : ''}}" data-role="personal" bindtap="onSwitchRole">个人发布</view>
+    <view class="role {{role === 'merchant' ? 'on' : ''}}" data-role="merchant" bindtap="onSwitchRole">商家发布</view>
+  </view>
+
+  <view class="status-card">
+    <view class="status-head">
+      <text class="status-title">{{role === 'merchant' ? '商家入驻' : '身份认证'}}</text>
+      <text class="status-tag {{qualify.verifyStatus}}">{{statusText[qualify.verifyStatus] || '未提交'}}</text>
+    </view>
+    <text class="status-hint">{{stepHint}}</text>
+    <view class="step-row">
+      <view class="step {{qualify.verifyStatus === 'approved' ? 'done' : (qualify.verifyStatus === 'pending' ? 'active' : '')}}">
+        <text class="step-no">1</text>
+        <text class="step-text">{{role === 'merchant' ? '营业资质' : '身份信息'}}</text>
+      </view>
+      <view class="step-line"></view>
+      <view class="step {{qualify.depositPaid ? 'done' : (qualify.verifyStatus === 'approved' ? 'active' : '')}}">
+        <text class="step-no">2</text>
+        <text class="step-text">缴纳保证金</text>
+      </view>
+      <view class="step-line"></view>
+      <view class="step {{qualify.canPublish ? 'done' : ''}}">
+        <text class="step-no">3</text>
+        <text class="step-text">发布活动</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 个人身份认证 -->
+  <view class="card" wx:if="{{role === 'personal'}}">
+    <text class="card-title">上传身份信息</text>
+    <text class="card-tip">个人发起活动需实名认证，提交后由平台后台审核</text>
+
+    <text class="label">真实姓名 *</text>
+    <input data-field="realName" value="{{realName}}" bindinput="onInput" placeholder="与身份证一致" disabled="{{qualify.verifyStatus === 'pending' || qualify.verifyStatus === 'approved'}}" />
+
+    <text class="label">身份证号 *</text>
+    <input data-field="idCard" value="{{idCard}}" bindinput="onInput" placeholder="18位身份证号" maxlength="18" disabled="{{qualify.verifyStatus === 'pending' || qualify.verifyStatus === 'approved'}}" />
+
+    <text class="label">联系手机 *</text>
+    <input data-field="personalPhone" value="{{personalPhone}}" type="number" bindinput="onInput" placeholder="审核结果将短信通知" disabled="{{qualify.verifyStatus === 'pending' || qualify.verifyStatus === 'approved'}}" />
+
+    <text class="label">身份证人像面 *</text>
+    <view class="upload-box" bindtap="onPickImage" data-field="idFrontImage" wx:if="{{!idFrontImage && qualify.verifyStatus !== 'pending' && qualify.verifyStatus !== 'approved'}}">
+      <text class="upload-icon">📷</text>
+      <text class="upload-text">上传身份证正面</text>
+    </view>
+    <image class="upload-preview" wx:if="{{idFrontImage}}" src="{{idFrontImage}}" mode="aspectFill" bindtap="onPreviewImage" data-url="{{idFrontImage}}"></image>
+
+    <text class="label">身份证国徽面 *</text>
+    <view class="upload-box" bindtap="onPickImage" data-field="idBackImage" wx:if="{{!idBackImage && qualify.verifyStatus !== 'pending' && qualify.verifyStatus !== 'approved'}}">
+      <text class="upload-icon">📷</text>
+      <text class="upload-text">上传身份证反面</text>
+    </view>
+    <image class="upload-preview" wx:if="{{idBackImage}}" src="{{idBackImage}}" mode="aspectFill" bindtap="onPreviewImage" data-url="{{idBackImage}}"></image>
+
+    <view class="approved-info" wx:if="{{qualify.verifyStatus === 'approved'}}">
+      <text>已认证：{{qualify.verify.realName}} · {{qualify.maskedId}}</text>
+    </view>
+
+    <button
+      class="submit"
+      wx:if="{{qualify.verifyStatus !== 'approved'}}"
+      bindtap="onSubmitPersonal"
+      disabled="{{qualify.verifyStatus === 'pending'}}"
+    >{{qualify.verifyStatus === 'pending' ? '审核中…' : '提交身份认证'}}</button>
+    <button class="mock-btn" wx:if="{{qualify.verifyStatus === 'pending'}}" bindtap="onMockApprove">演示：模拟审核通过</button>
+  </view>
+
+  <!-- 商家入驻 -->
+  <view class="card" wx:if="{{role === 'merchant'}}">
+    <text class="card-title">商家入驻 · 营业资质</text>
+    <text class="card-tip">商家发布活动需先入驻平台，提交营业执照等资质材料</text>
+
+    <text class="label">企业 / 门店名称 *</text>
+    <input data-field="companyName" value="{{companyName}}" bindinput="onInput" placeholder="营业执照上的名称" disabled="{{qualify.verifyStatus === 'pending' || qualify.verifyStatus === 'approved'}}" />
+
+    <text class="label">统一社会信用代码 *</text>
+    <input data-field="licenseNo" value="{{licenseNo}}" bindinput="onInput" placeholder="18位信用代码" disabled="{{qualify.verifyStatus === 'pending' || qualify.verifyStatus === 'approved'}}" />
+
+    <text class="label">法人姓名 *</text>
+    <input data-field="legalPerson" value="{{legalPerson}}" bindinput="onInput" placeholder="法定代表人" disabled="{{qualify.verifyStatus === 'pending' || qualify.verifyStatus === 'approved'}}" />
+
+    <text class="label">联系手机 *</text>
+    <input data-field="merchantPhone" value="{{merchantPhone}}" type="number" bindinput="onInput" placeholder="用于审核联系" disabled="{{qualify.verifyStatus === 'pending' || qualify.verifyStatus === 'approved'}}" />
+
+    <text class="label">营业执照 *</text>
+    <view class="upload-box" bindtap="onPickImage" data-field="licenseImage" wx:if="{{!licenseImage && qualify.verifyStatus !== 'pending' && qualify.verifyStatus !== 'approved'}}">
+      <text class="upload-icon">📄</text>
+      <text class="upload-text">上传营业执照照片</text>
+    </view>
+    <image class="upload-preview" wx:if="{{licenseImage}}" src="{{licenseImage}}" mode="aspectFill" bindtap="onPreviewImage" data-url="{{licenseImage}}"></image>
+
+    <text class="label">法人身份证（正反面）*</text>
+    <view class="upload-row">
+      <view class="upload-box small" bindtap="onPickImage" data-field="merchantIdFront" wx:if="{{!merchantIdFront && qualify.verifyStatus !== 'pending' && qualify.verifyStatus !== 'approved'}}">
+        <text class="upload-icon">📷</text>
+        <text class="upload-text">正面</text>
+      </view>
+      <image class="upload-preview small" wx:if="{{merchantIdFront}}" src="{{merchantIdFront}}" mode="aspectFill" bindtap="onPreviewImage" data-url="{{merchantIdFront}}"></image>
+      <view class="upload-box small" bindtap="onPickImage" data-field="merchantIdBack" wx:if="{{!merchantIdBack && qualify.verifyStatus !== 'pending' && qualify.verifyStatus !== 'approved'}}">
+        <text class="upload-icon">📷</text>
+        <text class="upload-text">反面</text>
+      </view>
+      <image class="upload-preview small" wx:if="{{merchantIdBack}}" src="{{merchantIdBack}}" mode="aspectFill" bindtap="onPreviewImage" data-url="{{merchantIdBack}}"></image>
+    </view>
+
+    <text class="label">门店门头照（选填）</text>
+    <view class="upload-box" bindtap="onPickImage" data-field="shopFrontImage" wx:if="{{!shopFrontImage && qualify.verifyStatus !== 'pending' && qualify.verifyStatus !== 'approved'}}">
+      <text class="upload-icon">🏪</text>
+      <text class="upload-text">上传门店外观照片</text>
+    </view>
+    <image class="upload-preview" wx:if="{{shopFrontImage}}" src="{{shopFrontImage}}" mode="aspectFill" bindtap="onPreviewImage" data-url="{{shopFrontImage}}"></image>
+
+    <view class="approved-info" wx:if="{{qualify.verifyStatus === 'approved'}}">
+      <text>已入驻：{{qualify.verify.companyName}}</text>
+    </view>
+
+    <button
+      class="submit"
+      wx:if="{{qualify.verifyStatus !== 'approved'}}"
+      bindtap="onSubmitMerchant"
+      disabled="{{qualify.verifyStatus === 'pending'}}"
+    >{{qualify.verifyStatus === 'pending' ? '审核中…' : '提交入驻申请'}}</button>
+    <button class="mock-btn" wx:if="{{qualify.verifyStatus === 'pending'}}" bindtap="onMockApprove">演示：模拟审核通过</button>
+  </view>
+
+  <!-- 保证金 -->
+  <view class="card deposit-card">
+    <text class="card-title">活动保证金</text>
+    <view class="deposit-row">
+      <view class="deposit-info">
+        <text class="deposit-name">{{depositCfg.label}}</text>
+        <text class="deposit-desc">{{depositCfg.desc}}</text>
+      </view>
+      <text class="deposit-amount">¥{{depositCfg.amount}}</text>
+    </view>
+    <view class="deposit-status">
+      <text class="deposit-tag {{qualify.depositPaid ? 'paid' : ''}}">{{qualify.depositPaid ? '已缴纳' : '未缴纳'}}</text>
+    </view>
+    <button
+      class="submit deposit-btn"
+      bindtap="onPayDeposit"
+      disabled="{{qualify.verifyStatus !== 'approved' || qualify.depositPaid}}"
+    >{{qualify.depositPaid ? '保证金已缴纳' : '缴纳保证金 ¥' + depositCfg.amount}}</button>
+  </view>
+
+  <button class="publish-btn" wx:if="{{qualify.canPublish}}" bindtap="onGoPublish">资质已完成 · 去发布活动</button>
+</view>

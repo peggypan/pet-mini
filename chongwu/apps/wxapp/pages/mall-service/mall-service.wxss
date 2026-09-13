@@ -110,10 +110,8 @@ page {
   margin-bottom: 8rpx;
 }
 
-.form-input,
-.form-textarea {
+.form-input {
   width: 100%;
-  padding: 16rpx 18rpx;
   background: #F5F8F6;
   border-radius: 14rpx;
   font-size: 26rpx;
@@ -121,7 +119,14 @@ page {
 }
 
 .form-textarea {
+  width: 100%;
   min-height: 140rpx;
+  padding: 20rpx 24rpx;
+  line-height: 1.6;
+  background: #F5F8F6;
+  border-radius: 14rpx;
+  font-size: 26rpx;
+  box-sizing: border-box;
 }
 
 .bottom-bar {
@@ -156,7 +161,6 @@ page {
   margin: 0;
   padding: 0 40rpx;
   height: 80rpx;
-  line-height: 80rpx;
   background: #6FCF97;
   color: #fff;
   border-radius: 40rpx;

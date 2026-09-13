@@ -2,7 +2,7 @@
 <view class="page">
   <view class="tip-card">
     <text class="tip-title">同城互助 · 禁止活体交易</text>
-    <text class="tip-desc">请如实填写特征与联系方式，方便邻里协助。不可借此买卖宠物。</text>
+    <text class="tip-desc">请定位走失/发现地点，上传照片或视频，并分享给同城好友扩大寻找范围。</text>
   </view>
 
   <view class="card">
@@ -37,10 +37,25 @@
       >{{item.name}}</view>
     </view>
 
-    <text class="label">发生地点</text>
+    <text class="label">发生地点 *</text>
+    <view class="loc-picker" bindtap="onChooseLocation">
+      <view class="loc-main" wx:if="{{geoLocation}}">
+        <text class="loc-name">📍 {{geoLocation.name || '已选位置'}}</text>
+        <text class="loc-addr">{{geoLocation.address}}</text>
+        <text class="loc-tip">点击重新选择 · 点击查看地图</text>
+      </view>
+      <view class="loc-empty" wx:else>
+        <text class="loc-empty-icon">📍</text>
+        <text class="loc-empty-text">高德地图选点 · 走失/发现地点</text>
+      </view>
+    </view>
+    <view class="loc-actions" wx:if="{{geoLocation}}">
+      <text class="loc-action" catchtap="onOpenLocation">查看地图</text>
+      <text class="loc-action danger" catchtap="onClearLocation">清除</text>
+    </view>
     <input
       class="input"
-      placeholder="如：朝阳公园南门附近"
+      placeholder="补充描述（如：XX小区南门、靠近便利店）"
       placeholder-class="ph"
       value="{{location}}"
       bindinput="onField"
@@ -71,20 +86,41 @@
     ></textarea>
     <text class="count">{{content.length}}/500</text>
 
-    <text class="label">照片（选填，最多 3 张）</text>
-    <view class="img-row">
-      <view class="img-item" wx:for="{{images}}" wx:key="*this">
-        <image class="img" src="{{item}}" mode="aspectFill"></image>
-        <view class="img-del" catchtap="onRemoveImage" data-index="{{index}}">×</view>
+    <text class="label">照片 / 视频</text>
+    <text class="label-tip">上传宠物照片或短视频，帮助辨认（最多 6 个，视频 ≤60 秒）</text>
+    <view class="tool-row">
+      <button class="tool-btn" bindtap="onChooseImage">📷 上传图片</button>
+      <button class="tool-btn" bindtap="onChooseVideo">🎬 上传视频</button>
+    </view>
+
+    <view class="media-grid" wx:if="{{mediaList.length}}">
+      <view
+        class="media-item"
+        wx:for="{{mediaList}}"
+        wx:key="index"
+        data-index="{{index}}"
+        bindtap="onPreviewMedia"
+      >
+        <image
+          class="media-thumb"
+          src="{{item.type === 'image' ? item.url : (item.poster || item.url)}}"
+          mode="aspectFill"
+        ></image>
+        <view class="video-badge" wx:if="{{item.type === 'video'}}">
+          <text>▶ 视频</text>
+        </view>
+        <view class="media-del" catchtap="onRemoveMedia" data-index="{{index}}">×</view>
       </view>
-      <view class="img-add" bindtap="onChooseImage" wx:if="{{images.length < 3}}">
-        <text class="img-add-icon">+</text>
-        <text class="img-add-text">添加</text>
-      </view>
+    </view>
+
+    <view class="media-empty" wx:else bindtap="onChooseImage">
+      <text class="empty-icon">📷</text>
+      <text class="empty-text">添加宠物照片或视频</text>
     </view>
   </view>
 
   <view class="bottom">
+    <button class="share-btn" open-type="share">分享给好友</button>
     <button class="submit" bindtap="onSubmit">发布到交友广场</button>
   </view>
 </view>

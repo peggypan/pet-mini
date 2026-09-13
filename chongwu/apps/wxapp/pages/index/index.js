@@ -72,7 +72,7 @@ Page({
   },
 
   onLostTap() {
-    wx.navigateTo({ url: '/pages/lost-publish/lost-publish' });
+    wx.navigateTo({ url: '/pages/pet-rescue/pet-rescue' });
   },
 
   /**

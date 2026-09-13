@@ -1,0 +1,19 @@
+@import "../adopt-publish/adopt-publish.wxss";
+.picker { background: #F5F5F5; border-radius: 14rpx; margin-bottom: 8rpx; }
+.switch-row { display: flex; justify-content: space-between; align-items: center; margin: 16rpx 0; font-size: 26rpx; }
+
+.loc-pick {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+  background: rgba(0, 145, 255, 0.08);
+  border-radius: 16rpx;
+  border: 2rpx dashed rgba(0, 145, 255, 0.35);
+}
+
+.loc-icon { font-size: 36rpx; margin-right: 16rpx; }
+.loc-info { flex: 1; min-width: 0; }
+.loc-title { display: block; font-size: 28rpx; font-weight: 700; color: #1A1A1A; margin-bottom: 6rpx; }
+.loc-addr { display: block; font-size: 24rpx; color: #666; line-height: 1.4; }
+.loc-arrow { font-size: 32rpx; color: #0091FF; }

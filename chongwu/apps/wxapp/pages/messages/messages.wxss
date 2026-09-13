@@ -1,4 +1,4 @@
-page { background: #F7FAF5; }
+page { background: #F5F5F5; }
 
 .page {
   min-height: 100vh;
@@ -25,7 +25,7 @@ page { background: #F7FAF5; }
 
 .tab.on {
   background: rgba(91, 191, 136, 0.16);
-  color: #2D4A38;
+  color: #1A1A1A;
   font-weight: 700;
 }
 
@@ -61,7 +61,7 @@ page { background: #F7FAF5; }
 .chat-name {
   font-size: 28rpx;
   font-weight: 700;
-  color: #2D4A38;
+  color: #1A1A1A;
 }
 
 .chat-time {
@@ -85,8 +85,10 @@ page { background: #F7FAF5; }
   background: #FF8A9B;
   color: #fff;
   font-size: 20rpx;
-  text-align: center;
-  line-height: 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
   margin-left: 8rpx;
 }
 
@@ -101,14 +103,14 @@ page { background: #F7FAF5; }
   display: block;
   font-size: 28rpx;
   font-weight: 700;
-  color: #2D4A38;
+  color: #1A1A1A;
   margin-bottom: 8rpx;
 }
 
 .notice-content {
   display: block;
   font-size: 26rpx;
-  color: #6B8575;
+  color: #666666;
   line-height: 1.5;
   margin-bottom: 8rpx;
 }
@@ -121,13 +123,13 @@ page { background: #F7FAF5; }
 .empty {
   padding: 80rpx 20rpx;
   text-align: center;
-  color: #9BA89E;
+  color: #999999;
   font-size: 26rpx;
 }
 
 .empty-btn {
   margin-top: 24rpx;
-  background: #5BBF88;
+  background: #4CE600;
   color: #fff;
   border-radius: 40rpx;
   font-size: 26rpx;

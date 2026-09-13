@@ -4,8 +4,17 @@ page {
 
 .page {
   min-height: 100vh;
-  padding: 20rpx 28rpx calc(140rpx + env(safe-area-inset-bottom));
+  padding: 20rpx 28rpx calc(180rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
+}
+
+.page.tools-open,
+.page.pending-open {
+  padding-bottom: calc(320rpx + env(safe-area-inset-bottom));
+}
+
+.page.emoji-open {
+  padding-bottom: calc(520rpx + env(safe-area-inset-bottom));
 }
 
 .author-card {
@@ -45,12 +54,53 @@ page {
   margin-right: 10rpx;
 }
 
+.lost-tag {
+  font-size: 18rpx;
+  color: #E65100;
+  background: rgba(255, 152, 0, 0.15);
+  padding: 4rpx 12rpx;
+  border-radius: 999rpx;
+  margin-right: 8rpx;
+  font-weight: 700;
+}
+
 .essence {
   font-size: 18rpx;
   color: #C45C26;
   background: rgba(224, 138, 90, 0.16);
   padding: 2rpx 10rpx;
   border-radius: 8rpx;
+}
+
+.loc-card {
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+  border-radius: 20rpx;
+  background: rgba(197, 255, 74, 0.12);
+  border: 2rpx solid rgba(76, 230, 0, 0.25);
+}
+
+.loc-card-name {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin-bottom: 8rpx;
+}
+
+.loc-card-addr {
+  display: block;
+  font-size: 24rpx;
+  color: #666;
+  line-height: 1.4;
+  margin-bottom: 8rpx;
+}
+
+.loc-card-tip {
+  display: block;
+  font-size: 22rpx;
+  color: #2DB300;
+  font-weight: 600;
 }
 
 .meta {
@@ -182,6 +232,186 @@ page {
   line-height: 1.5;
 }
 
+.c-text.sub {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #777;
+}
+
+.c-image {
+  max-width: 360rpx;
+  margin-top: 10rpx;
+  border-radius: 12rpx;
+}
+
+.c-video {
+  position: relative;
+  width: 320rpx;
+  height: 240rpx;
+  margin-top: 10rpx;
+  border-radius: 12rpx;
+  overflow: hidden;
+}
+
+.c-video-cover {
+  width: 100%;
+  height: 100%;
+  background: #333;
+}
+
+.c-video-play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 24rpx;
+}
+
+.pending-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(100rpx + env(safe-area-inset-bottom));
+  padding: 12rpx 28rpx;
+  background: rgba(255, 255, 255, 0.98);
+  border-top: 1rpx solid #F0F0F0;
+  z-index: 49;
+}
+
+.pending-inner {
+  position: relative;
+  display: inline-block;
+}
+
+.pending-thumb {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 12rpx;
+}
+
+.pending-tag {
+  position: absolute;
+  left: 8rpx;
+  bottom: 8rpx;
+  font-size: 18rpx;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 2rpx 8rpx;
+  border-radius: 6rpx;
+}
+
+.pending-remove {
+  position: absolute;
+  top: -8rpx;
+  right: -8rpx;
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  text-align: center;
+  line-height: 36rpx;
+  font-size: 24rpx;
+}
+
+.tool-panel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(100rpx + env(safe-area-inset-bottom));
+  display: flex;
+  justify-content: space-around;
+  padding: 24rpx 40rpx;
+  background: #fff;
+  border-top: 1rpx solid #F0F0F0;
+  z-index: 48;
+}
+
+.tool-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  font-size: 22rpx;
+  color: #666;
+}
+
+.tool-icon {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+}
+
+.tool-icon.green { background: rgba(197, 255, 74, 0.3); }
+.tool-icon.blue { background: rgba(84, 160, 255, 0.2); }
+.tool-icon.orange { background: rgba(255, 159, 67, 0.2); }
+
+.emoji-panel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(100rpx + env(safe-area-inset-bottom));
+  background: #fff;
+  border-top: 1rpx solid #F0F0F0;
+  z-index: 48;
+  max-height: 420rpx;
+}
+
+.emoji-tabs {
+  white-space: nowrap;
+  padding: 16rpx 20rpx 8rpx;
+}
+
+.emoji-tab {
+  display: inline-block;
+  padding: 10rpx 24rpx;
+  margin-right: 12rpx;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+  color: #999;
+  background: #F5F5F5;
+}
+
+.emoji-tab.on {
+  background: rgba(197, 255, 74, 0.35);
+  color: #1A1A1A;
+  font-weight: 700;
+}
+
+.emoji-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  padding: 12rpx 20rpx 24rpx;
+  max-height: 280rpx;
+  overflow-y: auto;
+}
+
+.emoji-cell {
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-size: 36rpx;
+  border-radius: 12rpx;
+  background: #F9F9F9;
+}
+
 .comment-empty {
   padding: 40rpx 0;
   text-align: center;
@@ -189,29 +419,15 @@ page {
   color: #9A9A9A;
 }
 
-.bottom-bar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100%;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  padding: 16rpx 20rpx calc(16rpx + env(safe-area-inset-bottom));
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 -8rpx 24rpx rgba(42, 42, 42, 0.06);
-  z-index: 50;
-}
-
 .bar-like {
   width: 64rpx;
   height: 64rpx;
-  margin-right: 12rpx;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 50%;
+  background: #F5F5F5;
 }
 
 .bar-like-icon {
@@ -219,59 +435,19 @@ page {
   line-height: 1;
 }
 
-.comment-input {
-  flex: 1;
-  width: 0;
-  min-width: 0;
-  height: 68rpx;
-  margin-right: 12rpx;
-  padding: 0 22rpx;
-  border-radius: 34rpx;
-  background: #F3F7F5;
-  font-size: 26rpx;
-  line-height: 68rpx;
-  box-sizing: border-box;
-}
-
-.ph {
-  color: #B0BEC5;
-}
-
-.bar-send {
-  width: 96rpx;
-  height: 68rpx;
-  margin-right: 10rpx;
-  flex-shrink: 0;
-  border-radius: 34rpx;
-  background: #6FCF97;
-  color: #fff;
-  font-size: 24rpx;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-}
-
 .bar-share {
-  margin: 0 !important;
+  width: 88rpx !important;
+  min-width: 88rpx !important;
+  height: 64rpx;
+  margin-left: 8rpx;
   padding: 0 !important;
-  width: 96rpx !important;
-  min-width: 0 !important;
-  max-width: 96rpx !important;
-  height: 68rpx;
-  line-height: 1;
   flex-shrink: 0;
-  border-radius: 34rpx;
+  border-radius: 12rpx;
   background: #F3F7F5;
-  color: #4DB87A;
+  color: #2DB300;
   font-size: 24rpx;
-  font-weight: 600;
+  font-weight: 700;
   border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
 }
 
 .bar-share::after {

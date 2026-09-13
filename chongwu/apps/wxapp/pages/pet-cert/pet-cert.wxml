@@ -1,0 +1,49 @@
+<view class="page">
+  <text class="section-title">电子宠证</text>
+  <view class="cert-card">
+    <image class="avatar" src="{{pet.avatar}}" mode="aspectFill"></image>
+    <text class="name">{{pet.name}}</text>
+    <text class="line">{{pet.breed}} · {{pet.age}} · {{pet.personality}}</text>
+    <text class="verified" wx:if="{{pet.verified}}">疫苗已核验 ✓</text>
+    <view class="tag-row" wx:if="{{pet.socialTags && pet.socialTags.length}}">
+      <text class="tag" wx:for="{{pet.socialTags}}" wx:key="*this">{{item}}</text>
+    </view>
+    <text class="brand">宠头头 · 电子宠证</text>
+  </view>
+
+  <text class="section-title">数字宠物养成</text>
+  <view class="digital-card" wx:if="{{virtualPet}}">
+    <view class="digital-preview">
+      <block wx:if="{{virtualPet.hasPhoto}}">
+        <view class="photo-wrap" style="transform: scale({{virtualPet.displayScale}})">
+          <image class="digital-photo" src="{{virtualPet.photoUrl}}" mode="aspectFit"></image>
+        </view>
+      </block>
+      <block wx:else>
+        <text class="digital-emoji">🥚</text>
+        <text class="digital-tip">上传照片生成数字形象</text>
+      </block>
+    </view>
+    <view class="digital-info">
+      <view class="digital-row">
+        <text class="digital-name">{{virtualPet.name}}</text>
+        <text class="digital-stage">{{virtualPet.growthStageName}} · Lv.{{virtualPet.level}}</text>
+      </view>
+      <view class="growth-bar">
+        <view class="growth-fill" style="width: {{virtualPet.growthPercent}}%"></view>
+      </view>
+      <text class="growth-text">生长 {{virtualPet.growthPercent}}% · {{virtualPet.feedSummary}}</text>
+      <text class="dialogue">{{virtualPet.dialogue}}</text>
+    </view>
+    <view class="digital-actions">
+      <button class="btn-mini" wx:if="{{!virtualPet.hasPhoto}}" bindtap="onUploadPhoto">📷 上传照片</button>
+      <button class="btn-mini" bindtap="onQuickFeed">🍖 快捷喂食</button>
+      <button class="btn-mini primary" bindtap="onEnterRaise">进入养成空间 ›</button>
+    </view>
+  </view>
+
+  <view class="bottom-actions">
+    <button class="btn" bindtap="onEdit">编辑档案</button>
+    <button class="btn outline" bindtap="onShare">生成分享海报</button>
+  </view>
+</view>

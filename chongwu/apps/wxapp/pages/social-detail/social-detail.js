@@ -1,6 +1,9 @@
 const { findSocialPost } = require('../../utils/catalog');
 const store = require('../../utils/store');
 const { MOCK_PET } = require('../../utils/mock');
+const { openEventPublishEntry } = require('../../utils/event-publish-nav');
+const amap = require('../../utils/amap');
+const { chooseMedia } = require('../../utils/choose-media');
 
 function normalizePostMedia(post) {
   const mediaList = Array.isArray(post.mediaList) ? post.mediaList.slice() : [];
@@ -30,6 +33,9 @@ Page({
     zoneLabel: '',
     commentList: [],
     commentText: '',
+    panelTools: false,
+    panelEmoji: false,
+    pendingMedia: null,
   },
 
   onLoad(options) {
@@ -67,40 +73,124 @@ Page({
     wx.previewImage({ current: src, urls });
   },
 
+  onPreviewCommentImage(e) {
+    const url = e.currentTarget.dataset.url;
+    wx.previewImage({ urls: [url], current: url });
+  },
+
+  onPreviewCommentVideo(e) {
+    const { url, poster } = e.currentTarget.dataset;
+    wx.previewMedia({ sources: [{ url, type: 'video', poster }] });
+  },
+
   onLike() {
     const { post, postId } = this.data;
     if (!post) return;
     const liked = !post.liked;
     const likes = liked ? (post.likes || 0) + 1 : Math.max(0, (post.likes || 0) - 1);
     const patch = { liked, likes };
-    if (store.getSocialPost(postId)) {
-      store.updateSocialPost(postId, patch);
-    } else {
-      store.updateSocialPost(postId, patch);
-    }
+    store.updateSocialPost(postId, patch);
     this.setData({ post: { ...post, ...patch } });
   },
 
-  onCommentInput(e) {
+  onComposerInput(e) {
     this.setData({ commentText: e.detail.value });
   },
 
-  onSendComment() {
-    const text = (this.data.commentText || '').trim();
-    if (!text) {
-      wx.showToast({ title: '请输入评论', icon: 'none' });
+  onPanelChange(e) {
+    const { showTools, showEmoji } = e.detail;
+    this.setData({ panelTools: showTools, panelEmoji: showEmoji });
+  },
+
+  onComposerTool(e) {
+    const { action } = e.detail;
+    if (action === 'photo') {
+      this.pickMedia('image', ['album']);
       return;
     }
-    const { postId, post } = this.data;
-    store.addPostComment(postId, {
-      userName: '我',
-      avatar: MOCK_PET.avatar,
-      content: text,
+    if (action === 'camera') {
+      this.pickMedia('image', ['camera']);
+      return;
+    }
+    if (action === 'video') {
+      this.pickMedia('video', ['album', 'camera']);
+      return;
+    }
+    if (action === 'activity') {
+      openEventPublishEntry();
+    }
+  },
+
+  pickMedia(mediaType, sourceType) {
+    chooseMedia({
+      count: 1,
+      mediaType: [mediaType],
+      sourceType,
+      maxDuration: 60,
+      success: (res) => {
+        const file = (res.tempFiles || [])[0];
+        if (!file) return;
+        if (mediaType === 'video' && file.size > 50 * 1024 * 1024) {
+          wx.showToast({ title: '视频请小于 50MB', icon: 'none' });
+          return;
+        }
+        if (mediaType === 'image') {
+          this.setData({ pendingMedia: { type: 'image', url: file.tempFilePath } });
+          return;
+        }
+        this.setData({
+          pendingMedia: {
+            type: 'video',
+            url: file.tempFilePath,
+            poster: file.thumbTempFilePath || '',
+          },
+        });
+      },
     });
+  },
+
+  onComposerVoice(e) {
+    const { duration } = e.detail;
+    this.setData({ commentText: `${this.data.commentText || ''}[语音 ${duration}"]` });
+  },
+
+  onClearPending() {
+    this.setData({ pendingMedia: null });
+  },
+
+  onComposerSend(e) {
+    const text = (e.detail.value || this.data.commentText || '').trim();
+    const { pendingMedia, postId, post } = this.data;
+    if (!text && !pendingMedia) {
+      wx.showToast({ title: '请输入评论或添加媒体', icon: 'none' });
+      return;
+    }
+
+    let payload;
+    if (pendingMedia) {
+      payload = {
+        userName: '我',
+        avatar: MOCK_PET.avatar,
+        type: pendingMedia.type,
+        url: pendingMedia.url,
+        poster: pendingMedia.poster || '',
+        content: text || (pendingMedia.type === 'image' ? '[图片]' : '[视频]'),
+      };
+    } else {
+      payload = {
+        userName: '我',
+        avatar: MOCK_PET.avatar,
+        type: 'text',
+        content: text,
+      };
+    }
+
+    store.addPostComment(postId, payload);
     const comments = store.listPostComments(postId);
     store.updateSocialPost(postId, { comments: comments.length });
     this.setData({
       commentText: '',
+      pendingMedia: null,
       commentList: comments,
       post: { ...post, comments: comments.length },
     });
@@ -115,10 +205,37 @@ Page({
     this.setData({ post: { ...post, shares } });
   },
 
+  onOpenPostLocation(e) {
+    const { lat, lng, name, address } = e.currentTarget.dataset;
+    amap.openNavigation({
+      lat: Number(lat),
+      lng: Number(lng),
+      name: name || '走失/发现地点',
+      address: address || '',
+    });
+  },
+
   onShareAppMessage() {
     const { post, postId } = this.data;
+    if (!post) {
+      return { title: '宠头头交友广场', path: '/pages/social/social' };
+    }
+    if (post.lostType === 'lost') {
+      const loc = post.geoLocation?.name || post.location || '同城';
+      return {
+        title: `急寻宠物！${loc} · ${(post.content || '').replace(/【.*?】/g, '').slice(0, 24)}`,
+        path: `/pages/social-detail/social-detail?id=${postId}`,
+      };
+    }
+    if (post.lostType === 'found') {
+      const loc = post.geoLocation?.name || post.location || '同城';
+      return {
+        title: `招领宠物 · ${loc} · ${(post.content || '').replace(/【.*?】/g, '').slice(0, 24)}`,
+        path: `/pages/social-detail/social-detail?id=${postId}`,
+      };
+    }
     return {
-      title: post ? `${post.userName}：${(post.content || '').slice(0, 28)}` : '宠头头交友广场',
+      title: `${post.userName}：${(post.content || '').slice(0, 28)}`,
       path: `/pages/social-detail/social-detail?id=${postId}`,
     };
   },

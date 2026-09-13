@@ -1,0 +1,103 @@
+page {
+  background: linear-gradient(180deg, #E8F8EF 0%, #F5F5F5 280rpx, #F5F5F5 100%);
+}
+
+.page {
+  padding: 20rpx 28rpx calc(150rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+.city-bar {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 16rpx 20rpx;
+  margin-bottom: 20rpx;
+  background: #FFFFFF;
+  border-radius: 999rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+}
+
+.city-bar-icon {
+  font-size: 24rpx;
+}
+
+.city-bar-text {
+  flex: 1;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #1A1A1A;
+}
+
+.city-bar-arrow {
+  font-size: 22rpx;
+  color: #999999;
+}
+
+.actions {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.act-btn {
+  flex: 1;
+  margin: 0;
+  height: 80rpx;
+  padding: 0 16rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #D4FF00 0%, #4CE600 100%);
+  color: #1A1A1A;
+  font-size: 28rpx;
+  font-weight: 700;
+  border: none;
+  box-shadow: 0 6rpx 20rpx rgba(76, 230, 0, 0.3);
+}
+
+.act-btn.outline {
+  background: #FFFFFF;
+  color: #1A1A1A;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+  font-weight: 600;
+}
+
+.act-btn::after {
+  border: none;
+}
+
+.event-card {
+  display: flex;
+  padding: 20rpx;
+  margin-bottom: 16rpx;
+  background: #FFFFFF;
+  border-radius: 28rpx;
+  box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.04);
+}
+
+.cover {
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: 20rpx;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.source {
+  font-size: 20rpx;
+  color: #2DB300;
+  font-weight: 600;
+}
+
+.title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin: 6rpx 0;
+}
+
+.meta {
+  display: block;
+  font-size: 22rpx;
+  color: #999999;
+}

@@ -1,0 +1,157 @@
+<view class="page" wx:if="{{pet}}">
+  <view class="top-bar">
+    <view class="coin-box">
+      <text class="coin-icon">🪙</text>
+      <text class="coin-num">{{pet.coins}}</text>
+    </view>
+    <view class="top-actions">
+      <view class="top-btn" bindtap="onCheckIn">📅 签到</view>
+      <view class="top-btn" bindtap="onOpenShop">🛒 商店</view>
+      <view class="top-btn" bindtap="onToggleLog">📋 日志</view>
+    </view>
+  </view>
+
+  <view class="level-row">
+    <text class="pet-name">{{pet.name}}</text>
+    <text class="stage-tag">{{pet.growthStageName}} · Lv.{{pet.level}}</text>
+  </view>
+
+  <!-- 生长进度（核心） -->
+  <view class="growth-panel">
+    <view class="growth-head">
+      <text class="growth-label">🌱 生长进度</text>
+      <text class="growth-val">{{pet.growthPercent}}%</text>
+    </view>
+    <view class="growth-bar">
+      <view class="growth-fill" style="width: {{pet.growthPercent}}%"></view>
+    </view>
+    <text class="feed-summary">{{pet.feedSummary}}</text>
+    <text class="growth-hint" wx:if="{{pet.growthNextStage}}">再成长到 {{pet.growthNextStage.min}}% 进入「{{pet.growthNextStage.name}}」</text>
+    <text class="growth-hint done" wx:else>已达完全体！</text>
+  </view>
+
+  <view class="exp-bar">
+    <view class="exp-fill" style="width: {{pet.expPercent}}%"></view>
+    <text class="exp-text">互动 EXP {{pet.exp}}/{{pet.expNeed}}</text>
+  </view>
+
+  <!-- 宠物展示：照片驱动 + 体型缩放 -->
+  <view class="scene">
+    <view class="scene-bg"></view>
+    <view class="dialogue {{bubbleAnim ? 'pop' : ''}}">
+      <text>{{pet.dialogue}}</text>
+    </view>
+
+    <view class="pet-stage {{animating ? 'bounce' : ''}}" bindtap="onTapPet">
+      <block wx:if="{{pet.hasPhoto}}">
+        <view class="photo-shell {{pet.isHatching ? 'hatching' : ''}}">
+          <view class="photo-scale-wrap" style="transform: scale({{pet.displayScale}})">
+            <image class="pet-photo" src="{{pet.photoUrl}}" mode="aspectFit"></image>
+          </view>
+          <view class="egg-overlay" wx:if="{{pet.isHatching}}">
+            <text class="egg-icon">🥚</text>
+            <text class="egg-tip">破壳中…</text>
+          </view>
+        </view>
+      </block>
+      <block wx:else>
+        <view class="no-photo">
+          <text class="pet-emoji">🥚</text>
+          <text class="no-photo-tip">上传宠物照片，自动生成数字形象</text>
+          <view class="upload-btn" catchtap="onUploadPhoto">📷 上传照片</view>
+        </view>
+      </block>
+      <text class="mood-badge">{{pet.moodFace}}</text>
+    </view>
+
+    <view class="scene-deco deco-left">🌿</view>
+    <view class="scene-deco deco-right">🌸</view>
+  </view>
+
+  <view class="photo-actions" wx:if="{{pet.hasPhoto}}">
+    <view class="photo-sync" bindtap="onUploadPhoto">🔄 更换照片</view>
+    <text class="photo-gen-tag" wx:if="{{pet.photoGenerated}}">AI 形象 · 基于真实照片</text>
+  </view>
+
+  <view class="stats-panel">
+    <view class="stat-row" wx:for="{{pet.stats}}" wx:key="key">
+      <text class="stat-label">{{item.label}}</text>
+      <view class="stat-track">
+        <view class="stat-fill" style="width: {{item.value}}%; background: {{item.color}}"></view>
+      </view>
+      <text class="stat-val">{{item.value}}</text>
+    </view>
+  </view>
+
+  <view class="inventory" wx:if="{{pet.inventory}}">
+    <text class="inv-title">背包</text>
+    <view class="inv-list">
+      <view class="inv-item" wx:if="{{pet.inventory.food_basic}}">🍖 ×{{pet.inventory.food_basic}}</view>
+      <view class="inv-item" wx:if="{{pet.inventory.food_premium}}">🥫 ×{{pet.inventory.food_premium}}</view>
+      <view class="inv-item" wx:if="{{pet.inventory.toy}}">🎾 ×{{pet.inventory.toy}}</view>
+      <view class="inv-item" wx:if="{{pet.inventory.bath_ticket}}">🛁 ×{{pet.inventory.bath_ticket}}</view>
+      <view class="inv-item" wx:if="{{pet.inventory.energy_drink}}">🥤 ×{{pet.inventory.energy_drink}}</view>
+      <text class="inv-empty" wx:if="{{!pet.inventory.food_basic && !pet.inventory.food_premium && !pet.inventory.toy && !pet.inventory.bath_ticket && !pet.inventory.energy_drink}}">空空如也，去商店补货吧</text>
+    </view>
+  </view>
+
+  <view class="actions">
+    <view class="action-btn feed-btn" bindtap="onAction" data-action="feed">
+      <text class="action-icon">🍖</text>
+      <text class="action-label">喂食</text>
+      <text class="action-sub">促生长</text>
+    </view>
+    <view class="action-btn" bindtap="onAction" data-action="play">
+      <text class="action-icon">🎾</text>
+      <text class="action-label">玩耍</text>
+    </view>
+    <view class="action-btn" bindtap="onAction" data-action="bath">
+      <text class="action-icon">🛁</text>
+      <text class="action-label">洗澡</text>
+    </view>
+    <view class="action-btn" bindtap="onAction" data-action="sleep">
+      <text class="action-icon">💤</text>
+      <text class="action-label">睡觉</text>
+    </view>
+    <view class="action-btn" bindtap="onAction" data-action="stroke">
+      <text class="action-icon">🤚</text>
+      <text class="action-label">抚摸</text>
+    </view>
+  </view>
+
+  <view class="tip">💡 持续喂食累计生长时长，宠物会从小变大；状态良好时也会缓慢生长</view>
+  <view class="reset-link" bindtap="onReset">重新开始养成</view>
+
+  <view class="mask" wx:if="{{showLog}}" bindtap="onToggleLog">
+    <view class="panel" catchtap="">
+      <text class="panel-title">养成日志</text>
+      <scroll-view scroll-y class="log-scroll">
+        <view class="log-item" wx:for="{{pet.logs}}" wx:key="index">
+          <text class="log-time">{{item.time}}</text>
+          <text class="log-text">{{item.text}}</text>
+        </view>
+        <view class="log-empty" wx:if="{{!pet.logs.length}}">暂无记录</view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <view class="mask" wx:if="{{showShop}}" bindtap="onCloseShop">
+    <view class="panel shop-panel" catchtap="">
+      <view class="panel-head">
+        <text class="panel-title">宠物商店</text>
+        <text class="panel-coin">🪙 {{pet.coins}}</text>
+      </view>
+      <view class="shop-item" wx:for="{{shopItems}}" wx:key="id" bindtap="onBuy" data-id="{{item.id}}">
+        <text class="shop-icon">{{item.icon}}</text>
+        <view class="shop-info">
+          <text class="shop-name">{{item.name}}</text>
+          <text class="shop-desc">{{item.desc}}</text>
+        </view>
+        <view class="shop-right">
+          <text class="shop-owned" wx:if="{{item.owned}}">已有 {{item.owned}}</text>
+          <text class="shop-price">🪙 {{item.price}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

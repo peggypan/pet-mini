@@ -1,6 +1,7 @@
 const api = require('../../utils/request');
 const store = require('../../utils/store');
 const { getDefaultPets } = require('../../utils/catalog');
+const { chooseMedia } = require('../../utils/choose-media');
 
 Page({
   data: {
@@ -18,6 +19,7 @@ Page({
     personality: '',
     socialTagsText: '',
     remark: '',
+    avatarUrl: '',
     submitting: false,
   },
 
@@ -56,6 +58,21 @@ Page({
       personality: pet.personality || '',
       socialTagsText: (pet.socialTags || []).join('、'),
       remark: pet.remark || '',
+      avatarUrl: pet.avatarUrl || pet.avatar || '',
+    });
+  },
+
+  onChooseAvatar() {
+    chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      success: (res) => {
+        const file = res.tempFiles && res.tempFiles[0];
+        if (file && file.tempFilePath) {
+          this.setData({ avatarUrl: file.tempFilePath });
+        }
+      },
     });
   },
 
@@ -108,12 +125,19 @@ Page({
       personality,
       socialTags,
       remark,
+      avatarUrl: this.data.avatarUrl || undefined,
     };
 
+    let saved;
     if (mode === 'add') {
-      store.addPet(payload);
+      saved = store.addPet(payload);
     } else if (petId) {
-      store.updatePet(petId, payload);
+      saved = store.updatePet(petId, payload);
+    }
+
+    if (this.data.avatarUrl) {
+      const petRaise = require('../../utils/pet-raise');
+      petRaise.generateFromPhoto(this.data.avatarUrl, saved || getDefaultPets()[0]);
     }
 
     wx.showToast({ title: mode === 'add' ? '添加成功' : '保存成功', icon: 'success' });

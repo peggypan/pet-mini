@@ -1,0 +1,55 @@
+<view class="page" wx:if="{{buddy}}">
+  <view class="user-card">
+    <image class="avatar" src="{{buddy.avatar}}" mode="aspectFill"></image>
+    <view class="info">
+      <text class="name">{{buddy.userName}}</text>
+      <text class="meta">{{buddy.distance}} · {{buddy.buddyType}}</text>
+      <view class="credit" wx:if="{{buddy.creditTags.length}}">
+        <text class="credit-tag" wx:for="{{buddy.creditTags}}" wx:key="*this">{{item}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="card" bindtap="onCert">
+    <text class="card-title">宠物电子宠证</text>
+    <text class="pet-line">{{buddy.petName}} · {{buddy.breed}} · {{buddy.age}}</text>
+    <text class="verified" wx:if="{{buddy.verified}}">疫苗已核验 ✓</text>
+    <text class="link">点击查看详情 ›</text>
+  </view>
+
+  <view class="card">
+    <text class="card-title">找搭子需求</text>
+    <text class="desc">{{buddy.desc}}</text>
+    <view class="media-grid {{buddy.mediaList.length === 1 ? 'single' : ''}}" wx:if="{{buddy.mediaList && buddy.mediaList.length}}">
+      <view
+        class="media-item {{item.type === 'video' ? 'is-video' : ''}}"
+        wx:for="{{buddy.mediaList}}"
+        wx:key="index"
+        data-index="{{index}}"
+        bindtap="onPreviewMedia"
+      >
+        <image
+          wx:if="{{item.type === 'image'}}"
+          class="media-thumb"
+          src="{{item.url}}"
+          mode="aspectFill"
+        ></image>
+        <view class="media-video-wrap" wx:else>
+          <image class="media-thumb" src="{{item.poster || item.url}}" mode="aspectFill"></image>
+          <view class="video-play-mask">
+            <text class="video-play-icon">▶</text>
+            <text class="video-play-dur" wx:if="{{item.duration}}">{{item.duration}}秒</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    <text class="expect">期望时间：{{buddy.expectTime}}</text>
+    <text class="expect">期望地点：{{buddy.expectPlace}}</text>
+  </view>
+
+  <view class="bottom">
+    <button class="btn-secondary" bindtap="onFollow">{{followed ? '已收藏' : '收藏搭子'}}</button>
+    <button class="btn-secondary" bindtap="onReport">举报</button>
+    <button class="btn-primary" bindtap="onChat">发起私聊</button>
+  </view>
+</view>

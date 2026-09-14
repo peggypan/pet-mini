@@ -1,6 +1,7 @@
 const app = getApp();
 const { getDefaultPet } = require('../../utils/catalog');
 const store = require('../../utils/store');
+const { explainGetPhoneNumberFail } = require('../../utils/phone-login-errors');
 
 Page({
   data: {
@@ -36,11 +37,31 @@ Page({
     wx.navigateTo({ url: '/pages/city-picker/city-picker' });
   },
 
+  onAgreePrivacyForPhone() {
+    getApp().handlePrivacyAgree('login-phone-btn');
+  },
+
   onGetPhoneNumber(e) {
     const detail = e.detail || {};
-    const ok = detail.errMsg === 'getPhoneNumber:ok' || !!detail.code || !!detail.encryptedData;
+    const errMsg = detail.errMsg || '';
+    if (errMsg.includes('deny') || errMsg.includes('cancel')) {
+      wx.showToast({ title: '已取消手机号授权', icon: 'none' });
+      return;
+    }
+    const ok = errMsg === 'getPhoneNumber:ok' || !!detail.code || !!detail.encryptedData;
     if (!ok) {
-      wx.showToast({ title: '需要授权手机号', icon: 'none' });
+      const explained = explainGetPhoneNumberFail(detail);
+      if (!explained) return;
+      wx.showModal({
+        title: explained.title,
+        content: explained.content,
+        confirmText: explained.suggestWxLogin ? '微信快捷登录' : '知道了',
+        cancelText: explained.suggestWxLogin ? '知道了' : undefined,
+        showCancel: !!explained.suggestWxLogin,
+        success: (res) => {
+          if (explained.suggestWxLogin && res.confirm) this.onWxLogin();
+        },
+      });
       return;
     }
     wx.showLoading({ title: '登录中', mask: true });
@@ -52,9 +73,17 @@ Page({
     }).finally(() => wx.hideLoading());
   },
 
-  onAgreePrivacyAuthorization() {
-    const app = getApp();
-    if (app && app.handlePrivacyAgree) app.handlePrivacyAgree();
+  onWxLogin() {
+    wx.showLoading({ title: '登录中', mask: true });
+    app.loginByWechat()
+      .then(() => {
+        this.onShow();
+        wx.showToast({ title: '登录成功', icon: 'success' });
+      })
+      .catch((err) => {
+        wx.showToast({ title: err.message || '登录失败', icon: 'none' });
+      })
+      .finally(() => wx.hideLoading());
   },
 
   onMessages() { wx.switchTab({ url: '/pages/messages/messages' }); },

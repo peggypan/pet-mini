@@ -37,7 +37,7 @@ Page({
   onAgree() {
     const app = getApp();
     if (app && app.handlePrivacyAgree) {
-      app.handlePrivacyAgree();
+      app.handlePrivacyAgree('agree-privacy-btn');
     }
     app.globalData.privacyAccepted = true;
     wx.reLaunch({ url: HOME });

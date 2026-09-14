@@ -1,4 +1,9 @@
 const { EMOJI_TABS, getEmojiList } = require('../../utils/pet-emoji');
+const {
+  ensureRecordReady,
+  isPrivacyScopeError,
+  showRecordPrivacyGuide,
+} = require('../../utils/record-auth');
 
 Component({
   properties: {
@@ -22,21 +27,39 @@ Component({
 
   lifetimes: {
     attached() {
+      this._cancelVoice = false;
       this.recorder = wx.getRecorderManager();
       this.recorder.onStop((res) => {
         this.setData({ recording: false });
+        if (this._cancelVoice) {
+          this._cancelVoice = false;
+          return;
+        }
         if (!res.tempFilePath || (res.duration || 0) < 500) {
           wx.showToast({ title: '说话时间太短', icon: 'none' });
           return;
         }
         this.triggerEvent('voice', {
           filePath: res.tempFilePath,
-          duration: Math.round((res.duration || 0) / 1000),
+          duration: Math.max(1, Math.round((res.duration || 0) / 1000)),
         });
       });
-      this.recorder.onError(() => {
+      this.recorder.onError((err) => {
         this.setData({ recording: false });
-        wx.showToast({ title: '录音失败', icon: 'none' });
+        this._cancelVoice = false;
+        if (isPrivacyScopeError(err)) {
+          showRecordPrivacyGuide();
+          return;
+        }
+        const msg = (err && err.errMsg) || '';
+        if (msg.includes('auth') || msg.includes('authorize')) {
+          wx.showToast({ title: '请授权麦克风后重试', icon: 'none' });
+          return;
+        }
+        wx.showToast({ title: '录音失败，请重试', icon: 'none' });
+      });
+      this.recorder.onStart(() => {
+        this._cancelVoice = false;
       });
     },
   },
@@ -111,30 +134,27 @@ Component({
     },
 
     onVoiceStart() {
-      wx.authorize({
-        scope: 'scope.record',
-        success: () => this.startRecord(),
-        fail: () => {
-          wx.showModal({
-            title: '需要麦克风权限',
-            content: '发送语音需要授权麦克风',
-            confirmText: '去设置',
-            success: (res) => {
-              if (res.confirm) wx.openSetting();
-            },
-          });
-        },
-      });
+      if (this.data.recording) return;
+      ensureRecordReady()
+        .then(() => this.startRecord())
+        .catch(() => {});
     },
 
     startRecord() {
+      if (this.data.recording) return;
       this.setData({ recording: true });
-      this.recorder.start({
-        format: 'mp3',
-        duration: 60000,
-        sampleRate: 44100,
-        numberOfChannels: 1,
-      });
+      try {
+        this.recorder.start({
+          format: 'mp3',
+          duration: 60000,
+          sampleRate: 16000,
+          encodeBitRate: 48000,
+          numberOfChannels: 1,
+        });
+      } catch (e) {
+        this.setData({ recording: false });
+        wx.showToast({ title: '无法启动录音', icon: 'none' });
+      }
     },
 
     onVoiceEnd() {
@@ -144,8 +164,10 @@ Component({
 
     onVoiceCancel() {
       if (!this.data.recording) return;
+      this._cancelVoice = true;
       this.recorder.stop();
-      this.setData({ recording: false });
     },
+
+    noop() {},
   },
 });

@@ -7,7 +7,17 @@
     </view>
   </view>
 
-  <button class="login-bar" wx:if="{{!isLogin}}" open-type="getPhoneNumber|agreePrivacyAuthorization" bindgetphonenumber="onGetPhoneNumber" bindagreeprivacyauthorization="onAgreePrivacyAuthorization">手机号登录 ›</button>
+  <view class="login-block" wx:if="{{!isLogin}}">
+    <button
+      id="login-phone-btn"
+      class="login-bar"
+      open-type="getPhoneNumber|agreePrivacyAuthorization"
+      bindgetphonenumber="onGetPhoneNumber"
+      bindagreeprivacyauthorization="onAgreePrivacyForPhone"
+    >微信授权手机号登录</button>
+    <text class="login-hint">需公众平台开通「手机号快速验证」后才会弹出微信选号窗；未开通时会提示 no permission</text>
+    <button class="login-bar login-bar-secondary" bindtap="onWxLogin">微信快捷登录（开发用）</button>
+  </view>
 
   <view class="stats">
     <view class="stat"><text class="num">{{stats.buddies}}</text><text class="lab">宠友</text></view>

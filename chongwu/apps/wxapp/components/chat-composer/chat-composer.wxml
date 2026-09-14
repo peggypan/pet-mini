@@ -58,9 +58,10 @@
     <view
       wx:else
       class="voice-hold {{recording ? 'recording' : ''}}"
-      bindtouchstart="onVoiceStart"
-      bindtouchend="onVoiceEnd"
-      bindtouchcancel="onVoiceCancel"
+      catchtouchstart="onVoiceStart"
+      catchtouchend="onVoiceEnd"
+      catchtouchcancel="onVoiceCancel"
+      catchtouchmove="noop"
     >{{recording ? '松开 结束' : '按住 说话'}}</view>
     <view class="icon-btn emoji-btn" bindtap="onToggleEmoji">
       <text class="icon-glyph">☺</text>

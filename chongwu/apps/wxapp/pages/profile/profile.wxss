@@ -36,8 +36,20 @@ page {
   color: #999999;
 }
 
-.login-bar {
+.login-block {
   margin-bottom: 20rpx;
+}
+
+.login-hint {
+  display: block;
+  font-size: 22rpx;
+  color: #888;
+  line-height: 1.5;
+  padding: 0 8rpx 16rpx;
+}
+
+.login-bar {
+  margin-bottom: 12rpx;
   background: linear-gradient(135deg, rgba(197, 255, 74, 0.35) 0%, rgba(76, 230, 0, 0.15) 100%);
   color: #1A1A1A;
   border-radius: 999rpx;
@@ -50,6 +62,13 @@ page {
 
 .login-bar::after {
   border: none;
+}
+
+.login-bar-secondary {
+  margin-top: -8rpx;
+  background: #ffffff;
+  border: 2rpx solid rgba(26, 26, 26, 0.12);
+  font-weight: 600;
 }
 
 .stats {

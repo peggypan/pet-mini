@@ -1,0 +1,97 @@
+page {
+  height: 100%;
+  background: linear-gradient(180deg, #e8f8ef 0%, #f5f5f5 45%);
+}
+
+.gate {
+  min-height: 100vh;
+  padding: calc(80rpx + env(safe-area-inset-top)) 40rpx calc(48rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 40rpx;
+}
+
+.logo {
+  font-size: 56rpx;
+  font-weight: 800;
+  color: #1a1a1a;
+  letter-spacing: 4rpx;
+}
+
+.tagline {
+  margin-top: 16rpx;
+  font-size: 26rpx;
+  color: #666666;
+}
+
+.panel {
+  padding: 36rpx 32rpx 32rpx;
+  background: #ffffff;
+  border-radius: 28rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.06);
+}
+
+.title {
+  display: block;
+  font-size: 34rpx;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin-bottom: 20rpx;
+}
+
+.desc {
+  display: block;
+  font-size: 26rpx;
+  color: #666666;
+  line-height: 1.65;
+  margin-bottom: 16rpx;
+}
+
+.link {
+  display: block;
+  font-size: 24rpx;
+  color: #2db300;
+  margin-bottom: 32rpx;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.btn-disagree,
+.btn-agree {
+  margin: 0;
+  height: 88rpx;
+  padding: 0 24rpx;
+  border-radius: 44rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  border: none;
+}
+
+.btn-disagree {
+  background: #f5f5f5;
+  color: #666666;
+}
+
+.btn-agree {
+  background: linear-gradient(135deg, #d4ff00, #4ce600);
+  color: #1a1a1a;
+  box-shadow: 0 6rpx 20rpx rgba(76, 230, 0, 0.35);
+}
+
+.btn-disagree::after,
+.btn-agree::after {
+  border: none;
+}

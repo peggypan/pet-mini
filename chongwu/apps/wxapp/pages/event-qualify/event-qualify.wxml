@@ -149,3 +149,4 @@
 
   <button class="publish-btn" wx:if="{{qualify.canPublish}}" bindtap="onGoPublish">资质已完成 · 去发布活动</button>
 </view>
+

@@ -7,21 +7,34 @@ App({
     token: null,
     userInfo: null,
     resolvePrivacyAuthorization: null,
+    privacyAccepted: false,
   },
 
-  /** 隐私弹窗点「同意」后调用（配合 open-type="agreePrivacyAuthorization"） */
-  agreePrivacyAuthorization() {
-    const resolve = this.globalData.resolvePrivacyAuthorization;
-    if (typeof resolve === 'function') {
-      resolve({ event: 'agree', buttonId: 'agree-privacy-btn' });
+  /** 启动页「同意并进入」时调用（open-type="agreePrivacyAuthorization"） */
+  handlePrivacyAgree() {
+    const sysResolve = this.globalData.resolvePrivacyAuthorization;
+    if (typeof sysResolve === 'function') {
+      sysResolve({ event: 'agree', buttonId: 'agree-privacy-btn' });
       this.globalData.resolvePrivacyAuthorization = null;
     }
+    this.globalData.privacyAccepted = true;
+  },
+
+  agreePrivacyAuthorization() {
+    this.handlePrivacyAgree();
   },
 
   onLaunch() {
     if (wx.onNeedPrivacyAuthorization) {
       wx.onNeedPrivacyAuthorization((resolve) => {
         this.globalData.resolvePrivacyAuthorization = resolve;
+      });
+    }
+    if (wx.getPrivacySetting) {
+      wx.getPrivacySetting({
+        success: (res) => {
+          this.globalData.privacyAccepted = !res.needAuthorization;
+        },
       });
     }
     const token = wx.getStorageSync('token');

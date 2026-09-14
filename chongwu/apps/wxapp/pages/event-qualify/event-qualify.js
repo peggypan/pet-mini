@@ -4,11 +4,14 @@ const { chooseMedia } = require('../../utils/choose-media');
 
 function pickImage(field) {
   return new Promise((resolve) => {
+    console.log('fieldfieldfield', field);
     chooseMedia({
       count: 1,
       mediaType: ['image'],
       sourceType: ['album', 'camera'],
       success: (res) => {
+        console.log('resresres', res);
+        
         const file = (res.tempFiles || [])[0];
         resolve(file ? file.tempFilePath : '');
       },
@@ -16,6 +19,9 @@ function pickImage(field) {
         console.log(`pickImage fail: ${field}`);
         console.log(err);
         resolve('');
+      },
+      complete: (res) => {
+        console.log('completecompletecomplete', res);
       },
     });
   });
@@ -108,6 +114,8 @@ Page({
 
   async onPickImage(e) {
     const field = e.currentTarget.dataset.field;
+    console.log('fieldhahah', field);
+    
     const url = await pickImage(field);
     if (url) this.setData({ [field]: url });
   },

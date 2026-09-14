@@ -130,3 +130,4 @@
 <view class="empty" wx:else>
   <text>动态不存在或已删除</text>
 </view>
+

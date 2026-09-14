@@ -54,7 +54,7 @@ Page({
 
   onAgreePrivacyAuthorization() {
     const app = getApp();
-    if (app && app.agreePrivacyAuthorization) app.agreePrivacyAuthorization();
+    if (app && app.handlePrivacyAgree) app.handlePrivacyAgree();
   },
 
   onMessages() { wx.switchTab({ url: '/pages/messages/messages' }); },

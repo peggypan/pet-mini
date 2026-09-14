@@ -1,13 +1,14 @@
-const { ensurePrivacyAuthorize, isPrivacyScopeError, showPrivacyGuide } = require('./privacy');
+const { isPrivacyScopeError, showPrivacyGuide, redirectToPrivacyGateIfNeeded } = require('./privacy');
 
 /**
- * 封装 wx.chooseMedia：先走隐私授权，失败时给出配置指引
+ * 封装 wx.chooseMedia（隐私已在启动页统一授权，此处不再单独弹窗）
  */
 function chooseMedia(options = {}) {
   const { success, fail, complete, ...rest } = options;
 
-  return ensurePrivacyAuthorize()
-    .then(() => new Promise((resolve, reject) => {
+  return redirectToPrivacyGateIfNeeded().then((ok) => {
+    if (!ok) return Promise.reject(new Error('privacy:not accepted'));
+    return new Promise((resolve, reject) => {
       wx.chooseMedia({
         ...rest,
         success: (res) => {
@@ -23,12 +24,8 @@ function chooseMedia(options = {}) {
           if (complete) complete(res);
         },
       });
-    }))
-    .catch((err) => {
-      if (isPrivacyScopeError(err)) showPrivacyGuide();
-      if (fail) fail(err);
-      throw err;
     });
+  });
 }
 
 module.exports = { chooseMedia };

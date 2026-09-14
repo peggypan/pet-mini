@@ -110,3 +110,4 @@
       bind:panelchange="onPanelChange"
     />
 </view>
+

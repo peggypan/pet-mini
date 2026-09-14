@@ -67,3 +67,4 @@
     <button class="submit" bindtap="onSubmit">提交审核上架</button>
   </view>
 </view>
+

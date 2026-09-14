@@ -1,5 +1,6 @@
 {
   "pages": [
+    "pages/privacy-gate/privacy-gate",
     "pages/home/home",
     "pages/events/events",
     "pages/buddy/buddy",

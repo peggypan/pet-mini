@@ -1,0 +1,25 @@
+<view class="gate">
+  <view class="hero">
+    <text class="logo">宠头头</text>
+    <text class="tagline">宠物搭子 · 同城社交与生活</text>
+  </view>
+
+  <view class="panel">
+    <text class="title">欢迎使用宠头头</text>
+    <text class="desc">
+      在使用本小程序前，请你阅读并同意{{contractName || '《用户隐私保护指引》'}}。我们将依据指引处理你的相关信息（如你主动选择的图片、位置等），以提供找搭子、活动、地图等服务。
+    </text>
+    <text class="link" bindtap="onOpenContract">查看《隐私保护指引》全文 ›</text>
+    <view class="actions">
+      <button class="btn-disagree" bindtap="onDisagree">不同意并退出</button>
+      <button
+        id="agree-privacy-btn"
+        class="btn-agree"
+        open-type="agreePrivacyAuthorization"
+        bindagreeprivacyauthorization="onAgree"
+      >
+        同意并进入
+      </button>
+    </view>
+  </view>
+</view>

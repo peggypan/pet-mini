@@ -83,3 +83,4 @@
 
   <button class="btn-primary submit-btn" bindtap="onSubmit">保存</button>
 </view>
+

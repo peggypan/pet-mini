@@ -74,3 +74,4 @@
     <button class="submit" bindtap="onSubmit">{{qualify.canPublish ? '提交平台审核' : '请先完成资质认证'}}</button>
   </view>
 </view>
+

@@ -124,3 +124,4 @@
     <button class="submit" bindtap="onSubmit">发布到交友广场</button>
   </view>
 </view>
+

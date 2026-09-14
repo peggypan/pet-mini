@@ -47,3 +47,4 @@
     <button class="btn outline" bindtap="onShare">生成分享海报</button>
   </view>
 </view>
+

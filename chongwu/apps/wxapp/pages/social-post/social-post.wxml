@@ -71,3 +71,4 @@
     <button class="submit" bindtap="onSubmit">发布动态</button>
   </view>
 </view>
+

@@ -49,64 +49,41 @@
       </view>
 
       <view class="pudding-col">
-        <!-- 右上：发起活动 -->
+        <!-- 右侧：友好地图 -->
         <view
-          class="pudding-tile tile-wide theme-yellow"
+          class="pudding-tile tile-small theme-green"
           bindtap="onFeatureTap"
-          data-id="event"
+          data-id="map"
         >
           <view class="tile-copy">
-            <text class="tile-title tile-title-dark">{{tiles.event.name}} ›</text>
-            <text class="tile-sub tile-sub-dark">{{tiles.event.subtitle}}</text>
+            <text class="tile-title tile-title-dark">{{tiles.map.name}} ›</text>
+            <text class="tile-sub tile-sub-dark">{{tiles.map.subtitle}}</text>
           </view>
-        </view>
-
-        <!-- 右下：寻宠领养 + 电子宠证 -->
-        <view class="pudding-mini-row">
-          <view
-            class="pudding-tile tile-small theme-pink"
-            bindtap="onFeatureTap"
-            data-id="rescue"
-          >
-            <view class="tile-copy">
-              <text class="tile-title tile-title-dark">{{tiles.rescue.name}} ›</text>
-              <text class="tile-sub tile-sub-dark">{{tiles.rescue.subtitle}}</text>
-            </view>
-          </view>
-          <view
-            class="pudding-tile tile-small theme-gold"
-            bindtap="onFeatureTap"
-            data-id="cert"
-          >
-            <view class="tile-copy">
-              <text class="tile-title tile-title-dark">{{tiles.cert.name}} ›</text>
-              <text class="tile-sub tile-sub-dark">{{tiles.cert.subtitle}}</text>
-            </view>
+          <view class="tile-map-corner">
+            <map
+              class="tile-map"
+              longitude="{{mapLongitude}}"
+              latitude="{{mapLatitude}}"
+              scale="13"
+              enable-scroll="{{false}}"
+              enable-zoom="{{false}}"
+              enable-rotate="{{false}}"
+            ></map>
           </view>
         </view>
       </view>
     </view>
 
-    <!-- 第二行：友好地图 + 本地服务 -->
+    <!-- 第二行：寻宠领养（通栏） -->
     <view class="pudding-row pudding-row-sub">
       <view
-        class="pudding-tile tile-half theme-green"
+        class="pudding-tile tile-full theme-pink"
         bindtap="onFeatureTap"
-        data-id="map"
+        data-id="rescue"
       >
         <view class="tile-copy">
-          <text class="tile-title tile-title-dark">{{tiles.map.name}} ›</text>
-          <text class="tile-sub tile-sub-dark">{{tiles.map.subtitle}}</text>
-        </view>
-      </view>
-      <view
-        class="pudding-tile tile-half theme-cyan"
-        bindtap="onFeatureTap"
-        data-id="service"
-      >
-        <view class="tile-copy">
-          <text class="tile-title tile-title-dark">{{tiles.service.name}} ›</text>
-          <text class="tile-sub tile-sub-dark">{{tiles.service.subtitle}}</text>
+          <text class="tile-title tile-title-dark">{{tiles.rescue.name}} ›</text>
+          <text class="tile-sub tile-sub-dark">{{tiles.rescue.subtitle}}</text>
         </view>
       </view>
     </view>

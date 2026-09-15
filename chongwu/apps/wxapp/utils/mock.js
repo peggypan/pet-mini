@@ -49,15 +49,6 @@ const MOCK_HOME = {
       path: '/pages/buddy/buddy',
       thumbs: [REAL.avatar, REAL.cat, REAL.pup],
     },
-    event: {
-      id: 'event',
-      name: '发起活动',
-      subtitle: '同城宠友一起玩',
-      deco: '🎾',
-      theme: 'yellow',
-      layout: 'wide',
-      path: '/pages/event-publish/event-publish',
-    },
     map: {
       id: 'map',
       name: '友好地图',
@@ -75,24 +66,6 @@ const MOCK_HOME = {
       theme: 'pink',
       layout: 'small',
       path: '/pages/pet-rescue/pet-rescue',
-    },
-    service: {
-      id: 'service',
-      name: '本地服务',
-      subtitle: '互助 · 洗护 · 医院',
-      deco: '✂️',
-      theme: 'cyan',
-      layout: 'wide-half',
-      path: '/pages/local/local?tab=service',
-    },
-    cert: {
-      id: 'cert',
-      name: '电子宠证',
-      subtitle: '数字宠物 · 档案',
-      deco: '🪪',
-      theme: 'gold',
-      layout: 'small',
-      path: '/pages/pet-cert/pet-cert',
     },
   },
   grid: [],
@@ -389,11 +362,64 @@ const MOCK_EVENTS = [
   },
 ];
 
+const MOCK_CLUBS = [
+  {
+    id: 'club_park',
+    name: '朝阳公园遛狗社',
+    city: '北京',
+    intro: '每周末朝阳公园集合，大型犬友好，主人社交局',
+    cover: `${BASE}/real_hero.jpg`,
+    members: 128,
+    owner: '柯基爸爸',
+  },
+  {
+    id: 'club_cat',
+    name: '猫咪下午茶俱乐部',
+    city: '北京',
+    intro: '室内猫友聚会，布偶/英短/橘猫为主，每周主题活动',
+    cover: `${BASE}/real_cat.jpg`,
+    members: 86,
+    owner: '鱼干小姐',
+  },
+  {
+    id: 'club_hike',
+    name: '周末携宠徒步团',
+    city: '北京',
+    intro: '近郊轻徒步路线，中大型犬体能局，月均 2 次',
+    cover: `${BASE}/real_tall_dog.jpg`,
+    members: 203,
+    owner: '边牧教练',
+  },
+];
+
 const MOCK_MAP_POINTS = [
-  { id: 'm1', name: '朝阳公园南门', type: '公园', allowPet: true, distance: '1.2km', address: '北京市朝阳区朝阳公园南路1号', city: '北京', latitude: 39.9334, longitude: 116.4732, rating: 4.8 },
-  { id: 'm2', name: 'Paw Coffee', type: '咖啡馆', allowPet: true, distance: '2.0km', address: '北京市朝阳区三里屯路19号', city: '北京', latitude: 39.9367, longitude: 116.4551, rating: 4.6 },
-  { id: 'm3', name: '奥林匹克森林公园', type: '公园', allowPet: true, distance: '3.5km', address: '北京市朝阳区科荟路33号', city: '北京', latitude: 40.0178, longitude: 116.3974, rating: 4.7 },
-  { id: 'm4', name: '某商场中庭', type: '其他', allowPet: false, distance: '4.1km', address: '北京市朝阳区禁止携宠入内', city: '北京', latitude: 39.9212, longitude: 116.4434, rating: 3.2 },
+  // 宠物友好公园
+  { id: 'm1', name: '朝阳公园南门', type: '宠物友好公园', allowPet: true, distance: '1.2km', address: '北京市朝阳区朝阳公园南路1号', city: '北京', latitude: 39.9334, longitude: 116.4732, rating: 4.8 },
+  { id: 'm3', name: '奥林匹克森林公园', type: '宠物友好公园', allowPet: true, distance: '3.5km', address: '北京市朝阳区科荟路33号', city: '北京', latitude: 40.0178, longitude: 116.3974, rating: 4.7 },
+  { id: 'm5', name: '将府公园（携宠区）', type: '宠物友好公园', allowPet: true, distance: '5.2km', address: '北京市朝阳区将台乡东八间房村', city: '北京', latitude: 39.9788, longitude: 116.4485, rating: 4.5 },
+  // 宠物友好酒店
+  { id: 'm6', name: '汪汪假日酒店·望京店', type: '宠物友好酒店', allowPet: true, distance: '6.8km', address: '北京市朝阳区望京街10号', city: '北京', latitude: 39.9962, longitude: 116.4818, rating: 4.6 },
+  { id: 'm7', name: '喵界精选酒店·三里屯', type: '宠物友好酒店', allowPet: true, distance: '2.3km', address: '北京市朝阳区工体北路4号', city: '北京', latitude: 39.9364, longitude: 116.4523, rating: 4.9 },
+  // 宠物友好商场
+  { id: 'm8', name: '爪爪广场·通州店', type: '宠物友好商场', allowPet: true, distance: '12.1km', address: '北京市通州区九棵树东路', city: '北京', latitude: 39.8853, longitude: 116.6564, rating: 4.4 },
+  { id: 'm9', name: '萌宠次元购物中心', type: '宠物友好商场', allowPet: true, distance: '7.4km', address: '北京市丰台区万丰路68号', city: '北京', latitude: 39.8598, longitude: 116.2874, rating: 4.3 },
+  // 宠物友好餐厅
+  { id: 'm10', name: '汪咖餐厅·五道口', type: '宠物友好餐厅', allowPet: true, distance: '9.6km', address: '北京市海淀区成府路28号', city: '北京', latitude: 39.9926, longitude: 116.3378, rating: 4.5 },
+  { id: 'm11', name: '猫爪火锅·国贸店', type: '宠物友好餐厅', allowPet: true, distance: '4.9km', address: '北京市朝阳区建国门外大街1号', city: '北京', latitude: 39.9087, longitude: 116.4564, rating: 4.7 },
+  // 宠物友好景区
+  { id: 'm12', name: '雁栖湖萌宠景区', type: '宠物友好景区', allowPet: true, distance: '38.2km', address: '北京市怀柔区雁栖湖路甲1号', city: '北京', latitude: 40.3226, longitude: 116.6319, rating: 4.8 },
+  { id: 'm13', name: '古韵园林·携宠步道', type: '宠物友好景区', allowPet: true, distance: '18.5km', address: '北京市海淀区青龙桥街道', city: '北京', latitude: 40.0068, longitude: 116.2729, rating: 4.6 },
+  // 宠物友好露营地
+  { id: 'm14', name: '星空宠物露营地', type: '宠物友好露营地', allowPet: true, distance: '45.0km', address: '北京市平谷区黄松峪乡', city: '北京', latitude: 40.1815, longitude: 117.1815, rating: 4.9 },
+  { id: 'm15', name: '湖畔萌宠露营园', type: '宠物友好露营地', allowPet: true, distance: '28.3km', address: '北京市房山区青龙湖镇', city: '北京', latitude: 39.7426, longitude: 116.0861, rating: 4.7 },
+  // 其他
+  { id: 'm2', name: 'Paw Coffee', type: '宠物友好餐厅', allowPet: true, distance: '2.0km', address: '北京市朝阳区三里屯路19号', city: '北京', latitude: 39.9367, longitude: 116.4551, rating: 4.6 },
+  { id: 'm4', name: '某商场中庭', type: '宠物不友好', allowPet: false, distance: '4.1km', address: '北京市朝阳区禁止携宠入内', city: '北京', latitude: 39.9212, longitude: 116.4434, rating: 3.2 },
+  { id: 'm16', name: '静音自习咖啡馆', type: '宠物不友好', allowPet: false, distance: '5.6km', address: '北京市海淀区中关村大街27号', city: '北京', latitude: 39.9832, longitude: 116.3164, rating: 4.2 },
+  // 危险 / 毒点
+  { id: 'm17', name: '绿化带灭鼠饵站', type: '毒点', danger: true, dangerDesc: '投放灭鼠药，请勿让宠物靠近嗅闻', allowPet: false, distance: '1.8km', address: '北京市朝阳区东三环辅路绿化带', city: '北京', latitude: 39.9286, longitude: 116.4612, rating: 0 },
+  { id: 'm18', name: '夹竹桃有毒植物区', type: '毒点', danger: true, dangerDesc: '全株有毒，误食叶片可致中毒', allowPet: false, distance: '3.2km', address: '北京市丰台区世界公园北侧', city: '北京', latitude: 39.8062, longitude: 116.2986, rating: 0 },
+  { id: 'm19', name: '车流密集无斑马线路段', type: '危险', danger: true, dangerDesc: '大货车多、无视险横穿，请牵好宠物', allowPet: false, distance: '2.7km', address: '北京市朝阳区双桥东路', city: '北京', latitude: 39.9108, longitude: 116.5489, rating: 0 },
 ];
 
 const MOCK_MERCHANTS = [
@@ -426,6 +452,7 @@ module.exports = {
   MOCK_EVENTS,
   MOCK_MAP_POINTS,
   MOCK_MERCHANTS,
+  MOCK_CLUBS,
   MOCK_CHATS,
   RISK_TIPS,
   MOCK_NEARBY: MOCK_BUDDY,

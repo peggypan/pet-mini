@@ -2,6 +2,7 @@ const { BUDDY_TYPES } = require('../../utils/mock');
 const { getDefaultPet } = require('../../utils/catalog');
 const store = require('../../utils/store');
 const { chooseMedia } = require('../../utils/choose-media');
+const amap = require('../../utils/amap');
 
 Page({
   data: {
@@ -14,6 +15,8 @@ Page({
     expectTime: '',
     minDate: '',
     expectPlace: '',
+    expectPlaceAddress: '',
+    location: null,
     desc: '',
     openSignup: true,
     mediaList: [],
@@ -59,6 +62,37 @@ Page({
 
   onInput(e) {
     this.setData({ [e.currentTarget.dataset.field]: e.detail.value });
+  },
+
+  // 期望地点：点击直接跳转系统地图选点
+  onChoosePlace() {
+    amap.choosePoint()
+      .then((loc) => {
+        this.setData({
+          expectPlace: loc.name || loc.address || '已选地点',
+          expectPlaceAddress: loc.address || '',
+          location: {
+            name: loc.name,
+            address: loc.address,
+            latitude: loc.latitude,
+            longitude: loc.longitude,
+          },
+        });
+      })
+      .catch((err) => {
+        const msg = (err && err.errMsg) || '';
+        if (msg.includes('cancel')) return;
+        if (msg.includes('auth deny') || msg.includes('authorize')) {
+          wx.showModal({
+            title: '需要位置权限',
+            content: '地图选点需要授权位置信息，请在设置中开启',
+            confirmText: '去设置',
+            success: (r) => { if (r.confirm) wx.openSetting(); },
+          });
+          return;
+        }
+        wx.showToast({ title: '选点失败，请重试', icon: 'none' });
+      });
   },
 
   onTypeChange(e) {
@@ -143,7 +177,7 @@ Page({
   },
 
   onSubmit() {
-    const { buddyType, expectTime, expectPlace, desc, zone, openSignup, mediaList } = this.data;
+    const { buddyType, expectTime, expectPlace, expectPlaceAddress, location, desc, zone, openSignup, mediaList } = this.data;
     const text = (desc || '').trim();
     if (!text && !mediaList.length) {
       wx.showToast({ title: '请填写描述或上传媒体', icon: 'none' });
@@ -163,6 +197,8 @@ Page({
       buddyType,
       expectTime: expectTime || '可协商',
       expectPlace: expectPlace || '同城',
+      expectPlaceAddress,
+      location,
       desc: text,
       distance: '0km',
       tags: pet.socialTags || [],

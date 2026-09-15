@@ -213,22 +213,56 @@ function buildMapMarkers(points, options = {}) {
   const { onCallout } = options;
   return points
     .filter((p) => p.latitude && p.longitude)
-    .map((p, index) => ({
-      id: index,
-      pointId: p.id,
-      latitude: p.latitude,
-      longitude: p.longitude,
-      title: p.name,
-      width: 28,
-      height: 36,
-      callout: {
-        content: `${p.name}\n${p.allowPet === false ? '禁止携宠' : '允许携宠'}`,
-        display: onCallout || 'BYCLICK',
-        padding: 8,
-        borderRadius: 8,
-        fontSize: 12,
-      },
-    }));
+    .map((p, index) => {
+      const isDanger = p.danger || /毒|危险/.test(p.type || '');
+      const unfriendly = !isDanger && p.allowPet === false;
+      const marker = {
+        id: index,
+        pointId: p.id,
+        latitude: p.latitude,
+        longitude: p.longitude,
+        title: p.name,
+        width: 28,
+        height: 36,
+        callout: {
+          content: isDanger
+            ? `⚠ ${p.name}\n${p.dangerDesc || '危险区域，请远离'}`
+            : `${p.name}\n${p.allowPet === false ? '禁止携宠' : '允许携宠'}`,
+          display: onCallout || 'BYCLICK',
+          padding: 8,
+          borderRadius: 8,
+          fontSize: 12,
+        },
+      };
+      if (isDanger) {
+        marker.label = {
+          content: '☠ 危险',
+          color: '#FFFFFF',
+          bgColor: '#E5484D',
+          borderRadius: 8,
+          borderWidth: 1,
+          borderColor: '#FFFFFF',
+          padding: 5,
+          fontSize: 11,
+          anchorX: -22,
+          anchorY: 0,
+        };
+      } else if (unfriendly) {
+        marker.label = {
+          content: '✕ 不友好',
+          color: '#666666',
+          bgColor: '#E8E8E8',
+          borderRadius: 8,
+          borderWidth: 1,
+          borderColor: '#FFFFFF',
+          padding: 5,
+          fontSize: 11,
+          anchorX: -26,
+          anchorY: 0,
+        };
+      }
+      return marker;
+    });
 }
 
 module.exports = {

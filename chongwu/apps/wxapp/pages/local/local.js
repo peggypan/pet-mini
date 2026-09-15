@@ -1,8 +1,7 @@
-const { MOCK_EVENTS, MOCK_MERCHANTS, RISK_TIPS } = require('../../utils/mock');
+const { MOCK_EVENTS } = require('../../utils/mock');
 const { listAllMapPoints } = require('../../utils/catalog');
 const store = require('../../utils/store');
 const { openEventPublishEntry } = require('../../utils/event-publish-nav');
-const { buildHelpPosts } = require('../../utils/local-help-list');
 const amap = require('../../utils/amap');
 
 Page({
@@ -11,13 +10,9 @@ Page({
     tabs: [
       { id: 'event', name: '活动' },
       { id: 'map', name: '友好地图' },
-      { id: 'service', name: '本地服务' },
     ],
     events: MOCK_EVENTS,
     mapPoints: [],
-    helpPosts: [],
-    helpTip: RISK_TIPS.help,
-    merchants: MOCK_MERCHANTS,
     mapFilter: 'all',
     city: '北京',
     mapLatitude: 39.9042,
@@ -31,8 +26,7 @@ Page({
   },
 
   normalizeTab(tab) {
-    if (tab === 'merchant' || tab === 'help') return 'service';
-    return tab;
+    return tab === 'map' ? 'map' : 'event';
   },
 
   onShow() {
@@ -45,7 +39,6 @@ Page({
     this.setData({
       city,
       amapReady: amap.isAmapConfigured(),
-      helpPosts: buildHelpPosts(),
     });
     this.loadMapPreview(city);
   },
@@ -104,32 +97,5 @@ Page({
       return;
     }
     wx.showToast({ title: '该点位暂无坐标', icon: 'none' });
-  },
-
-  onPublishHelp() {
-    wx.showModal({
-      title: '风险提示',
-      content: this.data.helpTip,
-      confirmText: '继续发布',
-      success: (res) => {
-        if (res.confirm) wx.navigateTo({ url: '/pages/help-publish/help-publish' });
-      },
-    });
-  },
-
-  onHelpPostTap(e) {
-    const { id } = e.currentTarget.dataset;
-    const item = this.data.helpPosts.find((x) => x.id === id);
-    if (!item) return;
-    const lines = [item.desc || item.preview, item.contact ? '联系：' + item.contact : ''].filter(Boolean);
-    wx.showModal({
-      title: item.title,
-      content: lines.join('\n\n'),
-      showCancel: false,
-    });
-  },
-
-  onMerchantTap(e) {
-    wx.navigateTo({ url: `/pages/merchant-detail/merchant-detail?id=${e.currentTarget.dataset.id}` });
   },
 });

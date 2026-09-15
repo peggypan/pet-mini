@@ -1,7 +1,7 @@
 <view class="page">
   <view class="city-bar" bindtap="onCityTap">
     <text class="city-bar-icon">📍</text>
-    <text class="city-bar-text">{{city}} · 本地生活</text>
+    <text class="city-bar-text">{{city}} · 同城活动</text>
     <text class="city-bar-arrow">切换 ›</text>
   </view>
   <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="tabs">
@@ -50,49 +50,10 @@
         <text class="map-type">{{item.type}}</text>
       </view>
       <text class="map-meta">{{item.distance}} · {{item.address}}</text>
-      <text class="map-allow {{item.allowPet ? 'ok' : 'no'}}">{{item.allowPet ? '允许携宠' : '禁止携宠'}}</text>
-      <button class="nav-btn" size="mini" bindtap="onNavMap" data-id="{{item.id}}">高德导航</button>
+      <text class="map-allow danger" wx:if="{{item.danger}}">⚠️ {{item.dangerDesc || '危险区域，请远离'}}</text>
+      <text class="map-allow {{item.allowPet ? 'ok' : 'no'}}" wx:else>{{item.allowPet ? '允许携宠' : '禁止携宠'}}</text>
+      <button class="nav-btn" size="mini" wx:if="{{!item.danger}}" bindtap="onNavMap" data-id="{{item.id}}">高德导航</button>
     </view>
   </view>
 
-  <view wx:if="{{tab === 'service'}}">
-    <view class="service-block">
-      <view class="block-head">
-        <text class="block-title">🦴 上门互助</text>
-        <view class="block-action" bindtap="onPublishHelp">发布需求 ›</view>
-      </view>
-      <text class="block-tip">{{helpTip}}</text>
-      <view
-        class="help-post"
-        wx:for="{{helpPosts}}"
-        wx:key="id"
-        bindtap="onHelpPostTap"
-        data-id="{{item.id}}"
-      >
-        <view class="help-post-head">
-          <text class="help-post-tag">互助</text>
-          <text class="help-post-time">{{item.time}}</text>
-        </view>
-        <text class="help-post-title">{{item.title}}</text>
-        <text class="help-post-preview">{{item.preview}}</text>
-      </view>
-      <view class="help-empty" wx:if="{{helpPosts.length === 0}}">
-        <text>暂无互助需求，点击右上角发布</text>
-      </view>
-    </view>
-
-    <view class="service-block">
-      <view class="block-head">
-        <text class="block-title">✂️ 商家服务</text>
-      </view>
-      <view class="merchant-card" wx:for="{{merchants}}" wx:key="id" bindtap="onMerchantTap" data-id="{{item.id}}">
-        <image class="m-cover" src="{{item.cover}}" mode="aspectFill"></image>
-        <view class="m-body">
-          <text class="m-name">{{item.name}}</text>
-          <text class="m-cat">{{item.category}} · {{item.price}}</text>
-          <text class="m-rating">⭐ {{item.rating}}</text>
-        </view>
-      </view>
-    </view>
-  </view>
 </view>

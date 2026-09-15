@@ -21,7 +21,13 @@
     <text class="time-preview" wx:if="{{expectTime}}">已选：{{expectTime}}</text>
 
     <text class="label">期望地点</text>
-    <input placeholder="如：朝阳公园" value="{{expectPlace}}" data-field="expectPlace" bindinput="onInput" />
+    <view class="place-row" bindtap="onChoosePlace">
+      <view class="place-main">
+        <text class="place-value {{expectPlace ? '' : 'is-placeholder'}}">{{expectPlace || '点击跳转地图选点'}}</text>
+        <text class="place-addr" wx:if="{{expectPlaceAddress && expectPlaceAddress !== expectPlace}}">{{expectPlaceAddress}}</text>
+      </view>
+      <text class="place-arrow">›</text>
+    </view>
 
     <text class="label">需求描述 *</text>
     <textarea placeholder="描述你的搭子需求、宠物情况等" value="{{desc}}" data-field="desc" bindinput="onInput" maxlength="300"></textarea>

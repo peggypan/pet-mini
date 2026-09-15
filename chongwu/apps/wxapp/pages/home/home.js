@@ -1,7 +1,6 @@
 const { MOCK_HOME, MOCK_BUDDY, MOCK_SOCIAL, MOCK_EVENTS, RISK_TIPS } = require('../../utils/mock');
 const { listAllBuddies } = require('../../utils/catalog');
 const store = require('../../utils/store');
-const { openEventPublishEntry } = require('../../utils/event-publish-nav');
 const { buildFeaturedCommunities } = require('../../utils/circle-community');
 const { autoLocateCity } = require('../../utils/city-location');
 
@@ -16,6 +15,8 @@ Page({
     events: MOCK_EVENTS.slice(0, 3),
     featuredCommunities: [],
     riskTip: RISK_TIPS.meet,
+    mapLatitude: 39.9042,
+    mapLongitude: 116.4074,
   },
 
   onShow() {
@@ -26,6 +27,8 @@ Page({
     this.setData({
       city: loc.city || '北京',
       cityAuto: !!loc.auto,
+      mapLatitude: loc.lat || 39.9042,
+      mapLongitude: loc.lng || 116.4074,
       buddies: listAllBuddies().slice(0, 3),
       featuredCommunities: buildFeaturedCommunities((id) => store.getCircleLastMessage(id)).slice(0, 2),
     });
@@ -51,12 +54,7 @@ Page({
     const id = e.currentTarget.dataset.id;
     const item = this.data.tiles[id];
     if (!item) return;
-    if (item.id === 'event') {
-      openEventPublishEntry();
-      return;
-    }
     if (item.id === 'map') wx.setStorageSync('local_tab', 'map');
-    if (item.id === 'service') wx.setStorageSync('local_tab', 'service');
     wx.navigateTo({ url: item.path });
   },
 

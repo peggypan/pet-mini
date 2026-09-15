@@ -20,6 +20,8 @@ Component({
     showEmoji: false,
     voiceMode: false,
     recording: false,
+    recordSeconds: 0,
+    cancelArmed: false,
     emojiTabs: EMOJI_TABS,
     emojiTab: 'cat',
     emojiList: getEmojiList('cat'),
@@ -30,7 +32,8 @@ Component({
       this._cancelVoice = false;
       this.recorder = wx.getRecorderManager();
       this.recorder.onStop((res) => {
-        this.setData({ recording: false });
+        this.clearRecordTimer();
+        this.setData({ recording: false, recordSeconds: 0, cancelArmed: false });
         if (this._cancelVoice) {
           this._cancelVoice = false;
           return;
@@ -45,7 +48,8 @@ Component({
         });
       });
       this.recorder.onError((err) => {
-        this.setData({ recording: false });
+        this.clearRecordTimer();
+        this.setData({ recording: false, recordSeconds: 0 });
         this._cancelVoice = false;
         if (isPrivacyScopeError(err)) {
           showRecordPrivacyGuide();
@@ -61,6 +65,10 @@ Component({
       this.recorder.onStart(() => {
         this._cancelVoice = false;
       });
+    },
+
+    detached() {
+      this.clearRecordTimer();
     },
   },
 
@@ -133,16 +141,43 @@ Component({
       this.triggerEvent('tool', { action });
     },
 
-    onVoiceStart() {
+    onVoiceStart(e) {
       if (this.data.recording) return;
+      this._startY = (e.touches && e.touches[0] && e.touches[0].clientY) || 0;
+      this.setData({ cancelArmed: false });
       ensureRecordReady()
         .then(() => this.startRecord())
         .catch(() => {});
     },
 
+    onVoiceMove(e) {
+      if (!this.data.recording) return;
+      const y = (e.touches && e.touches[0] && e.touches[0].clientY) || 0;
+      const slideUp = this._startY - y;
+      const armed = slideUp > 80;
+      if (armed !== this.data.cancelArmed) this.setData({ cancelArmed: armed });
+    },
+
+    onVoiceEnd() {
+      if (!this.data.recording) return;
+      if (this.data.cancelArmed) {
+        this.onVoiceCancel();
+        return;
+      }
+      this.recorder.stop();
+    },
+
+    onVoiceCancel() {
+      if (!this.data.recording) return;
+      this._cancelVoice = true;
+      this.setData({ cancelArmed: false });
+      this.recorder.stop();
+    },
+
     startRecord() {
       if (this.data.recording) return;
-      this.setData({ recording: true });
+      this.setData({ recording: true, recordSeconds: 0 });
+      this.startRecordTimer();
       try {
         this.recorder.start({
           format: 'mp3',
@@ -152,20 +187,43 @@ Component({
           numberOfChannels: 1,
         });
       } catch (e) {
-        this.setData({ recording: false });
+        this.clearRecordTimer();
+        this.setData({ recording: false, recordSeconds: 0 });
         wx.showToast({ title: '无法启动录音', icon: 'none' });
       }
     },
 
-    onVoiceEnd() {
-      if (!this.data.recording) return;
-      this.recorder.stop();
+    startRecordTimer() {
+      this.clearRecordTimer();
+      this._vibrated = false;
+      this._recordTimer = setInterval(() => {
+        const next = this.data.recordSeconds + 1;
+        if (next >= 60) {
+          this.clearRecordTimer();
+          if (this.data.recording) this.recorder.stop();
+          return;
+        }
+        // 剩余 10 秒时震动提醒一次
+        if (next === 50 && !this._vibrated) {
+          this._vibrated = true;
+          wx.vibrateShort({ type: 'medium' });
+        }
+        this.setData({ recordSeconds: next });
+      }, 1000);
     },
 
-    onVoiceCancel() {
-      if (!this.data.recording) return;
-      this._cancelVoice = true;
-      this.recorder.stop();
+    clearRecordTimer() {
+      if (this._recordTimer) {
+        clearInterval(this._recordTimer);
+        this._recordTimer = null;
+      }
+    },
+
+    clearRecordTimer() {
+      if (this._recordTimer) {
+        clearInterval(this._recordTimer);
+        this._recordTimer = null;
+      }
     },
 
     noop() {},

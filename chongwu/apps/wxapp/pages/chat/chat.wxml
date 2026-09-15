@@ -23,14 +23,26 @@
 
       <view class="bubble" wx:if="{{item.type === 'text' || !item.type}}">{{item.content}}</view>
 
-      <view
-        class="bubble voice-bubble"
-        wx:if="{{item.type === 'voice'}}"
-        data-url="{{item.url}}"
-        bindtap="onPlayVoice"
-      >
-        <text class="voice-icon">🎙</text>
-        <text class="voice-dur">{{item.duration || 1}}"</text>
+      <view class="voice-wrap" wx:if="{{item.type === 'voice'}}">
+        <view class="voice-text-bubble" wx:if="{{item.voiceText}}">
+          <text class="voice-text">{{item.voiceText}}</text>
+        </view>
+        <view
+          class="bubble voice-bubble {{playingId === item.id ? 'playing' : ''}}"
+          data-url="{{item.url}}"
+          data-id="{{item.id}}"
+          data-index="{{index}}"
+          bindtap="onPlayVoice"
+          bindlongpress="onVoiceLongPress"
+        >
+          <view class="voice-bars" wx:if="{{playingId === item.id}}">
+            <view class="vbar"></view>
+            <view class="vbar"></view>
+            <view class="vbar"></view>
+          </view>
+          <text class="voice-icon" wx:else>🎙</text>
+          <text class="voice-dur">{{item.duration || 1}}"</text>
+        </view>
       </view>
 
       <view class="bubble media-bubble" wx:if="{{item.type === 'image'}}">

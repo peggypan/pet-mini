@@ -25,7 +25,48 @@ const KEYS = {
   eventIdentityVerify: 'mvp_event_identity_verify',
   eventDeposits: 'mvp_event_deposits',
   circleMessages: 'mvp_circle_messages',
+  clubApply: 'mvp_club_apply',
+  joinedClubs: 'mvp_joined_clubs',
+  petLikes: 'mvp_pet_likes',
 };
+
+const PET_LIKE_DAILY_LIMIT = 20;
+
+function petLikeToday() {
+  const d = new Date();
+  const m = `${d.getMonth() + 1}`.padStart(2, '0');
+  const day = `${d.getDate()}`.padStart(2, '0');
+  return `${d.getFullYear()}-${m}-${day}`;
+}
+
+function getPetLikes() {
+  const row = read(KEYS.petLikes, null);
+  if (!row || row.date !== petLikeToday()) return { date: petLikeToday(), items: [] };
+  return row;
+}
+
+// 每日最多喜欢 PET_LIKE_DAILY_LIMIT 只，跨天自动重置
+function addPetLike(pet) {
+  const row = getPetLikes();
+  if (row.items.length >= PET_LIKE_DAILY_LIMIT) return { ok: false, quota: true };
+  if (row.items.some((x) => String(x.id) === String(pet.id))) return { ok: true };
+  row.items.push({
+    id: pet.id,
+    userName: pet.userName,
+    petName: pet.petName,
+    breed: pet.breed,
+    avatar: pet.cover || pet.avatar,
+    distance: pet.distance,
+    likedAt: new Date().toISOString(),
+  });
+  write(KEYS.petLikes, row);
+  return { ok: true };
+}
+
+function petLikeQuota() {
+  const row = getPetLikes();
+  return { used: row.items.length, limit: PET_LIKE_DAILY_LIMIT, left: Math.max(0, PET_LIKE_DAILY_LIMIT - row.items.length) };
+}
 
 function read(key, fallback) {
   try {
@@ -609,6 +650,56 @@ function getCity() {
   return getCityLocation().city || '北京';
 }
 
+function setDraft(key, data) {
+  write(`mvp_draft_${key}`, { data, savedAt: new Date().toISOString() });
+}
+
+// 俱乐部：主理人入驻申请
+function getClubApply() {
+  return read(KEYS.clubApply, null);
+}
+
+function submitClubApply(data) {
+  const row = {
+    ...data,
+    id: `club_${Date.now()}`,
+    status: 'pending',
+    submittedAt: new Date().toISOString(),
+  };
+  write(KEYS.clubApply, row);
+  return row;
+}
+
+function clearClubApply() {
+  write(KEYS.clubApply, null);
+}
+
+// 俱乐部：加入/退出
+function listJoinedClubs() {
+  return read(KEYS.joinedClubs, []);
+}
+
+function isClubJoined(clubId) {
+  return listJoinedClubs().some((c) => String(c.id) === String(clubId));
+}
+
+function joinClub(club) {
+  const list = listJoinedClubs();
+  if (list.some((c) => String(c.id) === String(club.id))) return list;
+  const next = [...list, { ...club, joinedAt: new Date().toISOString() }];
+  write(KEYS.joinedClubs, next);
+  return next;
+}
+
+function leaveClub(clubId) {
+  write(KEYS.joinedClubs, listJoinedClubs().filter((c) => String(c.id) !== String(clubId)));
+}
+
+function getDraft(key) {
+  const row = read(`mvp_draft_${key}`, null);
+  return row ? row.data : null;
+}
+
 function setCity(city) {
   const prev = getCityLocation();
   return setCityLocation({ ...prev, city, auto: false });
@@ -665,6 +756,18 @@ module.exports = {
   addServiceBook,
   getCity,
   setCity,
+  setDraft,
+  getDraft,
+  getPetLikes,
+  addPetLike,
+  petLikeQuota,
+  getClubApply,
+  submitClubApply,
+  clearClubApply,
+  listJoinedClubs,
+  isClubJoined,
+  joinClub,
+  leaveClub,
   getCityLocation,
   setCityLocation,
 };

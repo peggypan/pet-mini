@@ -136,3 +136,130 @@ page {
   font-size: 26rpx;
   z-index: 20;
 }
+
+/* 分类筛选条（悬浮在地图顶部） */
+.filter-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 168rpx;
+  z-index: 10;
+  white-space: nowrap;
+  padding: 0 24rpx;
+  box-sizing: border-box;
+}
+
+.chip {
+  display: inline-block;
+  padding: 12rpx 28rpx;
+  margin-right: 14rpx;
+  background: #FFFFFF;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+  color: #4A6B5C;
+  border: 2rpx solid #E2EDE6;
+}
+
+.chip.on {
+  background: #2E7D5B;
+  border-color: #2E7D5B;
+  color: #FFFFFF;
+  font-weight: 700;
+}
+
+/* 搜索栏（悬浮顶部） */
+.search-bar {
+  position: absolute;
+  left: 24rpx;
+  right: 24rpx;
+  top: 76rpx;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  height: 76rpx;
+  padding: 0 24rpx;
+  background: #FFFFFF;
+  border-radius: 999rpx;
+  box-shadow: 0 8rpx 24rpx rgba(30, 59, 47, 0.12);
+  box-sizing: border-box;
+}
+
+.search-icon {
+  font-size: 28rpx;
+  margin-right: 12rpx;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 0;
+  font-size: 26rpx;
+  color: #1A1A1A;
+}
+
+.search-ph {
+  color: #BBBBBB;
+}
+
+.search-clear {
+  width: 44rpx;
+  height: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  color: #999999;
+}
+
+.search-tips {
+  position: absolute;
+  left: 24rpx;
+  right: 24rpx;
+  top: 164rpx;
+  z-index: 12;
+  max-height: 420rpx;
+  overflow-y: auto;
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  box-shadow: 0 12rpx 32rpx rgba(30, 59, 47, 0.16);
+}
+
+.tip-row {
+  padding: 18rpx 24rpx;
+  border-bottom: 1rpx solid #F2F2F2;
+  display: flex;
+  flex-direction: column;
+  gap: 2rpx;
+}
+
+.tip-row:last-child { border-bottom: none; }
+
+.tip-name {
+  font-size: 27rpx;
+  font-weight: 600;
+  color: #1A1A1A;
+}
+
+.tip-addr {
+  font-size: 22rpx;
+  color: #999999;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 危险点位卡片 */
+.point-card.danger {
+  border: 2rpx solid #E5484D;
+}
+
+.point-card.danger .point-name {
+  color: #E5484D;
+}
+
+.point-warn {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #E5484D;
+  line-height: 1.5;
+}

@@ -93,6 +93,9 @@ Page({
   onMyPosts() { wx.switchTab({ url: '/pages/social/social' }); },
   onMyEvents() { wx.navigateTo({ url: '/pages/my-events/my-events' }); },
   onMyHelp() { wx.navigateTo({ url: '/pages/pet-rescue/pet-rescue' }); },
+  onClubApply() { wx.navigateTo({ url: '/pages/club-apply/club-apply' }); },
+  onMyClubs() { wx.navigateTo({ url: '/pages/my-clubs/my-clubs?tab=mine' }); },
+  onJoinedClubs() { wx.navigateTo({ url: '/pages/my-clubs/my-clubs?tab=joined' }); },
   onOrders() {
     const orders = store.listServiceBooks();
     wx.showModal({

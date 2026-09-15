@@ -2,6 +2,7 @@
   "pages": [
     "pages/privacy-gate/privacy-gate",
     "pages/home/home",
+    "pages/pet-discover/pet-discover",
     "pages/events/events",
     "pages/buddy/buddy",
     "pages/social/social",
@@ -20,11 +21,11 @@
     "pages/event-qualify/event-qualify",
     "pages/my-events/my-events",
     "pages/pet-rescue/pet-rescue",
+    "pages/club-apply/club-apply",
+    "pages/my-clubs/my-clubs",
     "pages/lost-publish/lost-publish",
     "pages/adopt-publish/adopt-publish",
-    "pages/help-publish/help-publish",
     "pages/map-submit/map-submit",
-    "pages/merchant-detail/merchant-detail",
     "pages/service-book/service-book",
     "pages/messages/messages",
     "pages/pet-form/pet-form",
@@ -63,7 +64,7 @@
     "borderStyle": "white",
     "list": [
       { "pagePath": "pages/home/home", "text": "首页" },
-      { "pagePath": "pages/events/events", "text": "活动" },
+      { "pagePath": "pages/pet-discover/pet-discover", "text": "搭搭" },
       { "pagePath": "pages/social/social", "text": "宠友圈" },
       { "pagePath": "pages/messages/messages", "text": "消息" },
       { "pagePath": "pages/profile/profile", "text": "我的" }

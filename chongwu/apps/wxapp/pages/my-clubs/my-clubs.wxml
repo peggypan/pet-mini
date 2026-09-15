@@ -1,0 +1,65 @@
+<view class="page">
+  <view class="tabs">
+    <view class="tab {{tab === 'mine' ? 'on' : ''}}" data-tab="mine" bindtap="onTab">我的俱乐部</view>
+    <view class="tab {{tab === 'joined' ? 'on' : ''}}" data-tab="joined" bindtap="onTab">加入的俱乐部</view>
+  </view>
+
+  <!-- 我的俱乐部（我是主理人） -->
+  <block wx:if="{{tab === 'mine'}}">
+    <view class="club-card" wx:if="{{myClubs.length}}">
+      <image class="club-cover" src="{{item.cover}}" mode="aspectFill"></image>
+      <view class="club-body">
+        <view class="club-head">
+          <text class="club-name">{{item.name}}</text>
+          <text class="club-status {{item.status === 'approved' ? 'ok' : ''}}">
+            {{item.status === 'approved' ? '已上线' : '审核中'}}
+          </text>
+        </view>
+        <text class="club-meta">📍 {{item.city}} · 主理人</text>
+        <text class="club-intro">{{item.intro}}</text>
+      </view>
+    </view>
+    <view class="empty" wx:else>
+      <text class="empty-icon">🏟</text>
+      <text class="empty-text">还没有自己主理的俱乐部</text>
+      <button class="empty-btn" bindtap="onGoApply">成为主理人</button>
+    </view>
+  </block>
+
+  <!-- 加入的俱乐部 -->
+  <block wx:if="{{tab === 'joined'}}">
+    <view class="club-card" wx:for="{{joinedClubs}}" wx:key="id">
+      <image class="club-cover" src="{{item.cover}}" mode="aspectFill"></image>
+      <view class="club-body">
+        <view class="club-head">
+          <text class="club-name">{{item.name}}</text>
+          <text class="club-badge">已加入</text>
+        </view>
+        <text class="club-meta">📍 {{item.city}} · {{item.owner || '主理人'}} · {{item.members || 0}} 成员</text>
+        <view class="club-actions">
+          <text class="link-btn" data-id="{{item.id}}" bindtap="onChat">发消息</text>
+          <text class="link-btn warn" data-id="{{item.id}}" bindtap="onLeave">退出</text>
+        </view>
+      </view>
+    </view>
+    <view class="empty" wx:if="{{!joinedClubs.length}}">
+      <text class="empty-icon">🐾</text>
+      <text class="empty-text">还没有加入任何俱乐部</text>
+    </view>
+
+    <view class="section-head">
+      <text class="section-title">同城俱乐部 · 推荐加入</text>
+    </view>
+    <view class="club-card" wx:for="{{recommendClubs}}" wx:key="id">
+      <image class="club-cover" src="{{item.cover}}" mode="aspectFill"></image>
+      <view class="club-body">
+        <view class="club-head">
+          <text class="club-name">{{item.name}}</text>
+          <text class="club-join" data-id="{{item.id}}" bindtap="onJoin">＋ 加入</text>
+        </view>
+        <text class="club-meta">📍 {{item.city}} · {{item.owner}} · {{item.members}} 成员</text>
+        <text class="club-intro">{{item.intro}}</text>
+      </view>
+    </view>
+  </block>
+</view>

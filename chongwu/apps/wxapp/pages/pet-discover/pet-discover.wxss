@@ -1,0 +1,387 @@
+page { background: #F4F8F2; }
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 24rpx 28rpx calc(200rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+/* 头部 */
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24rpx;
+}
+
+.title {
+  display: block;
+  font-size: 40rpx;
+  font-weight: 800;
+  color: #1E3B2F;
+}
+
+.subtitle {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #6B8A7C;
+}
+
+.header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10rpx;
+}
+
+.like-pill {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 12rpx 24rpx;
+  background: #FFFFFF;
+  border: 2rpx solid #2E7D5B;
+  border-radius: 999rpx;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #2E7D5B;
+}
+
+.pill-icon { font-size: 26rpx; }
+
+.quota {
+  font-size: 22rpx;
+  color: #8AA597;
+}
+
+/* 卡堆 */
+.stack-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 640rpx;
+}
+
+.pet-card {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: 32rpx;
+  overflow: hidden;
+  background: linear-gradient(180deg, #FFFFFF 0%, #EDF5EE 100%);
+  box-shadow: 0 16rpx 48rpx rgba(30, 59, 47, 0.16);
+}
+
+.pet-card.top {
+  z-index: 2;
+}
+
+.pet-card.top.spring {
+  transition: transform 0.3s ease;
+}
+
+.pet-card.fly-left {
+  transition: transform 0.32s ease-out;
+  transform: translate3d(-160%, -40rpx, 0) rotate(-24deg) !important;
+}
+
+.pet-card.fly-right {
+  transition: transform 0.32s ease-out;
+  transform: translate3d(160%, -40rpx, 0) rotate(24deg) !important;
+}
+
+.pet-card.under {
+  transform: scale(0.94) translateY(24rpx);
+  z-index: 1;
+}
+
+.card-photo-wrap {
+  position: absolute;
+  left: 50%;
+  top: 72rpx;
+  transform: translateX(-50%);
+  width: 460rpx;
+  height: 460rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 12rpx solid #FFFFFF;
+  box-shadow: 0 12rpx 36rpx rgba(30, 59, 47, 0.18);
+  background: #E5EEE6;
+}
+
+.card-photo {
+  width: 100%;
+  height: 100%;
+}
+
+/* 方向印章 */
+.stamp {
+  position: absolute;
+  top: 48rpx;
+  padding: 10rpx 28rpx;
+  border: 6rpx solid;
+  border-radius: 16rpx;
+  font-size: 44rpx;
+  font-weight: 900;
+  letter-spacing: 6rpx;
+}
+
+.stamp.skip {
+  left: 40rpx;
+  color: #E85D5D;
+  border-color: #E85D5D;
+  transform: rotate(-18deg);
+}
+
+.stamp.like {
+  right: 40rpx;
+  color: #2FA36B;
+  border-color: #2FA36B;
+  transform: rotate(18deg);
+}
+
+/* 卡片信息 */
+.card-info {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0 32rpx 32rpx;
+  color: #1E3B2F;
+}
+
+.name-row {
+  display: flex;
+  align-items: flex-end;
+}
+
+.pet-name {
+  font-size: 48rpx;
+  font-weight: 900;
+}
+
+.pet-breed {
+  margin: 0 0 6rpx 14rpx;
+  font-size: 28rpx;
+  color: #6B8A7C;
+}
+
+.score-box {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.score-label {
+  font-size: 20rpx;
+  color: #8AA597;
+}
+
+.score-num {
+  font-size: 48rpx;
+  font-weight: 900;
+  line-height: 1.1;
+  color: #2E7D5B;
+}
+
+.pet-meta {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #6B8A7C;
+}
+
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.tag {
+  padding: 8rpx 20rpx;
+  background: rgba(46, 125, 91, 0.1);
+  color: #2E7D5B;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+}
+
+/* 空态 */
+.empty {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 120rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.empty-icon { font-size: 80rpx; }
+
+.empty-text {
+  font-size: 28rpx;
+  color: #6B8A7C;
+}
+
+.empty-btn {
+  margin-top: 12rpx;
+  padding: 0 56rpx;
+  background: #2E7D5B;
+  color: #FFFFFF;
+  border-radius: 999rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+/* 底部操作 */
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 88rpx;
+  margin-top: 8rpx;
+}
+
+.act {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6rpx;
+}
+
+.act.round {
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.act.round.skip {
+  width: 128rpx;
+  height: 128rpx;
+  background: #FFD64D;
+  box-shadow: 0 10rpx 28rpx rgba(214, 158, 0, 0.28);
+}
+
+.act.round.skip .act-glyph {
+  font-size: 68rpx;
+  font-weight: 800;
+  color: #7A5A00;
+  line-height: 1;
+}
+
+.act.round.like {
+  width: 128rpx;
+  height: 128rpx;
+  background: #FFFFFF;
+  box-shadow: 0 10rpx 28rpx rgba(30, 59, 47, 0.16);
+}
+
+.act.round.like .heart {
+  font-size: 60rpx;
+  color: #E8484F;
+  line-height: 1;
+}
+
+.hint {
+  margin-top: 12rpx;
+  text-align: center;
+  font-size: 22rpx;
+  color: #9DB5A8;
+}
+
+/* 喜欢列表弹层 */
+.mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-end;
+}
+
+.sheet {
+  width: 100%;
+  max-height: 70vh;
+  background: #FFFFFF;
+  border-radius: 32rpx 32rpx 0 0;
+  padding: 28rpx 28rpx calc(28rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.sheet-title {
+  font-size: 30rpx;
+  font-weight: 800;
+  color: #1A1A1A;
+}
+
+.sheet-close {
+  font-size: 44rpx;
+  color: #999999;
+  line-height: 1;
+}
+
+.sheet-scroll {
+  max-height: 52vh;
+}
+
+.liked-row {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #F2F2F2;
+}
+
+.liked-avatar {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  margin-right: 20rpx;
+}
+
+.liked-info { flex: 1; min-width: 0; }
+
+.liked-name {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #1A1A1A;
+}
+
+.liked-meta {
+  display: block;
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  color: #999999;
+}
+
+.liked-arrow {
+  font-size: 36rpx;
+  color: #BBBBBB;
+}
+
+.liked-empty {
+  padding: 60rpx 0;
+  text-align: center;
+  font-size: 24rpx;
+  color: #999999;
+}

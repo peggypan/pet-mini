@@ -15,9 +15,9 @@ Component({
         label: '首页',
       },
       {
-        pagePath: '/pages/events/events',
-        emoji: '🎾',
-        label: '活动',
+        pagePath: '/pages/pet-discover/pet-discover',
+        emoji: '🐾',
+        label: '搭搭',
       },
       { pagePath: '/pages/social/social', label: '宠友圈', center: true },
       {

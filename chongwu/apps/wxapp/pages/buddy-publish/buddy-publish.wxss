@@ -181,3 +181,45 @@ textarea { min-height: 180rpx; }
 }
 
 .submit::after { border: none; }
+
+/* 期望地点 · 地图选点 */
+.place-row {
+  display: flex;
+  align-items: center;
+  min-height: 88rpx;
+  padding: 16rpx 24rpx;
+  background: #F8F8F8;
+  border-radius: 16rpx;
+}
+
+.place-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.place-value {
+  font-size: 28rpx;
+  color: #1A1A1A;
+}
+
+.place-value.is-placeholder {
+  color: #BBBBBB;
+}
+
+.place-addr {
+  font-size: 22rpx;
+  color: #999999;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.place-arrow {
+  margin-left: 12rpx;
+  font-size: 32rpx;
+  color: #BBBBBB;
+  font-weight: 700;
+}

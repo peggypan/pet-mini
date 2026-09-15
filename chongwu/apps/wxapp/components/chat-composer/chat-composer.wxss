@@ -174,3 +174,71 @@
   background: rgba(197, 255, 74, 0.35);
   color: #1A1A1A;
 }
+
+.record-overlay {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.record-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 36rpx 56rpx;
+  background: rgba(0, 0, 0, 0.72);
+  border-radius: 28rpx;
+  color: #FFFFFF;
+}
+
+.record-wave {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+  height: 48rpx;
+  margin-bottom: 20rpx;
+}
+
+.wave-bar {
+  width: 8rpx;
+  border-radius: 8rpx;
+  background: #C5FF4A;
+  animation: wave-jump 0.9s ease-in-out infinite;
+}
+
+.wave-bar:nth-child(1) { height: 20rpx; animation-delay: 0s; }
+.wave-bar:nth-child(2) { height: 44rpx; animation-delay: 0.15s; }
+.wave-bar:nth-child(3) { height: 32rpx; animation-delay: 0.3s; }
+.wave-bar:nth-child(4) { height: 16rpx; animation-delay: 0.45s; }
+
+@keyframes wave-jump {
+  0%, 100% { transform: scaleY(0.4); }
+  50% { transform: scaleY(1); }
+}
+
+.record-card.cancel {
+  background: rgba(255, 77, 79, 0.85);
+}
+
+.record-card.cancel .wave-bar {
+  background: #FFFFFF;
+}
+
+.record-tip {
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.voice-hold.cancel {
+  background: rgba(255, 77, 79, 0.3);
+  color: #D93A3C;
+}

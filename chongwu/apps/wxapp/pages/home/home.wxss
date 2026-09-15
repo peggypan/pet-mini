@@ -178,6 +178,14 @@ page {
   align-items: center;
 }
 
+.tile-full {
+  width: 100%;
+  min-height: 108rpx;
+  padding: 18rpx 20rpx;
+  display: flex;
+  align-items: center;
+}
+
 .theme-blue {
   background: linear-gradient(145deg, #45B4FF 0%, #6EC5FF 42%, #A8DCFF 100%);
 }
@@ -589,4 +597,40 @@ page {
 
 .city-item:active {
   background: rgba(197, 255, 74, 0.35);
+}
+
+.pudding-col .tile-small {
+  flex: 1;
+}
+
+/* 右列小卡文字与左侧大卡标题同一水平线 */
+.pudding-col .tile-small {
+  align-items: flex-start;
+  padding: 20rpx 20rpx 16rpx;
+  box-sizing: border-box;
+}
+
+.pudding-col .tile-small .tile-title-dark {
+  font-size: 30rpx;
+  letter-spacing: 0.5rpx;
+  white-space: nowrap;
+}
+
+/* 友好地图卡片右下角迷你地图 */
+.tile-map-corner {
+  position: absolute;
+  right: 10rpx;
+  bottom: 10rpx;
+  width: 160rpx;
+  height: 104rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.12);
+  background: #E8F2E8;
+  z-index: 1;
+}
+
+.tile-map {
+  width: 100%;
+  height: 100%;
 }

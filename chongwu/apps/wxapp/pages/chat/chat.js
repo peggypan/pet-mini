@@ -13,6 +13,7 @@ Page({
     panelTools: false,
     panelEmoji: false,
     scrollInto: '',
+    playingId: '',
   },
 
   onLoad(options) {
@@ -204,14 +205,57 @@ Page({
   },
 
   onPlayVoice(e) {
-    const url = e.currentTarget.dataset.url;
+    const { url, id } = e.currentTarget.dataset;
     if (!url) return;
     if (!this.innerAudio) {
       this.innerAudio = wx.createInnerAudioContext();
+      this.innerAudio.onEnded(() => this.setData({ playingId: '' }));
+      this.innerAudio.onError(() => this.setData({ playingId: '' }));
+      this.innerAudio.onStop(() => this.setData({ playingId: '' }));
+    }
+    if (this.data.playingId === id) {
+      this.innerAudio.stop();
+      this.setData({ playingId: '' });
+      return;
     }
     this.innerAudio.stop();
     this.innerAudio.src = url;
+    this.setData({ playingId: id });
     this.innerAudio.play();
+  },
+
+  onVoiceLongPress(e) {
+    const { index, url } = e.currentTarget.dataset;
+    const item = this.data.messages[index];
+    if (!item || item.type !== 'voice') return;
+    wx.showActionSheet({
+      itemList: [item.voiceText ? '重新转文字' : '转文字'],
+      success: (res) => {
+        if (res.tapIndex !== 0) return;
+        wx.showLoading({ title: '转写中…' });
+        // 演示环境无语音识别服务，先占位；接入 ASR 后替换为真实转写结果
+        setTimeout(() => {
+          wx.hideLoading();
+          this.setData({
+            [`messages[${index}].voiceText`]: '（语音转文字）明天下午带毛孩子去公园碰面吧～',
+          });
+        }, 600);
+      },
+    });
+  },
+
+  onHide() {
+    if (this.innerAudio) {
+      this.innerAudio.stop();
+      this.setData({ playingId: '' });
+    }
+  },
+
+  onUnload() {
+    if (this.innerAudio) {
+      this.innerAudio.destroy();
+      this.innerAudio = null;
+    }
   },
 
   onChooseVideo() {

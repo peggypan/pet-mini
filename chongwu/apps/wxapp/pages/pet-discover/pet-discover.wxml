@@ -1,0 +1,97 @@
+<view class="page">
+  <view class="header">
+    <view class="header-left">
+      <text class="title">社交全靠我家毛孩 🐾</text>
+      <text class="subtitle">让毛孩子，遇见更好的伙伴</text>
+    </view>
+    <view class="header-right">
+      <view class="like-pill" bindtap="onOpenLikes">
+        <text class="pill-icon">🤍</text>
+        <text>喜欢列表 {{likeUsed}}</text>
+      </view>
+      <text class="quota">今日剩余 {{likeLeft}}/{{likeLimit}}</text>
+    </view>
+  </view>
+
+  <view class="stack-wrap">
+    <!-- 底层卡 -->
+    <view class="pet-card under" wx:if="{{deck.length > 1}}">
+      <view class="card-photo-wrap">
+        <image class="card-photo" src="{{deck[1].cover}}" mode="aspectFill"></image>
+      </view>
+    </view>
+
+    <!-- 顶层可滑动卡 -->
+    <view
+      wx:if="{{deck.length}}"
+      class="pet-card top {{fly === 'left' ? 'fly-left' : ''}} {{fly === 'right' ? 'fly-right' : ''}} {{!dragging && !fly ? 'spring' : ''}}"
+      style="transform: translate3d({{dx}}px, {{dy}}px, 0) rotate({{rot}}deg);"
+      bindtouchstart="onCardStart"
+      bindtouchmove="onCardMove"
+      bindtouchend="onCardEnd"
+      bindtouchcancel="onCardEnd"
+    >
+      <view class="card-photo-wrap">
+        <image class="card-photo" src="{{deck[0].cover}}" mode="aspectFill"></image>
+      </view>
+
+      <view class="stamp skip" style="opacity:{{skipOp}}">跳过</view>
+      <view class="stamp like" style="opacity:{{likeOp}}">喜欢</view>
+
+      <view class="card-info">
+        <view class="name-row">
+          <text class="pet-name">{{deck[0].petName}}</text>
+          <text class="pet-breed">| {{deck[0].breed}}</text>
+          <view class="score-box">
+            <text class="score-label">缘分值</text>
+            <text class="score-num">{{deck[0].score}}%</text>
+          </view>
+        </view>
+        <text class="pet-meta">📍 {{deck[0].expectPlace}} · {{deck[0].distance}}</text>
+        <view class="tag-row">
+          <text class="tag" wx:for="{{deck[0].tags}}" wx:key="*this">{{item}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空态 -->
+    <view class="empty" wx:if="{{!deck.length}}">
+      <text class="empty-icon">🐾</text>
+      <text class="empty-text">暂时没有更多毛孩子了</text>
+      <button class="empty-btn" bindtap="onReload">换一批</button>
+    </view>
+  </view>
+
+  <view class="actions" wx:if="{{deck.length}}">
+    <view class="act round skip" bindtap="onSkip">
+      <text class="act-glyph">×</text>
+    </view>
+    <view class="act round like" bindtap="onLike">
+      <text class="act-glyph heart">❤</text>
+    </view>
+  </view>
+  <text class="hint" wx:if="{{deck.length}}">左滑跳过 · 右滑喜欢</text>
+
+  <!-- 喜欢列表弹层 -->
+  <view class="mask" wx:if="{{showLikes}}" bindtap="onCloseLikes">
+    <view class="sheet" catchtap="noop">
+      <view class="sheet-head">
+        <text class="sheet-title">喜欢列表（今日 {{likeUsed}}/{{likeLimit}}）</text>
+        <text class="sheet-close" bindtap="onCloseLikes">×</text>
+      </view>
+      <scroll-view scroll-y class="sheet-scroll">
+        <view class="liked-row" wx:for="{{likedList}}" wx:key="id" data-id="{{item.id}}" bindtap="onLikedTap">
+          <image class="liked-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+          <view class="liked-info">
+            <text class="liked-name">{{item.petName}} · {{item.breed}}</text>
+            <text class="liked-meta">{{item.userName}} · {{item.distance}}</text>
+          </view>
+          <text class="liked-arrow">›</text>
+        </view>
+        <view class="liked-empty" wx:if="{{!likedList.length}}">
+          <text>今天还没有喜欢的毛孩子，去右滑试试吧</text>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>

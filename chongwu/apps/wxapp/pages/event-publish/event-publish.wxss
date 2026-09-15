@@ -243,3 +243,191 @@ textarea {
 }
 
 .submit::after { border: none; }
+
+/* 行式表单 */
+.form-row {
+  display: flex;
+  align-items: center;
+  min-height: 96rpx;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #F0F0F0;
+}
+
+.form-block {
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #F0F0F0;
+}
+
+.row-label {
+  width: 180rpx;
+  flex-shrink: 0;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1A1A1A;
+}
+
+.row-input {
+  flex: 1;
+  min-width: 0;
+  font-size: 28rpx;
+  color: #1A1A1A;
+  text-align: right;
+}
+
+.row-tail {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.row-value {
+  font-size: 28rpx;
+  color: #1A1A1A;
+}
+
+.row-value.ph {
+  color: #BBBBBB;
+}
+
+.row-ph {
+  color: #BBBBBB;
+}
+
+.row-arrow {
+  margin-left: 10rpx;
+  font-size: 30rpx;
+  color: #BBBBBB;
+  font-weight: 700;
+}
+
+.row-value-group {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 40rpx;
+}
+
+.row-textarea {
+  width: 100%;
+  min-height: 160rpx;
+  margin-top: 16rpx;
+  padding: 20rpx;
+  font-size: 26rpx;
+  color: #1A1A1A;
+  background: #F8F8F8;
+  border-radius: 16rpx;
+  box-sizing: border-box;
+}
+
+.sub-addr {
+  padding: 8rpx 0 16rpx 180rpx;
+  font-size: 22rpx;
+  color: #999999;
+}
+
+/* 相册追加按钮 */
+.media-add {
+  width: 152rpx;
+  height: 152rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F5F5F5;
+  border-radius: 16rpx;
+  border: 1rpx dashed #CCCCCC;
+  box-sizing: border-box;
+}
+
+.add-icon {
+  font-size: 48rpx;
+  color: #BBBBBB;
+}
+
+/* 底部双按钮 */
+.submit-bar {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 24rpx;
+}
+
+.submit-bar .submit {
+  flex: 1;
+}
+
+.submit.ghost {
+  background: #F5F5F5;
+  color: #666666;
+  box-shadow: none;
+}
+
+/* 单次 / 多场次 */
+.type-tabs {
+  display: flex;
+  margin-bottom: 8rpx;
+  border-bottom: 1rpx solid #F0F0F0;
+}
+
+.type-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20rpx 0 24rpx;
+  position: relative;
+}
+
+.type-tab.on .type-name {
+  font-size: 32rpx;
+  font-weight: 800;
+  color: #1A1A1A;
+  border-bottom: 6rpx solid #C5FF4A;
+  padding-bottom: 6rpx;
+}
+
+.type-tab:not(.on) .type-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #B5B5B5;
+}
+
+.type-sub {
+  margin-top: 8rpx;
+  font-size: 20rpx;
+  color: #B5B5B5;
+}
+
+/* 价格行 */
+.price-wrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.price-input {
+  width: 180rpx;
+  text-align: right;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #1A1A1A;
+}
+
+.price-unit {
+  margin-left: 8rpx;
+  font-size: 28rpx;
+  color: #1A1A1A;
+  font-weight: 600;
+}
+
+/* 定时报名子行 */
+.timed-row {
+  display: flex;
+  align-items: center;
+  gap: 48rpx;
+  padding: 8rpx 0 20rpx 180rpx;
+}

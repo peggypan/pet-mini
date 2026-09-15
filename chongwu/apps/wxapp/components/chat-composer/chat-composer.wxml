@@ -1,4 +1,15 @@
 <view class="composer-root {{showTools ? 'tools-open' : ''}} {{showEmoji ? 'emoji-open' : ''}}">
+  <view class="record-overlay" wx:if="{{recording}}">
+    <view class="record-card {{cancelArmed ? 'cancel' : ''}}">
+      <view class="record-wave">
+        <view class="wave-bar"></view>
+        <view class="wave-bar"></view>
+        <view class="wave-bar"></view>
+        <view class="wave-bar"></view>
+      </view>
+      <text class="record-tip">{{cancelArmed ? '松开手指，取消发送' : '上滑取消'}}</text>
+    </view>
+  </view>
   <view class="tool-panel" wx:if="{{showTools}}">
     <view class="tool-item" bindtap="onTool" data-action="photo">
       <view class="tool-icon-box"><text class="tool-glyph">🖼</text></view>
@@ -57,12 +68,12 @@
     </block>
     <view
       wx:else
-      class="voice-hold {{recording ? 'recording' : ''}}"
+      class="voice-hold {{recording ? 'recording' : ''}} {{cancelArmed ? 'cancel' : ''}}"
       catchtouchstart="onVoiceStart"
       catchtouchend="onVoiceEnd"
       catchtouchcancel="onVoiceCancel"
-      catchtouchmove="noop"
-    >{{recording ? '松开 结束' : '按住 说话'}}</view>
+      catchtouchmove="onVoiceMove"
+    >{{recording ? (cancelArmed ? '松开手指，取消发送' : '松开 结束') : '按住 说话'}}</view>
     <view class="icon-btn emoji-btn" bindtap="onToggleEmoji">
       <text class="icon-glyph">☺</text>
     </view>

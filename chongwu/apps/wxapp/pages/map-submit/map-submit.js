@@ -1,7 +1,7 @@
 const store = require('../../utils/store');
 const amap = require('../../utils/amap');
 
-const POINT_TYPES = ['公园', '咖啡馆', '酒店', '商场', '露营地', '其他'];
+const POINT_TYPES = ['宠物友好公园', '宠物友好酒店', '宠物友好商场', '宠物友好餐厅', '宠物友好景区', '宠物友好露营地', '其他'];
 
 Page({
   data: {

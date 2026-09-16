@@ -1,5 +1,5 @@
 page {
-  background: #F5F5F5;
+  background: #F5F8FC;
 }
 
 .page {
@@ -13,7 +13,7 @@ page {
   margin: 16rpx 0 28rpx;
   padding: 36rpx 32rpx;
   border-radius: 28rpx;
-  background: linear-gradient(135deg, #E8F8EF 0%, #FFF9F3 100%);
+  background: linear-gradient(135deg, #E8F4FF 0%, #FFF9F3 100%);
   overflow: hidden;
 }
 
@@ -61,7 +61,7 @@ page {
 
 .section-more {
   font-size: 24rpx;
-  color: #4CE600;
+  color: #4DA7F8;
 }
 
 .topic-scroll,
@@ -130,7 +130,7 @@ page {
 
 .event-tag {
   font-size: 20rpx;
-  color: #4CE600;
+  color: #4DA7F8;
   margin-bottom: 6rpx;
 }
 
@@ -225,7 +225,7 @@ page {
   width: 12rpx;
   height: 12rpx;
   border-radius: 50%;
-  background: #4CE600;
+  background: #4DA7F8;
 }
 
 .friend-breed {
@@ -250,7 +250,7 @@ page {
 
 .tag {
   font-size: 20rpx;
-  color: #4CE600;
+  color: #4DA7F8;
   background: rgba(91, 191, 136, 0.12);
   padding: 4rpx 12rpx;
   border-radius: 8rpx;
@@ -275,7 +275,7 @@ page {
 
 .btn-follow {
   background: rgba(91, 191, 136, 0.14);
-  color: #2DB300;
+  color: #1E88E5;
 }
 
 .btn-follow.followed {
@@ -284,7 +284,7 @@ page {
 }
 
 .btn-chat {
-  background: linear-gradient(135deg, #7ED6A8, #4CE600);
+  background: linear-gradient(135deg, #7ED6A8, #4DA7F8);
   color: #fff;
 }
 

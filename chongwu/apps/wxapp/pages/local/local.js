@@ -3,6 +3,12 @@ const { listAllMapPoints } = require('../../utils/catalog');
 const store = require('../../utils/store');
 const { openEventPublishEntry } = require('../../utils/event-publish-nav');
 const amap = require('../../utils/amap');
+const {
+  filterPointsByPetSentiment,
+  getPetFabLabel,
+  PET_FAB_ITEMS,
+} = require('../../utils/map-pet-filter');
+const { collectPetServicePOIs, mergeMapPoints } = require('../../utils/map-pet-poi-collector');
 
 Page({
   data: {
@@ -13,7 +19,9 @@ Page({
     ],
     events: MOCK_EVENTS,
     mapPoints: [],
-    mapFilter: 'all',
+    petFilter: '',
+    petFilterLabel: '',
+    fabOpen: false,
     city: '北京',
     mapLatitude: 39.9042,
     mapLongitude: 116.4074,
@@ -45,14 +53,39 @@ Page({
 
   async loadMapPreview(city) {
     const raw = listAllMapPoints();
-    const points = await amap.enrichPointsWithCoords(raw, city);
+    let points = await amap.enrichPointsWithCoords(raw, city);
     const loc = store.getCityLocation();
+    const latitude = loc.lat || this.data.mapLatitude;
+    const longitude = loc.lng || this.data.mapLongitude;
+    const collected = await collectPetServicePOIs({ city, latitude, longitude });
+    points = mergeMapPoints(points, collected);
+    this._allMapPoints = points;
+    this.applyMapPointFilter(this.data.petFilter, points, loc);
+  },
+
+  applyMapPointFilter(petFilter, allPoints, loc) {
+    const all = allPoints || this._allMapPoints || [];
+    const filtered = filterPointsByPetSentiment(all, petFilter);
+    const location = loc || store.getCityLocation();
+    const item = PET_FAB_ITEMS.find((i) => i.id === petFilter);
     this.setData({
-      mapPoints: points,
-      mapMarkers: amap.buildMapMarkers(points.slice(0, 8)),
-      mapLatitude: loc.lat || 39.9042,
-      mapLongitude: loc.lng || 116.4074,
+      mapPoints: filtered,
+      mapMarkers: amap.buildMapMarkers(filtered.slice(0, 8)),
+      mapLatitude: location.lat || 39.9042,
+      mapLongitude: location.lng || 116.4074,
+      petFilter: petFilter || '',
+      petFilterLabel: item ? item.name : getPetFabLabel(petFilter),
     });
+  },
+
+  onFabToggle() {
+    this.setData({ fabOpen: !this.data.fabOpen });
+  },
+
+  onPetFabChange(e) {
+    const petFilter = e.detail.value || '';
+    this.setData({ fabOpen: false });
+    this.applyMapPointFilter(petFilter);
   },
 
   onCityTap() {

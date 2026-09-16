@@ -10,23 +10,42 @@
       <text class="record-tip">{{cancelArmed ? '松开手指，取消发送' : '上滑取消'}}</text>
     </view>
   </view>
+
   <view class="tool-panel" wx:if="{{showTools}}">
-    <view class="tool-item" bindtap="onTool" data-action="photo">
-      <view class="tool-icon-box"><text class="tool-glyph">🖼</text></view>
-      <text class="tool-label">照片</text>
-    </view>
-    <view class="tool-item" bindtap="onTool" data-action="camera">
-      <view class="tool-icon-box"><text class="tool-glyph">📷</text></view>
-      <text class="tool-label">拍摄</text>
-    </view>
-    <view class="tool-item" wx:if="{{showVideo}}" bindtap="onTool" data-action="video">
-      <view class="tool-icon-box"><text class="tool-glyph">▶</text></view>
-      <text class="tool-label">发送视频</text>
-    </view>
-    <view class="tool-item" wx:if="{{showActivity}}" bindtap="onTool" data-action="activity">
-      <view class="tool-icon-box"><text class="tool-glyph">📅</text></view>
-      <text class="tool-label">活动</text>
-    </view>
+    <swiper class="tool-swiper">
+      <swiper-item>
+        <view class="tool-grid">
+          <view class="tool-item" bindtap="onTool" data-action="photo">
+            <view class="tool-icon-box"><view class="wx-icon wx-album"></view></view>
+            <text class="tool-label">相册</text>
+          </view>
+          <view class="tool-item" bindtap="onTool" data-action="camera">
+            <view class="tool-icon-box"><view class="wx-icon wx-camera"></view></view>
+            <text class="tool-label">拍摄</text>
+          </view>
+          <view class="tool-item" wx:if="{{showVideo}}" bindtap="onTool" data-action="video">
+            <view class="tool-icon-box"><view class="wx-icon wx-video-file"></view></view>
+            <text class="tool-label">发送视频</text>
+          </view>
+          <view class="tool-item" wx:if="{{showLocation}}" bindtap="onTool" data-action="location">
+            <view class="tool-icon-box"><view class="wx-icon wx-location"></view></view>
+            <text class="tool-label">位置</text>
+          </view>
+        </view>
+      </swiper-item>
+      <swiper-item>
+        <view class="tool-grid tool-grid-page2">
+          <view class="tool-item" wx:if="{{showAa}}" bindtap="onTool" data-action="aa">
+            <view class="tool-icon-box"><view class="wx-icon wx-aa"><text class="wx-aa-text">AA</text></view></view>
+            <text class="tool-label">AA收款</text>
+          </view>
+          <view class="tool-item" wx:if="{{showActivity}}" bindtap="onTool" data-action="activity">
+            <view class="tool-icon-box"><view class="wx-icon wx-activity"></view></view>
+            <text class="tool-label">活动</text>
+          </view>
+        </view>
+      </swiper-item>
+    </swiper>
   </view>
 
   <view class="emoji-panel" wx:if="{{showEmoji && showEmojiPanel}}">
@@ -52,19 +71,21 @@
 
   <view class="input-bar {{fixed ? 'fixed' : ''}}">
     <slot name="prefix"></slot>
-    <view class="icon-btn voice-btn" bindtap="onToggleVoice">
-      <text class="icon-glyph">{{voiceMode ? '⌨️' : '🎙'}}</text>
+    <view class="bar-circle-btn" bindtap="onToggleVoice">
+      <view class="wx-bar-icon {{voiceMode ? 'wx-keyboard' : 'wx-voice-ring'}}"></view>
     </view>
     <block wx:if="{{!voiceMode}}">
-      <input
-        class="text-input"
-        placeholder="{{placeholder}}"
-        value="{{value}}"
-        bindinput="onInput"
-        bindfocus="onInputFocus"
-        confirm-type="send"
-        bindconfirm="onSend"
-      />
+      <view class="input-wrap">
+        <input
+          class="text-input"
+          placeholder="{{placeholder}}"
+          value="{{value}}"
+          bindinput="onInput"
+          bindfocus="onInputFocus"
+          confirm-type="send"
+          bindconfirm="onSend"
+        />
+      </view>
     </block>
     <view
       wx:else
@@ -74,11 +95,11 @@
       catchtouchcancel="onVoiceCancel"
       catchtouchmove="onVoiceMove"
     >{{recording ? (cancelArmed ? '松开手指，取消发送' : '松开 结束') : '按住 说话'}}</view>
-    <view class="icon-btn emoji-btn" bindtap="onToggleEmoji">
-      <text class="icon-glyph">☺</text>
+    <view class="bar-circle-btn" bindtap="onToggleEmoji">
+      <view class="wx-bar-icon wx-smile"></view>
     </view>
-    <view class="icon-btn plus-btn" bindtap="onToggleTools">
-      <text class="icon-glyph plus-glyph">{{showTools ? '⌄' : '+'}}</text>
+    <view class="bar-circle-btn {{showTools ? 'plus-open' : ''}}" bindtap="onToggleTools">
+      <view class="wx-bar-icon wx-plus"></view>
     </view>
     <slot name="suffix"></slot>
   </view>

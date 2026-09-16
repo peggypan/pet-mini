@@ -6,9 +6,7 @@
         <text class="search-ph">搜搭子、活动、友好点位、商家</text>
       </view>
       <view class="city" bindtap="onCityTap">
-        <text class="city-locate" catchtap="onQuickLocate">📍</text>
         <text>{{city}}</text>
-        <text class="city-auto" wx:if="{{cityAuto}}">定位</text>
         <text> ▾</text>
       </view>
     </view>
@@ -60,15 +58,11 @@
             <text class="tile-sub tile-sub-dark">{{tiles.map.subtitle}}</text>
           </view>
           <view class="tile-map-corner">
-            <map
-              class="tile-map"
-              longitude="{{mapLongitude}}"
-              latitude="{{mapLatitude}}"
-              scale="13"
-              enable-scroll="{{false}}"
-              enable-zoom="{{false}}"
-              enable-rotate="{{false}}"
-            ></map>
+            <image
+              class="tile-map-img"
+              src="{{tiles.map.cornerImg}}"
+              mode="aspectFill"
+            ></image>
           </view>
         </view>
       </view>
@@ -111,16 +105,43 @@
     <view class="section-head">
       <text class="section-title">近期活动</text>
     </view>
-    <view class="event-row" wx:for="{{events}}" wx:key="id" bindtap="onEventTap" data-id="{{item.id}}">
-      <image class="event-cover" src="{{item.cover}}" mode="aspectFill"></image>
-      <view class="event-body">
-        <view class="event-tags">
-          <text class="source">{{item.sourceText}}</text>
-          <text class="fee">{{item.fee}}</text>
+    <view class="event-card-v2" wx:for="{{events}}" wx:key="id" bindtap="onEventTap" data-id="{{item.id}}">
+      <view class="event-card-media">
+        <image class="event-card-cover" src="{{item.cover}}" mode="aspectFill"></image>
+        <view class="event-card-media-shade"></view>
+        <view class="event-card-media-foot">
+          <view class="event-card-avatars">
+            <image
+              class="event-card-av"
+              wx:for="{{item.cardAvatars}}"
+              wx:for-item="av"
+              wx:key="*this"
+              src="{{av}}"
+              mode="aspectFill"
+            ></image>
+          </view>
+          <text class="event-card-stat">{{item.cardPlayed}}人关注 · {{item.cardJoined}}人已报名</text>
         </view>
-        <text class="event-title">{{item.title}}</text>
-        <text class="event-meta">{{item.time}} · {{item.place}}</text>
-        <text class="event-seats">剩余 {{item.remain}} 名额</text>
+      </view>
+      <view class="event-card-main">
+        <view class="event-card-dateline">
+          <text class="event-card-date">{{item.cardDateMD}}</text>
+          <text class="event-card-time">{{item.cardTimeHint}}</text>
+        </view>
+        <text class="event-card-title">{{item.title}}</text>
+        <view class="event-card-loc">
+          <text class="event-card-loc-icon">📍</text>
+          <text class="event-card-loc-text">{{item.cardDistance}} {{item.cardLocationLine}}</text>
+        </view>
+        <view class="event-card-host">
+          <image class="event-card-host-av" src="{{item.hostAvatar}}" mode="aspectFill"></image>
+          <text class="event-card-host-name">{{item.host}}</text>
+        </view>
+        <view class="event-card-foot">
+          <text class="event-card-tag">{{item.cardCategory}}</text>
+          <text class="event-card-desc">{{item.desc}}</text>
+        </view>
+        <text class="event-card-seats">剩余 {{item.remain}} 名额 · {{item.fee}}</text>
       </view>
     </view>
   </view>
@@ -146,7 +167,7 @@
           wx:for-item="imgUrl"
           wx:key="*this"
           src="{{imgUrl}}"
-          mode="aspectFill"
+          mode="{{item.previewImages.length === 1 ? 'widthFix' : 'aspectFill'}}"
         ></image>
       </view>
       <view class="community-tags">

@@ -1,7 +1,7 @@
 {
   "navigationBarTitleText": "宠品闲置",
-  "navigationBarBackgroundColor": "#EEF4FA",
+  "navigationBarBackgroundColor": "#E8F4FF",
   "navigationBarTextStyle": "black",
-  "backgroundColor": "#EEF4FA",
+  "backgroundColor": "#E8F4FF",
   "enablePullDownRefresh": true
 }

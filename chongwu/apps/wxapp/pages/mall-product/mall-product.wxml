@@ -28,7 +28,7 @@
       <text class="arrow">›</text>
     </view>
     <view class="address-empty" wx:else>
-      <text class="empty-icon">📍</text>
+      <text class="empty-icon">🏪</text>
       <text class="empty-text">选择收货地址</text>
       <text class="empty-tip">或填写新地址</text>
     </view>

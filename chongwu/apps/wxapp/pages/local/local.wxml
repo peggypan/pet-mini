@@ -1,6 +1,5 @@
 <view class="page">
   <view class="city-bar" bindtap="onCityTap">
-    <text class="city-bar-icon">📍</text>
     <text class="city-bar-text">{{city}} · 同城活动</text>
     <text class="city-bar-arrow">切换 ›</text>
   </view>
@@ -24,7 +23,7 @@
     </view>
   </view>
 
-  <view wx:if="{{tab === 'map'}}">
+  <view class="map-section" wx:if="{{tab === 'map'}}">
     <view class="map-preview-wrap" bindtap="onOpenFullMap">
       <map
         class="map-preview"
@@ -40,10 +39,20 @@
         <text class="map-preview-tip">点击进入全屏友好地图 ›</text>
       </view>
     </view>
+    <pet-map-fab
+      class="map-fab {{fabOpen ? 'map-fab-open' : ''}}"
+      expand="down"
+      value="{{petFilter}}"
+      expanded="{{fabOpen}}"
+      bind:toggle="onFabToggle"
+      bind:change="onPetFabChange"
+    />
+    <view class="map-filter-tip" wx:if="{{petFilter}}">{{petFilterLabel}} · 共 {{mapPoints.length}} 处</view>
     <view class="map-actions">
       <button class="act-btn" bindtap="onOpenFullMap">🗺 全屏地图</button>
       <button class="act-btn outline" bindtap="onMapSubmit">新增点位</button>
     </view>
+    <view class="map-empty" wx:if="{{mapPoints.length === 0}}">该分类暂无点位，试试「全部点位」或新增投稿</view>
     <view class="map-card" wx:for="{{mapPoints}}" wx:key="id">
       <view class="map-head">
         <text class="map-name">{{item.name}}</text>
@@ -52,7 +61,7 @@
       <text class="map-meta">{{item.distance}} · {{item.address}}</text>
       <text class="map-allow danger" wx:if="{{item.danger}}">⚠️ {{item.dangerDesc || '危险区域，请远离'}}</text>
       <text class="map-allow {{item.allowPet ? 'ok' : 'no'}}" wx:else>{{item.allowPet ? '允许携宠' : '禁止携宠'}}</text>
-      <button class="nav-btn" size="mini" wx:if="{{!item.danger}}" bindtap="onNavMap" data-id="{{item.id}}">高德导航</button>
+      <button class="nav-btn" size="mini" wx:if="{{!item.danger}}" bindtap="onNavMap" data-id="{{item.id}}">导航一下</button>
     </view>
   </view>
 

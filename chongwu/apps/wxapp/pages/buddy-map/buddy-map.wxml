@@ -1,0 +1,36 @@
+<view class="page">
+  <view class="top-bar">
+    <text class="top-count">{{mapPeerCount}} 位宠友在附近</text>
+    <text class="top-tip">点击地图空白处浏览 · 点头像或下方头像私聊</text>
+  </view>
+  <map
+    class="map"
+    longitude="{{mapLongitude}}"
+    latitude="{{mapLatitude}}"
+    scale="{{mapScale}}"
+    markers="{{mapMarkers}}"
+    show-location
+    enable-zoom
+    enable-scroll
+    bindmarkertap="onMapMarkerTap"
+  >
+    <cover-view class="loc-buoy" bindtap="onRelocate">
+      <cover-view class="loc-buoy-dot"></cover-view>
+    </cover-view>
+  </map>
+  <view class="chat-dock" wx:if="{{mapPeers.length}}">
+    <text class="chat-dock-title">附近搭子 · 点头像开聊</text>
+    <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="chat-dock-scroll">
+      <view
+        class="chat-peer"
+        wx:for="{{mapPeers}}"
+        wx:key="peerId"
+        data-index="{{index}}"
+        bindtap="onPeerChat"
+      >
+        <image class="chat-peer-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+        <text class="chat-peer-name">{{item.petName || item.userName}}</text>
+      </view>
+    </scroll-view>
+  </view>
+</view>

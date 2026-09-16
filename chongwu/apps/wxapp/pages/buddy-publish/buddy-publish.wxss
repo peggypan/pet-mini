@@ -1,4 +1,4 @@
-page { background: #F5F5F5; }
+page { background: #F5F8FC; }
 
 .page { padding: 24rpx 28rpx; }
 
@@ -28,7 +28,7 @@ page { background: #F5F5F5; }
 
 input, .picker, textarea {
   width: 100%;
-  background: #F5F5F5;
+  background: #F5F8FC;
   border-radius: 14rpx;
   box-sizing: border-box;
   margin-bottom: 8rpx;
@@ -58,7 +58,7 @@ textarea { min-height: 180rpx; }
 .time-preview {
   display: block;
   font-size: 22rpx;
-  color: #2DB300;
+  color: #1E88E5;
   margin-bottom: 8rpx;
 }
 
@@ -75,7 +75,7 @@ textarea { min-height: 180rpx; }
   padding: 0 16rpx;
   border-radius: 999rpx;
   border: none;
-  background: rgba(197, 255, 74, 0.25);
+  background: rgba(126, 200, 255, 0.25);
   color: #1A1A1A;
   font-size: 26rpx;
   font-weight: 600;
@@ -101,7 +101,7 @@ textarea { min-height: 180rpx; }
 .media-thumb {
   width: 100%;
   height: 100%;
-  background: #E8F8EF;
+  background: #E8F4FF;
 }
 
 .video-badge {
@@ -137,6 +137,23 @@ textarea { min-height: 180rpx; }
   line-height: 1;
 }
 
+.media-add {
+  width: 196rpx;
+  height: 196rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F5F8FC;
+  border-radius: 14rpx;
+  border: 2rpx dashed rgba(77, 167, 248, 0.35);
+  box-sizing: border-box;
+}
+
+.add-icon {
+  font-size: 48rpx;
+  color: #BBBBBB;
+}
+
 .media-empty {
   display: flex;
   flex-direction: column;
@@ -144,9 +161,9 @@ textarea { min-height: 180rpx; }
   justify-content: center;
   height: 200rpx;
   margin-bottom: 20rpx;
-  background: #F5F5F5;
+  background: #F5F8FC;
   border-radius: 20rpx;
-  border: 2rpx dashed rgba(76, 230, 0, 0.35);
+  border: 2rpx dashed rgba(77, 167, 248, 0.35);
 }
 
 .empty-icon {
@@ -171,13 +188,13 @@ textarea { min-height: 180rpx; }
 
 .submit {
   margin-top: 24rpx;
-  background: linear-gradient(135deg, #D4FF00, #4CE600);
+  background: linear-gradient(135deg, #5BB8FF, #4DA7F8);
   color: #1A1A1A;
   border-radius: 44rpx;
   font-size: 28rpx;
   font-weight: 700;
   border: none;
-  box-shadow: 0 6rpx 20rpx rgba(76, 230, 0, 0.3);
+  box-shadow: 0 6rpx 20rpx rgba(77, 167, 248, 0.3);
 }
 
 .submit::after { border: none; }

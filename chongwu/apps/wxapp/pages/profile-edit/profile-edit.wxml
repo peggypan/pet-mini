@@ -1,0 +1,41 @@
+<view class="page">
+  <view class="card">
+    <text class="label">头像</text>
+    <view class="avatar-row" bindtap="onChooseAvatar">
+      <image class="avatar" src="{{avatarUrl}}" mode="aspectFill"></image>
+      <view class="avatar-meta">
+        <text class="avatar-tip">点击更换头像</text>
+        <text class="avatar-sub">建议使用清晰的宠物或人宠合照</text>
+      </view>
+      <text class="arrow">›</text>
+    </view>
+
+    <text class="label">昵称</text>
+    <input
+      class="field"
+      placeholder="展示给其他宠友的名字"
+      maxlength="16"
+      value="{{nickname}}"
+      data-field="nickname"
+      bindinput="onInput"
+    />
+
+    <text class="label">个性签名</text>
+    <textarea
+      class="textarea"
+      placeholder="说说你和毛孩子的故事～"
+      maxlength="80"
+      value="{{bio}}"
+      data-field="bio"
+      bindinput="onInput"
+      auto-height
+    ></textarea>
+    <text class="count">{{bio.length}}/80</text>
+  </view>
+
+  <button class="save" bindtap="onSave" loading="{{saving}}">保存</button>
+  <view class="link-row" bindtap="onOpenPetForm">
+    <text>完善宠物档案（品种、性格等）</text>
+    <text class="arrow">›</text>
+  </view>
+</view>

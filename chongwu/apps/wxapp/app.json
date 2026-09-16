@@ -2,12 +2,16 @@
   "pages": [
     "pages/privacy-gate/privacy-gate",
     "pages/home/home",
+    "pages/search/search",
     "pages/pet-discover/pet-discover",
     "pages/events/events",
     "pages/buddy/buddy",
+    "pages/buddy-map/buddy-map",
     "pages/social/social",
     "pages/local/local",
+    "pages/merchant-detail/merchant-detail",
     "pages/profile/profile",
+    "pages/profile-edit/profile-edit",
     "pages/buddy-detail/buddy-detail",
     "pages/buddy-publish/buddy-publish",
     "pages/social-post/social-post",
@@ -40,7 +44,7 @@
   ],
   "permission": {
     "scope.userLocation": {
-      "desc": "你的位置信息将用于自动定位当前城市、发送碰面地点及同城推荐"
+      "desc": "你的位置信息将用于自动识别当前城市、发送碰面地点及同城推荐"
     },
     "scope.record": {
       "desc": "你的麦克风将用于发送语音消息"
@@ -51,15 +55,15 @@
   },
   "window": {
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#E8F8EF",
+    "navigationBarBackgroundColor": "#E8F4FF",
     "navigationBarTitleText": "宠头头",
     "navigationBarTextStyle": "black",
-    "backgroundColor": "#F5F5F5"
+    "backgroundColor": "#F5F8FC"
   },
   "tabBar": {
     "custom": true,
     "color": "#999999",
-    "selectedColor": "#1A1A1A",
+    "selectedColor": "#1E88E5",
     "backgroundColor": "#FFFFFF",
     "borderStyle": "white",
     "list": [

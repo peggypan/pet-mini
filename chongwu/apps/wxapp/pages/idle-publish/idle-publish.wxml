@@ -14,7 +14,7 @@
     <view class="form-section">
       <view class="section-header">
         <text class="section-title">📷 商品图片</text>
-        <text class="section-hint">{{images.length}}/9</text>
+        <text class="section-hint">最多 {{maxImages}} 张（{{images.length}}/{{maxImages}}）</text>
       </view>
       <view class="image-grid">
         <view class="image-item" wx:for="{{images}}" wx:key="*this">
@@ -23,7 +23,7 @@
             <text class="remove-icon">×</text>
           </view>
         </view>
-        <view class="upload-btn" bindtap="onChooseImage" wx:if="{{images.length < 9}}">
+        <view class="upload-btn" bindtap="onChooseMedia" wx:if="{{images.length < maxImages}}">
           <view class="upload-content">
             <text class="upload-icon">+</text>
             <text class="upload-text">添加图片</text>
@@ -185,7 +185,7 @@
             bindtap="onTradeTypeChange"
             data-value="1"
           >
-            <text class="trade-icon">📍</text>
+            <text class="trade-icon">面</text>
             <text class="trade-label">自提</text>
           </view>
           <view

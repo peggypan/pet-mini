@@ -1,13 +1,18 @@
 const store = require('../../utils/store');
-const { chooseMedia } = require('../../utils/choose-media');
-const { getStepHint, ROLE_LABEL } = require('../../utils/event-qualify');
+const { pickMixedMedia, MEDIA_LIMIT_HINT, mediaSlots } = require('../../utils/media-upload');
+const { ROLE_LABEL } = require('../../utils/event-qualify');
+const { getDefaultPet } = require('../../utils/catalog');
 const amap = require('../../utils/amap');
 
 const WEEKS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 
-const CATEGORIES = ['遛狗社交', '宠物聚会', '萌宠摄影', '宠物科普', '爱心领养', '其他'];
+const CATEGORIES = ['遛狗社交', '撸猫社交', '宠物聚会', '萌宠摄影', '宠物科普', '爱心领养', '赛事举办', '其他'];
 const REFUND_POLICIES = ['随时退 · 开场前全额退', '开场前24小时可退', '一旦报名不退不改'];
 const SIGNUP_SCOPES = ['所有人', '仅限女生', '仅限男生', '仅限认证宠友'];
+
+function newSessionId() {
+  return `s_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+}
 
 function formatToday() {
   const d = new Date();
@@ -19,10 +24,11 @@ function formatToday() {
 Page({
   data: {
     role: 'personal',
-    qualify: null,
-    stepHint: '',
     roleLabel: ROLE_LABEL,
     eventType: 'single',
+    eventSessions: [{ id: 's_default', date: '', time: '' }],
+    categories: CATEGORIES,
+    categoryIndex: -1,
     category: '',
     title: '',
     place: '',
@@ -44,40 +50,32 @@ Page({
     timedLabel: '不使用定时报名',
     desc: '',
     mediaList: [],
-    maxMediaCount: 9,
+    mediaLimitHint: MEDIA_LIMIT_HINT,
+    mediaCanAdd: true,
+    mediaSummary: '0/6 图 · 0/3 视频',
   },
 
   onLoad(options) {
     const role = options.role === 'merchant' ? 'merchant' : 'personal';
     const draft = store.getDraft('event_publish');
     if (draft) {
-      this.setData(draft);
+      const categoryIndex = draft.category
+        ? CATEGORIES.indexOf(draft.category)
+        : (draft.categoryIndex != null ? draft.categoryIndex : -1);
+      this.setData({ ...draft, categoryIndex: categoryIndex >= 0 ? categoryIndex : -1 });
       this.refreshTimedLabel();
+      if (draft.mediaList && draft.mediaList.length) {
+        this.syncMediaUI(draft.mediaList);
+      }
     }
     this.setData({ role });
   },
 
-  onShow() {
-    this.refreshQualify();
-  },
-
-  refreshQualify() {
-    const { role } = this.data;
-    const qualify = store.getEventPublishQualify(role);
-    this.setData({
-      qualify,
-      stepHint: getStepHint(qualify.nextStep, role),
-    });
-  },
+  onShow() {},
 
   onSwitchRole(e) {
     const role = e.currentTarget.dataset.role;
     this.setData({ role });
-    this.refreshQualify();
-  },
-
-  onGoQualify() {
-    wx.navigateTo({ url: `/pages/event-qualify/event-qualify?role=${this.data.role}` });
   },
 
   onInput(e) {
@@ -95,17 +93,58 @@ Page({
   onEventType(e) {
     const type = e.currentTarget.dataset.type;
     if (type === 'multi') {
-      wx.showToast({ title: '多场次活动即将上线', icon: 'none' });
+      let { eventSessions, eventDate, eventTime } = this.data;
+      if (!eventSessions || !eventSessions.length) {
+        eventSessions = [{ id: newSessionId(), date: eventDate || '', time: eventTime || '' }];
+      }
+      this.setData({ eventType: 'multi', eventSessions });
       return;
     }
-    this.setData({ eventType: type });
+    const first = (this.data.eventSessions || [])[0];
+    this.setData({
+      eventType: 'single',
+      eventDate: first?.date || this.data.eventDate,
+      eventTime: first?.time || this.data.eventTime,
+    });
   },
 
-  onPickCategory() {
-    wx.showActionSheet({
-      itemList: CATEGORIES,
-      success: (res) => this.setData({ category: CATEGORIES[res.tapIndex] }),
+  onCategoryChange(e) {
+    const categoryIndex = Number(e.detail.value);
+    this.setData({
+      categoryIndex,
+      category: CATEGORIES[categoryIndex] || '',
     });
+  },
+
+  onAddSession() {
+    const eventSessions = [...(this.data.eventSessions || []), { id: newSessionId(), date: '', time: '' }];
+    this.setData({ eventSessions });
+  },
+
+  onRemoveSession(e) {
+    const index = Number(e.currentTarget.dataset.index);
+    const eventSessions = (this.data.eventSessions || []).filter((_, i) => i !== index);
+    if (!eventSessions.length) {
+      wx.showToast({ title: '至少保留一场', icon: 'none' });
+      return;
+    }
+    this.setData({ eventSessions });
+  },
+
+  onSessionDateChange(e) {
+    const index = Number(e.currentTarget.dataset.index);
+    const eventSessions = (this.data.eventSessions || []).map((s, i) => (
+      i === index ? { ...s, date: e.detail.value } : s
+    ));
+    this.setData({ eventSessions });
+  },
+
+  onSessionTimeChange(e) {
+    const index = Number(e.currentTarget.dataset.index);
+    const eventSessions = (this.data.eventSessions || []).map((s, i) => (
+      i === index ? { ...s, time: e.detail.value } : s
+    ));
+    this.setData({ eventSessions });
   },
 
   onPickRefund() {
@@ -151,16 +190,24 @@ Page({
   },
 
   formatEventTime() {
-    const { eventDate, eventTime } = this.data;
-    if (!eventDate) return '';
-    const d = new Date(eventDate.replace(/-/g, '/'));
-    const label = `${+d.getMonth() + 1}月${d.getDate()}日 ${WEEKS[d.getDay()]}`;
-    return eventTime ? `${label} ${eventTime}` : label;
+    const { eventType, eventDate, eventTime, eventSessions } = this.data;
+    const fmtOne = (dateStr, timeStr) => {
+      if (!dateStr) return '';
+      const d = new Date(dateStr.replace(/-/g, '/'));
+      const label = `${+d.getMonth() + 1}月${d.getDate()}日 ${WEEKS[d.getDay()]}`;
+      return timeStr ? `${label} ${timeStr}` : label;
+    };
+    if (eventType === 'multi') {
+      const parts = (eventSessions || [])
+        .map((s) => fmtOne(s.date, s.time))
+        .filter(Boolean);
+      return parts.length ? `多场次 · ${parts.join('；')}` : '';
+    }
+    return fmtOne(eventDate, eventTime);
   },
 
   // 点击地点行直接跳转系统地图选点
   onChoosePlace() {
-    if (!this.data.qualify.canPublish) return;
     amap.choosePoint()
       .then((loc) => {
         this.setData({
@@ -193,6 +240,9 @@ Page({
   onDraft() {
     const d = this.data;
     store.setDraft('event_publish', {
+      role: d.role,
+      eventType: d.eventType,
+      eventSessions: d.eventSessions,
       category: d.category,
       title: d.title,
       place: d.place,
@@ -215,63 +265,25 @@ Page({
     wx.showToast({ title: '草稿已保存', icon: 'success' });
   },
 
-  onChooseImage() {
-    const remain = this.data.maxMediaCount - this.data.mediaList.length;
-    if (remain <= 0) {
-      wx.showToast({ title: '最多上传 9 个媒体', icon: 'none' });
-      return;
-    }
-    chooseMedia({
-      count: Math.min(remain, 9),
-      mediaType: ['image'],
-      sourceType: ['album', 'camera'],
-      success: (res) => {
-        const append = (res.tempFiles || []).map((f) => ({
-          type: 'image',
-          url: f.tempFilePath,
-        }));
-        if (!append.length) return;
-        this.setData({
-          mediaList: [...this.data.mediaList, ...append].slice(0, this.data.maxMediaCount),
-        });
-      },
+  syncMediaUI(list) {
+    const slots = mediaSlots(list);
+    this.setData({
+      mediaList: list,
+      mediaCanAdd: slots.canAddAny,
+      mediaSummary: slots.summary,
     });
   },
 
-  onChooseVideo() {
-    const remain = this.data.maxMediaCount - this.data.mediaList.length;
-    if (remain <= 0) {
-      wx.showToast({ title: '最多上传 9 个媒体', icon: 'none' });
-      return;
-    }
-    chooseMedia({
-      count: 1,
-      mediaType: ['video'],
-      sourceType: ['album', 'camera'],
-      maxDuration: 60,
-      success: (res) => {
-        const file = (res.tempFiles || [])[0];
-        if (!file) return;
-        if (file.size > 50 * 1024 * 1024) {
-          wx.showToast({ title: '视频请小于 50MB', icon: 'none' });
-          return;
-        }
-        this.setData({
-          mediaList: [...this.data.mediaList, {
-            type: 'video',
-            url: file.tempFilePath,
-            poster: file.thumbTempFilePath || '',
-            duration: file.duration || 0,
-          }].slice(0, this.data.maxMediaCount),
-        });
-      },
-    });
+  onChooseMedia() {
+    pickMixedMedia(this.data.mediaList)
+      .then((list) => this.syncMediaUI(list))
+      .catch(() => {});
   },
 
   onRemoveMedia(e) {
     const index = Number(e.currentTarget.dataset.index);
     if (Number.isNaN(index)) return;
-    this.setData({ mediaList: this.data.mediaList.filter((_, i) => i !== index) });
+    this.syncMediaUI(this.data.mediaList.filter((_, i) => i !== index));
   },
 
   onPreviewMedia(e) {
@@ -289,19 +301,11 @@ Page({
   },
 
   onSubmit() {
-    const { title, place, price, maxPeople, desc, role, mediaList, qualify, eventDate, category, refundPolicy } = this.data;
+    const {
+      title, place, price, maxPeople, desc, role, mediaList, eventDate, category, refundPolicy,
+      eventType, eventSessions,
+    } = this.data;
 
-    if (!qualify.canPublish) {
-      wx.showModal({
-        title: '尚未满足发布条件',
-        content: this.data.stepHint,
-        confirmText: '去完善',
-        success: (res) => {
-          if (res.confirm) this.onGoQualify();
-        },
-      });
-      return;
-    }
     if (!category) {
       wx.showToast({ title: '请选择活动分类', icon: 'none' });
       return;
@@ -310,7 +314,13 @@ Page({
       wx.showToast({ title: '请填写活动名称', icon: 'none' });
       return;
     }
-    if (!eventDate) {
+    if (eventType === 'multi') {
+      const sessions = eventSessions || [];
+      if (!sessions.length || sessions.some((s) => !s.date)) {
+        wx.showToast({ title: '请完善各场次日期', icon: 'none' });
+        return;
+      }
+    } else if (!eventDate) {
       wx.showToast({ title: '请选择活动时间', icon: 'none' });
       return;
     }
@@ -337,13 +347,14 @@ Page({
 
     const firstImage = mediaList.find((m) => m.type === 'image');
     const firstVideo = mediaList.find((m) => m.type === 'video');
-    const publisherName = role === 'merchant'
-      ? (qualify.verify?.companyName || '认证商家')
-      : (qualify.verify?.realName || '认证用户');
+    const pet = getDefaultPet();
+    const publisherName = role === 'merchant' ? '商家' : (pet.name ? `我 · ${pet.name}` : '我');
 
-    store.addMyEvent({
+    const created = store.addMyEvent({
       title,
       category,
+      eventType,
+      eventSessions: eventType === 'multi' ? eventSessions : [],
       place,
       placeAddress: this.data.placeAddress,
       location: this.data.location,
@@ -361,17 +372,19 @@ Page({
       desc,
       role,
       publisherName,
-      depositPaid: true,
-      depositAmount: qualify.depositAmount,
-      status: 'pending',
-      auditStatus: 'pending',
+      depositPaid: false,
+      depositAmount: 0,
+      status: 'approved',
+      auditStatus: 'approved',
       mediaList,
       images: mediaList.filter((m) => m.type === 'image').map((m) => m.url),
       cover: firstImage?.url || firstVideo?.poster || '',
     });
 
     store.setDraft('event_publish', null);
-    wx.showToast({ title: '已提交审核', icon: 'success' });
-    setTimeout(() => wx.navigateBack(), 700);
+    wx.showToast({ title: '发布成功', icon: 'success' });
+    setTimeout(() => {
+      wx.navigateTo({ url: `/pages/event-poster/event-poster?id=${created.id}` });
+    }, 600);
   },
 });

@@ -1,11 +1,11 @@
-page { background: #F5F5F5; }
+page { background: #F5F8FC; }
 
 .page { padding-bottom: 160rpx; }
 
 .cover {
   width: 100%;
   height: 420rpx;
-  background: #E8F8EF;
+  background: #E8F4FF;
 }
 
 .card {
@@ -20,8 +20,8 @@ page { background: #F5F5F5; }
 .tag {
   display: inline-block;
   font-size: 22rpx;
-  color: #4CE600;
-  background: rgba(197, 255, 74, 0.25);
+  color: #4DA7F8;
+  background: rgba(126, 200, 255, 0.25);
   padding: 4rpx 14rpx;
   border-radius: 8rpx;
   margin-bottom: 12rpx;
@@ -72,7 +72,7 @@ page { background: #F5F5F5; }
   margin-top: 24rpx;
   padding: 20rpx;
   border-radius: 18rpx;
-  background: #F5F5F5;
+  background: #F5F8FC;
 }
 
 .host-avatar {
@@ -120,9 +120,9 @@ page { background: #F5F5F5; }
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #D4FF00, #4CE600);
+  background: linear-gradient(135deg, #5BB8FF, #4DA7F8);
   color: #1A1A1A;
-  box-shadow: 0 6rpx 20rpx rgba(76, 230, 0, 0.3);
+  box-shadow: 0 6rpx 20rpx rgba(77, 167, 248, 0.3);
 }
 
 .btn-primary[disabled] {
@@ -131,7 +131,7 @@ page { background: #F5F5F5; }
 }
 
 .btn-secondary {
-  background: #F5F5F5;
+  background: #F5F8FC;
   color: #1A1A1A;
 }
 

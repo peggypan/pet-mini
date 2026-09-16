@@ -12,6 +12,8 @@ Component({
     fixed: { type: Boolean, value: true },
     showVideo: { type: Boolean, value: true },
     showActivity: { type: Boolean, value: true },
+    showLocation: { type: Boolean, value: true },
+    showAa: { type: Boolean, value: true },
     showEmojiPanel: { type: Boolean, value: true },
   },
 
@@ -210,13 +212,6 @@ Component({
         }
         this.setData({ recordSeconds: next });
       }, 1000);
-    },
-
-    clearRecordTimer() {
-      if (this._recordTimer) {
-        clearInterval(this._recordTimer);
-        this._recordTimer = null;
-      }
     },
 
     clearRecordTimer() {

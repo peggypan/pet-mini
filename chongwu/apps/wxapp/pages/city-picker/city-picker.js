@@ -39,7 +39,7 @@ Page({
         this.finishPick(loc.city);
       })
       .catch(() => {
-        wx.showToast({ title: '定位失败，请手动选择', icon: 'none' });
+        wx.showToast({ title: '识别失败，请手动选择', icon: 'none' });
       })
       .finally(() => {
         this.setData({ locating: false });

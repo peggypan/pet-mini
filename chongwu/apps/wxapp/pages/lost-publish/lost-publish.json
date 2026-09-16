@@ -1,8 +1,8 @@
 {
   "navigationBarTitleText": "寻宠 / 招领",
-  "navigationBarBackgroundColor": "#EEF4FA",
+  "navigationBarBackgroundColor": "#E8F4FF",
   "navigationBarTextStyle": "black",
-  "backgroundColor": "#EEF4FA",
+  "backgroundColor": "#E8F4FF",
   "enableShareAppMessage": true,
   "enableShareTimeline": true
 }

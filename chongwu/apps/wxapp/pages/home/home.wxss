@@ -1,5 +1,5 @@
 page {
-  background: linear-gradient(180deg, #E8F8EF 0%, #F5F5F5 360rpx, #F5F5F5 100%);
+  background: linear-gradient(180deg, #E8F4FF 0%, #F5F8FC 360rpx, #F5F8FC 100%);
 }
 
 .page {
@@ -54,15 +54,6 @@ page {
 
 .city-locate {
   font-size: 22rpx;
-}
-
-.city-auto {
-  font-size: 18rpx;
-  color: #2DB300;
-  background: rgba(197, 255, 74, 0.25);
-  padding: 2rpx 8rpx;
-  border-radius: 999rpx;
-  font-weight: 700;
 }
 
 .banner {
@@ -195,7 +186,7 @@ page {
 }
 
 .theme-green {
-  background: linear-gradient(145deg, #C8F5DC 0%, #E4FAEE 55%, #FFFFFF 100%);
+  background: linear-gradient(145deg, #B8DCFF 0%, #D8ECFF 55%, #FFFFFF 100%);
 }
 
 .theme-pink {
@@ -364,8 +355,8 @@ page {
 
 .tag {
   font-size: 20rpx;
-  color: #2DB300;
-  background: rgba(197, 255, 74, 0.25);
+  color: #1E88E5;
+  background: rgba(126, 200, 255, 0.25);
   padding: 4rpx 12rpx;
   border-radius: 8rpx;
   font-weight: 600;
@@ -373,66 +364,198 @@ page {
 
 .tag.soft {
   color: #999999;
-  background: #F5F5F5;
+  background: #F5F8FC;
   font-weight: 500;
 }
 
-.event-row {
+.event-card-v2 {
   display: flex;
-  padding: 20rpx;
-  margin-bottom: 16rpx;
-  background: #FFFFFF;
-  border-radius: 28rpx;
-  box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.04);
+  align-items: stretch;
+  margin-bottom: 20rpx;
+  background: #ffffff;
+  border-radius: 24rpx;
+  overflow: hidden;
+  box-shadow: 0 8rpx 32rpx rgba(15, 23, 42, 0.08);
 }
 
-.event-cover {
-  width: 128rpx;
-  height: 128rpx;
-  border-radius: 20rpx;
-  margin-right: 20rpx;
+.event-card-media {
+  position: relative;
+  width: 240rpx;
+  flex-shrink: 0;
+  min-height: 300rpx;
+  background: #e8eef5;
+}
+
+.event-card-cover {
+  width: 100%;
+  height: 100%;
+  min-height: 300rpx;
+}
+
+.event-card-media-shade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 55%;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.72) 100%);
+  pointer-events: none;
+}
+
+.event-card-media-foot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 16rpx 14rpx 18rpx;
+  z-index: 1;
+}
+
+.event-card-avatars {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10rpx;
+}
+
+.event-card-av {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  border: 3rpx solid rgba(255, 255, 255, 0.95);
+  margin-left: -12rpx;
+  background: #ddd;
+}
+
+.event-card-av:first-child {
+  margin-left: 0;
+}
+
+.event-card-stat {
+  display: block;
+  font-size: 18rpx;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1.35;
+  font-weight: 600;
+}
+
+.event-card-main {
+  flex: 1;
+  min-width: 0;
+  padding: 20rpx 22rpx 18rpx 20rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.event-card-dateline {
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+  margin-bottom: 10rpx;
+}
+
+.event-card-date {
+  font-size: 40rpx;
+  font-weight: 800;
+  color: #2b2b2b;
+  line-height: 1;
+  letter-spacing: -1rpx;
+}
+
+.event-card-time {
+  font-size: 24rpx;
+  color: #9aa3ad;
+  font-weight: 600;
+}
+
+.event-card-title {
+  font-size: 30rpx;
+  font-weight: 800;
+  color: #111111;
+  line-height: 1.35;
+  margin-bottom: 12rpx;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.event-card-loc {
+  display: flex;
+  align-items: flex-start;
+  gap: 6rpx;
+  margin-bottom: 12rpx;
+}
+
+.event-card-loc-icon {
+  font-size: 22rpx;
+  line-height: 1.4;
   flex-shrink: 0;
 }
 
-.event-body {
-  flex: 1;
-  min-width: 0;
+.event-card-loc-text {
+  font-size: 22rpx;
+  color: #9aa3ad;
+  line-height: 1.45;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.event-tags {
+.event-card-host {
   display: flex;
+  align-items: center;
   gap: 10rpx;
-  margin-bottom: 8rpx;
+  margin-bottom: 14rpx;
 }
 
-.source {
+.event-card-host-av {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #eee;
+}
+
+.event-card-host-name {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #1fb896;
+}
+
+.event-card-foot {
+  display: flex;
+  align-items: flex-start;
+  gap: 10rpx;
+  margin-top: auto;
+}
+
+.event-card-tag {
+  flex-shrink: 0;
   font-size: 20rpx;
-  color: #2DB300;
-  background: rgba(197, 255, 74, 0.25);
+  font-weight: 700;
+  color: #ffffff;
+  background: #22c55e;
   padding: 4rpx 12rpx;
   border-radius: 8rpx;
-  font-weight: 600;
+  line-height: 1.5;
 }
 
-.fee {
-  font-size: 20rpx;
-  color: #FF6B35;
-  font-weight: 600;
-}
-
-.event-title {
-  display: block;
-  font-size: 28rpx;
-  font-weight: 700;
-  color: #1A1A1A;
-  margin-bottom: 6rpx;
-}
-
-.event-meta,
-.event-seats {
-  display: block;
+.event-card-desc {
+  flex: 1;
+  min-width: 0;
   font-size: 22rpx;
-  color: #999999;
+  color: #333333;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.event-card-seats {
+  margin-top: 10rpx;
+  font-size: 20rpx;
+  color: #b0b8c0;
 }
 
 .community-card {
@@ -468,7 +591,7 @@ page {
 
 .community-meta {
   font-size: 22rpx;
-  color: #2DB300;
+  color: #1E88E5;
   font-weight: 600;
 }
 
@@ -488,15 +611,21 @@ page {
   overflow: hidden;
 }
 
+.community-images.single {
+  display: block;
+}
+
 .community-images.single .community-img {
   width: 100%;
-  height: 240rpx;
+  height: auto;
+  display: block;
   border-radius: 16rpx;
 }
 
 .community-img {
   flex: 1;
-  height: 180rpx;
+  width: 100%;
+  height: 200rpx;
   min-width: 0;
   border-radius: 12rpx;
   background: #F0F0F0;
@@ -511,7 +640,7 @@ page {
   font-size: 20rpx;
   color: #666;
   padding: 6rpx 14rpx;
-  background: #F5F5F5;
+  background: #F5F8FC;
   border-radius: 999rpx;
 }
 
@@ -589,14 +718,14 @@ page {
 
 .city-item {
   padding: 16rpx 32rpx;
-  background: #F5F5F5;
+  background: #F5F8FC;
   border-radius: 999rpx;
   font-size: 26rpx;
   color: #1A1A1A;
 }
 
 .city-item:active {
-  background: rgba(197, 255, 74, 0.35);
+  background: rgba(126, 200, 255, 0.35);
 }
 
 .pudding-col .tile-small {
@@ -630,7 +759,8 @@ page {
   z-index: 1;
 }
 
-.tile-map {
+.tile-map-img {
   width: 100%;
   height: 100%;
+  display: block;
 }

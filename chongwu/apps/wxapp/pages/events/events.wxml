@@ -1,6 +1,5 @@
 <view class="page">
   <view class="city-bar" bindtap="onCityTap">
-    <text class="city-bar-icon">📍</text>
     <text class="city-bar-text">{{city}} · 同城活动</text>
     <text class="city-bar-arrow">切换 ›</text>
   </view>

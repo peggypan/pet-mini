@@ -28,6 +28,8 @@ const KEYS = {
   clubApply: 'mvp_club_apply',
   joinedClubs: 'mvp_joined_clubs',
   petLikes: 'mvp_pet_likes',
+  profileTags: 'mvp_profile_pet_tags',
+  userProfile: 'mvp_user_profile',
 };
 
 const PET_LIKE_DAILY_LIMIT = 20;
@@ -305,6 +307,8 @@ function chatMessagePreview(message) {
   if (type === 'image') return '[图片]';
   if (type === 'video') return '[视频]';
   if (type === 'location') return `[位置] ${(message.location && message.location.name) || '位置分享'}`;
+  if (type === 'aa') return `[AA收款] ¥${message.aaAmount || message.content || ''}`;
+  if (type === 'event') return `[活动] ${message.eventTitle || message.content || ''}`;
   if (type === 'call') {
     if (message.callStatus === 'missed') return '[未接视频通话]';
     if (message.duration) return `[视频通话] ${message.duration}s`;
@@ -326,6 +330,11 @@ function addChatMessage(threadId, message) {
     location: message.location || null,
     callStatus: message.callStatus || '',
     duration: message.duration || 0,
+    eventId: message.eventId || '',
+    eventTitle: message.eventTitle || '',
+    aaAmount: message.aaAmount || 0,
+    aaPeople: message.aaPeople || 0,
+    aaPer: message.aaPer || 0,
     time: '刚刚',
     createdAt: new Date().toISOString(),
   };
@@ -390,7 +399,7 @@ function addBuddyPost(post) {
   };
   list.unshift(row);
   write(KEYS.buddyPosts, list.slice(0, 50));
-  pushMessage('搭子发布成功', '你的找搭子需求已提交审核（演示即时上架）', 'social');
+  pushMessage('搭子发布成功', '你的找搭子已展示在搭子广场', 'social');
   return row;
 }
 
@@ -436,14 +445,14 @@ function addMyEvent(event) {
   const list = listMyEvents();
   const row = {
     id: uid('mev'),
-    status: 'pending',
-    auditStatus: 'pending',
+    status: 'approved',
+    auditStatus: 'approved',
     ...event,
     createdAt: new Date().toISOString(),
   };
   list.unshift(row);
   write(KEYS.myEvents, list);
-  pushMessage('活动已提交', '平台审核通过后将自动生成分享海报', 'social');
+  pushMessage('活动发布成功', '你的活动已上线，可生成海报邀请宠友', 'social');
   return row;
 }
 
@@ -571,37 +580,15 @@ function getCircleLastMessage(circleId) {
 
 function getEventPublishQualify(role) {
   const r = role === 'merchant' ? 'merchant' : 'personal';
-  const depositCfg = DEPOSIT[r];
-  const deposit = getEventDeposit(r);
-
-  if (r === 'merchant') {
-    const apply = getMerchantApply();
-    const verifyStatus = apply?.status || 'none';
-    const nextStep = getNextStep(verifyStatus, deposit.paid);
-    return {
-      role: 'merchant',
-      verifyStatus,
-      verify: apply,
-      depositPaid: !!deposit.paid,
-      depositAmount: depositCfg.amount,
-      depositLabel: depositCfg.label,
-      canPublish: verifyStatus === 'approved' && deposit.paid,
-      nextStep,
-    };
-  }
-
-  const verify = getIdentityVerify();
-  const verifyStatus = verify?.status || 'none';
-  const nextStep = getNextStep(verifyStatus, deposit.paid);
   return {
-    role: 'personal',
-    verifyStatus,
-    verify,
-    depositPaid: !!deposit.paid,
-    depositAmount: depositCfg.amount,
-    depositLabel: depositCfg.label,
-    canPublish: verifyStatus === 'approved' && deposit.paid,
-    nextStep,
+    role: r,
+    verifyStatus: 'approved',
+    verify: null,
+    depositPaid: false,
+    depositAmount: 0,
+    depositLabel: '',
+    canPublish: true,
+    nextStep: 'ready',
   };
 }
 
@@ -700,6 +687,60 @@ function getDraft(key) {
   return row ? row.data : null;
 }
 
+function getProfileTags() {
+  const row = read(KEYS.profileTags, null);
+  if (!row || !Array.isArray(row.selected)) {
+    return { selected: [], custom: [] };
+  }
+  return {
+    selected: row.selected.slice(0, 8),
+    custom: Array.isArray(row.custom) ? row.custom.slice(0, 8) : [],
+  };
+}
+
+function setProfileTags(payload) {
+  const selected = (payload.selected || []).slice(0, 8);
+  const custom = (payload.custom || []).slice(0, 8);
+  write(KEYS.profileTags, { selected, custom });
+  return { selected, custom };
+}
+
+function getUserProfile() {
+  const row = read(KEYS.userProfile, null);
+  return {
+    nickname: (row && row.nickname) || '',
+    bio: (row && row.bio) || '',
+  };
+}
+
+function setUserProfile(patch) {
+  const prev = getUserProfile();
+  const next = {
+    nickname: patch.nickname !== undefined ? String(patch.nickname).trim() : prev.nickname,
+    bio: patch.bio !== undefined ? String(patch.bio).trim() : prev.bio,
+  };
+  write(KEYS.userProfile, next);
+  if (next.nickname) {
+    const userInfo = wx.getStorageSync('userInfo') || {};
+    wx.setStorageSync('userInfo', { ...userInfo, nickname: next.nickname });
+  }
+  return next;
+}
+
+function updateDefaultPetAvatar(avatarUrl) {
+  if (!avatarUrl) return null;
+  const pets = listPets();
+  if (pets.length) {
+    return updatePet(pets[0].id, { avatarUrl, avatar: avatarUrl });
+  }
+  return addPet({
+    name: '我的宠物',
+    species: 2,
+    avatarUrl,
+    avatar: avatarUrl,
+  });
+}
+
 function setCity(city) {
   const prev = getCityLocation();
   return setCityLocation({ ...prev, city, auto: false });
@@ -770,4 +811,9 @@ module.exports = {
   leaveClub,
   getCityLocation,
   setCityLocation,
+  getProfileTags,
+  setProfileTags,
+  getUserProfile,
+  setUserProfile,
+  updateDefaultPetAvatar,
 };

@@ -1,77 +1,170 @@
-<view class="page">
-  <view class="header">
-    <image class="avatar" src="{{pet.avatar}}" mode="aspectFill"></image>
-    <view class="info">
-      <text class="name">{{isLogin ? (userInfo.nickname || '宠友') : '未登录'}}</text>
-      <text class="tags" bindtap="onCityTap">宠物 {{stats.posts >= 0 ? 1 : 0}} · 信用良好 · 📍 {{city}}</text>
-    </view>
-  </view>
+<scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+  <canvas type="2d" id="paletteCanvas" class="palette-canvas"></canvas>
+  <view class="page">
+    <view class="hero" style="background: {{heroGradient}};">
+      <image class="hero-bg" src="{{heroSourceImage}}" mode="aspectFill"></image>
+      <view class="hero-glass"></view>
+      <view class="hero-deco"></view>
 
-  <view class="login-block" wx:if="{{!isLogin}}">
-    <button
-      id="login-phone-btn"
-      class="login-bar"
-      open-type="getPhoneNumber|agreePrivacyAuthorization"
-      bindgetphonenumber="onGetPhoneNumber"
-      bindagreeprivacyauthorization="onAgreePrivacyForPhone"
-    >微信授权手机号登录</button>
-    <text class="login-hint">需公众平台开通「手机号快速验证」后才会弹出微信选号窗；未开通时会提示 no permission</text>
-    <button class="login-bar login-bar-secondary" bindtap="onWxLogin">微信快捷登录（开发用）</button>
-  </view>
-
-  <view class="stats">
-    <view class="stat"><text class="num">{{stats.buddies}}</text><text class="lab">宠友</text></view>
-    <view class="stat"><text class="num">{{stats.posts}}</text><text class="lab">发布</text></view>
-    <view class="stat"><text class="num">{{stats.events}}</text><text class="lab">活动</text></view>
-    <view class="stat" bindtap="onMessages"><text class="num">{{unreadCount}}</text><text class="lab">消息</text></view>
-  </view>
-
-  <view class="group">
-    <text class="group-title">我的宠物 · 电子宠证</text>
-    <view class="menu-item raise-entry" bindtap="onPetCert">
-      <view class="raise-left">
-        <text>🪪 电子宠证 & 数字宠物</text>
-        <text class="raise-sub">宠证信息 · 上传照片养成 · 喂食长大</text>
+      <view class="hero-toolbar">
+        <view class="hero-spacer"></view>
+        <view class="edit-pill" bindtap="onEditPet">
+          <text class="edit-icon">✎</text>
+          <text>编辑主页</text>
+        </view>
       </view>
-      <text class="arrow">›</text>
-    </view>
-    <view class="menu-item" bindtap="onEditPet"><text>🐾 管理宠物档案</text><text class="arrow">›</text></view>
-  </view>
 
-  <view class="group">
-    <text class="group-title">我的俱乐部</text>
-    <view class="menu-item raise-entry" bindtap="onClubApply">
-      <view class="raise-left">
-        <text>🏟 成为主理人</text>
-        <text class="raise-sub">填写入驻信息 · 创建自己的俱乐部</text>
+      <view class="profile-row">
+        <view class="avatar-wrap" bindtap="onEditProfile">
+          <image class="avatar" src="{{pet.avatar}}" mode="aspectFill"></image>
+          <view class="avatar-edit-badge">✎</view>
+        </view>
+        <view class="profile-meta">
+          <text class="name">{{isLogin ? (userInfo.nickname || pet.name || '宠友') : '未登录'}}</text>
+          <view class="follow-row">
+            <text class="follow-item"><text class="follow-num">{{stats.buddies}}</text> 关注</text>
+            <text class="follow-item"><text class="follow-num">{{stats.posts}}</text> 粉丝</text>
+          </view>
+        </view>
       </view>
-      <text class="arrow">›</text>
+
+      <view class="play-links">
+        <text class="play-link">约了 <text class="play-num">{{stats.buddies}}</text> 位宠友</text>
+        <text class="play-dot">·</text>
+        <text class="play-link">参与 <text class="play-num">{{stats.events}}</text> 场活动</text>
+        <text class="play-dot">·</text>
+        <text class="play-link">组织 <text class="play-num">{{stats.organized}}</text> 场活动</text>
+      </view>
+
+      <scroll-view scroll-x class="tag-scroll" enhanced show-scrollbar="{{false}}">
+        <view class="tag-row">
+          <view
+            class="tag-chip {{item.active ? 'on' : ''}}"
+            wx:for="{{profileTagOptions}}"
+            wx:key="label"
+            data-label="{{item.label}}"
+            bindtap="onToggleProfileTag"
+          >{{item.label}}</view>
+          <view class="tag-chip add" bindtap="onAddTag">+ 新增标签</view>
+          <view class="tag-chip city" bindtap="onCityTap">{{city}}</view>
+        </view>
+      </scroll-view>
+
+      <view class="bio-line" bindtap="onEditBio">
+        <text class="bio-quote">「</text>
+        <text class="bio-text">{{isLogin ? profileBio : '登录后完善主页，展示你和爱宠'}}</text>
+        <text class="bio-edit" wx:if="{{isLogin}}">✎</text>
+      </view>
+
+      <view class="mood-bar">
+        <text class="mood-emoji">🐾</text>
+        <view class="mood-track"><view class="mood-fill"></view></view>
+        <text class="mood-emoji">🦴</text>
+      </view>
+
+      <view class="login-block" wx:if="{{!isLogin}}">
+        <button
+          id="login-phone-btn"
+          class="login-bar"
+          open-type="getPhoneNumber|agreePrivacyAuthorization"
+          bindgetphonenumber="onGetPhoneNumber"
+          bindagreeprivacyauthorization="onAgreePrivacyForPhone"
+        >微信授权手机号登录</button>
+        <button class="login-bar login-bar-secondary" bindtap="onWxLogin">微信快捷登录（开发用）</button>
+      </view>
+
+      <view class="bento">
+        <view class="bento-row bento-row-main">
+          <view class="bento-card bento-lg" bindtap="onPetCert">
+            <text class="bento-kicker">宠物档案</text>
+            <text class="bento-title">电子宠证 & 数字宠物</text>
+            <text class="bento-sub">上传照片 · 喂食养成</text>
+            <text class="bento-arrow">›</text>
+          </view>
+          <view class="bento-card bento-sm">
+            <text class="bento-title-sm">勋章 · 0</text>
+          </view>
+        </view>
+
+        <scroll-view scroll-x class="bento-scroll" enhanced show-scrollbar="{{false}}">
+          <view class="bento-scroll-inner">
+            <view class="bento-mini" bindtap="onMyClubs">
+              <text class="mini-icon">🏟</text>
+              <text class="mini-title">我的俱乐部</text>
+              <text class="mini-sub">{{clubTileSub}}</text>
+            </view>
+            <view class="bento-mini" bindtap="onMessages">
+              <text class="mini-icon">💬</text>
+              <text class="mini-title">消息中心</text>
+              <text class="mini-sub">{{unreadCount ? unreadCount + ' 条未读' : '私信与通知'}}</text>
+            </view>
+            <view class="bento-mini" bindtap="onClubApply">
+              <text class="mini-icon">🤝</text>
+              <text class="mini-title">成为主理人</text>
+              <text class="mini-sub">开俱乐部 · 办活动</text>
+            </view>
+            <view class="bento-mini" bindtap="onOrders">
+              <text class="mini-icon">💳</text>
+              <text class="mini-title">服务预约</text>
+              <text class="mini-sub">{{stats.orders ? stats.orders + ' 笔订单' : '洗护 · 寄养'}}</text>
+            </view>
+            <view class="bento-mini" bindtap="onMyHelp">
+              <text class="mini-icon">🆘</text>
+              <text class="mini-title">寻宠救助</text>
+              <text class="mini-sub">走失 · 领养</text>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
     </view>
-    <view class="menu-item" bindtap="onMyClubs"><text>👑 我的俱乐部</text><text class="arrow">›</text></view>
-    <view class="menu-item" bindtap="onJoinedClubs"><text>🐾 加入的俱乐部</text><text class="arrow">›</text></view>
-  </view>
 
-  <view class="group">
-    <text class="group-title">消息中心</text>
-    <view class="menu-item" bindtap="onMessages"><text>💬 私信 / 通知</text><text class="arrow">›</text></view>
-  </view>
+    <view class="sheet">
+      <view class="tabs">
+        <view
+          wx:for="{{tabLabels}}"
+          wx:key="*this"
+          class="tab {{activeTab === index ? 'on' : ''}}"
+          data-tab="{{index}}"
+          bindtap="onTabChange"
+        >{{item}}</view>
+        <view class="tab-more" bindtap="onMoreMenu">⋯</view>
+      </view>
 
-  <view class="group">
-    <text class="group-title">我的业务</text>
-    <view class="menu-item" bindtap="onMyBuddy"><text>我发布的搭子</text><text class="arrow">›</text></view>
-    <view class="menu-item" bindtap="onMyPosts"><text>我发布的动态</text><text class="arrow">›</text></view>
-    <view class="menu-item" bindtap="onMyEvents"><text>我发起/报名的活动</text><text class="arrow">›</text></view>
-    <view class="menu-item" bindtap="onMyHelp"><text>🐕‍🦺 寻宠·领养救助</text><text class="arrow">›</text></view>
-  </view>
+      <view class="feed-list">
+        <view
+          class="feed-item"
+          wx:for="{{feedList}}"
+          wx:key="id"
+          data-url="{{item.url}}"
+          bindtap="onFeedTap"
+        >
+          <view class="feed-head">
+            <text class="feed-date">{{item.dateLabel}}</text>
+            <text class="feed-badge" wx:if="{{item.extra}}">{{item.extra}}</text>
+          </view>
+          <view class="feed-card">
+            <image class="feed-cover" src="{{item.cover}}" mode="aspectFill"></image>
+            <view class="feed-body">
+              <text class="feed-title">{{item.title}}</text>
+              <text class="feed-loc">{{item.place}}</text>
+              <text class="feed-org">{{item.org}}</text>
+            </view>
+          </view>
+        </view>
 
-  <view class="group">
-    <text class="group-title">订单与服务</text>
-    <view class="menu-item" bindtap="onOrders"><text>商家服务预约订单</text><text class="arrow">›</text></view>
-  </view>
+        <view class="feed-empty" wx:if="{{!feedList.length}}">
+          <text class="feed-empty-icon">📅</text>
+          <text class="feed-empty-text">这里还没有内容</text>
+          <view class="feed-empty-actions">
+            <text class="feed-link" bindtap="onMyEvents">去发起活动</text>
+            <text class="feed-link" bindtap="onMyBuddy">发布搭子</text>
+          </view>
+        </view>
+      </view>
 
-  <view class="group">
-    <view class="menu-item" bindtap="onAbout"><text>关于我们 / 用户协议</text><text class="arrow">›</text></view>
+      <view class="sheet-footer" wx:if="{{isLogin}}">
+        <button class="logout" bindtap="onLogout">退出登录</button>
+      </view>
+    </view>
   </view>
-
-  <button class="logout" wx:if="{{isLogin}}" bindtap="onLogout">退出登录</button>
-</view>
+</scroll-view>

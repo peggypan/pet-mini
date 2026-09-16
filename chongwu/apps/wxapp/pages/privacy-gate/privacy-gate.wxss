@@ -1,6 +1,6 @@
 page {
   height: 100%;
-  background: linear-gradient(180deg, #e8f8ef 0%, #f5f5f5 45%);
+  background: linear-gradient(180deg, #E8F4FF 0%, #f5f5f5 45%);
 }
 
 .gate {
@@ -59,7 +59,7 @@ page {
 .link {
   display: block;
   font-size: 24rpx;
-  color: #2db300;
+  color: #1E88E5;
   margin-bottom: 32rpx;
 }
 
@@ -86,9 +86,9 @@ page {
 }
 
 .btn-agree {
-  background: linear-gradient(135deg, #d4ff00, #4ce600);
+  background: linear-gradient(135deg, #5BB8FF, #4DA7F8);
   color: #1a1a1a;
-  box-shadow: 0 6rpx 20rpx rgba(76, 230, 0, 0.35);
+  box-shadow: 0 6rpx 20rpx rgba(77, 167, 248, 0.35);
 }
 
 .btn-disagree::after,

@@ -39,34 +39,36 @@
     enable-zoom
     enable-scroll
     bindmarkertap="onMarkerTap"
+    bindregionchange="onRegionChange"
   ></map>
 
-  <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="filter-bar">
-    <view
-      class="chip {{filter === item.id ? 'on' : ''}}"
-      wx:for="{{filters}}"
-      wx:key="id"
-      data-id="{{item.id}}"
-      bindtap="onFilter"
-    >{{item.name}}</view>
-  </scroll-view>
-
   <view class="toolbar">
-    <view class="tool-btn" bindtap="onRelocate">📍 我的位置</view>
+    <view class="tool-btn" bindtap="onRelocate">我的位置</view>
     <view class="tool-btn primary" bindtap="onSubmitPoint">＋ 新增点位</view>
   </view>
 
-  <view class="point-card" wx:if="{{selectedPoint}}">
+  <pet-map-fab
+    class="pet-fab-slot"
+    value="{{petFilter}}"
+    expanded="{{fabOpen}}"
+    bind:toggle="onFabToggle"
+    bind:change="onPetFabChange"
+  />
+
+  <view class="point-card {{selectedPoint.danger ? 'danger' : ''}}" wx:if="{{selectedPoint}}">
     <view class="card-head">
       <text class="point-name">{{selectedPoint.name}}</text>
       <text class="point-close" bindtap="onCloseCard">×</text>
     </view>
+    <text class="point-badge {{selectedPointBadge}}">{{selectedPointBadgeText}}</text>
     <text class="point-type">{{selectedPoint.type}}</text>
     <text class="point-addr">{{selectedPoint.address}}</text>
-    <text class="point-allow {{selectedPoint.allowPet ? 'ok' : 'no'}}">
+    <text class="point-meta" wx:if="{{selectedPoint.distance}}">距您约 {{selectedPoint.distance}}</text>
+    <text class="point-warn" wx:if="{{selectedPoint.danger}}">⚠️ {{selectedPoint.dangerDesc || '危险区域，请远离'}}</text>
+    <text class="point-allow {{selectedPoint.allowPet ? 'ok' : 'no'}}" wx:else>
       {{selectedPoint.allowPet ? '✓ 允许携宠' : '✗ 禁止携宠'}}
     </text>
-    <button class="nav-btn" bindtap="onNav">高德导航</button>
+    <button class="nav-btn" wx:if="{{!selectedPoint.danger}}" bindtap="onNav">导航一下</button>
   </view>
 
   <view class="loading" wx:if="{{loading}}">加载地图中…</view>

@@ -1,7 +1,7 @@
 const store = require('../../utils/store');
 
 const AUDIT_TEXT = {
-  pending: '活动审核中',
+  pending: '已上线',
   approved: '已上线',
   rejected: '未通过',
 };
@@ -24,9 +24,5 @@ Page({
       created: store.listMyEvents(),
       joined: store.listEventSignups(),
     });
-  },
-
-  onQualify() {
-    wx.navigateTo({ url: '/pages/event-qualify/event-qualify' });
   },
 });

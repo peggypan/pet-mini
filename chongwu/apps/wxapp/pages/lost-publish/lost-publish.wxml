@@ -2,7 +2,7 @@
 <view class="page">
   <view class="tip-card">
     <text class="tip-title">同城互助 · 禁止活体交易</text>
-    <text class="tip-desc">请定位走失/发现地点，上传照片或视频，并分享给同城好友扩大寻找范围。</text>
+    <text class="tip-desc">请选择走失/发现地点，上传照片或视频，并分享给同城好友扩大寻找范围。</text>
   </view>
 
   <view class="card">
@@ -40,12 +40,11 @@
     <text class="label">发生地点 *</text>
     <view class="loc-picker" bindtap="onChooseLocation">
       <view class="loc-main" wx:if="{{geoLocation}}">
-        <text class="loc-name">📍 {{geoLocation.name || '已选位置'}}</text>
+        <text class="loc-name">{{geoLocation.name || '已选位置'}}</text>
         <text class="loc-addr">{{geoLocation.address}}</text>
         <text class="loc-tip">点击重新选择 · 点击查看地图</text>
       </view>
       <view class="loc-empty" wx:else>
-        <text class="loc-empty-icon">📍</text>
         <text class="loc-empty-text">高德地图选点 · 走失/发现地点</text>
       </view>
     </view>
@@ -87,11 +86,7 @@
     <text class="count">{{content.length}}/500</text>
 
     <text class="label">照片 / 视频</text>
-    <text class="label-tip">上传宠物照片或短视频，帮助辨认（最多 6 个，视频 ≤60 秒）</text>
-    <view class="tool-row">
-      <button class="tool-btn" bindtap="onChooseImage">📷 上传图片</button>
-      <button class="tool-btn" bindtap="onChooseVideo">🎬 上传视频</button>
-    </view>
+    <text class="label-tip">{{mediaLimitHint}}（{{mediaSummary}}）</text>
 
     <view class="media-grid" wx:if="{{mediaList.length}}">
       <view
@@ -111,9 +106,12 @@
         </view>
         <view class="media-del" catchtap="onRemoveMedia" data-index="{{index}}">×</view>
       </view>
+      <view class="media-add" wx:if="{{mediaCanAdd}}" bindtap="onChooseMedia">
+        <text class="add-icon">＋</text>
+      </view>
     </view>
 
-    <view class="media-empty" wx:else bindtap="onChooseImage">
+    <view class="media-empty" wx:elif="{{mediaCanAdd}}" bindtap="onChooseMedia">
       <text class="empty-icon">📷</text>
       <text class="empty-text">添加宠物照片或视频</text>
     </view>

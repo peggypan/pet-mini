@@ -1,16 +1,7 @@
 const { MOCK_SOCIAL } = require('../../utils/mock');
 const store = require('../../utils/store');
 const { buildFeaturedCommunities } = require('../../utils/circle-community');
-
-function normalizePostMedia(post) {
-  const mediaList = Array.isArray(post.mediaList) ? post.mediaList.slice() : [];
-  if (!mediaList.length) {
-    const images = Array.isArray(post.images) ? post.images : [];
-    const fallbackImages = images.length ? images : [post.image].filter(Boolean);
-    fallbackImages.forEach((url) => mediaList.push({ type: 'image', url }));
-  }
-  return { ...post, mediaList };
-}
+const { normalizePostMedia, previewPostMedia } = require('../../utils/social-post-media');
 
 Page({
   data: {
@@ -32,7 +23,11 @@ Page({
     const pendingTab = wx.getStorageSync('social_tab');
     if (pendingTab) {
       wx.removeStorageSync('social_tab');
-      this.setData({ innerTab: pendingTab });
+      if (pendingTab === 'map') {
+        wx.navigateTo({ url: '/pages/buddy/buddy' });
+      } else {
+        this.setData({ innerTab: pendingTab });
+      }
     }
     this.setData({ city: store.getCity() });
     this.reloadPosts();
@@ -65,6 +60,12 @@ Page({
 
   onPostTap(e) {
     wx.navigateTo({ url: `/pages/social-detail/social-detail?id=${e.currentTarget.dataset.id}` });
+  },
+
+  onPreviewPostMedia(e) {
+    const { id, index } = e.currentTarget.dataset;
+    const post = this.data.posts.find((p) => String(p.id) === String(id));
+    if (post) previewPostMedia(post, index);
   },
 
   onLikeTap(e) {

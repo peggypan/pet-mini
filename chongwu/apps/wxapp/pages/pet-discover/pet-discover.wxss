@@ -1,15 +1,30 @@
-page { background: #F4F8F2; }
+page {
+  background: linear-gradient(180deg, #6ec8ff 0%, #4eb6f8 38%, #e8f4fc 72%, #f0f7ff 100%);
+}
 
 .page {
+  position: relative;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding: 24rpx 28rpx calc(200rpx + env(safe-area-inset-bottom));
+  padding: 24rpx 28rpx calc(220rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 
-/* 头部 */
+.sky-deco {
+  position: absolute;
+  left: -120rpx;
+  top: 80rpx;
+  width: 360rpx;
+  height: 360rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.35) 0%, transparent 68%);
+  pointer-events: none;
+}
+
 .header {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -20,14 +35,15 @@ page { background: #F4F8F2; }
   display: block;
   font-size: 40rpx;
   font-weight: 800;
-  color: #1E3B2F;
+  color: #ffffff;
+  text-shadow: 0 2rpx 12rpx rgba(26, 95, 158, 0.25);
 }
 
 .subtitle {
   display: block;
   margin-top: 8rpx;
   font-size: 24rpx;
-  color: #6B8A7C;
+  color: rgba(255, 255, 255, 0.88);
 }
 
 .header-right {
@@ -42,22 +58,24 @@ page { background: #F4F8F2; }
   align-items: center;
   gap: 8rpx;
   padding: 12rpx 24rpx;
-  background: #FFFFFF;
-  border: 2rpx solid #2E7D5B;
+  background: rgba(255, 255, 255, 0.92);
+  border: 2rpx solid rgba(255, 255, 255, 0.6);
   border-radius: 999rpx;
   font-size: 26rpx;
   font-weight: 700;
-  color: #2E7D5B;
+  color: #1d6fbd;
+  box-shadow: 0 8rpx 24rpx rgba(30, 120, 200, 0.18);
 }
 
-.pill-icon { font-size: 26rpx; }
+.pill-icon {
+  font-size: 26rpx;
+}
 
 .quota {
   font-size: 22rpx;
-  color: #8AA597;
+  color: rgba(255, 255, 255, 0.85);
 }
 
-/* 卡堆 */
 .stack-wrap {
   position: relative;
   flex: 1;
@@ -70,10 +88,10 @@ page { background: #F4F8F2; }
   right: 0;
   top: 0;
   bottom: 0;
-  border-radius: 32rpx;
+  border-radius: 36rpx;
   overflow: hidden;
-  background: linear-gradient(180deg, #FFFFFF 0%, #EDF5EE 100%);
-  box-shadow: 0 16rpx 48rpx rgba(30, 59, 47, 0.16);
+  background: linear-gradient(165deg, #ffffff 0%, #eef6ff 55%, #e3efff 100%);
+  box-shadow: 0 20rpx 56rpx rgba(30, 100, 180, 0.22);
 }
 
 .pet-card.top {
@@ -81,22 +99,36 @@ page { background: #F4F8F2; }
 }
 
 .pet-card.top.spring {
-  transition: transform 0.3s ease;
+  transition: transform 0.48s cubic-bezier(0.34, 1.45, 0.64, 1), opacity 0.35s ease;
 }
 
 .pet-card.fly-left {
-  transition: transform 0.32s ease-out;
-  transform: translate3d(-160%, -40rpx, 0) rotate(-24deg) !important;
+  transition: transform 0.42s cubic-bezier(0.55, 0.06, 0.68, 0.19), opacity 0.38s ease;
+  transform: translate3d(-165%, -60rpx, 0) rotate(-28deg) scale(0.92) !important;
+  opacity: 0 !important;
 }
 
 .pet-card.fly-right {
-  transition: transform 0.32s ease-out;
-  transform: translate3d(160%, -40rpx, 0) rotate(24deg) !important;
+  transition: transform 0.42s cubic-bezier(0.55, 0.06, 0.68, 0.19), opacity 0.38s ease;
+  transform: translate3d(165%, -80rpx, 0) rotate(28deg) scale(1.05) !important;
+  opacity: 0 !important;
 }
 
 .pet-card.under {
-  transform: scale(0.94) translateY(24rpx);
   z-index: 1;
+  transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.card-glow {
+  position: absolute;
+  left: 50%;
+  top: 120rpx;
+  width: 400rpx;
+  height: 400rpx;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(78, 182, 248, 0.2) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .card-photo-wrap {
@@ -108,9 +140,9 @@ page { background: #F4F8F2; }
   height: 460rpx;
   border-radius: 50%;
   overflow: hidden;
-  border: 12rpx solid #FFFFFF;
-  box-shadow: 0 12rpx 36rpx rgba(30, 59, 47, 0.18);
-  background: #E5EEE6;
+  border: 12rpx solid #ffffff;
+  box-shadow: 0 16rpx 40rpx rgba(30, 100, 180, 0.2);
+  background: #dceaf8;
 }
 
 .card-photo {
@@ -118,40 +150,39 @@ page { background: #F4F8F2; }
   height: 100%;
 }
 
-/* 方向印章 */
 .stamp {
   position: absolute;
-  top: 48rpx;
-  padding: 10rpx 28rpx;
-  border: 6rpx solid;
-  border-radius: 16rpx;
-  font-size: 44rpx;
+  top: 52rpx;
+  padding: 8rpx 24rpx;
+  border: 5rpx solid;
+  border-radius: 14rpx;
+  font-size: 40rpx;
   font-weight: 900;
-  letter-spacing: 6rpx;
+  letter-spacing: 4rpx;
+  transition: opacity 0.12s ease;
 }
 
 .stamp.skip {
-  left: 40rpx;
-  color: #E85D5D;
-  border-color: #E85D5D;
-  transform: rotate(-18deg);
+  left: 36rpx;
+  color: #64748b;
+  border-color: #94a3b8;
+  background: rgba(255, 255, 255, 0.75);
 }
 
 .stamp.like {
-  right: 40rpx;
-  color: #2FA36B;
-  border-color: #2FA36B;
-  transform: rotate(18deg);
+  right: 36rpx;
+  color: #ff3d81;
+  border-color: #ff3d81;
+  background: rgba(255, 255, 255, 0.85);
 }
 
-/* 卡片信息 */
 .card-info {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
   padding: 0 32rpx 32rpx;
-  color: #1E3B2F;
+  color: #0f2942;
 }
 
 .name-row {
@@ -167,7 +198,7 @@ page { background: #F4F8F2; }
 .pet-breed {
   margin: 0 0 6rpx 14rpx;
   font-size: 28rpx;
-  color: #6B8A7C;
+  color: #5b7a99;
 }
 
 .score-box {
@@ -179,21 +210,21 @@ page { background: #F4F8F2; }
 
 .score-label {
   font-size: 20rpx;
-  color: #8AA597;
+  color: #7a96b3;
 }
 
 .score-num {
   font-size: 48rpx;
   font-weight: 900;
   line-height: 1.1;
-  color: #2E7D5B;
+  color: #1d6fbd;
 }
 
 .pet-meta {
   display: block;
   margin-top: 8rpx;
   font-size: 24rpx;
-  color: #6B8A7C;
+  color: #5b7a99;
 }
 
 .tag-row {
@@ -205,13 +236,13 @@ page { background: #F4F8F2; }
 
 .tag {
   padding: 8rpx 20rpx;
-  background: rgba(46, 125, 91, 0.1);
-  color: #2E7D5B;
+  background: rgba(78, 182, 248, 0.18);
+  color: #1d6fbd;
   border-radius: 999rpx;
   font-size: 22rpx;
+  font-weight: 600;
 }
 
-/* 空态 */
 .empty {
   position: absolute;
   left: 0;
@@ -223,81 +254,209 @@ page { background: #F4F8F2; }
   gap: 16rpx;
 }
 
-.empty-icon { font-size: 80rpx; }
+.empty-icon {
+  font-size: 80rpx;
+}
 
 .empty-text {
   font-size: 28rpx;
-  color: #6B8A7C;
+  color: #5b7a99;
 }
 
 .empty-btn {
   margin-top: 12rpx;
   padding: 0 56rpx;
-  background: #2E7D5B;
-  color: #FFFFFF;
+  background: linear-gradient(135deg, #5eb8ff, #3a9fe8);
+  color: #ffffff;
   border-radius: 999rpx;
   font-size: 28rpx;
   font-weight: 700;
+  border: none;
 }
 
-/* 底部操作 */
+.empty-btn::after {
+  border: none;
+}
+
+/* 底部操作 — 胶囊按钮（参照划卡参考图） */
 .actions {
+  position: relative;
+  z-index: 3;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 88rpx;
-  margin-top: 8rpx;
+  gap: 48rpx;
+  margin-top: 16rpx;
 }
 
-.act {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6rpx;
+.pill-like-wrap {
+  position: relative;
 }
 
-.act.round {
-  border-radius: 50%;
+.pill-btn {
+  width: 176rpx;
+  height: 108rpx;
+  border-radius: 999rpx;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 10rpx 28rpx rgba(0, 0, 0, 0.12);
 }
 
-.act.round.skip {
-  width: 128rpx;
-  height: 128rpx;
-  background: #FFD64D;
-  box-shadow: 0 10rpx 28rpx rgba(214, 158, 0, 0.28);
+.pill-btn.dislike {
+  background: #ffb800;
 }
 
-.act.round.skip .act-glyph {
-  font-size: 68rpx;
-  font-weight: 800;
-  color: #7A5A00;
+.pill-btn.like {
+  background: #ff3d81;
+}
+
+.pill-btn.pulse.dislike {
+  animation: btn-shrink 0.32s ease;
+}
+
+.pill-btn.pulse.like {
+  animation: heart-bounce 0.52s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.pill-btn.like.glow {
+  box-shadow: 0 10rpx 28rpx rgba(255, 61, 129, 0.45), 0 0 0 10rpx rgba(255, 61, 129, 0.18);
+}
+
+.pill-x {
+  width: 44rpx;
+  height: 44rpx;
+  position: relative;
+}
+
+.pill-x::before,
+.pill-x::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 44rpx;
+  height: 6rpx;
+  background: #ffffff;
+  border-radius: 6rpx;
+}
+
+.pill-x::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.pill-x::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.pill-heart {
+  font-size: 56rpx;
   line-height: 1;
+  color: #ffffff;
+  font-weight: 700;
 }
 
-.act.round.like {
-  width: 128rpx;
-  height: 128rpx;
-  background: #FFFFFF;
-  box-shadow: 0 10rpx 28rpx rgba(30, 59, 47, 0.16);
+.like-burst {
+  position: absolute;
+  left: 50%;
+  top: 8rpx;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 2;
 }
 
-.act.round.like .heart {
-  font-size: 60rpx;
-  color: #E8484F;
-  line-height: 1;
+.spark {
+  position: absolute;
+  left: -14rpx;
+  top: 0;
+  font-size: 28rpx;
+  opacity: 0;
+}
+
+.spark.s1 {
+  color: #ffb800;
+  animation: spark-fly-1 0.55s ease-out forwards;
+}
+
+.spark.s2 {
+  color: #ff3d81;
+  font-size: 32rpx;
+  animation: spark-fly-2 0.55s ease-out 0.05s forwards;
+}
+
+.spark.s3 {
+  color: #ff8fab;
+  animation: spark-fly-3 0.55s ease-out 0.08s forwards;
+}
+
+@keyframes spark-fly-1 {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-56rpx, -72rpx) scale(1.1);
+  }
+}
+
+@keyframes spark-fly-2 {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0, -96rpx) scale(1.15);
+  }
+}
+
+@keyframes spark-fly-3 {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(56rpx, -68rpx) scale(1.1);
+  }
+}
+
+@keyframes heart-bounce {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.22);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes btn-shrink {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.88);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .hint {
-  margin-top: 12rpx;
+  position: relative;
+  z-index: 2;
+  margin-top: 16rpx;
   text-align: center;
   font-size: 22rpx;
-  color: #9DB5A8;
+  color: rgba(29, 111, 189, 0.75);
+  letter-spacing: 1rpx;
 }
 
-/* 喜欢列表弹层 */
 .mask {
   position: fixed;
   left: 0;
@@ -305,7 +464,7 @@ page { background: #F4F8F2; }
   top: 0;
   bottom: 0;
   z-index: 60;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(15, 40, 80, 0.45);
   display: flex;
   align-items: flex-end;
 }
@@ -313,7 +472,7 @@ page { background: #F4F8F2; }
 .sheet {
   width: 100%;
   max-height: 70vh;
-  background: #FFFFFF;
+  background: #ffffff;
   border-radius: 32rpx 32rpx 0 0;
   padding: 28rpx 28rpx calc(28rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
@@ -331,7 +490,7 @@ page { background: #F4F8F2; }
 .sheet-title {
   font-size: 30rpx;
   font-weight: 800;
-  color: #1A1A1A;
+  color: #0f2942;
 }
 
 .sheet-close {
@@ -348,7 +507,7 @@ page { background: #F4F8F2; }
   display: flex;
   align-items: center;
   padding: 20rpx 0;
-  border-bottom: 1rpx solid #F2F2F2;
+  border-bottom: 1rpx solid #eef2f7;
 }
 
 .liked-avatar {
@@ -356,32 +515,36 @@ page { background: #F4F8F2; }
   height: 88rpx;
   border-radius: 50%;
   margin-right: 20rpx;
+  border: 3rpx solid #e0f0ff;
 }
 
-.liked-info { flex: 1; min-width: 0; }
+.liked-info {
+  flex: 1;
+  min-width: 0;
+}
 
 .liked-name {
   display: block;
   font-size: 28rpx;
   font-weight: 700;
-  color: #1A1A1A;
+  color: #0f2942;
 }
 
 .liked-meta {
   display: block;
   margin-top: 4rpx;
   font-size: 22rpx;
-  color: #999999;
+  color: #7a96b3;
 }
 
 .liked-arrow {
   font-size: 36rpx;
-  color: #BBBBBB;
+  color: #bbbbbb;
 }
 
 .liked-empty {
   padding: 60rpx 0;
   text-align: center;
   font-size: 24rpx;
-  color: #999999;
+  color: #7a96b3;
 }

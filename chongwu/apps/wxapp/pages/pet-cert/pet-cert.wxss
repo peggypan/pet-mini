@@ -1,4 +1,4 @@
-page { background: #F5F5F5; }
+page { background: #F5F8FC; }
 
 .page { padding: 32rpx 28rpx calc(40rpx + env(safe-area-inset-bottom)); }
 
@@ -16,7 +16,7 @@ page { background: #F5F5F5; }
 
 .cert-card {
   padding: 40rpx 32rpx;
-  background: linear-gradient(135deg, #E8F8EF, #fff);
+  background: linear-gradient(135deg, #E8F4FF, #fff);
   border-radius: 28rpx;
   text-align: center;
   box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.06);
@@ -54,8 +54,8 @@ page { background: #F5F5F5; }
 
 .tag {
   font-size: 20rpx;
-  color: #2DB300;
-  background: rgba(197, 255, 74, 0.25);
+  color: #1E88E5;
+  background: rgba(126, 200, 255, 0.25);
   padding: 4rpx 12rpx;
   border-radius: 8rpx;
 }
@@ -63,7 +63,7 @@ page { background: #F5F5F5; }
 .verified {
   display: block;
   font-size: 26rpx;
-  color: #2DB300;
+  color: #1E88E5;
   margin-top: 12rpx;
   font-weight: 600;
 }
@@ -85,7 +85,7 @@ page { background: #F5F5F5; }
 .digital-preview {
   height: 240rpx;
   border-radius: 20rpx;
-  background: linear-gradient(180deg, #E8F8EF 0%, #FFFFFF 100%);
+  background: linear-gradient(180deg, #E8F4FF 0%, #FFFFFF 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -135,8 +135,8 @@ page { background: #F5F5F5; }
 
 .digital-stage {
   font-size: 22rpx;
-  color: #2DB300;
-  background: rgba(197, 255, 74, 0.25);
+  color: #1E88E5;
+  background: rgba(126, 200, 255, 0.25);
   padding: 4rpx 12rpx;
   border-radius: 8rpx;
 }
@@ -151,7 +151,7 @@ page { background: #F5F5F5; }
 
 .growth-fill {
   height: 100%;
-  background: linear-gradient(90deg, #D4FF00, #4CE600);
+  background: linear-gradient(90deg, #5BB8FF, #4DA7F8);
   border-radius: 8rpx;
 }
 
@@ -182,7 +182,7 @@ page { background: #F5F5F5; }
   height: 72rpx;
   padding: 0 16rpx;
   border-radius: 999rpx;
-  background: #F5F5F5;
+  background: #F5F8FC;
   color: #1A1A1A;
   font-size: 24rpx;
   font-weight: 600;
@@ -191,8 +191,8 @@ page { background: #F5F5F5; }
 
 .btn-mini.primary {
   flex: 1 1 100%;
-  background: linear-gradient(135deg, #D4FF00, #4CE600);
-  box-shadow: 0 6rpx 20rpx rgba(76, 230, 0, 0.25);
+  background: linear-gradient(135deg, #5BB8FF, #4DA7F8);
+  box-shadow: 0 6rpx 20rpx rgba(77, 167, 248, 0.25);
 }
 
 .btn-mini::after { border: none; }
@@ -203,13 +203,13 @@ page { background: #F5F5F5; }
 
 .btn {
   margin-bottom: 16rpx;
-  background: linear-gradient(135deg, #D4FF00, #4CE600);
+  background: linear-gradient(135deg, #5BB8FF, #4DA7F8);
   color: #1A1A1A;
   border-radius: 44rpx;
   border: none;
   font-size: 28rpx;
   font-weight: 700;
-  box-shadow: 0 6rpx 20rpx rgba(76, 230, 0, 0.3);
+  box-shadow: 0 6rpx 20rpx rgba(77, 167, 248, 0.3);
 }
 
 .btn.outline {

@@ -20,7 +20,7 @@
       circular
       indicator-dots
       indicator-color="rgba(0,0,0,0.15)"
-      indicator-active-color="#4CE600"
+      indicator-active-color="#4DA7F8"
       bindchange="onSwiperChange"
     >
       <swiper-item wx:for="{{posters}}" wx:key="id">

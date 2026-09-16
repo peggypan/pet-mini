@@ -1,4 +1,4 @@
-page { background: #F5F5F5; }
+page { background: #F5F8FC; }
 
 .page { padding: 24rpx; }
 
@@ -21,7 +21,7 @@ page { background: #F5F5F5; }
 }
 
 .tab.on {
-  background: #E8F8EF;
+  background: #E8F4FF;
   color: #1A1A1A;
   font-weight: 800;
 }
@@ -77,8 +77,8 @@ page { background: #F5F5F5; }
 }
 
 .club-status.ok {
-  color: #2DB300;
-  background: #E8F8EF;
+  color: #1E88E5;
+  background: #E8F4FF;
 }
 
 .club-badge {
@@ -97,7 +97,7 @@ page { background: #F5F5F5; }
   margin-left: 12rpx;
   font-size: 22rpx;
   color: #1A1A1A;
-  background: linear-gradient(135deg, #D4FF00, #4CE600);
+  background: linear-gradient(135deg, #5BB8FF, #4DA7F8);
   padding: 6rpx 18rpx;
   border-radius: 999rpx;
   font-weight: 700;
@@ -128,12 +128,12 @@ page { background: #F5F5F5; }
 
 .link-btn {
   font-size: 24rpx;
-  color: #2DB300;
+  color: #1E88E5;
   font-weight: 600;
 }
 
 .link-btn.warn {
-  color: #FF6B35;
+  color: #1E88E5;
 }
 
 .section-head {
@@ -167,7 +167,7 @@ page { background: #F5F5F5; }
   margin-top: 28rpx;
   padding: 0 48rpx;
   line-height: 72rpx;
-  background: linear-gradient(135deg, #D4FF00, #4CE600);
+  background: linear-gradient(135deg, #5BB8FF, #4DA7F8);
   color: #1A1A1A;
   border-radius: 999rpx;
   font-size: 26rpx;

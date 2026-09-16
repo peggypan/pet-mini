@@ -15,7 +15,7 @@
             {{item.status === 'approved' ? '已上线' : '审核中'}}
           </text>
         </view>
-        <text class="club-meta">📍 {{item.city}} · 主理人</text>
+        <text class="club-meta">{{item.city}} · 主理人</text>
         <text class="club-intro">{{item.intro}}</text>
       </view>
     </view>
@@ -35,7 +35,7 @@
           <text class="club-name">{{item.name}}</text>
           <text class="club-badge">已加入</text>
         </view>
-        <text class="club-meta">📍 {{item.city}} · {{item.owner || '主理人'}} · {{item.members || 0}} 成员</text>
+        <text class="club-meta">{{item.city}} · {{item.owner || '主理人'}} · {{item.members || 0}} 成员</text>
         <view class="club-actions">
           <text class="link-btn" data-id="{{item.id}}" bindtap="onChat">发消息</text>
           <text class="link-btn warn" data-id="{{item.id}}" bindtap="onLeave">退出</text>
@@ -57,7 +57,7 @@
           <text class="club-name">{{item.name}}</text>
           <text class="club-join" data-id="{{item.id}}" bindtap="onJoin">＋ 加入</text>
         </view>
-        <text class="club-meta">📍 {{item.city}} · {{item.owner}} · {{item.members}} 成员</text>
+        <text class="club-meta">{{item.city}} · {{item.owner}} · {{item.members}} 成员</text>
         <text class="club-intro">{{item.intro}}</text>
       </view>
     </view>

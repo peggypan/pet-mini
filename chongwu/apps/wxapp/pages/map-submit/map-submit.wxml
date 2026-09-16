@@ -10,7 +10,6 @@
 
     <text class="label">地图选点 *</text>
     <view class="loc-pick" bindtap="onPickLocation">
-      <text class="loc-icon">📍</text>
       <view class="loc-info">
         <text class="loc-title">{{latitude ? '已选位置' : '高德地图选点'}}</text>
         <text class="loc-addr">{{address || '点击在地图上选择友好点位'}}</text>
@@ -18,7 +17,21 @@
       <text class="loc-arrow">›</text>
     </view>
 
-    <view class="switch-row"><text>允许携宠</text><switch checked="{{allowPet}}" bindchange="onAllowChange" color="#0091FF" /></view>
+    <view class="switch-row" wx:if="{{type !== '宠物不友好' && type !== '宠物毒点'}}">
+      <text>允许携宠</text>
+      <switch checked="{{allowPet}}" bindchange="onAllowChange" color="#0091FF" />
+    </view>
+    <block wx:if="{{type === '宠物毒点'}}">
+      <text class="label">毒点说明 *</text>
+      <textarea
+        class="textarea"
+        data-field="dangerDesc"
+        value="{{dangerDesc}}"
+        bindinput="onInput"
+        placeholder="如：投放灭鼠药、有毒植物等，请说明风险"
+        maxlength="200"
+      ></textarea>
+    </block>
     <button class="submit" bindtap="onSubmit">提交审核</button>
   </view>
 </view>

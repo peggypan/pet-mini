@@ -1,4 +1,6 @@
 <view class="page">
+  <view class="sky-deco"></view>
+
   <view class="header">
     <view class="header-left">
       <text class="title">社交全靠我家毛孩 🐾</text>
@@ -6,7 +8,7 @@
     </view>
     <view class="header-right">
       <view class="like-pill" bindtap="onOpenLikes">
-        <text class="pill-icon">🤍</text>
+        <text class="pill-icon">💙</text>
         <text>喜欢列表 {{likeUsed}}</text>
       </view>
       <text class="quota">今日剩余 {{likeLeft}}/{{likeLimit}}</text>
@@ -14,29 +16,32 @@
   </view>
 
   <view class="stack-wrap">
-    <!-- 底层卡 -->
-    <view class="pet-card under" wx:if="{{deck.length > 1}}">
+    <view
+      class="pet-card under"
+      wx:if="{{deck.length > 1}}"
+      style="transform: scale({{underScale}}) translateY(28rpx);"
+    >
       <view class="card-photo-wrap">
         <image class="card-photo" src="{{deck[1].cover}}" mode="aspectFill"></image>
       </view>
     </view>
 
-    <!-- 顶层可滑动卡 -->
     <view
       wx:if="{{deck.length}}"
       class="pet-card top {{fly === 'left' ? 'fly-left' : ''}} {{fly === 'right' ? 'fly-right' : ''}} {{!dragging && !fly ? 'spring' : ''}}"
-      style="transform: translate3d({{dx}}px, {{dy}}px, 0) rotate({{rot}}deg);"
+      style="transform: translate3d({{dx}}px, {{dy}}px, 0) rotate({{rot}}deg) scale({{cardScale}});"
       bindtouchstart="onCardStart"
       bindtouchmove="onCardMove"
       bindtouchend="onCardEnd"
       bindtouchcancel="onCardEnd"
     >
+      <view class="card-glow"></view>
       <view class="card-photo-wrap">
         <image class="card-photo" src="{{deck[0].cover}}" mode="aspectFill"></image>
       </view>
 
-      <view class="stamp skip" style="opacity:{{skipOp}}">跳过</view>
-      <view class="stamp like" style="opacity:{{likeOp}}">喜欢</view>
+      <view class="stamp skip" style="opacity:{{skipOp}}; transform: rotate(-16deg) scale({{0.85 + skipOp * 0.2}});">不喜欢</view>
+      <view class="stamp like" style="opacity:{{likeOp}}; transform: rotate(16deg) scale({{0.85 + likeOp * 0.2}});">喜欢</view>
 
       <view class="card-info">
         <view class="name-row">
@@ -47,14 +52,13 @@
             <text class="score-num">{{deck[0].score}}%</text>
           </view>
         </view>
-        <text class="pet-meta">📍 {{deck[0].expectPlace}} · {{deck[0].distance}}</text>
+        <text class="pet-meta">{{deck[0].expectPlace}} · {{deck[0].distance}}</text>
         <view class="tag-row">
           <text class="tag" wx:for="{{deck[0].tags}}" wx:key="*this">{{item}}</text>
         </view>
       </view>
     </view>
 
-    <!-- 空态 -->
     <view class="empty" wx:if="{{!deck.length}}">
       <text class="empty-icon">🐾</text>
       <text class="empty-text">暂时没有更多毛孩子了</text>
@@ -63,16 +67,29 @@
   </view>
 
   <view class="actions" wx:if="{{deck.length}}">
-    <view class="act round skip" bindtap="onSkip">
-      <text class="act-glyph">×</text>
+    <view
+      class="pill-btn dislike {{actPulse === 'dislike' ? 'pulse' : ''}}"
+      bindtap="onSkip"
+    >
+      <view class="pill-x"></view>
     </view>
-    <view class="act round like" bindtap="onLike">
-      <text class="act-glyph heart">❤</text>
+
+    <view class="pill-like-wrap">
+      <view class="like-burst" wx:if="{{likeBurst}}">
+        <text class="spark s1">✦</text>
+        <text class="spark s2">♥</text>
+        <text class="spark s3">✦</text>
+      </view>
+      <view
+        class="pill-btn like {{actPulse === 'like' ? 'pulse' : ''}} {{likeBurst ? 'glow' : ''}}"
+        bindtap="onLike"
+      >
+        <text class="pill-heart">♥</text>
+      </view>
     </view>
   </view>
-  <text class="hint" wx:if="{{deck.length}}">左滑跳过 · 右滑喜欢</text>
+  <text class="hint" wx:if="{{deck.length}}">左滑不喜欢 · 右滑喜欢</text>
 
-  <!-- 喜欢列表弹层 -->
   <view class="mask" wx:if="{{showLikes}}" bindtap="onCloseLikes">
     <view class="sheet" catchtap="noop">
       <view class="sheet-head">
@@ -89,7 +106,7 @@
           <text class="liked-arrow">›</text>
         </view>
         <view class="liked-empty" wx:if="{{!likedList.length}}">
-          <text>今天还没有喜欢的毛孩子，去右滑试试吧</text>
+          <text>今天还没有喜欢的毛孩子，右滑试试吧</text>
         </view>
       </scroll-view>
     </view>

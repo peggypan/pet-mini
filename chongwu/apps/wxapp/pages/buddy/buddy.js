@@ -1,6 +1,7 @@
 const { BUDDY_TYPES, RISK_TIPS } = require('../../utils/mock');
 const { listAllBuddies } = require('../../utils/catalog');
 const store = require('../../utils/store');
+const { loadPetMap } = require('../../utils/pet-buddy-map');
 
 Page({
   data: {
@@ -11,15 +12,25 @@ Page({
     filterVerified: false,
     list: [],
     matchTip: RISK_TIPS.match,
+    mapLatitude: 39.9042,
+    mapLongitude: 116.4074,
+    mapScale: 13,
+    mapMarkers: [],
+    mapPeerCount: 0,
   },
 
   onShow() {
     this.setData({ city: store.getCity() });
     this.reload();
+    loadPetMap(this);
   },
 
   onCityTap() {
     wx.navigateTo({ url: '/pages/city-picker/city-picker' });
+  },
+
+  onOpenBuddyMap() {
+    wx.navigateTo({ url: '/pages/buddy-map/buddy-map' });
   },
 
   reload() {

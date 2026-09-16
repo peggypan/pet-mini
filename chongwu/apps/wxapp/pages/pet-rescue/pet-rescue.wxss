@@ -1,5 +1,5 @@
 page {
-  background: linear-gradient(180deg, #E8F8EF 0%, #F5F5F5 240rpx, #F5F5F5 100%);
+  background: linear-gradient(180deg, #E8F4FF 0%, #F5F8FC 240rpx, #F5F8FC 100%);
 }
 
 .page {
@@ -122,7 +122,7 @@ page {
 .filter.on {
   color: #1A1A1A;
   font-weight: 700;
-  background: #C5FF4A;
+  background: #7EC8FF;
 }
 
 .item {
@@ -178,8 +178,8 @@ page {
 }
 
 .tag-found {
-  color: #2DB300;
-  background: rgba(197, 255, 74, 0.35);
+  color: #1E88E5;
+  background: rgba(126, 200, 255, 0.35);
 }
 
 .tag-adopt {

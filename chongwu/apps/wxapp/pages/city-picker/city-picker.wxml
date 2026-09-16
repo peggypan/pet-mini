@@ -12,10 +12,9 @@
   </view>
 
   <view class="locate-card" bindtap="onAutoLocate">
-    <text class="locate-icon">📍</text>
     <view class="locate-info">
-      <text class="locate-title">{{locating ? '定位中…' : '定位当前城市'}}</text>
-      <text class="locate-desc">根据 GPS 自动识别所在城市{{currentCity ? ' · 当前 ' + currentCity : ''}}</text>
+      <text class="locate-title">{{locating ? '识别中…' : '识别当前城市'}}</text>
+      <text class="locate-desc">根据 GPS 识别所在城市{{currentCity ? ' · 当前 ' + currentCity : ''}}</text>
     </view>
     <text class="locate-arrow">›</text>
   </view>

@@ -1,4 +1,4 @@
-page { background: #F5F5F5; }
+page { background: #F5F8FC; }
 
 .page {
   min-height: 100vh;
@@ -20,11 +20,11 @@ page { background: #F5F5F5; }
   padding: 18rpx 0;
   border-radius: 24rpx;
   font-size: 28rpx;
-  color: #8A9A90;
+  color: #999999;
 }
 
 .tab.on {
-  background: rgba(91, 191, 136, 0.16);
+  background: rgba(126, 200, 255, 0.35);
   color: #1A1A1A;
   font-weight: 700;
 }
@@ -36,7 +36,7 @@ page { background: #F5F5F5; }
   margin-bottom: 12rpx;
   border-radius: 20rpx;
   background: #fff;
-  box-shadow: 0 6rpx 18rpx rgba(91, 140, 110, 0.06);
+  box-shadow: 0 6rpx 18rpx rgba(30, 136, 229, 0.06);
 }
 
 .avatar {
@@ -71,7 +71,7 @@ page { background: #F5F5F5; }
 
 .chat-msg {
   font-size: 24rpx;
-  color: #8A9A90;
+  color: #999999;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -129,7 +129,7 @@ page { background: #F5F5F5; }
 
 .empty-btn {
   margin-top: 24rpx;
-  background: #4CE600;
+  background: #4DA7F8;
   color: #fff;
   border-radius: 40rpx;
   font-size: 26rpx;

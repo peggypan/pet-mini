@@ -1,4 +1,4 @@
-page { background: #F5F5F5; }
+page { background: #F5F8FC; }
 
 .page {
   padding: 20rpx 28rpx calc(40rpx + env(safe-area-inset-bottom));
@@ -41,9 +41,9 @@ page { background: #F5F5F5; }
   align-items: center;
   padding: 28rpx 24rpx;
   margin-bottom: 28rpx;
-  background: linear-gradient(135deg, rgba(212, 255, 0, 0.25), rgba(76, 230, 0, 0.12));
+  background: linear-gradient(135deg, #E8F4FF 0%, #C5E6FF 55%, #D8ECFF 100%);
   border-radius: 24rpx;
-  border: 2rpx solid rgba(76, 230, 0, 0.25);
+  border: 2rpx solid rgba(77, 167, 248, 0.35);
 }
 
 .locate-icon {
@@ -72,7 +72,7 @@ page { background: #F5F5F5; }
 
 .locate-arrow {
   font-size: 36rpx;
-  color: #2DB300;
+  color: #1E88E5;
 }
 
 .section-title {
@@ -106,8 +106,8 @@ page { background: #F5F5F5; }
 }
 
 .city-cell.on {
-  background: linear-gradient(135deg, #D4FF00, #4CE600);
-  color: #1A1A1A;
+  background: linear-gradient(135deg, #7EC8FF, #4DA7F8);
+  color: #ffffff;
   font-weight: 700;
 }
 

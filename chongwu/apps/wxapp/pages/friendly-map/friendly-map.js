@@ -1,52 +1,32 @@
 const store = require('../../utils/store');
 const { listAllMapPoints, listAllBuddies } = require('../../utils/catalog');
 const amap = require('../../utils/amap');
+const { filterPointsByPetSentiment, getPetSentiment } = require('../../utils/map-pet-filter');
+const { collectPetServicePOIs, mergeMapPoints } = require('../../utils/map-pet-poi-collector');
+const { buildPetAvatarMarkers } = require('../../utils/pet-map-markers');
 
 const BUDDY_MARKER_ID_BASE = 10000;
 
-// 演示数据没有真实坐标，头像 marker 用确定性伪随机散布在地图中心附近
-function hashSeed(str) {
-  let h = 0;
-  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) % 9973;
-  return h;
-}
-
 function buildBuddyMarkers(buddies, latitude, longitude) {
-  return buddies.slice(0, 12).map((b, index) => {
-    const seed = hashSeed(String(b.id || index));
-    return {
-      id: BUDDY_MARKER_ID_BASE + index,
-      buddyId: b.id,
-      latitude: latitude + ((seed % 17) - 8) * 0.0007,
-      longitude: longitude + ((seed % 23) - 11) * 0.0009,
-      iconPath: b.avatar,
-      width: 34,
-      height: 34,
-      alpha: 0.95,
-      callout: {
-        content: `${b.userName || '宠友'}${b.petName ? ' · ' + b.petName : ''}\n${b.buddyType || '宠友'}${b.distance ? ' · ' + b.distance : ''}`,
-        display: 'BYCLICK',
-        padding: 8,
-        borderRadius: 8,
-        fontSize: 12,
-      },
-    };
-  });
-}
-
-const CATEGORY_IDS = ['hotel', 'park', 'mall', 'food', 'scenic', 'camp'];
-
-function matchCategory(p) {
-  const t = String(p.type || '');
-  if (p.danger || t.includes('毒') || t.includes('危险')) return 'danger';
-  if (t.includes('不友好') || p.allowPet === false) return 'unfriendly';
-  if (t.includes('酒店')) return 'hotel';
-  if (t.includes('公园')) return 'park';
-  if (t.includes('商场')) return 'mall';
-  if (t.includes('餐厅')) return 'food';
-  if (t.includes('景区')) return 'scenic';
-  if (t.includes('露营')) return 'camp';
-  return 'other';
+  const peers = buddies.slice(0, 12).map((b) => ({
+    peerId: b.id,
+    id: b.id,
+    buddyId: b.id,
+    userName: b.userName,
+    petName: b.petName,
+    avatar: b.avatar,
+  }));
+  return buildPetAvatarMarkers(peers, latitude, longitude, BUDDY_MARKER_ID_BASE).map((m, index) => ({
+    ...m,
+    buddyId: buddies[index] && buddies[index].id,
+    callout: {
+      content: `${m.userName || '宠友'}${m.petName ? ' · ' + m.petName : ''}\n${(buddies[index] && buddies[index].buddyType) || '宠友'}`,
+      display: 'BYCLICK',
+      padding: 8,
+      borderRadius: 8,
+      fontSize: 12,
+    },
+  }));
 }
 
 Page({
@@ -60,20 +40,33 @@ Page({
     city: '北京',
     amapReady: false,
     loading: true,
-    filters: [
-      { id: 'all', name: '全部' },
-      { id: 'hotel', name: '酒店' },
-      { id: 'park', name: '公园' },
-      { id: 'mall', name: '商场' },
-      { id: 'food', name: '餐厅' },
-      { id: 'scenic', name: '景区' },
-      { id: 'camp', name: '露营地' },
-      { id: 'unfriendly', name: '不友好' },
-      { id: 'danger', name: '危险/毒点' },
-    ],
-    filter: 'all',
+    petFilter: '',
+    fabOpen: false,
     keyword: '',
     tips: [],
+    selectedPointBadge: '',
+    selectedPointBadgeText: '',
+  },
+
+  pointBadgeFor(point) {
+    const s = getPetSentiment(point);
+    if (s === 'danger') return { cls: 'danger', text: '宠物毒点' };
+    if (s === 'unfriendly') return { cls: 'warn', text: '宠物不友好' };
+    return { cls: 'ok', text: '宠物友好' };
+  },
+
+  focusPoint(point) {
+    if (!point || !point.latitude) return;
+    const badge = this.pointBadgeFor(point);
+    this.setData({
+      selectedPoint: point,
+      selectedPointBadge: badge.cls,
+      selectedPointBadgeText: badge.text,
+      latitude: point.latitude,
+      longitude: point.longitude,
+      scale: 16,
+      fabOpen: false,
+    }, () => this.refreshMapMarkers());
   },
 
   onSearchInput(e) {
@@ -128,9 +121,7 @@ Page({
     if (tip.kind === 'local') {
       // 本地点位：地图跳转并弹出点位卡片
       const point = (this._allPoints || []).find((p) => String(p.id) === String(tip.id));
-      if (point) {
-        this.setData({ latitude: point.latitude, longitude: point.longitude, scale: 16, selectedPoint: point });
-      }
+      if (point) this.focusPoint(point);
       return;
     }
     // 远程搜索结果：移动视野并落一个搜索标记
@@ -164,10 +155,27 @@ Page({
   },
 
   rebuildMarkers() {
-    const pointMarkers = amap.buildMapMarkers(this.data.points);
+    const activePointId = this.data.selectedPoint && this.data.selectedPoint.id;
+    const pointMarkers = amap.buildMapMarkers(this.data.points, {
+      mapScale: this.data.scale,
+      activePointId,
+      calloutMode: 'BYCLICK',
+    });
     const buddyMarkers = this._buddyMarkers || [];
     const searchMarker = this._searchMarker ? [this._searchMarker] : [];
     return [...pointMarkers, ...buddyMarkers, ...searchMarker];
+  },
+
+  refreshMapMarkers() {
+    this.setData({ markers: this.rebuildMarkers() });
+  },
+
+  onRegionChange(e) {
+    const detail = e.detail || {};
+    if (e.type !== 'end') return;
+    const scale = detail.scale;
+    if (!scale || Math.abs(scale - this.data.scale) < 0.2) return;
+    this.setData({ scale }, () => this.refreshMapMarkers());
   },
 
   onLoad() {
@@ -199,7 +207,9 @@ Page({
     }
 
     const raw = listAllMapPoints();
-    const points = await amap.enrichPointsWithCoords(raw, city);
+    let points = await amap.enrichPointsWithCoords(raw, city);
+    const collected = await collectPetServicePOIs({ city, latitude, longitude });
+    points = mergeMapPoints(points, collected);
     this._allPoints = points;
     const pointMarkers = amap.buildMapMarkers(points);
     const buddyMarkers = buildBuddyMarkers(listAllBuddies(), latitude, longitude);
@@ -208,43 +218,47 @@ Page({
     this.setData({
       latitude,
       longitude,
+      scale: this.data.scale || 14,
       points,
-      markers: [...pointMarkers, ...buddyMarkers],
       loading: false,
+    }, () => {
+      this.setData({ markers: this.rebuildMarkers() });
     });
   },
 
-  onFilter(e) {
-    const id = e.currentTarget.dataset.id;
-    if (id === this.data.filter) return;
-    this.setData({ filter: id });
-    this.applyFilter(id);
+  onFabToggle() {
+    this.setData({ fabOpen: !this.data.fabOpen });
   },
 
-  applyFilter(id) {
+  onPetFabChange(e) {
+    const petFilter = e.detail.value || '';
+    this.setData({ petFilter, fabOpen: false });
+    this.applyPetFilter(petFilter);
+  },
+
+  applyPetFilter(petFilter) {
+    const pet = petFilter != null ? petFilter : this.data.petFilter;
     const all = this._allPoints || [];
-    let points = all;
+    const points = filterPointsByPetSentiment(all, pet);
     let latitude = this.data.latitude;
     let longitude = this.data.longitude;
     let scale = this.data.scale;
-    if (id !== 'all') {
-      points = all.filter((p) => matchCategory(p) === id);
-      // 视野聚焦到该类别第一个点位，保证筛选结果可见
-      const first = points.find((p) => p.latitude && p.longitude);
-      if (first) {
-        latitude = first.latitude;
-        longitude = first.longitude;
-        scale = 12;
-      }
+    const first = points.find((p) => p.latitude && p.longitude);
+    if (first && pet) {
+      latitude = first.latitude;
+      longitude = first.longitude;
+      if (pet === 'petHospital' || pet === 'petStore') scale = 14;
+      else scale = pet === 'danger' ? 13 : 12;
     }
     this.setData({
       points,
-      markers: this.rebuildMarkers(),
       latitude,
       longitude,
       scale,
       selectedPoint: null,
-    });
+      selectedPointBadge: '',
+      selectedPointBadgeText: '',
+    }, () => this.refreshMapMarkers());
   },
 
   onMarkerTap(e) {
@@ -256,7 +270,7 @@ Page({
       return;
     }
     const point = this.data.points.find((p) => p.id === marker.pointId);
-    if (point) this.setData({ selectedPoint: point });
+    if (point) this.focusPoint(point);
   },
 
   onNav() {
@@ -280,7 +294,7 @@ Page({
           scale: 15,
         });
       },
-      fail: () => wx.showToast({ title: '定位失败', icon: 'none' }),
+      fail: () => wx.showToast({ title: '获取位置失败', icon: 'none' }),
     });
   },
 
@@ -289,6 +303,10 @@ Page({
   },
 
   onCloseCard() {
-    this.setData({ selectedPoint: null });
+    this.setData({
+      selectedPoint: null,
+      selectedPointBadge: '',
+      selectedPointBadgeText: '',
+    }, () => this.refreshMapMarkers());
   },
 });

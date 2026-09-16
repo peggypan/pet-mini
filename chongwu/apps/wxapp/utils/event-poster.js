@@ -2,7 +2,7 @@ const POSTER_W = 750;
 const POSTER_H = 1200;
 
 const STYLES = [
-  { id: 'fresh', name: '清新绿野' },
+  { id: 'fresh', name: '清新蓝天' },
   { id: 'magazine', name: '杂志封面' },
   { id: 'cute', name: '萌宠气泡' },
 ];
@@ -59,7 +59,7 @@ function drawMiniQr(ctx, x, y, size, seed) {
   const cx = x + size / 2;
   const cy = y + size / 2;
   const r = size * 0.11;
-  ctx.fillStyle = '#4CE600';
+  ctx.fillStyle = '#4DA7F8';
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
   ctx.fill();
@@ -175,8 +175,8 @@ function drawQrBlock(ctx, event, x, y, qrSize, labelColor, subColor) {
 
 function drawStyleFresh(ctx, event, coverImg) {
   const grd = ctx.createLinearGradient(0, 0, 0, POSTER_H);
-  grd.addColorStop(0, '#E8F8EF');
-  grd.addColorStop(1, '#D4FF00');
+  grd.addColorStop(0, '#E8F4FF');
+  grd.addColorStop(1, '#5BB8FF');
   ctx.fillStyle = grd;
   ctx.fillRect(0, 0, POSTER_W, POSTER_H);
 
@@ -187,10 +187,10 @@ function drawStyleFresh(ctx, event, coverImg) {
   ctx.fill();
 
   if (event.tag) {
-    ctx.fillStyle = 'rgba(76, 230, 0, 0.2)';
+    ctx.fillStyle = 'rgba(77, 167, 248, 0.2)';
     roundRect(ctx, 56, 628, 120, 44, 10);
     ctx.fill();
-    ctx.fillStyle = '#2DB300';
+    ctx.fillStyle = '#1E88E5';
     ctx.font = '600 24px sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText(event.tag, 72, 658);
@@ -210,7 +210,7 @@ function drawStyleFresh(ctx, event, coverImg) {
   ctx.font = '24px sans-serif';
   ctx.fillText(`主理人 · ${event.host || ''}`, 56, 1010);
 
-  ctx.fillStyle = '#2DB300';
+  ctx.fillStyle = '#1E88E5';
   ctx.font = '800 32px sans-serif';
   ctx.fillText('宠头头', 56, 1060);
 
@@ -228,7 +228,7 @@ function drawStyleMagazine(ctx, event, coverImg) {
   ctx.fillRect(0, 0, POSTER_W, POSTER_H);
 
   if (event.sourceText) {
-    ctx.fillStyle = '#D4FF00';
+    ctx.fillStyle = '#5BB8FF';
     ctx.font = '700 24px sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText(event.sourceText, 48, 620);

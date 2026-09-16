@@ -2,6 +2,12 @@ const store = require('../../utils/store');
 const { getDefaultPet } = require('../../utils/catalog');
 const { findCircle, HOT_TOPICS } = require('../../utils/circle-community');
 const { openEventPublishEntry } = require('../../utils/event-publish-nav');
+const {
+  chooseLocationPoint,
+  pickAaAmount,
+  openActivityShare,
+  locationSnippet,
+} = require('../../utils/chat-tool-actions');
 const { chooseMedia } = require('../../utils/choose-media');
 
 Page({
@@ -85,8 +91,43 @@ Page({
       this.pickVideo();
       return;
     }
+    if (action === 'videocall') {
+      wx.showToast({ title: '视频通话请进入私聊', icon: 'none' });
+      return;
+    }
+    if (action === 'redpack') {
+      pickAaAmount()
+        .then(({ aaAmount, aaPeople }) => {
+          const line = `[AA收款 ¥${aaAmount} · ${aaPeople}人]`;
+          this.setData({ inputText: `${this.data.inputText || ''}${this.data.inputText ? '\n' : ''}${line}` });
+        })
+        .catch(() => {});
+      return;
+    }
+    if (action === 'gift' || action === 'transfer' || action === 'favorite') {
+      wx.showToast({ title: '功能即将上线', icon: 'none' });
+      return;
+    }
+    if (action === 'location') {
+      chooseLocationPoint()
+        .then((loc) => {
+          const snippet = locationSnippet(loc);
+          this.setData({ inputText: `${this.data.inputText || ''}${this.data.inputText ? ' ' : ''}${snippet}` });
+        })
+        .catch(() => {});
+      return;
+    }
+    if (action === 'aa') {
+      pickAaAmount()
+        .then(({ aaAmount, aaPeople }) => {
+          const line = `[AA收款 ¥${aaAmount} · ${aaPeople}人]`;
+          this.setData({ inputText: `${this.data.inputText || ''}${this.data.inputText ? '\n' : ''}${line}` });
+        })
+        .catch(() => {});
+      return;
+    }
     if (action === 'activity') {
-      openEventPublishEntry();
+      openActivityShare(() => openEventPublishEntry());
     }
   },
 

@@ -39,7 +39,7 @@
         value="{{intro}}"
         bindinput="onInput"
         data-field="intro"
-        placeholder="俱乐部定位、活动频率、适合的宠物类型等"
+        placeholder="俱乐部所在区域、活动频率、适合的宠物类型等"
         placeholder-class="row-ph"
         maxlength="300"
       ></textarea>

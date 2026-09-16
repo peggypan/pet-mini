@@ -1,5 +1,5 @@
 page {
-  background: linear-gradient(180deg, #E8F8EF 0%, #F5F5F5 280rpx, #F5F5F5 100%);
+  background: linear-gradient(180deg, #E8F4FF 0%, #F5F8FC 280rpx, #F5F8FC 100%);
 }
 
 .page {
@@ -36,7 +36,7 @@ page {
   width: 48rpx;
   height: 8rpx;
   border-radius: 4rpx;
-  background: #C5FF4A;
+  background: #7EC8FF;
 }
 
 .actions {
@@ -51,12 +51,12 @@ page {
   height: 80rpx;
   padding: 0 16rpx;
   border-radius: 999rpx;
-  background: linear-gradient(135deg, #D4FF00 0%, #4CE600 100%);
+  background: linear-gradient(135deg, #5BB8FF 0%, #4DA7F8 100%);
   color: #1A1A1A;
   font-size: 28rpx;
   font-weight: 700;
   border: none;
-  box-shadow: 0 6rpx 20rpx rgba(76, 230, 0, 0.3);
+  box-shadow: 0 6rpx 20rpx rgba(77, 167, 248, 0.3);
 }
 
 .act-btn.outline {
@@ -89,7 +89,7 @@ page {
 
 .source {
   font-size: 20rpx;
-  color: #2DB300;
+  color: #1E88E5;
   font-weight: 600;
 }
 
@@ -105,6 +105,38 @@ page {
   display: block;
   font-size: 22rpx;
   color: #999999;
+}
+
+.map-section {
+  position: relative;
+}
+
+.map-fab {
+  position: absolute;
+  right: 8rpx;
+  top: 248rpx;
+  z-index: 6;
+}
+
+.map-fab-open {
+  z-index: 30;
+}
+
+.map-filter-tip {
+  font-size: 22rpx;
+  color: #2e7d5b;
+  font-weight: 600;
+  margin: -8rpx 4rpx 12rpx;
+}
+
+.map-empty {
+  padding: 48rpx 24rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: #999999;
+  background: #ffffff;
+  border-radius: 28rpx;
+  margin-bottom: 16rpx;
 }
 
 .map-preview-wrap {
@@ -202,17 +234,17 @@ page {
 }
 
 .map-allow.ok {
-  color: #2DB300;
+  color: #1E88E5;
   font-weight: 600;
 }
 
 .map-allow.no {
-  color: #FF6B35;
+  color: #1E88E5;
 }
 
 .nav-btn {
   margin-top: 12rpx;
-  background: #F5F5F5;
+  background: #F5F8FC;
   color: #1A1A1A;
   border-radius: 999rpx;
 }

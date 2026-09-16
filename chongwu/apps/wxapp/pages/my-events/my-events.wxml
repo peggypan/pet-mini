@@ -1,18 +1,12 @@
 <view class="page">
-  <view class="qualify-entry" bindtap="onQualify">
-    <text class="qualify-title">活动发布资质</text>
-    <text class="qualify-desc">个人身份认证 / 商家入驻 · 保证金管理</text>
-    <text class="qualify-arrow">›</text>
-  </view>
-
   <view class="section">
     <text class="title">我发起的</text>
     <view class="item" wx:for="{{created}}" wx:key="id">
       <view class="item-head">
         <text class="name">{{item.title}}</text>
-        <text class="status {{item.auditStatus || item.status}}">{{auditText[item.auditStatus || item.status] || '审核中'}}</text>
+        <text class="status approved">{{auditText[item.auditStatus || item.status] || '已上线'}}</text>
       </view>
-      <text class="meta">{{roleText[item.role] || '个人'}} · {{item.place}} · 保证金 ¥{{item.depositAmount || '-'}}</text>
+      <text class="meta">{{roleText[item.role] || '个人'}} · {{item.place}} · {{item.time}}</text>
     </view>
     <view class="empty" wx:if="{{created.length === 0}}">暂无</view>
   </view>

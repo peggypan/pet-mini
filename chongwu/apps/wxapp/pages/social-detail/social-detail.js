@@ -2,23 +2,15 @@ const { findSocialPost } = require('../../utils/catalog');
 const store = require('../../utils/store');
 const { MOCK_PET } = require('../../utils/mock');
 const { openEventPublishEntry } = require('../../utils/event-publish-nav');
+const {
+  chooseLocationPoint,
+  pickAaAmount,
+  openActivityShare,
+  locationSnippet,
+} = require('../../utils/chat-tool-actions');
 const amap = require('../../utils/amap');
 const { chooseMedia } = require('../../utils/choose-media');
-
-function normalizePostMedia(post) {
-  const mediaList = Array.isArray(post.mediaList) ? post.mediaList.slice() : [];
-  if (!mediaList.length) {
-    const images = Array.isArray(post.images) ? post.images : [];
-    const fallbackImages = images.length ? images : [post.image].filter(Boolean);
-    fallbackImages.forEach((url) => mediaList.push({ type: 'image', url }));
-  }
-  return {
-    ...post,
-    mediaList,
-    imageList: mediaList.filter((m) => m.type === 'image').map((m) => m.url),
-    videoList: mediaList.filter((m) => m.type === 'video'),
-  };
-}
+const { normalizePostMedia } = require('../../utils/social-post-media');
 
 const ZONE_MAP = {
   cat: '猫咪专区',
@@ -68,9 +60,12 @@ Page({
 
   onPreviewImage(e) {
     const { src } = e.currentTarget.dataset;
-    const urls = this.data.post.imageList || [];
+    let urls = (this.data.post?.mediaList || [])
+      .filter((m) => m.type === 'image')
+      .map((m) => m.url);
+    if (!urls.length && src) urls = [src];
     if (!urls.length) return;
-    wx.previewImage({ current: src, urls });
+    wx.previewImage({ current: src || urls[0], urls });
   },
 
   onPreviewCommentImage(e) {
@@ -116,8 +111,43 @@ Page({
       this.pickMedia('video', ['album', 'camera']);
       return;
     }
+    if (action === 'videocall') {
+      wx.showToast({ title: '视频通话请进入私聊', icon: 'none' });
+      return;
+    }
+    if (action === 'redpack') {
+      pickAaAmount()
+        .then(({ aaAmount, aaPeople }) => {
+          const line = `[AA收款 ¥${aaAmount} · ${aaPeople}人]`;
+          this.setData({ commentText: `${this.data.commentText || ''}${this.data.commentText ? '\n' : ''}${line}` });
+        })
+        .catch(() => {});
+      return;
+    }
+    if (action === 'gift' || action === 'transfer' || action === 'favorite') {
+      wx.showToast({ title: '功能即将上线', icon: 'none' });
+      return;
+    }
+    if (action === 'location') {
+      chooseLocationPoint()
+        .then((loc) => {
+          const snippet = locationSnippet(loc);
+          this.setData({ commentText: `${this.data.commentText || ''}${this.data.commentText ? ' ' : ''}${snippet}` });
+        })
+        .catch(() => {});
+      return;
+    }
+    if (action === 'aa') {
+      pickAaAmount()
+        .then(({ aaAmount, aaPeople }) => {
+          const line = `[AA收款 ¥${aaAmount} · ${aaPeople}人]`;
+          this.setData({ commentText: `${this.data.commentText || ''}${this.data.commentText ? '\n' : ''}${line}` });
+        })
+        .catch(() => {});
+      return;
+    }
     if (action === 'activity') {
-      openEventPublishEntry();
+      openActivityShare(() => openEventPublishEntry());
     }
   },
 

@@ -1,0 +1,53 @@
+/** 无高德 Key 时的演示：宠物医院 / 门店（默认宠物友好） */
+const MOCK_PET_SERVICE_POIS = [
+  {
+    id: 'ph1',
+    name: '萌宠动物医院·昌平店',
+    type: '宠物医院',
+    category: 'petHospital',
+    address: '北京市昌平区回龙观西大街',
+    city: '北京',
+    latitude: 40.0752,
+    longitude: 116.3268,
+    distance: '1.2km',
+    rating: 4.8,
+  },
+  {
+    id: 'ph2',
+    name: '爱宠宠物医疗中心',
+    type: '宠物医院',
+    category: 'petHospital',
+    address: '北京市昌平区东小口镇',
+    city: '北京',
+    latitude: 40.0688,
+    longitude: 116.3482,
+    distance: '2.1km',
+    rating: 4.6,
+  },
+  {
+    id: 'ps1',
+    name: '爪爪宠物生活馆',
+    type: '宠物门店',
+    category: 'petStore',
+    address: '北京市昌平区霍营街道',
+    city: '北京',
+    latitude: 40.0815,
+    longitude: 116.3595,
+    distance: '0.8km',
+    rating: 4.7,
+  },
+  {
+    id: 'ps2',
+    name: '喵汪宠物用品超市',
+    type: '宠物门店',
+    category: 'petStore',
+    address: '北京市昌平区天通苑',
+    city: '北京',
+    latitude: 40.0721,
+    longitude: 116.4123,
+    distance: '3.0km',
+    rating: 4.5,
+  },
+];
+
+module.exports = { MOCK_PET_SERVICE_POIS };

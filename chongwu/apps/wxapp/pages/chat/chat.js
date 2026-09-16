@@ -155,9 +155,42 @@ Page({
       this.onChooseVideo();
       return;
     }
+    if (action === 'videocall') {
+      this.onVideoCall();
+      return;
+    }
     if (action === 'activity') {
       this.onShareActivity();
+      return;
     }
+    if (action === 'location') {
+      this.onChooseLocation();
+      return;
+    }
+    if (action === 'aa' || action === 'redpack') {
+      this.onAaCollect();
+      return;
+    }
+    if (action === 'gift' || action === 'transfer' || action === 'favorite') {
+      wx.showToast({ title: '功能即将上线', icon: 'none' });
+    }
+  },
+
+  onAaCollect() {
+    const { pickAaAmount } = require('../../utils/chat-tool-actions');
+    pickAaAmount()
+      .then(({ aaAmount, aaPeople, aaPer }) => {
+        const row = store.addChatMessage(this.data.threadId, {
+          from: 'me',
+          type: 'aa',
+          content: String(aaAmount),
+          aaAmount,
+          aaPeople,
+          aaPer,
+        });
+        this.appendMessage(row, true);
+      })
+      .catch(() => {});
   },
 
   pickImage(sourceType) {

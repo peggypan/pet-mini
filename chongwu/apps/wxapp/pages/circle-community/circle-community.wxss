@@ -1,4 +1,4 @@
-page { background: #F5F5F5; }
+page { background: #F5F8FC; }
 
 .page {
   min-height: 100vh;
@@ -9,7 +9,7 @@ page { background: #F5F5F5; }
 }
 
 .page.panel-open {
-  padding-bottom: calc(480rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(420rpx + env(safe-area-inset-bottom));
 }
 
 .header {
@@ -17,7 +17,7 @@ page { background: #F5F5F5; }
   align-items: center;
   justify-content: space-between;
   padding: 24rpx 28rpx;
-  background: linear-gradient(135deg, rgba(212, 255, 0, 0.25), rgba(76, 230, 0, 0.12));
+  background: linear-gradient(135deg, rgba(212, 255, 0, 0.25), rgba(77, 167, 248, 0.12));
 }
 
 .header-main {
@@ -50,7 +50,7 @@ page { background: #F5F5F5; }
   height: 64rpx;
   border-radius: 999rpx;
   background: #fff;
-  color: #2DB300;
+  color: #1E88E5;
   font-size: 24rpx;
   font-weight: 700;
   border: none;
@@ -72,13 +72,13 @@ page { background: #F5F5F5; }
   margin-right: 12rpx;
   border-radius: 999rpx;
   font-size: 24rpx;
-  color: #2DB300;
-  background: rgba(197, 255, 74, 0.15);
+  color: #1E88E5;
+  background: rgba(126, 200, 255, 0.15);
   font-weight: 600;
 }
 
 .topic-chip.on {
-  background: linear-gradient(135deg, #D4FF00, #4CE600);
+  background: linear-gradient(135deg, #5BB8FF, #4DA7F8);
   color: #1A1A1A;
 }
 
@@ -145,7 +145,7 @@ page { background: #F5F5F5; }
 .msg-topic {
   display: inline-block;
   font-size: 22rpx;
-  color: #2DB300;
+  color: #1E88E5;
   font-weight: 700;
   margin-bottom: 8rpx;
 }
@@ -163,7 +163,7 @@ page { background: #F5F5F5; }
 }
 
 .msg-card.me .msg-text {
-  background: linear-gradient(135deg, #D4FF00, #4CE600);
+  background: linear-gradient(135deg, #5BB8FF, #4DA7F8);
 }
 
 .msg-images {
@@ -193,7 +193,7 @@ page { background: #F5F5F5; }
   font-size: 22rpx;
   color: #666;
   padding: 6rpx 12rpx;
-  background: #F5F5F5;
+  background: #F5F8FC;
   border-radius: 999rpx;
 }
 
@@ -201,7 +201,7 @@ page { background: #F5F5F5; }
   margin: 0;
   padding: 6rpx 12rpx;
   line-height: 1.4;
-  background: #F5F5F5;
+  background: #F5F8FC;
   color: #666;
   font-size: 22rpx;
   border: none;
@@ -276,7 +276,7 @@ page { background: #F5F5F5; }
 .topic-cell {
   padding: 12rpx 24rpx;
   border-radius: 999rpx;
-  background: rgba(197, 255, 74, 0.2);
+  background: rgba(126, 200, 255, 0.2);
   color: #1A1A1A;
   font-size: 26rpx;
   font-weight: 600;
@@ -307,7 +307,7 @@ page { background: #F5F5F5; }
   font-size: 40rpx;
 }
 
-.tool-icon.green { background: rgba(197, 255, 74, 0.3); }
+.tool-icon.green { background: rgba(126, 200, 255, 0.3); }
 
 .emoji-panel { max-height: 380rpx; }
 
@@ -323,11 +323,11 @@ page { background: #F5F5F5; }
   border-radius: 999rpx;
   font-size: 24rpx;
   color: #999;
-  background: #F5F5F5;
+  background: #F5F8FC;
 }
 
 .emoji-tab.on {
-  background: rgba(197, 255, 74, 0.35);
+  background: rgba(126, 200, 255, 0.35);
   color: #1A1A1A;
   font-weight: 700;
 }
@@ -371,9 +371,9 @@ page { background: #F5F5F5; }
 .topic-entry-btn {
   display: inline-block;
   font-size: 24rpx;
-  color: #2DB300;
+  color: #1E88E5;
   font-weight: 700;
-  background: rgba(197, 255, 74, 0.2);
+  background: rgba(126, 200, 255, 0.2);
   padding: 6rpx 16rpx;
   border-radius: 999rpx;
 }
@@ -386,9 +386,9 @@ page { background: #F5F5F5; }
 
 .selected-topic {
   font-size: 24rpx;
-  color: #2DB300;
+  color: #1E88E5;
   font-weight: 700;
-  background: rgba(197, 255, 74, 0.2);
+  background: rgba(126, 200, 255, 0.2);
   padding: 6rpx 16rpx;
   border-radius: 999rpx;
 }
@@ -410,7 +410,7 @@ page { background: #F5F5F5; }
   width: 56rpx;
   height: 56rpx;
   border-radius: 50%;
-  background: #F5F5F5;
+  background: #F5F8FC;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -421,14 +421,14 @@ page { background: #F5F5F5; }
 
 .composer-btn.hash {
   font-weight: 800;
-  color: #2DB300;
+  color: #1E88E5;
 }
 
 .composer-input {
   flex: 1;
   height: 72rpx;
   padding: 0 20rpx;
-  background: #F5F5F5;
+  background: #F5F8FC;
   border-radius: 36rpx;
   font-size: 28rpx;
 }
@@ -441,7 +441,7 @@ page { background: #F5F5F5; }
   height: 72rpx;
   line-height: 1.4;
   border-radius: 36rpx;
-  background: linear-gradient(135deg, #D4FF00, #4CE600);
+  background: linear-gradient(135deg, #5BB8FF, #4DA7F8);
   color: #1A1A1A;
   font-size: 26rpx;
   font-weight: 700;

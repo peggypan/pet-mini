@@ -1,24 +1,24 @@
 page {
-  --primary: #4CE600;
-  --primary-bright: #C5FF4A;
-  --primary-mint: #61E0B1;
-  --primary-light: #D4FF00;
-  --primary-dark: #2DB300;
-  --primary-bg: rgba(76, 230, 0, 0.12);
-  --primary-bg-soft: rgba(197, 255, 74, 0.18);
+  --primary: #4DA7F8;
+  --primary-bright: #7EC8FF;
+  --primary-mint: #A8D8FF;
+  --primary-light: #B8DCFF;
+  --primary-dark: #1E88E5;
+  --primary-bg: rgba(77, 167, 248, 0.12);
+  --primary-bg-soft: rgba(126, 200, 255, 0.28);
   --secondary: #FFB87A;
-  --cream: #F5F5F5;
+  --cream: #F5F8FC;
   --text-primary: #1A1A1A;
   --text-secondary: #666666;
   --text-muted: #999999;
-  --bg-primary: #F5F5F5;
+  --bg-primary: #F5F8FC;
   --bg-white: #FFFFFF;
   --bg-card: #FFFFFF;
-  --bg-gradient: linear-gradient(180deg, #E8F8EF 0%, #F5F5F5 360rpx);
-  --border-color: #F0F0F0;
-  --shadow-soft: 0 4rpx 24rpx rgba(0, 0, 0, 0.04);
-  --shadow-card: 0 8rpx 32rpx rgba(0, 0, 0, 0.06);
-  --shadow-green: 0 8rpx 28rpx rgba(76, 230, 0, 0.28);
+  --bg-gradient: linear-gradient(180deg, #E8F4FF 0%, #F5F8FC 360rpx);
+  --border-color: #E3EEF8;
+  --shadow-soft: 0 4rpx 24rpx rgba(30, 136, 229, 0.06);
+  --shadow-card: 0 8rpx 32rpx rgba(30, 136, 229, 0.08);
+  --shadow-primary: 0 8rpx 28rpx rgba(77, 167, 248, 0.32);
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-primary);
@@ -35,7 +35,7 @@ page::-webkit-scrollbar {
   margin-bottom: 16rpx;
   background: rgba(255, 255, 255, 0.92);
   border-radius: 999rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4rpx 16rpx rgba(30, 136, 229, 0.06);
 }
 
 .city-bar-icon {
@@ -52,7 +52,7 @@ page::-webkit-scrollbar {
 
 .city-bar-arrow {
   font-size: 22rpx;
-  color: #2DB300;
+  color: var(--primary-dark);
   font-weight: 600;
 }
 
@@ -72,7 +72,7 @@ page::-webkit-scrollbar {
 
 .btn-primary {
   background: linear-gradient(135deg, var(--primary-bright) 0%, var(--primary) 100%);
-  color: #1A1A1A;
+  color: #FFFFFF;
   border-radius: 56rpx;
   padding: 28rpx 56rpx;
   font-size: 30rpx;
@@ -81,7 +81,7 @@ page::-webkit-scrollbar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-green);
+  box-shadow: var(--shadow-primary);
   line-height: 1;
   height: auto;
 }
@@ -130,13 +130,13 @@ button::after {
 
 .btn-small {
   background: linear-gradient(135deg, var(--primary-bright) 0%, var(--primary) 100%);
-  color: #1A1A1A;
+  color: #FFFFFF;
   border-radius: 36rpx;
   padding: 14rpx 28rpx;
   font-size: 24rpx;
   font-weight: 600;
   border: none;
-  box-shadow: var(--shadow-green);
+  box-shadow: var(--shadow-primary);
 }
 
 .btn-small::after {
@@ -211,13 +211,13 @@ button::after {
 
 .empty-action {
   background: linear-gradient(135deg, var(--primary-bright) 0%, var(--primary) 100%);
-  color: #1A1A1A;
+  color: #FFFFFF;
   border-radius: 56rpx;
   padding: 24rpx 48rpx;
   font-size: 28rpx;
   font-weight: 600;
   margin-top: 32rpx;
-  box-shadow: var(--shadow-green);
+  box-shadow: var(--shadow-primary);
 }
 
 .tag {
@@ -295,7 +295,12 @@ button::after {
   width: 48rpx;
   height: 8rpx;
   border-radius: 4rpx;
-  background: var(--primary-bright);
+  background: var(--primary);
+}
+
+/* 页面顶区渐变（与导航栏衔接） */
+.page-sky-bg {
+  background: var(--bg-gradient);
 }
 
 /* 表单控件基线 — 防止 input / picker 文字上下被裁切 */

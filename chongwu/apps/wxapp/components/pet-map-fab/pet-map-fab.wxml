@@ -1,0 +1,22 @@
+<view class="fab-root">
+  <view class="fab-menu fab-menu-{{expand}}" wx:if="{{expanded}}">
+    <view
+      class="fab-item {{value === item.id ? 'on' : ''}} fab-{{item.id}}"
+      wx:for="{{items}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      catchtap="onPick"
+    >
+      <text class="fab-item-emoji">{{item.emoji}}</text>
+      <text class="fab-item-name">{{item.name}}</text>
+    </view>
+    <view class="fab-item fab-all" data-id="" catchtap="onPick">
+      <text class="fab-item-emoji">◎</text>
+      <text class="fab-item-name">全部点位</text>
+    </view>
+  </view>
+  <view class="fab-trigger {{value ? 'active' : ''}}" catchtap="onToggle">
+    <text class="fab-trigger-emoji">{{triggerEmoji}}</text>
+    <text class="fab-trigger-text">{{triggerText}}</text>
+  </view>
+</view>

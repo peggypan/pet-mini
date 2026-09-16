@@ -57,6 +57,7 @@ const MOCK_HOME = {
       theme: 'green',
       layout: 'wide-half',
       path: '/pages/local/local?tab=map',
+      cornerImg: `${BASE}/guide_dog.png`,
     },
     rescue: {
       id: 'rescue',

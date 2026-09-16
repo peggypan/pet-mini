@@ -50,7 +50,21 @@ function listAllBuddies() {
 }
 
 function findEvent(id) {
-  return MOCK_EVENTS.find((e) => String(e.id) === String(id)) || null;
+  const sid = String(id);
+  const local = store.listMyEvents().find((e) => String(e.id) === sid);
+  if (local) {
+    const maxPeople = Number(local.maxPeople) || 0;
+    return {
+      ...local,
+      host: local.publisherName || '发起人',
+      fee: local.fee || local.feeText || '免费',
+      remain: maxPeople,
+      seats: maxPeople ? `${maxPeople}人` : '',
+      source: local.role === 'merchant' ? 'merchant' : 'user',
+      sourceText: local.role === 'merchant' ? '商家合作' : '用户发起',
+    };
+  }
+  return MOCK_EVENTS.find((e) => String(e.id) === sid) || null;
 }
 
 function findMerchant(id) {

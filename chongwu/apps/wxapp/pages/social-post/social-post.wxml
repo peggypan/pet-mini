@@ -36,10 +36,7 @@
     ></textarea>
 
     <text class="label">相册 / 视频</text>
-    <view class="tool-row">
-      <button class="tool-btn" bindtap="onChooseImage">📷 相册上传</button>
-      <button class="tool-btn" bindtap="onChooseVideo">🎬 上传视频</button>
-    </view>
+    <text class="label-tip">{{mediaLimitHint}}（{{mediaSummary}}）</text>
     <view class="media-grid" wx:if="{{mediaList.length}}">
       <view
         class="media-item"
@@ -52,6 +49,13 @@
         <text class="video-flag" wx:if="{{item.type === 'video'}}">▶ 视频</text>
         <view class="remove-media" data-index="{{index}}" catchtap="onRemoveMedia">×</view>
       </view>
+      <view class="media-add" wx:if="{{mediaCanAdd}}" bindtap="onChooseMedia">
+        <text class="add-icon">＋</text>
+      </view>
+    </view>
+    <view class="media-empty" wx:elif="{{mediaCanAdd}}" bindtap="onChooseMedia">
+      <text class="empty-icon">📷</text>
+      <text class="empty-text">添加图片或视频</text>
     </view>
 
     <text class="label">宠物表情包</text>

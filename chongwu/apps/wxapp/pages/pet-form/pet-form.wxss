@@ -4,9 +4,9 @@
   align-items: center;
   margin-bottom: 36rpx;
   padding: 24rpx;
-  background: linear-gradient(135deg, rgba(197, 255, 74, 0.12) 0%, #FFFFFF 100%);
+  background: linear-gradient(135deg, rgba(126, 200, 255, 0.12) 0%, #FFFFFF 100%);
   border-radius: 24rpx;
-  border: 2rpx dashed rgba(76, 230, 0, 0.35);
+  border: 2rpx dashed rgba(77, 167, 248, 0.35);
 }
 
 .avatar-preview {
@@ -43,7 +43,7 @@
 .avatar-change {
   margin-top: 12rpx;
   font-size: 22rpx;
-  color: #2DB300;
+  color: #1E88E5;
 }
 
 .section-title {

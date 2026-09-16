@@ -1,9 +1,35 @@
 <view class="page">
   <view class="city-bar" bindtap="onCityTap">
-    <text class="city-bar-icon">📍</text>
     <text class="city-bar-text">{{city}} · 全国同城</text>
     <text class="city-bar-arrow">切换 ›</text>
   </view>
+
+  <view class="pet-map-section">
+    <view class="pet-map-head">
+      <view class="pet-map-head-text">
+        <text class="pet-map-title">宠搭地图</text>
+        <text class="pet-map-sub">点击地图进入全景 · 点头像私聊</text>
+      </view>
+      <view class="pet-map-count">{{mapPeerCount}} 位在附近</view>
+    </view>
+    <view class="pet-map-wrap">
+      <map
+        class="pet-map"
+        longitude="{{mapLongitude}}"
+        latitude="{{mapLatitude}}"
+        scale="{{mapScale}}"
+        markers="{{mapMarkers}}"
+        show-location
+        enable-zoom="{{false}}"
+        enable-scroll="{{false}}"
+      >
+        <cover-view class="pet-map-tap-layer" catchtap="onOpenBuddyMap">
+          <cover-view class="pet-map-tap-hint">点击进入全景地图</cover-view>
+        </cover-view>
+      </map>
+    </view>
+  </view>
+
   <view class="zone-tabs">
     <view class="zone-tab {{zoneTab === 'normal' ? 'on' : ''}}" data-zone="normal" bindtap="onZoneTab">普通搭子</view>
     <view class="zone-tab {{zoneTab === 'match' ? 'on' : ''}}" data-zone="match" bindtap="onZoneTab">相亲&借配</view>

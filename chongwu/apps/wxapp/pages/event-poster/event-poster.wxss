@@ -1,5 +1,5 @@
 page {
-  background: #F5F5F5;
+  background: #F5F8FC;
 }
 
 .page {
@@ -42,8 +42,8 @@ page {
   height: 48rpx;
   margin-bottom: 20rpx;
   border-radius: 50%;
-  border: 4rpx solid rgba(76, 230, 0, 0.25);
-  border-top-color: #4CE600;
+  border: 4rpx solid rgba(77, 167, 248, 0.25);
+  border-top-color: #4DA7F8;
   animation: spin 0.8s linear infinite;
 }
 
@@ -53,7 +53,7 @@ page {
 
 .retry-btn {
   margin-top: 24rpx;
-  background: linear-gradient(135deg, #D4FF00, #4CE600);
+  background: linear-gradient(135deg, #5BB8FF, #4DA7F8);
   color: #1A1A1A;
   border-radius: 999rpx;
   font-size: 28rpx;
@@ -86,8 +86,8 @@ page {
   margin-top: 16rpx;
   padding: 8rpx 24rpx;
   border-radius: 999rpx;
-  background: rgba(76, 230, 0, 0.15);
-  color: #2DB300;
+  background: rgba(77, 167, 248, 0.15);
+  color: #1E88E5;
   font-size: 24rpx;
   font-weight: 700;
 }
@@ -125,9 +125,9 @@ page {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #D4FF00, #4CE600);
+  background: linear-gradient(135deg, #5BB8FF, #4DA7F8);
   color: #1A1A1A;
-  box-shadow: 0 6rpx 20rpx rgba(76, 230, 0, 0.3);
+  box-shadow: 0 6rpx 20rpx rgba(77, 167, 248, 0.3);
 }
 
 .btn-secondary {

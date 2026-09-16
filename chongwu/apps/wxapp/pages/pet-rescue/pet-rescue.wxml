@@ -11,7 +11,7 @@
     <view class="action-card lost" bindtap="onPublishLost">
       <text class="action-icon">🐕‍🦺</text>
       <text class="action-name">寻宠 / 招领</text>
-      <text class="action-tip">定位 · 图片 · 视频 · 分享</text>
+      <text class="action-tip">选点 · 图片 · 视频 · 分享</text>
     </view>
     <view class="action-card adopt" bindtap="onPublishAdopt">
       <text class="action-icon">🐱</text>

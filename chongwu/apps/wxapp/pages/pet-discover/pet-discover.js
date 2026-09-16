@@ -1,9 +1,9 @@
 const { listAllBuddies } = require('../../utils/catalog');
 const store = require('../../utils/store');
 
-const SWIPE_THRESHOLD = 80;
+const SWIPE_THRESHOLD = 72;
+const FLY_MS = 420;
 
-// 由 id 生成稳定的缘分值（60-99），演示用
 function matchScore(id) {
   let h = 0;
   const s = String(id);
@@ -33,6 +33,8 @@ Page({
     dx: 0,
     dy: 0,
     rot: 0,
+    cardScale: 1,
+    underScale: 0.92,
     dragging: false,
     likeOp: 0,
     skipOp: 0,
@@ -42,13 +44,14 @@ Page({
     likeLeft: 20,
     showLikes: false,
     likedList: [],
+    likeBurst: false,
+    actPulse: '',
   },
 
   onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 1 });
     }
-    // 会话内跳过的卡片不再出现，仅保留未处理的
     const skipped = this._skipped || [];
     const deck = buildDeck().filter((c) => !skipped.some((s) => String(s) === String(c.id)));
     this.setData({ deck });
@@ -74,13 +77,20 @@ Page({
   onCardMove(e) {
     if (!this.data.dragging || this.data.fly) return;
     const dx = e.touches[0].clientX - this._sx;
-    const dy = e.touches[0].clientY - this._sy;
+    let dy = e.touches[0].clientY - this._sy;
+    dy = Math.max(-48, Math.min(48, dy * 0.35));
+    const likeOp = Math.min(1, Math.max(0, dx / SWIPE_THRESHOLD));
+    const skipOp = Math.min(1, Math.max(0, -dx / SWIPE_THRESHOLD));
+    const cardScale = 1 + Math.min(0.035, Math.abs(dx) / 2800);
+    const underScale = 0.92 + (likeOp + skipOp) * 0.05;
     this.setData({
       dx,
-      dy: dy * 0.3,
-      rot: dx / 12,
-      likeOp: Math.min(1, Math.max(0, dx / SWIPE_THRESHOLD)),
-      skipOp: Math.min(1, Math.max(0, -dx / SWIPE_THRESHOLD)),
+      dy,
+      rot: dx / 10,
+      likeOp,
+      skipOp,
+      cardScale,
+      underScale,
     });
   },
 
@@ -88,38 +98,84 @@ Page({
     if (!this.data.dragging || this.data.fly) return;
     const { dx } = this.data;
     this.setData({ dragging: false });
-    if (dx > SWIPE_THRESHOLD) return this.flyOut('right');
-    if (dx < -SWIPE_THRESHOLD) return this.flyOut('left');
+    if (dx > SWIPE_THRESHOLD) {
+      this.handleLike({ fromSwipe: true });
+      return;
+    }
+    if (dx < -SWIPE_THRESHOLD) {
+      this.handleDislike();
+      return;
+    }
     this.resetCard();
   },
 
   resetCard() {
-    this.setData({ dx: 0, dy: 0, rot: 0, likeOp: 0, skipOp: 0 });
+    this.setData({
+      dx: 0,
+      dy: 0,
+      rot: 0,
+      likeOp: 0,
+      skipOp: 0,
+      cardScale: 1,
+      underScale: 0.92,
+    });
   },
 
-  onSkip() {
-    if (this.data.fly || !this.topCard()) return;
-    this.flyOut('left');
-  },
-
-  onLike() {
-    if (this.data.fly || !this.topCard()) return;
+  tryAddLike() {
     const card = this.topCard();
+    if (!card) return false;
     const res = store.addPetLike(card);
     if (!res.ok && res.quota) {
       wx.showToast({ title: '今日喜欢次数已用完', icon: 'none' });
-      return;
+      return false;
     }
     this.refreshQuota();
+    return true;
+  },
+
+  handleLike(opts = {}) {
+    if (this.data.fly || !this.topCard()) return;
+    if (!this.tryAddLike()) {
+      if (opts.fromSwipe) this.resetCard();
+      return;
+    }
+    const card = this.topCard();
+    if (wx.vibrateShort) wx.vibrateShort({ type: 'medium' });
     wx.showToast({ title: `已喜欢 ${card.petName} 🐾`, icon: 'none' });
+    this.setData({ likeBurst: true, actPulse: 'like' });
+    setTimeout(() => this.setData({ likeBurst: false, actPulse: '' }), 520);
     this.flyOut('right');
+  },
+
+  handleDislike() {
+    if (this.data.fly || !this.topCard()) return;
+    if (wx.vibrateShort) wx.vibrateShort({ type: 'light' });
+    this.setData({ actPulse: 'dislike' });
+    setTimeout(() => this.setData({ actPulse: '' }), 320);
+    this.flyOut('left');
+  },
+
+  onSkip() {
+    this.handleDislike();
+  },
+
+  onLike() {
+    this.handleLike({ fromSwipe: false });
   },
 
   flyOut(dir) {
     const card = this.topCard();
     if (!card) return;
     this._skipped = [...(this._skipped || []), card.id];
-    this.setData({ fly: dir });
+    const nudge = dir === 'right' ? SWIPE_THRESHOLD + 40 : -(SWIPE_THRESHOLD + 40);
+    this.setData({
+      fly: dir,
+      dx: nudge,
+      rot: dir === 'right' ? 12 : -12,
+      likeOp: dir === 'right' ? 1 : 0,
+      skipOp: dir === 'left' ? 1 : 0,
+      cardScale: 1.02,
+    });
     setTimeout(() => {
       this.setData({
         fly: '',
@@ -128,9 +184,11 @@ Page({
         rot: 0,
         likeOp: 0,
         skipOp: 0,
+        cardScale: 1,
+        underScale: 0.92,
         deck: this.data.deck.slice(1),
       });
-    }, 320);
+    }, FLY_MS);
   },
 
   onReload() {

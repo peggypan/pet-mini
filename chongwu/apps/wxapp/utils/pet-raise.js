@@ -303,7 +303,7 @@ function buildView(state) {
     isHatching: hasPhoto && state.growthProgress < 5,
     stats: [
       { key: 'hunger', label: '饱食', value: state.hunger, color: '#FF9F43' },
-      { key: 'growth', label: '生长', value: Math.round(state.growthProgress), color: '#4CE600' },
+      { key: 'growth', label: '生长', value: Math.round(state.growthProgress), color: '#4DA7F8' },
       { key: 'mood', label: '心情', value: state.mood, color: '#FF6B9D' },
       { key: 'clean', label: '清洁', value: state.clean, color: '#54A0FF' },
     ],

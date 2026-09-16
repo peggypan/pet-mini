@@ -1,3 +1,3 @@
 @import "../adopt-publish/adopt-publish.wxss";
 .name { display: block; font-size: 30rpx; font-weight: 700; margin-bottom: 6rpx; }
-.price { display: block; font-size: 26rpx; color: #4CE600; margin-bottom: 16rpx; }
+.price { display: block; font-size: 26rpx; color: #4DA7F8; margin-bottom: 16rpx; }

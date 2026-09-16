@@ -129,6 +129,30 @@ function searchTips(keyword, city) {
   })));
 }
 
+/** 周边 POI 搜索（宠物医院/门店等） */
+function searchPlaceAround(options = {}) {
+  const {
+    keywords = '',
+    city = '',
+    latitude,
+    longitude,
+    radius = 8000,
+    page = 1,
+    pageSize = 20,
+  } = options;
+  if (!latitude || !longitude) return Promise.resolve([]);
+  if (!isAmapConfigured()) return Promise.resolve([]);
+  return request('/v3/place/around', {
+    location: `${longitude},${latitude}`,
+    keywords: keywords || undefined,
+    city: city || undefined,
+    radius: Math.min(Number(radius) || 8000, 50000),
+    offset: Math.min(Number(pageSize) || 20, 25),
+    page: page || 1,
+    extensions: 'all',
+  }).then((data) => data.pois || []);
+}
+
 /** 打开地图导航（系统地图，可唤起高德 App） */
 function openNavigation(options) {
   const { lat, lng, name, address, scale } = options;
@@ -209,56 +233,53 @@ async function enrichPointsWithCoords(points, city) {
   return list;
 }
 
+const { getPetSentiment } = require('./map-pet-filter');
+
+const MARKER_ICONS = {
+  friendly: '/assets/map-markers/pin-friendly.png',
+  unfriendly: '/assets/map-markers/pin-unfriendly.png',
+  danger: '/assets/map-markers/pin-danger.png',
+};
+
+function formatMarkerCallout(point) {
+  const name = (point.name || '点位').trim();
+  const addr = (point.address || '暂无地址').trim();
+  const shortAddr = addr.length > 26 ? `${addr.slice(0, 26)}…` : addr;
+  return `${name}\n${shortAddr}`;
+}
+
 function buildMapMarkers(points, options = {}) {
-  const { onCallout } = options;
+  const { calloutMode = 'BYCLICK', activePointId, mapScale = 14 } = options;
+  const zoomedIn = Number(mapScale) >= 14;
   return points
     .filter((p) => p.latitude && p.longitude)
     .map((p, index) => {
-      const isDanger = p.danger || /毒|危险/.test(p.type || '');
-      const unfriendly = !isDanger && p.allowPet === false;
+      const sentiment = getPetSentiment(p);
+      const isActive = activePointId && String(p.id) === String(activePointId);
+      const display = isActive || zoomedIn ? 'ALWAYS' : calloutMode;
       const marker = {
         id: index,
         pointId: p.id,
         latitude: p.latitude,
         longitude: p.longitude,
         title: p.name,
-        width: 28,
-        height: 36,
-        callout: {
-          content: isDanger
-            ? `⚠ ${p.name}\n${p.dangerDesc || '危险区域，请远离'}`
-            : `${p.name}\n${p.allowPet === false ? '禁止携宠' : '允许携宠'}`,
-          display: onCallout || 'BYCLICK',
-          padding: 8,
-          borderRadius: 8,
-          fontSize: 12,
-        },
+        iconPath: MARKER_ICONS[sentiment] || MARKER_ICONS.friendly,
+        width: 44,
+        height: 54,
+        anchor: { x: 0.5, y: 1 },
       };
-      if (isDanger) {
-        marker.label = {
-          content: '☠ 危险',
-          color: '#FFFFFF',
-          bgColor: '#E5484D',
-          borderRadius: 8,
-          borderWidth: 1,
-          borderColor: '#FFFFFF',
-          padding: 5,
+      if (display === 'ALWAYS' || calloutMode === 'BYCLICK') {
+        marker.callout = {
+          content: formatMarkerCallout(p),
+          display,
+          padding: 8,
+          borderRadius: 10,
           fontSize: 11,
-          anchorX: -22,
-          anchorY: 0,
-        };
-      } else if (unfriendly) {
-        marker.label = {
-          content: '✕ 不友好',
-          color: '#666666',
-          bgColor: '#E8E8E8',
-          borderRadius: 8,
+          bgColor: '#FFFFFF',
+          color: '#333333',
           borderWidth: 1,
-          borderColor: '#FFFFFF',
-          padding: 5,
-          fontSize: 11,
-          anchorX: -26,
-          anchorY: 0,
+          borderColor: '#E5E5E5',
+          textAlign: 'left',
         };
       }
       return marker;
@@ -270,6 +291,7 @@ module.exports = {
   reverseGeocode,
   geocode,
   searchTips,
+  searchPlaceAround,
   openNavigation,
   choosePoint,
   enrichPointsWithCoords,

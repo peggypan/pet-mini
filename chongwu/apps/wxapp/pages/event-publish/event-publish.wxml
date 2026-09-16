@@ -4,16 +4,9 @@
     <view class="role {{role === 'merchant' ? 'on' : ''}}" data-role="merchant" bindtap="onSwitchRole">商家发布</view>
   </view>
 
-  <view class="qualify-banner {{qualify.canPublish ? 'ok' : ''}}" bindtap="onGoQualify">
-    <view class="banner-left">
-      <text class="banner-title">{{qualify.canPublish ? '✓ 发布资质已就绪' : '⚠ 需完成发布资质'}}</text>
-      <text class="banner-desc">{{stepHint}}</text>
-    </view>
-    <text class="banner-action">{{qualify.canPublish ? '查看' : '去完善 ›'}}</text>
-  </view>
-
-  <view class="card {{qualify.canPublish ? '' : 'disabled'}}">
+  <view class="card">
     <!-- 活动相册 -->
+    <text class="label-tip">{{mediaLimitHint}}（{{mediaSummary}}）</text>
     <view class="media-grid" wx:if="{{mediaList.length}}">
       <view
         class="media-item"
@@ -31,19 +24,15 @@
           <text class="video-icon">▶</text>
           <text class="video-dur" wx:if="{{item.duration}}">{{item.duration}}s</text>
         </view>
-        <view class="remove-media" wx:if="{{qualify.canPublish}}" data-index="{{index}}" catchtap="onRemoveMedia">×</view>
+        <view class="remove-media" data-index="{{index}}" catchtap="onRemoveMedia">×</view>
       </view>
-      <view class="media-add" wx:if="{{qualify.canPublish && mediaList.length < maxMediaCount}}" bindtap="onChooseImage">
+      <view class="media-add" wx:if="{{mediaCanAdd}}" bindtap="onChooseMedia">
         <text class="add-icon">＋</text>
       </view>
     </view>
-    <view class="media-empty" wx:if="{{qualify.canPublish && mediaList.length === 0}}" bindtap="onChooseImage">
+    <view class="media-empty" wx:elif="{{mediaCanAdd}}" bindtap="onChooseMedia">
       <text class="empty-icon">📷</text>
-      <text class="empty-text">上传活动现场图片/视频（最多 9 个）</text>
-    </view>
-    <view class="tool-row" wx:if="{{qualify.canPublish && mediaList.length}}">
-      <button class="tool-btn" bindtap="onChooseImage">📷 图片</button>
-      <button class="tool-btn" bindtap="onChooseVideo">🎬 视频</button>
+      <text class="empty-text">添加活动现场图片或视频</text>
     </view>
 
     <!-- 单次 / 多场次 -->
@@ -59,13 +48,15 @@
     </view>
 
     <!-- 行式表单 -->
-    <view class="form-row" bindtap="onPickCategory">
-      <text class="row-label">*活动分类</text>
-      <view class="row-tail">
-        <text class="row-value {{category ? '' : 'ph'}}">{{category || '请选择活动类型'}}</text>
-        <text class="row-arrow">›</text>
+    <picker mode="selector" range="{{categories}}" value="{{categoryIndex >= 0 ? categoryIndex : 0}}" bindchange="onCategoryChange">
+      <view class="form-row form-row-tap" hover-class="form-row-hover">
+        <text class="row-label">*活动分类</text>
+        <view class="row-tail">
+          <text class="row-value {{category ? '' : 'ph'}}">{{category || '请选择活动类型'}}</text>
+          <text class="row-arrow">›</text>
+        </view>
       </view>
-    </view>
+    </picker>
 
     <view class="form-row">
       <text class="row-label">*活动名称</text>
@@ -77,11 +68,10 @@
         placeholder="点击输入，20字内"
         placeholder-class="row-ph"
         maxlength="20"
-        disabled="{{!qualify.canPublish}}"
       />
     </view>
 
-    <view class="form-row">
+    <view class="form-row" wx:if="{{eventType === 'single'}}">
       <text class="row-label">*活动时间</text>
       <view class="row-value-group">
         <picker
@@ -89,22 +79,39 @@
           value="{{eventDate}}"
           start="{{today}}"
           bindchange="onDateChange"
-          disabled="{{!qualify.canPublish}}"
         >
-          <view class="row-value {{eventDate ? '' : 'ph'}}">{{eventDate || '选择日期'}}</view>
+          <view class="row-value picker-hit {{eventDate ? '' : 'ph'}}">{{eventDate || '选择日期'}}</view>
         </picker>
         <picker
           mode="time"
           value="{{eventTime}}"
           bindchange="onTimeChange"
-          disabled="{{!qualify.canPublish}}"
         >
-          <view class="row-value {{eventTime ? '' : 'ph'}}">{{eventTime || '选择时间'}}</view>
+          <view class="row-value picker-hit {{eventTime ? '' : 'ph'}}">{{eventTime || '选择时间'}}</view>
         </picker>
       </view>
     </view>
 
-    <view class="form-row" bindtap="onChoosePlace">
+    <view class="sessions-block" wx:if="{{eventType === 'multi'}}">
+      <view class="sessions-head">
+        <text class="sessions-title">*场次时间</text>
+        <text class="sessions-add" bindtap="onAddSession">+ 添加场次</text>
+      </view>
+      <view class="session-row" wx:for="{{eventSessions}}" wx:key="id">
+        <text class="session-index">第{{index + 1}}场</text>
+        <view class="row-value-group session-pickers">
+          <picker mode="date" value="{{item.date}}" start="{{today}}" data-index="{{index}}" bindchange="onSessionDateChange">
+            <view class="row-value picker-hit {{item.date ? '' : 'ph'}}">{{item.date || '日期'}}</view>
+          </picker>
+          <picker mode="time" value="{{item.time}}" data-index="{{index}}" bindchange="onSessionTimeChange">
+            <view class="row-value picker-hit {{item.time ? '' : 'ph'}}">{{item.time || '时间'}}</view>
+          </picker>
+        </view>
+        <text class="session-remove" wx:if="{{eventSessions.length > 1}}" data-index="{{index}}" catchtap="onRemoveSession">删除</text>
+      </view>
+    </view>
+
+    <view class="form-row form-row-tap" hover-class="form-row-hover" bindtap="onChoosePlace">
       <text class="row-label">*活动地点</text>
       <view class="row-tail">
         <text class="row-value {{place ? '' : 'ph'}}">{{place || '点击跳转地图选点'}}</text>
@@ -131,7 +138,6 @@
         data-field="maxPeople"
         placeholder="最多支持100人"
         placeholder-class="row-ph"
-        disabled="{{!qualify.canPublish}}"
       />
     </view>
 
@@ -146,7 +152,6 @@
           data-field="price"
           placeholder="0.00"
           placeholder-class="row-ph"
-          disabled="{{!qualify.canPublish}}"
         />
         <text class="price-unit">¥/人</text>
       </view>
@@ -161,17 +166,16 @@
         data-field="feeIncludes"
         placeholder="写清楚，让宠友觉得物超所值"
         placeholder-class="row-ph"
-        disabled="{{!qualify.canPublish}}"
       />
     </view>
 
     <view class="form-row">
       <text class="row-label">报名截止</text>
       <view class="row-value-group">
-        <picker mode="date" value="{{deadlineDate}}" start="{{today}}" bindchange="onDeadlineDate" disabled="{{!qualify.canPublish}}">
+        <picker mode="date" value="{{deadlineDate}}" start="{{today}}" bindchange="onDeadlineDate">
           <view class="row-value {{deadlineDate ? '' : 'ph'}}">{{deadlineDate || '选择日期'}}</view>
         </picker>
-        <picker mode="time" value="{{deadlineTime}}" bindchange="onDeadlineTime" disabled="{{!qualify.canPublish}}">
+        <picker mode="time" value="{{deadlineTime}}" bindchange="onDeadlineTime">
           <view class="row-value {{deadlineTime ? '' : 'ph'}}">{{deadlineTime || '选择时间'}}</view>
         </picker>
       </view>
@@ -211,20 +215,19 @@
         placeholder="介绍、注意事项、宠物疫苗要求等"
         placeholder-class="row-ph"
         maxlength="500"
-        disabled="{{!qualify.canPublish}}"
       ></textarea>
     </view>
 
     <view class="rule-box">
-      <text class="rule-title">发布规则</text>
-      <text class="rule-item">· 商家发布：需入驻平台并提交营业资质，缴纳 ¥500 保证金</text>
-      <text class="rule-item">· 个人发布：需上传身份信息经后台审核，缴纳 ¥200 保证金</text>
-      <text class="rule-item">· 活动提交后平台二次审核，通过后自动生成分享海报</text>
+      <text class="rule-title">发布说明</text>
+      <text class="rule-item">· 个人与商家均可直接发布，无需保证金</text>
+      <text class="rule-item">· 发布成功后立即上线，并自动生成分享海报</text>
+      <text class="rule-item">· 请如实填写时间地点，线下活动注意安全</text>
     </view>
 
     <view class="submit-bar">
       <button class="submit ghost" bindtap="onDraft">存草稿</button>
-      <button class="submit main" bindtap="onSubmit">{{qualify.canPublish ? '发布活动' : '请先完成资质认证'}}</button>
+      <button class="submit main" bindtap="onSubmit">发布活动</button>
     </view>
   </view>
 </view>

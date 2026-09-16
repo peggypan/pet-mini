@@ -1,6 +1,5 @@
 <view class="page">
   <view class="city-bar" bindtap="onCityTap">
-    <text class="city-bar-icon">📍</text>
     <text class="city-bar-text">{{city}} · 宠友圈</text>
     <text class="city-bar-arrow">切换 ›</text>
   </view>
@@ -18,8 +17,36 @@
         </view>
       </view>
       <text class="topic" wx:if="{{item.topic}}">{{item.topic}}</text>
-      <text class="content">{{item.content}}</text>
-      <image class="cover" wx:if="{{item.mediaList.length && item.mediaList[0].type === 'image'}}" src="{{item.mediaList[0].url}}" mode="aspectFill"></image>
+      <text class="content" wx:if="{{item.content}}">{{item.content}}</text>
+      <view
+        class="media-row {{item.mediaList.length === 1 ? 'single' : ''}}"
+        wx:if="{{item.mediaList && item.mediaList.length}}"
+        catchtap="onPreviewPostMedia"
+        data-id="{{item.id}}"
+      >
+        <block wx:for="{{item.mediaList}}" wx:key="index" wx:for-item="media">
+          <view
+            class="media-thumb-wrap"
+            wx:if="{{index < 6}}"
+            data-id="{{item.id}}"
+            data-index="{{index}}"
+            catchtap="onPreviewPostMedia"
+          >
+            <image
+              class="media-thumb"
+              wx:if="{{media.type === 'image' || media.poster}}"
+              src="{{media.type === 'image' ? media.url : media.poster}}"
+              mode="aspectFill"
+            ></image>
+            <view class="media-thumb media-thumb-video-placeholder" wx:elif="{{media.type === 'video'}}"></view>
+            <view class="media-video-mask" wx:if="{{media.type === 'video'}}">
+              <text class="media-video-tag">▶</text>
+              <text class="media-video-dur" wx:if="{{media.duration}}">{{media.duration}}s</text>
+            </view>
+          </view>
+        </block>
+        <view class="media-more" wx:if="{{item.mediaList.length > 6}}">+{{item.mediaList.length - 6}}</view>
+      </view>
       <view class="footer">
         <view class="btn" catchtap="onLikeTap" data-id="{{item.id}}">{{item.liked ? '❤️' : '♡'}} {{item.likes}}</view>
         <view class="btn">💬 {{item.comments}}</view>
@@ -47,7 +74,7 @@
           wx:for-item="imgUrl"
           wx:key="*this"
           src="{{imgUrl}}"
-          mode="aspectFill"
+          mode="{{item.previewImages.length === 1 ? 'widthFix' : 'aspectFill'}}"
         ></image>
       </view>
       <view class="featured-tags">

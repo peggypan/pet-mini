@@ -40,7 +40,6 @@
             <view class="vbar"></view>
             <view class="vbar"></view>
           </view>
-          <text class="voice-icon" wx:else>🎙</text>
           <text class="voice-dur">{{item.duration || 1}}"</text>
         </view>
       </view>
@@ -76,19 +75,25 @@
         data-address="{{item.location.address}}"
         bindtap="onOpenLocation"
       >
-        <text class="loc-name">📍 {{item.location.name || '位置分享'}}</text>
+        <text class="loc-name">{{item.location.name || '位置分享'}}</text>
         <text class="loc-addr">{{item.location.address}}</text>
         <text class="loc-tip">点击查看地图</text>
       </view>
 
       <view class="bubble event-bubble" wx:if="{{item.type === 'event'}}">
-        <text class="event-tag">📅 活动邀请</text>
+        <text class="event-tag">活动邀请</text>
         <text class="event-title">{{item.eventTitle || item.content}}</text>
         <text class="event-tip">点击查看同城活动</text>
       </view>
 
+      <view class="bubble aa-bubble" wx:if="{{item.type === 'aa'}}">
+        <text class="aa-tag">AA</text>
+        <text class="aa-amount">¥{{item.aaAmount || item.content}}</text>
+        <text class="aa-meta">{{item.aaPeople || 2}} 人参与 · 人均约 ¥{{item.aaPer || '—'}}</text>
+        <text class="aa-tip">点击确认参与（演示）</text>
+      </view>
+
       <view class="bubble call-bubble" wx:if="{{item.type === 'call'}}">
-        <text class="call-icon">📹</text>
         <view class="call-info">
           <text class="call-title">视频通话</text>
           <text class="call-meta" wx:if="{{item.duration}}">时长 {{item.duration}} 秒</text>

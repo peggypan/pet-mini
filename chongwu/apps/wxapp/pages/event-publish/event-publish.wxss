@@ -1,4 +1,4 @@
-page { background: #F5F5F5; }
+page { background: #F5F8FC; }
 
 .page { padding: 24rpx 28rpx calc(40rpx + env(safe-area-inset-bottom)); }
 
@@ -19,7 +19,7 @@ page { background: #F5F5F5; }
 }
 
 .role.on {
-  background: linear-gradient(135deg, #D4FF00, #4CE600);
+  background: linear-gradient(135deg, #5BB8FF, #4DA7F8);
   color: #1A1A1A;
   font-weight: 700;
 }
@@ -36,8 +36,8 @@ page { background: #F5F5F5; }
 }
 
 .qualify-banner.ok {
-  background: rgba(197, 255, 74, 0.2);
-  border-color: rgba(76, 230, 0, 0.35);
+  background: rgba(126, 200, 255, 0.2);
+  border-color: rgba(77, 167, 248, 0.35);
 }
 
 .banner-title {
@@ -59,7 +59,7 @@ page { background: #F5F5F5; }
   flex-shrink: 0;
   margin-left: 16rpx;
   font-size: 24rpx;
-  color: #2DB300;
+  color: #1E88E5;
   font-weight: 600;
 }
 
@@ -114,7 +114,7 @@ page { background: #F5F5F5; }
 
 input, textarea, .picker {
   width: 100%;
-  background: #F5F5F5;
+  background: #F5F8FC;
   border-radius: 14rpx;
   box-sizing: border-box;
 }
@@ -137,7 +137,7 @@ textarea {
   padding: 0 16rpx;
   border-radius: 999rpx;
   border: none;
-  background: rgba(197, 255, 74, 0.25);
+  background: rgba(126, 200, 255, 0.25);
   color: #1A1A1A;
   font-size: 26rpx;
   font-weight: 600;
@@ -146,7 +146,7 @@ textarea {
 .tool-btn::after { border: none; }
 
 .tool-btn:active {
-  background: rgba(197, 255, 74, 0.45);
+  background: rgba(126, 200, 255, 0.45);
 }
 
 .media-grid {
@@ -167,7 +167,7 @@ textarea {
 .media-thumb {
   width: 100%;
   height: 100%;
-  background: #E8F8EF;
+  background: #E8F4FF;
 }
 
 .video-badge {
@@ -215,9 +215,9 @@ textarea {
   justify-content: center;
   height: 200rpx;
   margin-bottom: 24rpx;
-  background: #F5F5F5;
+  background: #F5F8FC;
   border-radius: 20rpx;
-  border: 2rpx dashed rgba(76, 230, 0, 0.35);
+  border: 2rpx dashed rgba(77, 167, 248, 0.35);
 }
 
 .empty-icon {
@@ -233,13 +233,13 @@ textarea {
 
 .submit {
   margin-top: 8rpx;
-  background: linear-gradient(135deg, #D4FF00, #4CE600);
+  background: linear-gradient(135deg, #5BB8FF, #4DA7F8);
   color: #1A1A1A;
   border-radius: 44rpx;
   border: none;
   font-size: 28rpx;
   font-weight: 700;
-  box-shadow: 0 6rpx 20rpx rgba(76, 230, 0, 0.3);
+  box-shadow: 0 6rpx 20rpx rgba(77, 167, 248, 0.3);
 }
 
 .submit::after { border: none; }
@@ -336,7 +336,7 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #F5F5F5;
+  background: #F5F8FC;
   border-radius: 16rpx;
   border: 1rpx dashed #CCCCCC;
   box-sizing: border-box;
@@ -359,7 +359,7 @@ textarea {
 }
 
 .submit.ghost {
-  background: #F5F5F5;
+  background: #F5F8FC;
   color: #666666;
   box-shadow: none;
 }
@@ -384,20 +384,85 @@ textarea {
   font-size: 32rpx;
   font-weight: 800;
   color: #1A1A1A;
-  border-bottom: 6rpx solid #C5FF4A;
+  border-bottom: 6rpx solid #7EC8FF;
   padding-bottom: 6rpx;
 }
 
 .type-tab:not(.on) .type-name {
   font-size: 30rpx;
   font-weight: 600;
-  color: #B5B5B5;
+  color: #666666;
+}
+
+.type-tab:not(.on) .type-sub {
+  color: #999999;
 }
 
 .type-sub {
   margin-top: 8rpx;
   font-size: 20rpx;
-  color: #B5B5B5;
+  color: #999999;
+}
+
+.form-row-tap:active,
+.form-row-hover {
+  background: rgba(126, 200, 255, 0.12);
+}
+
+.picker-hit {
+  min-width: 120rpx;
+  text-align: right;
+}
+
+.sessions-block {
+  padding: 16rpx 0 8rpx;
+  border-bottom: 1rpx solid #F0F0F0;
+}
+
+.sessions-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12rpx;
+}
+
+.sessions-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1A1A1A;
+}
+
+.sessions-add {
+  font-size: 26rpx;
+  color: #1E88E5;
+  font-weight: 600;
+}
+
+.session-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 16rpx 0;
+  border-top: 1rpx solid #F5F5F5;
+}
+
+.session-index {
+  flex-shrink: 0;
+  width: 88rpx;
+  font-size: 24rpx;
+  color: #666;
+}
+
+.session-pickers {
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.session-remove {
+  flex-shrink: 0;
+  font-size: 24rpx;
+  color: #999;
+  padding: 8rpx;
 }
 
 /* 价格行 */

@@ -20,43 +20,33 @@
     data-name="{{post.geoLocation.name}}"
     data-address="{{post.geoLocation.address}}"
   >
-    <text class="loc-card-name">📍 {{post.geoLocation.name || '走失/发现地点'}}</text>
+    <text class="loc-card-name">{{post.geoLocation.name || '走失/发现地点'}}</text>
     <text class="loc-card-addr">{{post.geoLocation.address}}</text>
     <text class="loc-card-tip">点击查看地图导航</text>
   </view>
 
   <view class="content-card">
-    <text class="content">{{post.content}}</text>
-    <image
-      class="cover"
-      src="{{post.imageList[0]}}"
-      mode="widthFix"
-      wx:if="{{post.imageList && post.imageList.length === 1}}"
-      bindtap="onPreviewImage"
-      data-src="{{post.imageList[0]}}"
-    ></image>
-    <view class="img-grid" wx:if="{{post.imageList && post.imageList.length > 1}}">
-      <image
-        class="grid-img"
-        wx:for="{{post.imageList}}"
-        wx:key="*this"
-        src="{{item}}"
-        mode="aspectFill"
-        bindtap="onPreviewImage"
-        data-src="{{item}}"
-      ></image>
-    </view>
-    <view class="video-list" wx:if="{{post.videoList && post.videoList.length}}">
-      <video
-        class="video-item"
-        wx:for="{{post.videoList}}"
-        wx:key="url"
-        src="{{item.url}}"
-        poster="{{item.poster}}"
-        controls
-        show-center-play-btn
-        objectFit="cover"
-      ></video>
+    <text class="content" wx:if="{{post.content}}">{{post.content}}</text>
+    <view class="post-media" wx:if="{{post.mediaList && post.mediaList.length}}">
+      <block wx:for="{{post.mediaList}}" wx:key="index" wx:for-item="media">
+        <image
+          class="post-media-img {{post.mediaList.length === 1 ? 'single' : ''}}"
+          wx:if="{{media.type === 'image'}}"
+          src="{{media.url}}"
+          mode="{{post.mediaList.length === 1 ? 'widthFix' : 'aspectFill'}}"
+          bindtap="onPreviewImage"
+          data-src="{{media.url}}"
+        ></image>
+        <video
+          class="post-media-video {{post.mediaList.length === 1 ? 'single' : ''}}"
+          wx:if="{{media.type === 'video'}}"
+          src="{{media.url}}"
+          poster="{{media.poster}}"
+          controls
+          show-center-play-btn
+          object-fit="cover"
+        ></video>
+      </block>
     </view>
   </view>
 

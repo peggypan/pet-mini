@@ -38,8 +38,7 @@ function autoLocateCity(options = {}) {
               lng: res.longitude,
             }, { auto: true });
             if (!silent) {
-              const tag = regeo.source === 'amap' ? '高德定位' : '定位';
-              wx.showToast({ title: `${tag}：${result.city}`, icon: 'none' });
+              wx.showToast({ title: `已识别：${result.city}`, icon: 'none' });
             }
             resolve(result);
           })
@@ -49,7 +48,7 @@ function autoLocateCity(options = {}) {
         if (!silent && err.errMsg && err.errMsg.includes('auth deny')) {
           wx.showModal({
             title: '需要位置权限',
-            content: '开启定位后可自动识别您所在城市，获得同城推荐',
+            content: '开启位置权限后可识别您所在城市，获得同城推荐',
             confirmText: '去设置',
             success: (r) => { if (r.confirm) wx.openSetting(); },
           });

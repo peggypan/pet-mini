@@ -1,5 +1,5 @@
 const store = require('../../utils/store');
-const { chooseMedia } = require('../../utils/choose-media');
+const { pickMixedMedia, MEDIA_LIMIT_HINT, mediaSlots } = require('../../utils/media-upload');
 const { getDefaultPet } = require('../../utils/catalog');
 const { EMOJI_TABS, getEmojiList } = require('../../utils/pet-emoji');
 const { HOT_TOPICS } = require('../../utils/circle-community');
@@ -14,7 +14,9 @@ Page({
     zone: 'dog',
     content: '',
     mediaList: [],
-    maxMediaCount: 9,
+    mediaLimitHint: MEDIA_LIMIT_HINT,
+    mediaCanAdd: true,
+    mediaSummary: '0/6 图 · 0/3 视频',
     emojiTabs: EMOJI_TABS,
     emojiTab: 'cat',
     emojiList: getEmojiList('cat'),
@@ -58,62 +60,25 @@ Page({
     this.setData({ content: `${this.data.content || ''}${emoji}` });
   },
 
-  onChooseImage() {
-    const remain = this.data.maxMediaCount - this.data.mediaList.length;
-    if (remain <= 0) {
-      wx.showToast({ title: '最多上传 9 个媒体', icon: 'none' });
-      return;
-    }
-    chooseMedia({
-      count: Math.min(remain, 9),
-      mediaType: ['image'],
-      sourceType: ['album', 'camera'],
-      success: (res) => {
-        const append = (res.tempFiles || []).map((f) => ({
-          type: 'image',
-          url: f.tempFilePath,
-        }));
-        if (!append.length) return;
-        this.setData({
-          mediaList: [...this.data.mediaList, ...append].slice(0, this.data.maxMediaCount),
-        });
-      },
+  syncMediaUI(list) {
+    const slots = mediaSlots(list);
+    this.setData({
+      mediaList: list,
+      mediaCanAdd: slots.canAddAny,
+      mediaSummary: slots.summary,
     });
   },
 
-  onChooseVideo() {
-    const remain = this.data.maxMediaCount - this.data.mediaList.length;
-    if (remain <= 0) {
-      wx.showToast({ title: '最多上传 9 个媒体', icon: 'none' });
-      return;
-    }
-    chooseMedia({
-      count: 1,
-      mediaType: ['video'],
-      sourceType: ['album', 'camera'],
-      maxDuration: 60,
-      success: (res) => {
-        const file = (res.tempFiles || [])[0];
-        if (!file) return;
-        if (file.size > 50 * 1024 * 1024) {
-          wx.showToast({ title: '视频请小于 50MB', icon: 'none' });
-          return;
-        }
-        this.setData({
-          mediaList: [...this.data.mediaList, {
-            type: 'video',
-            url: file.tempFilePath,
-            poster: file.thumbTempFilePath || '',
-          }].slice(0, this.data.maxMediaCount),
-        });
-      },
-    });
+  onChooseMedia() {
+    pickMixedMedia(this.data.mediaList)
+      .then((list) => this.syncMediaUI(list))
+      .catch(() => {});
   },
 
   onRemoveMedia(e) {
     const index = Number(e.currentTarget.dataset.index);
     if (Number.isNaN(index)) return;
-    this.setData({ mediaList: this.data.mediaList.filter((_, i) => i !== index) });
+    this.syncMediaUI(this.data.mediaList.filter((_, i) => i !== index));
   },
 
   onPreviewMedia(e) {

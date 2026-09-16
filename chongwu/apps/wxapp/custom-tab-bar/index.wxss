@@ -61,7 +61,7 @@
 }
 
 .card-buddy {
-  background: linear-gradient(135deg, #D4FFAA 0%, #E8FFD0 45%, #F5FFE8 100%);
+  background: linear-gradient(135deg, #B8DCFF 0%, #D8ECFF 45%, #EEF6FF 100%);
 }
 
 .card-social {
@@ -69,7 +69,7 @@
 }
 
 .card-event {
-  background: linear-gradient(135deg, #C5FF4A 0%, #9EF01A 35%, #7AE582 100%);
+  background: linear-gradient(135deg, #7EC8FF 0%, #5BB8FF 35%, #4DA7F8 100%);
   min-height: 160rpx;
   display: flex;
   align-items: center;
@@ -181,7 +181,7 @@
   position: absolute;
   width: 32rpx;
   height: 36rpx;
-  background: #6BCB77;
+  background: #6BA3E8;
   border-radius: 12rpx 12rpx 4rpx 4rpx;
   left: -2rpx;
   top: 24rpx;
@@ -313,7 +313,7 @@
   position: absolute;
   width: 24rpx;
   height: 28rpx;
-  background: #6BCB77;
+  background: #6BA3E8;
   border-radius: 8rpx;
   left: -2rpx;
   top: 16rpx;
@@ -413,11 +413,11 @@
   width: 88rpx;
   height: 88rpx;
   border-radius: 50%;
-  background: linear-gradient(145deg, #E8FF5A 0%, #B8F018 50%, #8AE62E 100%);
+  background: linear-gradient(145deg, #7EC8FF 0%, #5BB8FF 50%, #4DA7F8 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8rpx 24rpx rgba(184, 240, 24, 0.5);
+  box-shadow: 0 8rpx 24rpx rgba(77, 167, 248, 0.5);
   transition: transform 0.28s ease, background 0.28s ease, box-shadow 0.28s ease;
 }
 
@@ -442,6 +442,6 @@
 }
 
 .tab-label.active-label {
-  color: #FF4D4F;
+  color: #1E88E5;
   font-weight: 600;
 }

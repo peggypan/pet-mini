@@ -1,4 +1,4 @@
-page { background: #F5F5F5; }
+page { background: #F5F8FC; }
 
 .page { padding: 24rpx; }
 
@@ -13,7 +13,7 @@ page { background: #F5F5F5; }
 }
 
 .banner.ok {
-  background: #E8F8EF;
+  background: #E8F4FF;
 }
 
 .banner-title {
@@ -32,7 +32,7 @@ page { background: #F5F5F5; }
 
 .banner-action {
   font-size: 24rpx;
-  color: #FF6B35;
+  color: #1E88E5;
   font-weight: 600;
 }
 
@@ -144,7 +144,7 @@ page { background: #F5F5F5; }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #F5F5F5;
+  background: #F5F8FC;
   border: 1rpx dashed #CCCCCC;
   border-radius: 16rpx;
   box-sizing: border-box;
@@ -164,13 +164,13 @@ page { background: #F5F5F5; }
 
 .submit {
   margin-top: 8rpx;
-  background: linear-gradient(135deg, #D4FF00, #4CE600);
+  background: linear-gradient(135deg, #5BB8FF, #4DA7F8);
   color: #1A1A1A;
   border-radius: 44rpx;
   font-size: 28rpx;
   font-weight: 700;
   border: none;
-  box-shadow: 0 6rpx 20rpx rgba(76, 230, 0, 0.3);
+  box-shadow: 0 6rpx 20rpx rgba(77, 167, 248, 0.3);
 }
 
 .submit::after { border: none; }

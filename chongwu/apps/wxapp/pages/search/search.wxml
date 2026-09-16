@@ -1,0 +1,119 @@
+<view class="page">
+  <view class="search-bar">
+    <text class="search-icon">🔍</text>
+    <input
+      class="search-input"
+      placeholder="搜搭子、活动、友好点位、商家"
+      value="{{keyword}}"
+      focus="{{focusInput}}"
+      bindinput="onInput"
+      bindconfirm="onSearch"
+      confirm-type="search"
+    />
+    <text class="search-clear" wx:if="{{keyword}}" bindtap="onClear">×</text>
+  </view>
+
+  <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="type-tabs" wx:if="{{keyword}}">
+    <view
+      class="type-tab {{activeTab === item.id ? 'on' : ''}}"
+      wx:for="{{tabs}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="onTab"
+    >{{item.name}} {{item.count}}</view>
+  </scroll-view>
+
+  <view wx:if="{{!keyword}}" class="hint-block">
+    <text class="hint-title">试试搜这些</text>
+    <view class="hint-chips">
+      <text class="hint-chip" wx:for="{{hotWords}}" wx:key="*this" data-word="{{item}}" bindtap="onHotWord">{{item}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{keyword && activeTab === 'all'}}" class="result-block">
+    <view class="block" wx:if="{{results.buddies.length}}">
+      <text class="block-title">搭子</text>
+      <view class="row" wx:for="{{results.buddies}}" wx:key="id" data-type="buddy" data-id="{{item.id}}" bindtap="onResultTap">
+        <image class="row-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+        <view class="row-body">
+          <text class="row-title">{{item.userName}} · {{item.petName}}</text>
+          <text class="row-sub">{{item.buddyType}} · {{item.distance}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="block" wx:if="{{results.events.length}}">
+      <text class="block-title">活动</text>
+      <view class="row" wx:for="{{results.events}}" wx:key="id" data-type="event" data-id="{{item.id}}" bindtap="onResultTap">
+        <image class="row-cover" src="{{item.cover}}" mode="aspectFill"></image>
+        <view class="row-body">
+          <text class="row-title">{{item.title}}</text>
+          <text class="row-sub">{{item.time}} · {{item.place}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="block" wx:if="{{results.points.length}}">
+      <text class="block-title">友好点位</text>
+      <view class="row" wx:for="{{results.points}}" wx:key="id" data-type="point" data-id="{{item.id}}" bindtap="onResultTap">
+        <view class="row-dot"></view>
+        <view class="row-body">
+          <text class="row-title">{{item.name}}</text>
+          <text class="row-sub">{{item.type}} · {{item.distance}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="block" wx:if="{{results.merchants.length}}">
+      <text class="block-title">商家</text>
+      <view class="row" wx:for="{{results.merchants}}" wx:key="id" data-type="merchant" data-id="{{item.id}}" bindtap="onResultTap">
+        <image class="row-cover" src="{{item.cover}}" mode="aspectFill"></image>
+        <view class="row-body">
+          <text class="row-title">{{item.name}}</text>
+          <text class="row-sub">{{item.category}} · {{item.price}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="empty" wx:if="{{!hasAnyResult}}">没有找到「{{keyword}}」相关内容</view>
+  </view>
+
+  <view wx:if="{{keyword && activeTab !== 'all'}}" class="result-block">
+    <block wx:if="{{activeTab === 'buddy'}}">
+      <view class="row" wx:for="{{results.buddies}}" wx:key="id" data-type="buddy" data-id="{{item.id}}" bindtap="onResultTap">
+        <image class="row-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+        <view class="row-body">
+          <text class="row-title">{{item.userName}} · {{item.petName}}</text>
+          <text class="row-sub">{{item.buddyType}}</text>
+        </view>
+      </view>
+      <view class="empty" wx:if="{{!results.buddies.length}}">暂无搭子结果</view>
+    </block>
+    <block wx:if="{{activeTab === 'event'}}">
+      <view class="row" wx:for="{{results.events}}" wx:key="id" data-type="event" data-id="{{item.id}}" bindtap="onResultTap">
+        <image class="row-cover" src="{{item.cover}}" mode="aspectFill"></image>
+        <view class="row-body">
+          <text class="row-title">{{item.title}}</text>
+          <text class="row-sub">{{item.place}}</text>
+        </view>
+      </view>
+      <view class="empty" wx:if="{{!results.events.length}}">暂无活动结果</view>
+    </block>
+    <block wx:if="{{activeTab === 'point'}}">
+      <view class="row" wx:for="{{results.points}}" wx:key="id" data-type="point" data-id="{{item.id}}" bindtap="onResultTap">
+        <view class="row-dot"></view>
+        <view class="row-body">
+          <text class="row-title">{{item.name}}</text>
+          <text class="row-sub">{{item.address}}</text>
+        </view>
+      </view>
+      <view class="empty" wx:if="{{!results.points.length}}">暂无点位结果</view>
+    </block>
+    <block wx:if="{{activeTab === 'merchant'}}">
+      <view class="row" wx:for="{{results.merchants}}" wx:key="id" data-type="merchant" data-id="{{item.id}}" bindtap="onResultTap">
+        <image class="row-cover" src="{{item.cover}}" mode="aspectFill"></image>
+        <view class="row-body">
+          <text class="row-title">{{item.name}}</text>
+          <text class="row-sub">{{item.category}}</text>
+        </view>
+      </view>
+      <view class="empty" wx:if="{{!results.merchants.length}}">暂无商家结果</view>
+    </block>
+  </view>
+</view>

@@ -1,6 +1,6 @@
 const api = require('../../utils/request');
 const store = require('../../utils/store');
-const { chooseMedia: chooseMediaSafe } = require('../../utils/choose-media');
+const { pickMixedMedia, MAX_IMAGES } = require('../../utils/media-upload');
 
 const CONDITION_MAP = ['全新', '九成新', '轻微使用', '明显使用'];
 const ICON_POOL = ['👕', '☕', '📦', '🦴', '🎾', '🧴', '🏠', '💊'];
@@ -68,6 +68,7 @@ Page({
     district: '',
     agreeRule: false,
     submitting: false,
+    maxImages: MAX_IMAGES,
   },
 
   onCategoryChange(e) {
@@ -95,79 +96,27 @@ Page({
     this.setData({ [field]: e.detail.value });
   },
 
-  onChooseImage() {
-    const remain = 9 - this.data.images.length;
-    if (remain <= 0) {
-      wx.showToast({ title: '最多上传9张图片', icon: 'none' });
-      return;
-    }
+  imagesAsMediaList() {
+    return (this.data.images || []).map((url) => ({ type: 'image', url }));
+  },
 
-    // 先检查权限状态
+  onChooseMedia() {
     wx.getSetting({
       success: (res) => {
-        const scope = 'scope.writePhotosAlbum';
-        if (res.authSetting[scope] === false) {
-          // 已拒绝授权，引导去设置
+        if (res.authSetting['scope.writePhotosAlbum'] === false) {
           this.showPermissionGuide();
           return;
         }
-        // 未授权或已授权，直接调用选择
-        this.doChooseImage(remain);
-      },
-    });
-  },
-
-  doChooseImage(remain) {
-    if (!wx.chooseMedia) {
-      this.fallbackChooseImage(remain);
-      return;
-    }
-    chooseMediaSafe({
-      count: remain,
-      mediaType: ['image'],
-      sourceType: ['album', 'camera'],
-      camera: 'back',
-      sizeType: ['compressed'],
-      success: (res) => {
-        const newImages = (res.tempFiles || []).map((file) => file.tempFilePath);
-        if (newImages.length === 0) {
-          wx.showToast({ title: '未选择图片', icon: 'none' });
-          return;
-        }
-        this.setData({ images: [...this.data.images, ...newImages] });
-      },
-      fail: (err) => {
-        const msg = (err && err.errMsg) || '';
-        if (msg.includes('cancel')) return;
-        if (msg.includes('permission')) {
-          this.showPermissionGuide();
-          return;
-        }
-        if (!msg.includes('privacy agreement')) {
-          this.fallbackChooseImage(remain);
-        }
-      },
-    }).catch(() => {});
-  },
-
-  // 降级使用旧版 API
-  fallbackChooseImage(remain) {
-    wx.chooseImage({
-      count: remain,
-      sourceType: ['album', 'camera'],
-      sizeType: ['compressed'],
-      success: (res) => {
-        console.log('选择图片成功(旧API):', res);
-        const tempFilePaths = res.tempFilePaths || [];
-        if (tempFilePaths.length === 0) {
-          wx.showToast({ title: '未选择图片', icon: 'none' });
-          return;
-        }
-        this.setData({ images: [...this.data.images, ...tempFilePaths] });
-      },
-      fail: (err) => {
-        console.error('选择图片失败(旧API):', err);
-        wx.showToast({ title: '请检查相册和相机权限', icon: 'none' });
+        pickMixedMedia(this.imagesAsMediaList(), { mediaType: ['image'], count: MAX_IMAGES })
+          .then((list) => {
+            this.setData({
+              images: list.filter((m) => m.type === 'image').map((m) => m.url),
+            });
+          })
+          .catch((err) => {
+            const msg = (err && err.message) || '';
+            if (msg.includes('permission')) this.showPermissionGuide();
+          });
       },
     });
   },

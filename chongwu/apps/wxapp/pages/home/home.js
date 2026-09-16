@@ -1,4 +1,5 @@
 const { MOCK_HOME, MOCK_BUDDY, MOCK_SOCIAL, MOCK_EVENTS, RISK_TIPS } = require('../../utils/mock');
+const { buildEventHomeCards } = require('../../utils/event-home-card');
 const { listAllBuddies } = require('../../utils/catalog');
 const store = require('../../utils/store');
 const { buildFeaturedCommunities } = require('../../utils/circle-community');
@@ -12,11 +13,9 @@ Page({
     banners: MOCK_HOME.banners,
     tiles: MOCK_HOME.featureTiles,
     buddies: [],
-    events: MOCK_EVENTS.slice(0, 3),
+    events: buildEventHomeCards(MOCK_EVENTS.slice(0, 3)),
     featuredCommunities: [],
     riskTip: RISK_TIPS.meet,
-    mapLatitude: 39.9042,
-    mapLongitude: 116.4074,
   },
 
   onShow() {
@@ -27,15 +26,13 @@ Page({
     this.setData({
       city: loc.city || '北京',
       cityAuto: !!loc.auto,
-      mapLatitude: loc.lat || 39.9042,
-      mapLongitude: loc.lng || 116.4074,
       buddies: listAllBuddies().slice(0, 3),
       featuredCommunities: buildFeaturedCommunities((id) => store.getCircleLastMessage(id)).slice(0, 2),
     });
   },
 
   onSearch() {
-    wx.showToast({ title: '搜索搭子/活动/点位', icon: 'none' });
+    wx.navigateTo({ url: '/pages/search/search' });
   },
 
   onCityTap() {

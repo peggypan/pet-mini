@@ -1,5 +1,5 @@
 page {
-  background: linear-gradient(180deg, #E8F8EF 0%, #F5F5F5 280rpx, #F5F5F5 100%);
+  background: linear-gradient(180deg, #E8F4FF 0%, #F5F8FC 280rpx, #F5F8FC 100%);
 }
 
 .page {
@@ -46,12 +46,12 @@ page {
   height: 80rpx;
   padding: 0 16rpx;
   border-radius: 999rpx;
-  background: linear-gradient(135deg, #D4FF00 0%, #4CE600 100%);
+  background: linear-gradient(135deg, #5BB8FF 0%, #4DA7F8 100%);
   color: #1A1A1A;
   font-size: 28rpx;
   font-weight: 700;
   border: none;
-  box-shadow: 0 6rpx 20rpx rgba(76, 230, 0, 0.3);
+  box-shadow: 0 6rpx 20rpx rgba(77, 167, 248, 0.3);
 }
 
 .act-btn.outline {
@@ -84,7 +84,7 @@ page {
 
 .source {
   font-size: 20rpx;
-  color: #2DB300;
+  color: #1E88E5;
   font-weight: 600;
 }
 

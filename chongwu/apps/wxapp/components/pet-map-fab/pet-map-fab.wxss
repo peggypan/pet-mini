@@ -1,0 +1,132 @@
+.fab-root {
+  position: relative;
+  z-index: 20;
+}
+
+.fab-menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 16rpx);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12rpx;
+  animation: fab-in 0.2s ease;
+  max-height: 68vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.fab-menu-down {
+  top: calc(100% + 16rpx);
+  bottom: auto;
+  max-height: none;
+  overflow: visible;
+  animation: fab-in-down 0.2s ease;
+}
+
+@keyframes fab-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-12rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fab-in {
+  from {
+    opacity: 0;
+    transform: translateY(12rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fab-item {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 16rpx 24rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 8rpx 28rpx rgba(0, 0, 0, 0.12);
+  border: 2rpx solid #eef2ef;
+  white-space: nowrap;
+}
+
+.fab-item.on {
+  font-weight: 700;
+}
+
+.fab-friendly.on {
+  border-color: #4DA7F8;
+  background: rgba(126, 200, 255, 0.25);
+}
+
+.fab-unfriendly.on {
+  border-color: #ff9f43;
+  background: rgba(255, 159, 67, 0.15);
+}
+
+.fab-danger.on {
+  border-color: #e5484d;
+  background: rgba(229, 72, 77, 0.12);
+}
+
+.fab-petHospital.on {
+  border-color: #4DA7F8;
+  background: rgba(77, 167, 248, 0.15);
+}
+
+.fab-petStore.on {
+  border-color: #7c5cff;
+  background: rgba(124, 92, 255, 0.12);
+}
+
+.fab-item-emoji {
+  font-size: 28rpx;
+}
+
+.fab-item-name {
+  font-size: 26rpx;
+  color: #1a1a1a;
+}
+
+.fab-trigger {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #5BB8FF 0%, #4DA7F8 100%);
+  box-shadow: 0 8rpx 24rpx rgba(77, 167, 248, 0.45);
+  border: 4rpx solid rgba(255, 255, 255, 0.85);
+}
+
+.fab-trigger.active {
+  background: linear-gradient(145deg, #2e7d5b 0%, #1f5c42 100%);
+  box-shadow: 0 8rpx 24rpx rgba(46, 125, 91, 0.4);
+}
+
+.fab-trigger-emoji {
+  font-size: 32rpx;
+  line-height: 1;
+}
+
+.fab-trigger-text {
+  margin-top: 4rpx;
+  font-size: 20rpx;
+  font-weight: 800;
+  color: #1a1a1a;
+}
+
+.fab-trigger.active .fab-trigger-text {
+  color: #ffffff;
+}

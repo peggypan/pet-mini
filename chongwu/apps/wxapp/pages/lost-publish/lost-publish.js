@@ -1,7 +1,7 @@
 const store = require('../../utils/store');
 const { MOCK_PET } = require('../../utils/mock');
 const amap = require('../../utils/amap');
-const { chooseMedia } = require('../../utils/choose-media');
+const { pickMixedMedia, MEDIA_LIMIT_HINT, mediaSlots } = require('../../utils/media-upload');
 
 const PLACEHOLDERS = {
   lost: '描述走失时间、体貌特征、是否戴项圈、酬谢方式等…',
@@ -22,7 +22,9 @@ Page({
     phone: '',
     content: '',
     mediaList: [],
-    maxMediaCount: 6,
+    mediaLimitHint: MEDIA_LIMIT_HINT,
+    mediaCanAdd: true,
+    mediaSummary: '0/6 图 · 0/3 视频',
     placeholder: PLACEHOLDERS.lost,
     lastPublishedId: '',
     shareTitle: '',
@@ -113,73 +115,28 @@ Page({
     });
   },
 
-  onChooseImage() {
-    const remain = this.data.maxMediaCount - this.data.mediaList.length;
-    if (remain <= 0) {
-      wx.showToast({ title: '最多上传 6 个媒体', icon: 'none' });
-      return;
-    }
-    chooseMedia({
-      count: Math.min(remain, 9),
-      mediaType: ['image'],
-      sourceType: ['album', 'camera'],
-      sizeType: ['compressed'],
-      success: (res) => {
-        const append = (res.tempFiles || []).map((f) => ({
-          type: 'image',
-          url: f.tempFilePath,
-        }));
-        if (!append.length) return;
-        this.setData({
-          mediaList: [...this.data.mediaList, ...append].slice(0, this.data.maxMediaCount),
-        });
-      },
-      fail: (err) => {
-        if (err.errMsg && err.errMsg.includes('permission')) {
-          this.showPermissionGuide();
-        }
-      },
+  syncMediaUI(list) {
+    const slots = mediaSlots(list);
+    this.setData({
+      mediaList: list,
+      mediaCanAdd: slots.canAddAny,
+      mediaSummary: slots.summary,
     });
   },
 
-  onChooseVideo() {
-    const { mediaList, maxMediaCount } = this.data;
-    if (mediaList.some((m) => m.type === 'video')) {
-      wx.showToast({ title: '每条启事最多 1 个视频', icon: 'none' });
-      return;
-    }
-    if (mediaList.length >= maxMediaCount) {
-      wx.showToast({ title: '媒体数量已达上限', icon: 'none' });
-      return;
-    }
-    chooseMedia({
-      count: 1,
-      mediaType: ['video'],
-      sourceType: ['album', 'camera'],
-      maxDuration: 60,
-      success: (res) => {
-        const file = (res.tempFiles || [])[0];
-        if (!file) return;
-        if (file.size > 50 * 1024 * 1024) {
-          wx.showToast({ title: '视频请小于 50MB', icon: 'none' });
-          return;
-        }
-        this.setData({
-          mediaList: [...mediaList, {
-            type: 'video',
-            url: file.tempFilePath,
-            poster: file.thumbTempFilePath || '',
-            duration: file.duration || 0,
-          }].slice(0, maxMediaCount),
-        });
-      },
-    });
+  onChooseMedia() {
+    pickMixedMedia(this.data.mediaList)
+      .then((list) => this.syncMediaUI(list))
+      .catch((err) => {
+        const msg = (err && err.errMsg) || '';
+        if (msg.includes('permission')) this.showPermissionGuide();
+      });
   },
 
   onRemoveMedia(e) {
     const index = Number(e.currentTarget.dataset.index);
     if (Number.isNaN(index)) return;
-    this.setData({ mediaList: this.data.mediaList.filter((_, i) => i !== index) });
+    this.syncMediaUI(this.data.mediaList.filter((_, i) => i !== index));
   },
 
   onPreviewMedia(e) {

@@ -1,6 +1,14 @@
 const { listAllBuddies } = require('../../utils/catalog');
 const { HEALING_BUDDY_TYPES } = require('../../utils/mock');
 const store = require('../../utils/store');
+const cloudApi = require('../../utils/cloud-api');
+const { refreshBuddyFeedFromCloud } = require('../../utils/buddy-cloud-sync');
+const { resolveBuddyPosts } = require('../../utils/cloud-media');
+const {
+  refreshPetDiscoverFromCloud,
+  swipeOnCloud,
+  addShareBonusOnCloud,
+} = require('../../utils/pet-discover-likes-cloud-sync');
 const amap = require('../../utils/amap');
 const { syncPetProfileGate } = require('../../utils/pet-profile-guard');
 
@@ -93,10 +101,26 @@ Page({
     healingTypeOptions: ['全部', ...HEALING_BUDDY_TYPES],
   },
 
-  onShow() {
+  async onShow() {
     syncPetProfileGate(this);
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 1 });
+    }
+    if (cloudApi.cloudEnabled()) {
+      try {
+        await refreshBuddyFeedFromCloud({ limit: 80 });
+        const cached = store.listBuddyPosts();
+        if (cached.some((p) => (p.cover || '').startsWith('cloud://'))) {
+          store.replaceAllBuddyPostsFromCloud(await resolveBuddyPosts(cached));
+        }
+      } catch (e) {
+        // keep cache
+      }
+      try {
+        await refreshPetDiscoverFromCloud();
+      } catch (e) {
+        // keep cache
+      }
     }
     this.reloadDeck();
     this.refreshQuota();
@@ -146,8 +170,8 @@ Page({
     this.setData({ showShareQuota: false });
   },
 
-  grantShareBonus() {
-    const res = store.addPetLikeShareBonus();
+  async grantShareBonus() {
+    const res = await addShareBonusOnCloud();
     this.refreshQuota();
     if (!res.ok) {
       wx.showToast({ title: '分享次数已满', icon: 'none' });
@@ -157,10 +181,10 @@ Page({
     wx.showToast({ title: `+${res.added} 次`, icon: 'none' });
   },
 
-  tryConsumeSwipe(asLike) {
+  async tryConsumeSwipe(asLike) {
     const card = this.topCard();
     if (!card) return false;
-    const res = store.consumePetSwipe({ pet: card, asLike });
+    const res = await swipeOnCloud(card, asLike);
     if (!res.ok && res.quota) {
       this.openShareQuotaModal();
       return false;
@@ -242,9 +266,9 @@ Page({
     });
   },
 
-  handleLike(opts = {}) {
+  async handleLike(opts = {}) {
     if (this.data.fly || !this.topCard()) return;
-    if (!this.tryConsumeSwipe(true)) {
+    if (!(await this.tryConsumeSwipe(true))) {
       if (opts.fromSwipe) this.resetCard();
       return;
     }
@@ -256,9 +280,9 @@ Page({
     this.flyOut('right');
   },
 
-  handleDislike(opts = {}) {
+  async handleDislike(opts = {}) {
     if (this.data.fly || !this.topCard()) return;
-    if (!this.tryConsumeSwipe(false)) {
+    if (!(await this.tryConsumeSwipe(false))) {
       if (opts.fromSwipe) this.resetCard();
       return;
     }

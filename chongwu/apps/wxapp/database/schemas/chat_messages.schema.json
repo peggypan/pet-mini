@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "chat_messages",
+  "description": "私信消息；sender 为 me/peer（相对会话所属用户）。",
+  "type": "object",
+  "required": ["threadId", "openid", "sender", "type", "createdAt"],
+  "properties": {
+    "_id": { "type": "string" },
+    "threadId": { "type": "string" },
+    "openid": { "type": "string" },
+    "_openid": { "type": "string" },
+    "userId": { "type": "string" },
+    "sender": { "type": "string", "enum": ["me", "peer"] },
+    "type": { "type": "string" },
+    "content": { "type": "string" },
+    "url": { "type": "string" },
+    "poster": { "type": "string" },
+    "location": { "type": "object" },
+    "callStatus": { "type": "string" },
+    "duration": { "type": "number" },
+    "eventId": { "type": "string" },
+    "eventTitle": { "type": "string" },
+    "aaAmount": { "type": "number" },
+    "aaPeople": { "type": "number" },
+    "aaPer": { "type": "number" },
+    "shareTitle": { "type": "string" },
+    "shareRef": { "type": "string" },
+    "status": { "type": "integer" },
+    "createdAt": {}
+  }
+}

@@ -1,4 +1,6 @@
 const store = require('./store');
+const cloudApi = require('./cloud-api');
+const { ensureChatThreadOnCloud } = require('./chat-cloud-sync');
 const { RISK_TIPS } = require('./mock');
 const { requirePetProfile } = require('./pet-profile-guard');
 
@@ -9,15 +11,25 @@ function startBuddyChat(buddy) {
     title: '线下见面提示',
     content: RISK_TIPS.meet,
     confirmText: '发起私聊',
-    success: (res) => {
+    success: async (res) => {
       if (!res.confirm) return;
-      store.ensureChatThread({
-        id: `c_${buddy.id}`,
-        peerId: buddy.id,
-        peerName: buddy.userName,
-        petName: buddy.petName,
-        avatar: buddy.avatar || buddy.cover,
-      });
+      if (cloudApi.cloudEnabled()) {
+        await ensureChatThreadOnCloud({
+          id: `c_${buddy.id}`,
+          peerId: buddy.id,
+          peerName: buddy.userName,
+          petName: buddy.petName,
+          avatar: buddy.avatar || buddy.cover,
+        });
+      } else {
+        store.ensureChatThread({
+          id: `c_${buddy.id}`,
+          peerId: buddy.id,
+          peerName: buddy.userName,
+          petName: buddy.petName,
+          avatar: buddy.avatar || buddy.cover,
+        });
+      }
       const shareTitle = encodeURIComponent(
         `${buddy.userName} · ${buddy.petName} · ${buddy.buddyType || '搭子'}`,
       );

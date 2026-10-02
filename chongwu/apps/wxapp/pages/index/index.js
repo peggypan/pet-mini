@@ -7,6 +7,7 @@ const {
   MOCK_MODULES,
 } = require('../../utils/mock');
 const store = require('../../utils/store');
+const cloudApi = require('../../utils/cloud-api');
 
 function getInviteCode() {
   let code = wx.getStorageSync('my_invite_code');
@@ -45,13 +46,21 @@ Page({
     }
   },
 
-  reloadSocialPreview() {
+  async reloadSocialPreview() {
+    if (cloudApi.cloudEnabled()) {
+      const { refreshSocialFeedFromCloud } = require('../../utils/social-cloud-sync');
+      await refreshSocialFeedFromCloud({ limit: 40 }).catch(() => {});
+    }
     const local = store.listSocialPosts();
-    const mock = MOCK_SOCIAL.posts.map((p) => {
-      const override = store.getSocialOverride(p.id);
-      return { ...p, ...(override || {}) };
-    });
-    this.setData({ previewPosts: [...local, ...mock].slice(0, 2) });
+    let merged = local;
+    if (!cloudApi.cloudEnabled()) {
+      const mock = MOCK_SOCIAL.posts.map((p) => {
+        const override = store.getSocialOverride(p.id);
+        return { ...p, ...(override || {}) };
+      });
+      merged = [...local, ...mock];
+    }
+    this.setData({ previewPosts: merged.slice(0, 2) });
   },
 
   goSocial() {

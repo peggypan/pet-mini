@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "clubs",
+  "description": "俱乐部档案，对齐 admin ManagedClubRow 与 my-clubs。",
+  "type": "object",
+  "required": ["openid", "name", "city", "intro", "cover", "onlineStatus", "createdAt", "updatedAt"],
+  "properties": {
+    "_id": { "type": "string" },
+    "_openid": { "type": "string" },
+    "openid": { "type": "string" },
+    "ownerId": { "type": "string" },
+    "ownerNickname": { "type": "string" },
+    "name": { "type": "string" },
+    "city": { "type": "string" },
+    "intro": { "type": "string" },
+    "cover": { "type": "string" },
+    "memberCount": { "type": "integer" },
+    "eventCount": { "type": "integer" },
+    "onlineStatus": { "type": "string", "enum": ["pending", "online", "offline"] },
+    "sourceApplyId": { "type": "string" },
+    "userDeleted": { "type": "boolean" },
+    "status": { "type": "integer", "default": 1 },
+    "createdAt": {},
+    "updatedAt": {}
+  }
+}

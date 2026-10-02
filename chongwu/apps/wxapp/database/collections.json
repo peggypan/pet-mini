@@ -1,0 +1,93 @@
+{
+  "envId": "cloud1-d8gnokqshc15dc3ae",
+  "total": 25,
+  "note": "微信云开发为「集合 collection」，无 SQL 表。名称必须与云函数/客户端约定一致。",
+  "phases": [
+    {
+      "id": 1,
+      "title": "账号与档案（先做）",
+      "collections": [
+        { "name": "users", "desc": "用户；auth.login 已写入", "skipIfExists": true },
+        { "name": "pets", "desc": "宠物档案" }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "搭子与社区 UGC",
+      "collections": [
+        { "name": "buddy_posts", "desc": "搭子帖 / 搭子广场" },
+        { "name": "pet_discover_likes", "desc": "搭搭右滑喜欢列表" },
+        { "name": "pet_discover_daily", "desc": "搭搭每日滑动额度" },
+        { "name": "social_posts", "desc": "社区动态" },
+        { "name": "social_comments", "desc": "评论" },
+        { "name": "local_posts", "desc": "同城寻宠/领养/救助" },
+        { "name": "chat_threads", "desc": "私信会话列表" },
+        { "name": "chat_messages", "desc": "私信消息" }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "活动",
+      "collections": [
+        { "name": "events", "desc": "活动主表" },
+        { "name": "event_signups", "desc": "报名与核销码" },
+        { "name": "event_qualify", "desc": "活动发布资质" }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "地图",
+      "collections": [{ "name": "map_points", "desc": "友好地图标点（含审核）" }]
+    },
+    {
+      "id": 5,
+      "title": "商家与主理人",
+      "collections": [
+        { "name": "merchants", "desc": "商家资料" },
+        { "name": "merchant_applies", "desc": "商家入驻申请" },
+        { "name": "host_applies", "desc": "主理人入驻申请" },
+        { "name": "clubs", "desc": "俱乐部" },
+        { "name": "club_members", "desc": "俱乐部成员" }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "运营与配置",
+      "collections": [
+        { "name": "pet_certs_public", "desc": "电子宠证公开快照" },
+        { "name": "banners", "desc": "首页轮播" },
+        { "name": "splash_ads", "desc": "开屏广告" },
+        { "name": "points_ledger", "desc": "积分流水" },
+        { "name": "sensitive_words", "desc": "敏感词" },
+        { "name": "admin_users", "desc": "运营后台管理员" }
+      ]
+    }
+  ],
+  "allNames": [
+    "users",
+    "pets",
+    "buddy_posts",
+    "pet_discover_likes",
+    "pet_discover_daily",
+    "social_posts",
+    "social_comments",
+    "local_posts",
+    "chat_threads",
+    "chat_messages",
+    "events",
+    "event_signups",
+    "event_qualify",
+    "map_points",
+    "merchants",
+    "merchant_applies",
+    "host_applies",
+    "clubs",
+    "club_members",
+    "pet_certs_public",
+    "banners",
+    "splash_ads",
+    "points_ledger",
+    "sensitive_words",
+    "admin_users"
+  ]
+}

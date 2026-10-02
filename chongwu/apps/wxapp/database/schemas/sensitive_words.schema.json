@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "sensitive_words",
+  "description": "运营维护的敏感词，云函数发布/评论校验与小程序 listActive 同步。",
+  "type": "object",
+  "required": ["word", "status", "createdAt"],
+  "properties": {
+    "_id": { "type": "string" },
+    "word": { "type": "string" },
+    "status": { "type": "integer", "description": "1 启用，0 停用" },
+    "note": { "type": "string" },
+    "createdAt": {},
+    "updatedAt": {}
+  }
+}

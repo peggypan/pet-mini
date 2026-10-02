@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "splash_ads",
+  "description": "开机全屏广告，对齐 admin SplashAdRow。",
+  "type": "object",
+  "required": ["name", "imageUrl", "linkType", "status", "sortOrder", "createdAt", "updatedAt"],
+  "properties": {
+    "_id": { "type": "string" },
+    "name": { "type": "string" },
+    "imageUrl": { "type": "string" },
+    "linkType": { "type": "string", "enum": ["none", "miniPage", "h5"] },
+    "linkTarget": { "type": "string" },
+    "durationSec": { "type": "integer" },
+    "skippable": { "type": "boolean" },
+    "skipAfterSec": { "type": "integer" },
+    "showRule": { "type": "string", "enum": ["everyLaunch", "oncePerDay", "oncePerUser"] },
+    "sortOrder": { "type": "integer" },
+    "status": { "type": "string", "enum": ["draft", "online", "offline"] },
+    "startAt": {},
+    "endAt": {},
+    "createdAt": {},
+    "updatedAt": {}
+  }
+}

@@ -27,13 +27,22 @@
 
 ## 云函数（示例）
 
-- `adminLogin` — 校验管理员身份  
-- `moderatePost` — 帖子上下架/精华  
-- `reviewMapPoint` — 标点有效 → 写积分流水  
-- `reviewMerchantApply` — 商家审核  
+- `admin.login` / `admin.me` — 管理员登录与鉴权（`adminToken`）  
+- `admin_users.listFeed` / `save` / `remove` — 管理员账号维护（super）  
+- `moderatePost` — 帖子上下架/精华（规划 `admin.moderatePost`）  
+- `reviewMapPoint` — 标点有效 → 写积分流水（规划 `admin.reviewMapPoint`）  
+- `reviewMerchantApply` — 商家审核（规划 `admin.reviewMerchantApply`）  
 
 ## 本仓库替换点
 
 - `src/mock/*.ts` → 删除或仅 dev 使用  
 - 新增 `src/services/cloud.ts` 封装调用  
 - 页面中 `useEffect` 拉数改为 service 层  
+
+## 小程序云开发（已搭骨架）
+
+- 配置：`chongwu/apps/wxapp/config/cloud-env.js`（见 `cloud-env.example.js`）  
+- 云函数：`chongwu/apps/wxapp/cloudfunctions/api`（统一 `module.action` 路由）  
+- 客户端：`chongwu/apps/wxapp/utils/cloud-api.js`  
+- 操作文档：`chongwu/docs/wechat-cloud-dev.md`  
+- 已实现：`system.ping`、`auth.*`、`pets.*`、`buddy_posts.listFeed|listMine|get|save|remove`；其余模块在 `router.js` 中按序追加  

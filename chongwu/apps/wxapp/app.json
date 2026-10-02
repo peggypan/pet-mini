@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/privacy-gate/privacy-gate",
+    "pages/splash-ad/splash-ad",
     "pages/home/home",
     "pages/search/search",
     "pages/pet-discover/pet-discover",

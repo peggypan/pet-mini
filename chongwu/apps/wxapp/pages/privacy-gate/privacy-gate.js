@@ -1,4 +1,4 @@
-const { openLaunchTab } = require('../../utils/app-entry');
+const { tryLaunchWithSplash } = require('../../utils/splash-ad-launch');
 
 Page({
   data: {
@@ -11,13 +11,13 @@ Page({
 
   checkAndEnter() {
     if (!wx.getPrivacySetting) {
-      openLaunchTab();
+      tryLaunchWithSplash();
       return;
     }
     wx.getPrivacySetting({
       success: (res) => {
         if (!res.needAuthorization) {
-          openLaunchTab();
+          tryLaunchWithSplash();
           return;
         }
         this.setData({ contractName: res.privacyContractName || '' });
@@ -40,7 +40,7 @@ Page({
       app.handlePrivacyAgree('agree-privacy-btn');
     }
     app.globalData.privacyAccepted = true;
-    openLaunchTab();
+    tryLaunchWithSplash();
   },
 
   onDisagree() {

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "pet_certs_public",
+  "description": "电子宠证公开快照（扫码查验，不含紧急联系人电话）。",
+  "type": "object",
+  "required": ["petId", "openid", "snapshot", "publishedAt", "createdAt", "updatedAt"],
+  "properties": {
+    "_id": { "type": "string" },
+    "_openid": { "type": "string" },
+    "openid": { "type": "string" },
+    "userId": { "type": "string" },
+    "petId": { "type": "string" },
+    "petName": { "type": "string" },
+    "snapshot": { "type": "object" },
+    "auditStatus": { "type": "string" },
+    "userDeleted": { "type": "boolean" },
+    "status": { "type": "integer", "default": 1 },
+    "publishedAt": {},
+    "createdAt": {},
+    "updatedAt": {}
+  }
+}

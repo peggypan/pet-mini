@@ -6,6 +6,13 @@ const { chooseMedia } = require('../../utils/choose-media');
 const { evaluateChatSendLimit, canSendOutgoing } = require('../../utils/chat-send-limit');
 const { syncPetProfileGate, requirePetProfile, blockSubPageWithoutProfile } = require('../../utils/pet-profile-guard');
 const { followResultToast } = require('../../utils/pet-follow');
+const cloudApi = require('../../utils/cloud-api');
+const {
+  ensureChatThreadOnCloud,
+  loadChatMessagesFromCloud,
+  markChatThreadReadOnCloud,
+  sendChatMessageOnCloud,
+} = require('../../utils/chat-cloud-sync');
 
 Page({
   data: {
@@ -39,11 +46,18 @@ Page({
     this.initThread(this.peerOptions);
   },
 
-  onShow() {
+  async onShow() {
     syncPetProfileGate(this);
     if (this.data.peer) this.syncPeerActions(this.data.peer);
     if (this.data.threadId) {
-      const messages = store.getChatMessages(this.data.threadId);
+      let messages = store.getChatMessages(this.data.threadId);
+      if (cloudApi.cloudEnabled()) {
+        try {
+          messages = await loadChatMessagesFromCloud(this.data.threadId);
+        } catch (e) {
+          // keep cache
+        }
+      }
       this.setData({ messages });
       this.syncLimitState(messages);
       this.scrollBottom();
@@ -128,7 +142,7 @@ Page({
     return false;
   },
 
-  initThread(options) {
+  async initThread(options) {
     const peerId = typeof options === 'object' ? options.peerId : options;
     const customPeer = typeof options === 'object' ? options : {};
     const threads = store.listChatThreads();
@@ -136,7 +150,7 @@ Page({
     if (!thread && peerId) {
       const friend = MOCK_BUDDY.find((f) => String(f.id) === String(peerId));
       if (friend) {
-        thread = store.ensureChatThread({
+        thread = await ensureChatThreadOnCloud({
           id: `c_${peerId}`,
           peerId: friend.id,
           peerName: friend.userName,
@@ -144,7 +158,7 @@ Page({
           avatar: friend.avatar,
         });
       } else if (customPeer.peerName) {
-        thread = store.ensureChatThread({
+        thread = await ensureChatThreadOnCloud({
           id: `c_${peerId}`,
           peerId,
           peerName: customPeer.peerName,
@@ -153,26 +167,34 @@ Page({
         });
       }
     }
-    if (!thread) {
+    if (!thread && !cloudApi.cloudEnabled()) {
       thread = threads[0] || MOCK_CHATS[0];
     }
+    if (!thread) return;
     const peer = {
       id: thread.peerId,
       userName: thread.peerName,
       petName: thread.petName,
       avatar: thread.avatar,
     };
-    store.markThreadRead(thread.id);
+    await markChatThreadReadOnCloud(thread.id);
     let messages = store.getChatMessages(thread.id);
+    if (cloudApi.cloudEnabled()) {
+      try {
+        messages = await loadChatMessagesFromCloud(thread.id);
+      } catch (e) {
+        // keep cache
+      }
+    }
     this.syncPeerActions(peer);
     this.setData({ threadId: thread.id, peer, messages });
     wx.setNavigationBarTitle({ title: `${peer.userName} · ${peer.petName}` });
-    messages = this.maybeApplyEntryShareComment(messages);
+    messages = await this.maybeApplyEntryShareComment(messages);
     this.syncLimitState(messages);
     this.scrollBottom(messages.length);
   },
 
-  maybeApplyEntryShareComment(messages) {
+  async maybeApplyEntryShareComment(messages) {
     const o = this.entryOptions || {};
     if (o.shareComment !== '1' || !this.data.threadId) return messages;
     if (messages.some((m) => m.from === 'me' && m.type === 'shareComment')) {
@@ -180,16 +202,24 @@ Page({
     }
     const title = o.shareTitle ? decodeURIComponent(o.shareTitle) : '分享';
     const text = o.shareText ? decodeURIComponent(o.shareText) : '';
-    const row = store.addChatMessage(this.data.threadId, {
+    const row = await sendChatMessageOnCloud(this.data.threadId, {
       from: 'me',
       type: 'shareComment',
       content: text,
       shareTitle: title,
       shareRef: o.shareRef || '',
     });
+    if (!row) return messages;
     const next = [...messages, row];
     this.setData({ messages: next });
     return next;
+  },
+
+  async sendMessage(message, autoReply) {
+    const row = await sendChatMessageOnCloud(this.data.threadId, message);
+    if (!row) return null;
+    this.appendMessage(row, autoReply);
+    return row;
   },
 
   scrollBottom(index) {
@@ -210,7 +240,7 @@ Page({
     }
   },
 
-  mockPeerReply(sent) {
+  async mockPeerReply(sent) {
     let reply;
     if (sent.type === 'voice') {
       reply = { from: 'peer', type: 'text', content: '收到语音啦～' };
@@ -227,7 +257,8 @@ Page({
     } else {
       reply = { from: 'peer', type: 'text', content: '收到啦～我们也可以约个时间让毛孩子见见面 🐾' };
     }
-    const row = store.addChatMessage(this.data.threadId, reply);
+    const row = await sendChatMessageOnCloud(this.data.threadId, reply);
+    if (!row) return;
     const messages = [...this.data.messages, row];
     this.setData({ messages });
     this.syncLimitState(messages);
@@ -247,7 +278,7 @@ Page({
     this.setData({ panelTools: showTools, panelEmoji: showEmoji });
   },
 
-  onComposerSend(e) {
+  async onComposerSend(e) {
     if (!requirePetProfile()) return;
     if (this.data.composerDisabled) {
       this.guardOutgoing('text');
@@ -256,22 +287,23 @@ Page({
     const text = (e.detail.value || '').trim();
     if (!text) return;
     if (!this.guardOutgoing('text')) return;
-    const row = store.addChatMessage(this.data.threadId, { from: 'me', type: 'text', content: text });
     this.setData({ inputText: '' });
-    this.appendMessage(row, true);
+    await this.sendMessage({ from: 'me', type: 'text', content: text }, true);
   },
 
-  onComposerVoice(e) {
+  async onComposerVoice(e) {
     if (!this.guardOutgoing('voice')) return;
     const { filePath, duration } = e.detail;
-    const row = store.addChatMessage(this.data.threadId, {
-      from: 'me',
-      type: 'voice',
-      url: filePath,
-      duration,
-      content: `[语音 ${duration}"]`,
-    });
-    this.appendMessage(row, true);
+    await this.sendMessage(
+      {
+        from: 'me',
+        type: 'voice',
+        url: filePath,
+        duration,
+        content: `[语音 ${duration}"]`,
+      },
+      true,
+    );
   },
 
   onComposerTool(e) {
@@ -314,15 +346,17 @@ Page({
     const { pickAaAmount } = require('../../utils/chat-tool-actions');
     pickAaAmount()
       .then(({ aaAmount, aaPeople, aaPer }) => {
-        const row = store.addChatMessage(this.data.threadId, {
-          from: 'me',
-          type: 'aa',
-          content: String(aaAmount),
-          aaAmount,
-          aaPeople,
-          aaPer,
-        });
-        this.appendMessage(row, true);
+        this.sendMessage(
+          {
+            from: 'me',
+            type: 'aa',
+            content: String(aaAmount),
+            aaAmount,
+            aaPeople,
+            aaPer,
+          },
+          true,
+        );
       })
       .catch(() => {});
   },
@@ -336,13 +370,15 @@ Page({
       success: (res) => {
         const file = (res.tempFiles || [])[0];
         if (!file) return;
-        const row = store.addChatMessage(this.data.threadId, {
-          from: 'me',
-          type: 'image',
-          url: file.tempFilePath,
-          content: '[图片]',
-        });
-        this.appendMessage(row, true);
+        this.sendMessage(
+          {
+            from: 'me',
+            type: 'image',
+            url: file.tempFilePath,
+            content: '[图片]',
+          },
+          true,
+        );
       },
     });
   },
@@ -361,14 +397,16 @@ Page({
           return;
         }
         if (!this.guardOutgoing('event')) return;
-        const row = store.addChatMessage(this.data.threadId, {
-          from: 'me',
-          type: 'event',
-          eventId: event.id,
-          eventTitle: event.title,
-          content: event.title,
-        });
-        this.appendMessage(row, true);
+        this.sendMessage(
+          {
+            from: 'me',
+            type: 'event',
+            eventId: event.id,
+            eventTitle: event.title,
+            content: event.title,
+          },
+          true,
+        );
       },
     });
   },
@@ -441,14 +479,16 @@ Page({
           wx.showToast({ title: '视频请小于 50MB', icon: 'none' });
           return;
         }
-        const row = store.addChatMessage(this.data.threadId, {
-          from: 'me',
-          type: 'video',
-          url: file.tempFilePath,
-          poster: file.thumbTempFilePath || '',
-          content: '[视频]',
-        });
-        this.appendMessage(row, true);
+        this.sendMessage(
+          {
+            from: 'me',
+            type: 'video',
+            url: file.tempFilePath,
+            poster: file.thumbTempFilePath || '',
+            content: '[视频]',
+          },
+          true,
+        );
       },
     });
   },
@@ -457,18 +497,20 @@ Page({
     if (!this.guardOutgoing('location')) return;
     amap.choosePoint()
       .then((loc) => {
-        const row = store.addChatMessage(this.data.threadId, {
-          from: 'me',
-          type: 'location',
-          content: loc.name || loc.address,
-          location: {
-            name: loc.name,
-            address: loc.address,
-            latitude: loc.latitude,
-            longitude: loc.longitude,
+        this.sendMessage(
+          {
+            from: 'me',
+            type: 'location',
+            content: loc.name || loc.address,
+            location: {
+              name: loc.name,
+              address: loc.address,
+              latitude: loc.latitude,
+              longitude: loc.longitude,
+            },
           },
-        });
-        this.appendMessage(row, true);
+          true,
+        );
       })
       .catch((err) => {
         if (err.errMsg && err.errMsg.includes('cancel')) return;

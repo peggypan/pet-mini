@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "banners",
+  "description": "首页轮播 Banner，对齐 admin BannerRow 与 home 页 swiper。",
+  "type": "object",
+  "required": ["title", "type", "cover", "link", "sortOrder", "status", "createdAt", "updatedAt"],
+  "properties": {
+    "_id": { "type": "string" },
+    "title": { "type": "string" },
+    "type": { "type": "string" },
+    "cover": { "type": "string" },
+    "link": { "type": "string" },
+    "subtitle": { "type": "string" },
+    "tag": { "type": "string" },
+    "sortOrder": { "type": "integer" },
+    "status": { "type": "integer", "enum": [0, 1] },
+    "city": { "type": "string" },
+    "startAt": {},
+    "endAt": {},
+    "createdAt": {},
+    "updatedAt": {}
+  }
+}

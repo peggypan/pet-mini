@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "club_members",
+  "description": "俱乐部成员关系，对齐 admin ClubMemberRow。",
+  "type": "object",
+  "required": ["openid", "clubId", "clubName", "role", "joinedAt", "createdAt", "updatedAt"],
+  "properties": {
+    "_id": { "type": "string" },
+    "_openid": { "type": "string" },
+    "openid": { "type": "string" },
+    "userId": { "type": "string" },
+    "userNickname": { "type": "string" },
+    "clubId": { "type": "string" },
+    "clubName": { "type": "string" },
+    "clubCity": { "type": "string" },
+    "clubCover": { "type": "string" },
+    "clubIntro": { "type": "string" },
+    "role": { "type": "string", "enum": ["owner", "member"] },
+    "userDeleted": { "type": "boolean" },
+    "status": { "type": "integer", "default": 1 },
+    "joinedAt": {},
+    "createdAt": {},
+    "updatedAt": {}
+  }
+}

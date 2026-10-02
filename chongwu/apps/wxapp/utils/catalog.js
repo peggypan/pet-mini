@@ -4,15 +4,18 @@ const {
   MOCK_EVENTS,
   MOCK_MAP_POINTS,
   MOCK_MERCHANTS,
+  MOCK_CLUBS,
   MOCK_PET,
 } = require('./mock');
 const store = require('./store');
+const cloudApi = require('./cloud-api');
 const { findHealingPetBuddy, listHealingProfileBuddies } = require('./pet-healing');
 
 function findSocialPost(id) {
   const sid = String(id);
   const local = store.getSocialPost(sid);
   if (local) return { ...local };
+  if (cloudApi.cloudEnabled()) return null;
   const mock = (MOCK_SOCIAL.posts || []).find((p) => String(p.id) === sid);
   if (!mock) return null;
   const override = store.getSocialOverride(sid);
@@ -49,7 +52,12 @@ function findBuddy(id) {
 }
 
 function listAllBuddies() {
-  return [...store.listBuddyPosts(), ...listHealingProfileBuddies(), ...MOCK_BUDDY].map(normalizeBuddyMedia);
+  const fromStore = store.listBuddyPosts();
+  const healing = listHealingProfileBuddies();
+  if (cloudApi.cloudEnabled()) {
+    return [...fromStore, ...healing].map(normalizeBuddyMedia);
+  }
+  return [...fromStore, ...healing, ...MOCK_BUDDY].map(normalizeBuddyMedia);
 }
 
 const DEFAULT_EVENT_COVER = '/assets/mock/real_hero.jpg';
@@ -100,8 +108,17 @@ function normalizeMockEvent(raw, index) {
   return applyFreeEventFee({ ...raw, publishedAt });
 }
 
-/** 平台 mock + 用户发布，按发布时间倒序 */
+/** 平台 mock + 用户发布，按发布时间倒序；开云仅用云缓存 */
 function listAllEvents() {
+  if (cloudApi.cloudEnabled()) {
+    return store
+      .listCloudEvents()
+      .filter((e) => e.auditStatus !== 'rejected' && e.status !== 'rejected' && e.status !== 'user_deleted')
+      .map((raw) => normalizeUserEvent(raw) || normalizeMockEvent(raw, 0))
+      .filter(Boolean)
+      .sort((a, b) => eventPublishTime(b) - eventPublishTime(a));
+  }
+
   const mock = MOCK_EVENTS.map(normalizeMockEvent);
   const user = store
     .listMyEvents()
@@ -127,11 +144,43 @@ function findEvent(id) {
   const sid = String(id);
   const fromList = listAllEvents().find((e) => String(e.id) === sid);
   if (fromList) return { ...fromList };
+  if (cloudApi.cloudEnabled()) {
+    const cached = store.getEventFromCache(sid);
+    if (cached) {
+      const normalized = normalizeUserEvent(cached) || normalizeMockEvent(cached, 0);
+      return normalized ? { ...normalized } : null;
+    }
+    return null;
+  }
   return null;
 }
 
+function listRecommendClubs() {
+  const cloud = store.listClubsFeed();
+  const cloudIds = new Set(cloud.map((c) => String(c.id)));
+  const mockOnly = MOCK_CLUBS.filter((c) => !cloudIds.has(String(c.id)));
+  return [...cloud, ...mockOnly];
+}
+
+function findClub(id) {
+  const sid = String(id);
+  return store.getClubFromCache(sid)
+    || MOCK_CLUBS.find((c) => String(c.id) === sid)
+    || null;
+}
+
+function listAllMerchants() {
+  const cloud = store.listMerchants();
+  const cloudIds = new Set(cloud.map((m) => String(m.id)));
+  const mockOnly = MOCK_MERCHANTS.filter((m) => !cloudIds.has(String(m.id)));
+  return [...cloud, ...mockOnly];
+}
+
 function findMerchant(id) {
-  return MOCK_MERCHANTS.find((m) => String(m.id) === String(id)) || null;
+  const sid = String(id);
+  const fromStore = store.getMerchantFromCache(sid);
+  if (fromStore) return fromStore;
+  return MOCK_MERCHANTS.find((m) => String(m.id) === sid) || null;
 }
 
 function listAllMapPoints() {
@@ -141,12 +190,16 @@ function listAllMapPoints() {
 function getDefaultPet() {
   const local = store.listPets()[0];
   if (local) {
+    const avatarUrl = local.avatarUrl || local.avatar || '';
+    const useMockAvatar = !avatarUrl || avatarUrl.includes('/assets/mock/');
     return {
       ...MOCK_PET,
       ...local,
+      name: local.name || MOCK_PET.name,
       breed: local.breedName || local.breed || MOCK_PET.breed,
-      avatar: local.avatarUrl || MOCK_PET.avatar,
-      cover: local.coverUrl || local.avatarUrl || MOCK_PET.cover,
+      avatar: useMockAvatar ? MOCK_PET.avatar : avatarUrl,
+      avatarUrl: useMockAvatar ? '' : avatarUrl,
+      cover: local.coverUrl || (useMockAvatar ? MOCK_PET.cover : avatarUrl),
       healingPet: !!local.healingPet,
       healingBuddyType: local.healingBuddyType || '',
       healingIntro: local.healingIntro || '',
@@ -168,6 +221,9 @@ module.exports = {
   listRecentEvents,
   findEvent,
   findMerchant,
+  findClub,
+  listRecommendClubs,
+  listAllMerchants,
   listAllMapPoints,
   getDefaultPet,
   getDefaultPets,

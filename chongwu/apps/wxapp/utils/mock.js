@@ -737,6 +737,9 @@ const MOCK_CHATS = [
   { id: 'c2', peerId: 'bd2', peerName: '布偶姐姐', petName: '糯米', avatar: REAL.cat, lastMessage: '可以先线上聊～', lastTime: '2小时前', unread: 0 },
 ];
 
+/** 本地演示开屏（云库无 online 广告时 fallback，默认不强制展示） */
+const MOCK_SPLASH_AD = null;
+
 const RISK_TIPS = {
   event: '线下活动请注意人身与宠物安全，结伴同行、选择公共场所；平台仅提供信息展示与报名撮合，不参与线下组织，不对活动中的人身、财产损害承担责任。',
   meet: '线下搭子见面建议在公共场所，查看对方电子宠证，注意人身安全。',
@@ -770,4 +773,5 @@ module.exports = {
   MOCK_CHATS,
   RISK_TIPS,
   MOCK_NEARBY: MOCK_BUDDY,
+  MOCK_SPLASH_AD,
 };

@@ -6,6 +6,9 @@ const { HOT_TOPICS } = require('../../utils/circle-community');
 const { POST_ZONES } = require('../../utils/community-zones');
 const { blockSubPageWithoutProfile, syncPetProfileGate, requirePetProfile } = require('../../utils/pet-profile-guard');
 const { parseContentParts } = require('../../utils/social-content-parts');
+const cloudApi = require('../../utils/cloud-api');
+const { saveSocialToCloud } = require('../../utils/social-cloud-sync');
+const sensitiveWords = require('../../utils/sensitive-words');
 
 Page({
   data: {
@@ -110,7 +113,7 @@ Page({
     wx.previewImage({ urls: images, current: item.url });
   },
 
-  onSubmit() {
+  async onSubmit() {
     if (!requirePetProfile()) return;
     const { zone, content, mediaList, selectedTopic } = this.data;
     const text = (content || '').trim();
@@ -118,15 +121,14 @@ Page({
       wx.showToast({ title: '请填写内容或上传媒体', icon: 'none' });
       return;
     }
-    const banned = /活体|出售猫|出售狗|卖猫|卖狗|开药|诊疗/;
-    if (banned.test(text)) {
+    if (sensitiveWords.textBlocked(text)) {
       wx.showToast({ title: '内容含违规词，请修改', icon: 'none' });
       return;
     }
 
     const imageUrls = mediaList.filter((m) => m.type === 'image').map((m) => m.url);
     const pet = getDefaultPet();
-    store.addSocialPost({
+    const payload = {
       userName: '我',
       petName: pet.name,
       avatar: pet.avatar,
@@ -136,9 +138,18 @@ Page({
       image: imageUrls[0] || '',
       images: imageUrls,
       mediaList,
-    });
+    };
 
-    wx.showToast({ title: '发布成功', icon: 'success' });
-    setTimeout(() => wx.navigateBack(), 700);
+    try {
+      if (cloudApi.cloudEnabled()) {
+        await saveSocialToCloud(payload);
+      } else {
+        store.addSocialPost(payload);
+      }
+      wx.showToast({ title: '发布成功', icon: 'success' });
+      setTimeout(() => wx.navigateBack(), 700);
+    } catch (e) {
+      wx.showToast({ title: (e && e.message) || '发布失败', icon: 'none' });
+    }
   },
 });

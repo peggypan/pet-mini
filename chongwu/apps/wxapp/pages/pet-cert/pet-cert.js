@@ -12,6 +12,7 @@ const {
   buildPetCertQrContent,
   parsePetCertScanPayload,
 } = require('../../utils/pet-cert-qrcode');
+const { publishPetCertToCloud } = require('../../utils/pet-cert-cloud-sync');
 
 Page({
   data: {
@@ -36,7 +37,10 @@ Page({
   async refreshCertQr(pet) {
     if (this.data.qrDrawing) return;
     const row = pet.id ? store.getPet(pet.id) || pet : store.listPets()[0] || pet;
-    if (row && row.id) store.registerPublicPetCert(row);
+    if (row && row.id) {
+      store.registerPublicPetCert(row);
+      await publishPetCertToCloud(row.id).catch(() => {});
+    }
     this.setData({ qrDrawing: true });
     try {
       await wx.nextTick();

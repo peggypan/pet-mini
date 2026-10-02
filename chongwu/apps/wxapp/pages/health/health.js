@@ -1,6 +1,8 @@
 const api = require('../../utils/request');
 const { MOCK_HEALTH } = require('../../utils/mock');
 const store = require('../../utils/store');
+const cloudApi = require('../../utils/cloud-api');
+const { refreshPetsFromCloud } = require('../../utils/pet-cloud-sync');
 
 Page({
   data: {
@@ -28,16 +30,23 @@ Page({
 
   async loadPets() {
     let pets = store.listPets();
-    try {
-      const res = await api.get('/health/pets');
-      if (res.data?.length) {
-        // 合并本地新建宠物
-        const apiIds = new Set(res.data.map((p) => String(p.id)));
-        const localOnly = pets.filter((p) => !apiIds.has(String(p.id)));
-        pets = [...localOnly, ...res.data];
+    if (cloudApi.cloudEnabled()) {
+      try {
+        pets = await refreshPetsFromCloud();
+      } catch (e) {
+        pets = store.listPets();
       }
-    } catch (e) {
-      // local
+    } else {
+      try {
+        const res = await api.get('/health/pets');
+        if (res.data?.length) {
+          const apiIds = new Set(res.data.map((p) => String(p.id)));
+          const localOnly = pets.filter((p) => !apiIds.has(String(p.id)));
+          pets = [...localOnly, ...res.data];
+        }
+      } catch (e) {
+        // local
+      }
     }
     if (!pets.length) pets = MOCK_HEALTH.pets.slice();
     this.setData({ pets });

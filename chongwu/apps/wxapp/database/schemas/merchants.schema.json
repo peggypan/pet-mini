@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "merchants",
+  "description": "商家门店资料，对齐 admin MerchantRow 与 service-book / 搜索。",
+  "type": "object",
+  "required": ["openid", "name", "city", "bizStatus", "createdAt", "updatedAt"],
+  "properties": {
+    "_id": { "type": "string" },
+    "_openid": { "type": "string" },
+    "openid": { "type": "string" },
+    "userId": { "type": "string" },
+    "userName": { "type": "string" },
+    "name": { "type": "string" },
+    "city": { "type": "string" },
+    "type": { "type": "string" },
+    "category": { "type": "string" },
+    "rating": { "type": "number" },
+    "price": { "type": "string" },
+    "cover": { "type": "string" },
+    "logoUrl": { "type": "string" },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "intro": { "type": "string" },
+    "address": { "type": "string" },
+    "contactName": { "type": "string" },
+    "contactPhone": { "type": "string" },
+    "bizStatus": { "type": "integer", "enum": [0, 1, 2] },
+    "rejectReason": { "type": "string" },
+    "userDeleted": { "type": "boolean" },
+    "status": { "type": "integer", "default": 1 },
+    "createdAt": {},
+    "updatedAt": {}
+  }
+}

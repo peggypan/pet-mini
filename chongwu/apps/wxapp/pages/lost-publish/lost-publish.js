@@ -3,6 +3,10 @@ const { MOCK_PET, RISK_TIPS } = require('../../utils/mock');
 const amap = require('../../utils/amap');
 const { pickMixedMedia, MEDIA_LIMIT_HINT, mediaSlots } = require('../../utils/media-upload');
 const { blockSubPageWithoutProfile, requirePetProfile } = require('../../utils/pet-profile-guard');
+const cloudApi = require('../../utils/cloud-api');
+const { saveSocialToCloud } = require('../../utils/social-cloud-sync');
+const { saveLocalToCloud } = require('../../utils/local-cloud-sync');
+const sensitiveWords = require('../../utils/sensitive-words');
 
 const PLACEHOLDERS = {
   lost: '描述走失时间、体貌特征、是否戴项圈、酬谢方式等…',
@@ -185,7 +189,7 @@ Page({
     wx.previewImage({ urls: images, current: item.url });
   },
 
-  onSubmit() {
+  async onSubmit() {
     if (!requirePetProfile()) return;
     const {
       postType, zone, location, geoLocation, phone, content, mediaList,
@@ -204,8 +208,8 @@ Page({
       return;
     }
 
-    const banned = /活体|出售猫|出售狗|卖猫|卖狗|买卖|配种|繁殖/;
-    if (banned.test(text) || banned.test(location || '')) {
+    const locationPlain = location || '';
+    if (sensitiveWords.textBlocked(text) || sensitiveWords.textBlocked(locationPlain)) {
       const banTip = postType === 'lost' || postType === 'found'
         ? '禁止借寻宠/招领进行活体交易'
         : '禁止借领养救助进行活体交易';
@@ -225,7 +229,7 @@ Page({
     ].filter(Boolean);
 
     const imageUrls = mediaList.filter((m) => m.type === 'image').map((m) => m.url);
-    const row = store.addSocialPost({
+    const payload = {
       userName: '我',
       petName: MOCK_PET.name,
       avatar: MOCK_PET.avatar,
@@ -238,7 +242,32 @@ Page({
       geoLocation,
       lostType: postType,
       essence: false,
-    });
+    };
+
+    let row;
+    try {
+      if (cloudApi.cloudEnabled() && postType === 'adopt') {
+        row = await saveLocalToCloud({
+          type: 'adopt',
+          title: `爱心领养 · ${locText || '同城'}`,
+          desc: text,
+          contact: phone || '',
+          location: locText,
+          geoLocation,
+          mediaList,
+          image: imageUrls[0] || '',
+          images: imageUrls,
+          userName: '我',
+        });
+      } else if (cloudApi.cloudEnabled()) {
+        row = await saveSocialToCloud(payload);
+      } else {
+        row = store.addSocialPost(payload);
+      }
+    } catch (e) {
+      wx.showToast({ title: (e && e.message) || '发布失败', icon: 'none' });
+      return;
+    }
 
     let shareTitle;
     if (postType === 'lost') {
@@ -256,7 +285,9 @@ Page({
     let successHint = '已同步到宠物社区，分享给好友可扩大寻找范围';
     let successModal = '分享给同城好友，一起帮忙寻找或认领';
     if (postType === 'adopt') {
-      successHint = '已同步到宠物社区，分享给好友可扩大领养信息传播';
+      successHint = cloudApi.cloudEnabled()
+        ? '已发布到同城救助列表，分享给好友可扩大领养信息传播'
+        : '已同步到宠物社区，分享给好友可扩大领养信息传播';
       successModal = '分享给同城好友，一起帮毛孩子寻找新家';
     } else if (postType === 'rescue') {
       successHint = '已同步到宠物社区，分享给好友可汇聚更多救助力量';
@@ -275,6 +306,13 @@ Page({
           wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] });
         }
         setTimeout(() => {
+          if (postType === 'adopt' && cloudApi.cloudEnabled()) {
+            wx.navigateTo({
+              url: `/pages/social-detail/social-detail?id=${row.id}&source=local`,
+              fail: () => wx.navigateBack(),
+            });
+            return;
+          }
           wx.navigateTo({
             url: `/pages/social-detail/social-detail?id=${row.id}`,
             fail: () => wx.navigateBack(),
@@ -287,6 +325,12 @@ Page({
   onShareAppMessage() {
     const { lastPublishedId, shareTitle, postType, content, location, geoLocation } = this.data;
     if (lastPublishedId) {
+      if (postType === 'adopt' && cloudApi.cloudEnabled()) {
+        return {
+          title: shareTitle || '爱心领养 · 宠头头',
+          path: `/pages/social-detail/social-detail?id=${lastPublishedId}&source=local`,
+        };
+      }
       return {
         title: shareTitle || '寻宠启事 · 宠头头',
         path: `/pages/social-detail/social-detail?id=${lastPublishedId}`,

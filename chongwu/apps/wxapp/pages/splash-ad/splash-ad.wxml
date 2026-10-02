@@ -1,0 +1,9 @@
+<view class="splash" wx:if="{{ad}}">
+  <image class="splash-img" src="{{ad.imageUrl}}" mode="aspectFill" bindtap="onTapAd"></image>
+  <view class="splash-top">
+    <view
+      class="skip-btn {{canSkip ? '' : 'disabled'}}"
+      bindtap="onSkip"
+    >{{skipLabel}}</view>
+  </view>
+</view>

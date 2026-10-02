@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "openapi": [
+      "phonenumber.getPhoneNumber",
+      "wxacode.getUnlimited"
+    ]
+  },
+  "timeout": 20,
+  "memorySize": 256
+}

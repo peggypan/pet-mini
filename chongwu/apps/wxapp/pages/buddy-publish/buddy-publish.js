@@ -1,6 +1,8 @@
 const { buddyTypesForZone } = require('../../utils/mock');
 const { getDefaultPet } = require('../../utils/catalog');
 const store = require('../../utils/store');
+const cloudApi = require('../../utils/cloud-api');
+const { saveBuddyToCloud } = require('../../utils/buddy-cloud-sync');
 const { pickMixedMedia, MEDIA_LIMIT_HINT, mediaSlots } = require('../../utils/media-upload');
 const amap = require('../../utils/amap');
 const { blockSubPageWithoutProfile, syncPetProfileGate, requirePetProfile } = require('../../utils/pet-profile-guard');
@@ -161,7 +163,7 @@ Page({
     wx.previewImage({ urls: images, current: item.url });
   },
 
-  onSubmit() {
+  async onSubmit() {
     if (!requirePetProfile()) return;
     const { buddyType, expectTime, expectPlace, expectPlaceAddress, location, desc, zone, openSignup, mediaList } = this.data;
     const text = (desc || '').trim();
@@ -172,9 +174,9 @@ Page({
     const pet = getDefaultPet();
     const firstImage = mediaList.find((m) => m.type === 'image');
     const firstVideo = mediaList.find((m) => m.type === 'video');
-    store.addBuddyPost({
+    const payload = {
       userName: '我',
-      avatar: pet.avatar,
+      avatar: pet.avatarUrl || pet.avatar,
       petName: pet.name,
       breed: pet.breed,
       age: pet.age,
@@ -193,8 +195,19 @@ Page({
       mediaList,
       images: mediaList.filter((m) => m.type === 'image').map((m) => m.url),
       cover: firstImage?.url || firstVideo?.poster || '',
-    });
-    wx.showToast({ title: '发布成功', icon: 'success' });
-    setTimeout(() => wx.navigateBack(), 700);
+      city: store.getCity(),
+    };
+
+    try {
+      if (cloudApi.cloudEnabled()) {
+        await saveBuddyToCloud(payload);
+      } else {
+        store.addBuddyPost(payload);
+      }
+      wx.showToast({ title: '发布成功', icon: 'success' });
+      setTimeout(() => wx.navigateBack(), 700);
+    } catch (err) {
+      wx.showToast({ title: (err && err.message) || '发布失败', icon: 'none' });
+    }
   },
 });

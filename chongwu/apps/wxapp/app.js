@@ -1,11 +1,24 @@
 const { autoLocateCity } = require('./utils/city-location');
 const store = require('./utils/store');
+const cloudEnv = require('./config/cloud-env');
+const cloudApi = require('./utils/cloud-api');
+const { refreshPetsFromCloud } = require('./utils/pet-cloud-sync');
+const { refreshSensitiveWordsFromCloud } = require('./utils/sensitive-words-cloud-sync');
+
+function persistSession(app, data) {
+  if (!data || !data.token) return;
+  app.globalData.token = data.token;
+  app.globalData.userInfo = data.user;
+  wx.setStorageSync('token', data.token);
+  wx.setStorageSync('userInfo', data.user);
+}
 
 App({
   globalData: {
     apiBaseUrl: 'http://localhost:3000/api/v1',
     token: null,
     userInfo: null,
+    useCloud: false,
     resolvePrivacyAuthorization: null,
     privacyAccepted: false,
   },
@@ -25,6 +38,7 @@ App({
   },
 
   onLaunch() {
+    this.initCloud();
     // 不在此注册 wx.onNeedPrivacyAuthorization：只存 resolve 不弹窗会卡住 getPhoneNumber，无法出现微信手机号授权窗
     if (wx.getPrivacySetting) {
       wx.getPrivacySetting({
@@ -42,6 +56,29 @@ App({
       this.globalData.userInfo = userInfo;
     }
     this.tryAutoLocateCity();
+    this.syncCloudPets();
+    this.syncSensitiveWords();
+  },
+
+  initCloud() {
+    if (!cloudApi.cloudEnabled()) return;
+    wx.cloud.init({
+      env: cloudEnv.envId,
+      traceUser: true,
+    });
+    this.globalData.useCloud = true;
+  },
+
+  syncCloudPets() {
+    if (!cloudApi.cloudEnabled()) return;
+    const { hasLoginToken } = require('./utils/cloud-session');
+    if (!hasLoginToken()) return;
+    refreshPetsFromCloud().catch(() => {});
+  },
+
+  syncSensitiveWords() {
+    if (!cloudApi.cloudEnabled()) return;
+    refreshSensitiveWordsFromCloud().catch(() => {});
   },
 
   tryAutoLocateCity() {
@@ -51,6 +88,12 @@ App({
   },
 
   login() {
+    if (cloudApi.cloudEnabled()) {
+      return cloudApi.login({ force: true }).then((data) => {
+        persistSession(this, data);
+        return data;
+      });
+    }
     return new Promise((resolve, reject) => {
       wx.login({
         success: (res) => {
@@ -61,10 +104,7 @@ App({
               data: { code: res.code },
               success: (r) => {
                 if (r.data && r.data.token) {
-                  this.globalData.token = r.data.token;
-                  this.globalData.userInfo = r.data.user;
-                  wx.setStorageSync('token', r.data.token);
-                  wx.setStorageSync('userInfo', r.data.user);
+                  persistSession(this, r.data);
                   resolve(r.data);
                 } else {
                   reject(new Error('登录失败'));
@@ -83,6 +123,9 @@ App({
 
   /** 微信 code 登录（演示，不依赖手机号能力） */
   loginByWechat() {
+    if (cloudApi.cloudEnabled()) {
+      return this.login();
+    }
     return new Promise((resolve, reject) => {
       wx.login({
         success: (res) => {
@@ -117,6 +160,17 @@ App({
 
   /** 手机号授权登录（button open-type=getPhoneNumber） */
   loginByPhone(phoneDetail = {}) {
+    if (cloudApi.cloudEnabled()) {
+      const phoneCode = phoneDetail.code || '';
+      const chain = cloudApi.login({ force: true });
+      const withPhone = phoneCode
+        ? chain.then(() => cloudApi.callApi('auth', 'bindPhone', { phoneCode }))
+        : chain;
+      return withPhone.then((data) => {
+        persistSession(this, data);
+        return data;
+      });
+    }
     return new Promise((resolve, reject) => {
       wx.login({
         success: (loginRes) => {
@@ -147,10 +201,7 @@ App({
             success: (r) => {
               if (r.statusCode === 200 && r.data && r.data.token) {
                 settled = true;
-                this.globalData.token = r.data.token;
-                this.globalData.userInfo = r.data.user;
-                wx.setStorageSync('token', r.data.token);
-                wx.setStorageSync('userInfo', r.data.user);
+                persistSession(this, r.data);
                 resolve(r.data);
                 return;
               }
@@ -193,5 +244,10 @@ App({
     this.globalData.userInfo = null;
     wx.removeStorageSync('token');
     wx.removeStorageSync('userInfo');
+  },
+
+  isLoggedIn() {
+    const { hasLoginToken } = require('./utils/cloud-session');
+    return hasLoginToken();
   },
 });

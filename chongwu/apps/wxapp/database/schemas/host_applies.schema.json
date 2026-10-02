@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "host_applies",
+  "description": "成为主理人入驻申请，对齐 club-apply 与 admin HostApplyRow。",
+  "type": "object",
+  "required": ["openid", "clubName", "city", "intro", "cover", "auditStatus", "submittedAt", "createdAt", "updatedAt"],
+  "properties": {
+    "_id": { "type": "string" },
+    "_openid": { "type": "string" },
+    "openid": { "type": "string" },
+    "userId": { "type": "string" },
+    "userName": { "type": "string" },
+    "clubName": { "type": "string" },
+    "city": { "type": "string" },
+    "intro": { "type": "string" },
+    "contact": { "type": "string" },
+    "cover": { "type": "string" },
+    "auditStatus": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+    "rejectReason": { "type": "string" },
+    "approvedAt": {},
+    "clubId": { "type": "string" },
+    "userDeleted": { "type": "boolean" },
+    "status": { "type": "integer", "default": 1 },
+    "submittedAt": {},
+    "createdAt": {},
+    "updatedAt": {}
+  }
+}

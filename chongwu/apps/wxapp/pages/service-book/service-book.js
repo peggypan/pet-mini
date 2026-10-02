@@ -1,11 +1,18 @@
 const { findMerchant } = require('../../utils/catalog');
 const store = require('../../utils/store');
+const cloudApi = require('../../utils/cloud-api');
+const { fetchMerchantFromCloud } = require('../../utils/merchant-cloud-sync');
 
 Page({
   data: { merchant: null, date: '', time: '', remark: '' },
 
-  onLoad(options) {
-    this.setData({ merchant: findMerchant(options.id) });
+  async onLoad(options) {
+    const id = options.id;
+    let merchant = findMerchant(id);
+    if (cloudApi.cloudEnabled() && id) {
+      merchant = (await fetchMerchantFromCloud(id)) || merchant;
+    }
+    this.setData({ merchant });
   },
 
   onInput(e) {

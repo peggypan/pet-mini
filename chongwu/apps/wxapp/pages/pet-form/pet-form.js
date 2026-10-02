@@ -1,5 +1,7 @@
 const api = require('../../utils/request');
 const store = require('../../utils/store');
+const cloudApi = require('../../utils/cloud-api');
+const { savePetToCloud, loadPetFromCloud, refreshPetsFromCloud } = require('../../utils/pet-cloud-sync');
 const { getDefaultPets } = require('../../utils/catalog');
 const { chooseMedia } = require('../../utils/choose-media');
 const amap = require('../../utils/amap');
@@ -42,6 +44,9 @@ Page({
   },
 
   onLoad(options) {
+    if (cloudApi.cloudEnabled()) {
+      refreshPetsFromCloud().catch(() => {});
+    }
     if (options.petId) {
       this.setData({ mode: 'edit', petId: options.petId });
       this.loadPetDetail(options.petId);
@@ -49,6 +54,13 @@ Page({
   },
 
   async loadPetDetail(id) {
+    if (cloudApi.cloudEnabled()) {
+      const fromCloud = await loadPetFromCloud(id);
+      if (fromCloud) {
+        this.applyPet(fromCloud);
+        return;
+      }
+    }
     const local = store.getPet(id) || getDefaultPets().find((p) => String(p.id) === String(id));
     try {
       const res = await api.get(`/health/pets/${id}`);
@@ -314,17 +326,26 @@ Page({
       healingIntro: healingPet ? (healingIntro || '').trim() : '',
     };
 
-    let saved;
-    if (mode === 'add') {
-      saved = store.addPet(payload);
-    } else if (petId) {
-      saved = store.updatePet(petId, payload);
+    try {
+      if (cloudApi.cloudEnabled()) {
+        await savePetToCloud(payload, mode === 'edit' ? petId : null);
+      } else if (mode === 'add') {
+        store.addPet(payload);
+      } else if (petId) {
+        store.updatePet(petId, payload);
+      }
+      wx.showToast({
+        title: mode === 'add' ? '档案已保存' : '档案已更新',
+        icon: 'success',
+      });
+      setTimeout(() => wx.navigateBack(), 800);
+    } catch (err) {
+      wx.showToast({
+        title: (err && err.message) || '保存失败，请重试',
+        icon: 'none',
+      });
+    } finally {
+      this.setData({ submitting: false });
     }
-
-    wx.showToast({
-      title: mode === 'add' ? '档案已保存' : '档案已更新',
-      icon: 'success',
-    });
-    setTimeout(() => wx.navigateBack(), 800);
   },
 });

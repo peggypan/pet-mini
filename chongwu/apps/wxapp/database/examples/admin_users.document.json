@@ -1,0 +1,13 @@
+{
+  "username": "admin",
+  "passwordHash": "（由云函数 scrypt 生成，勿手写）",
+  "nickname": "超级管理员",
+  "name": "超级管理员",
+  "role": "super",
+  "status": 1,
+  "email": "",
+  "phone": "",
+  "avatarUrl": "",
+  "createdAt": "2026-01-01T00:00:00.000Z",
+  "updatedAt": "2026-01-01T00:00:00.000Z"
+}

@@ -1,4 +1,6 @@
 const store = require('../../utils/store');
+const cloudApi = require('../../utils/cloud-api');
+const { refreshQualifyFromCloud, submitQualifyToCloud } = require('../../utils/event-qualify-cloud-sync');
 const { STATUS_TEXT, maskIdCard, getStepHint } = require('../../utils/event-qualify');
 const { chooseMedia } = require('../../utils/choose-media');
 
@@ -54,11 +56,11 @@ Page({
     const role = options.role === 'merchant' ? 'merchant' : 'personal';
     this.setData({ role });
     this.loadForm(role);
-    this.refreshQualify();
+    this.refreshQualify(true);
   },
 
   onShow() {
-    this.refreshQualify();
+    this.refreshQualify(true);
   },
 
   loadForm(role) {
@@ -88,9 +90,14 @@ Page({
     });
   },
 
-  refreshQualify() {
+  async refreshQualify(fromCloud) {
     const { role } = this.data;
-    const qualify = store.getEventPublishQualify(role);
+    let qualify;
+    if (fromCloud && cloudApi.cloudEnabled()) {
+      qualify = await refreshQualifyFromCloud(role);
+    } else {
+      qualify = store.getEventPublishQualify(role);
+    }
     const maskedId = qualify.verify?.idCard ? maskIdCard(qualify.verify.idCard) : '';
     this.setData({
       qualify: { ...qualify, maskedId },
@@ -102,7 +109,7 @@ Page({
     const role = e.currentTarget.dataset.role;
     this.setData({ role });
     this.loadForm(role);
-    this.refreshQualify();
+    this.refreshQualify(true);
   },
 
   onInput(e) {
@@ -117,7 +124,7 @@ Page({
     if (url) this.setData({ [field]: url });
   },
 
-  onSubmitPersonal() {
+  async onSubmitPersonal() {
     const { realName, idCard, personalPhone, idFrontImage, idBackImage, qualify } = this.data;
     if (qualify.verifyStatus === 'pending') {
       wx.showToast({ title: '审核中，请耐心等待', icon: 'none' });
@@ -139,18 +146,26 @@ Page({
       wx.showToast({ title: '请上传身份证正反面', icon: 'none' });
       return;
     }
-    store.submitIdentityVerify({
-      realName,
-      idCard,
-      contactPhone: personalPhone,
-      idFrontImage,
-      idBackImage,
-    });
-    wx.showToast({ title: '已提交审核', icon: 'success' });
-    this.refreshQualify();
+    wx.showLoading({ title: '提交中', mask: true });
+    try {
+      await submitQualifyToCloud({
+        role: 'personal',
+        realName,
+        idCard,
+        contactPhone: personalPhone,
+        idFrontImage,
+        idBackImage,
+      });
+      wx.showToast({ title: '已提交审核', icon: 'success' });
+      this.refreshQualify(true);
+    } catch (e) {
+      wx.showToast({ title: e.message || '提交失败', icon: 'none' });
+    } finally {
+      wx.hideLoading();
+    }
   },
 
-  onSubmitMerchant() {
+  async onSubmitMerchant() {
     const {
       companyName, licenseNo, legalPerson, merchantPhone,
       licenseImage, merchantIdFront, merchantIdBack, shopFrontImage, qualify,
@@ -171,21 +186,33 @@ Page({
       wx.showToast({ title: '请上传营业执照与法人身份证', icon: 'none' });
       return;
     }
-    store.submitMerchantApply({
-      companyName,
-      licenseNo,
-      legalPerson,
-      contactPhone: merchantPhone,
-      licenseImage,
-      idFrontImage: merchantIdFront,
-      idBackImage: merchantIdBack,
-      shopFrontImage,
-    });
-    wx.showToast({ title: '入驻申请已提交', icon: 'success' });
-    this.refreshQualify();
+    wx.showLoading({ title: '提交中', mask: true });
+    try {
+      await submitQualifyToCloud({
+        role: 'merchant',
+        companyName,
+        licenseNo,
+        legalPerson,
+        contactPhone: merchantPhone,
+        licenseImage,
+        idFrontImage: merchantIdFront,
+        idBackImage: merchantIdBack,
+        shopFrontImage,
+      });
+      wx.showToast({ title: '入驻申请已提交', icon: 'success' });
+      this.refreshQualify(true);
+    } catch (e) {
+      wx.showToast({ title: e.message || '提交失败', icon: 'none' });
+    } finally {
+      wx.hideLoading();
+    }
   },
 
   onMockApprove() {
+    if (cloudApi.cloudEnabled()) {
+      wx.showToast({ title: '云开发模式下请后台审核', icon: 'none' });
+      return;
+    }
     const { role, qualify } = this.data;
     if (qualify.verifyStatus !== 'pending') return;
     store.mockApproveQualify(role);

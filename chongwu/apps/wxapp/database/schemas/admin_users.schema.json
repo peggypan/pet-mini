@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "admin_users",
+  "description": "运营后台管理员；密码仅存 passwordHash，登录走 admin.login。",
+  "type": "object",
+  "required": ["username", "passwordHash", "role", "status", "createdAt"],
+  "properties": {
+    "_id": { "type": "string" },
+    "username": { "type": "string" },
+    "passwordHash": { "type": "string" },
+    "nickname": { "type": "string" },
+    "name": { "type": "string" },
+    "email": { "type": "string" },
+    "phone": { "type": "string" },
+    "avatarUrl": { "type": "string" },
+    "role": { "type": "string", "enum": ["super", "operator", "moderator"] },
+    "status": { "type": "integer", "description": "1 正常，0 禁用" },
+    "lastLoginAt": {},
+    "createdAt": {},
+    "updatedAt": {}
+  }
+}

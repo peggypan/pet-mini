@@ -1,5 +1,8 @@
 const store = require('../../utils/store');
 const { deleteOwnedEvent } = require('../../utils/user-content-delete');
+const cloudApi = require('../../utils/cloud-api');
+const { refreshMyEventsFromCloud } = require('../../utils/event-cloud-sync');
+const { refreshMySignupsFromCloud } = require('../../utils/event-signup-cloud-sync');
 const amap = require('../../utils/amap');
 
 const AUDIT_TEXT = {
@@ -21,7 +24,10 @@ Page({
     roleText: ROLE_TEXT,
   },
 
-  onShow() {
+  async onShow() {
+    if (cloudApi.cloudEnabled()) {
+      await Promise.all([refreshMyEventsFromCloud(), refreshMySignupsFromCloud()]);
+    }
     this.setData({
       created: store.listMyEvents(),
       joined: store.listEventSignups(),

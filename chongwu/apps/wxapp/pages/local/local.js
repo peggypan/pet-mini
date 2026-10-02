@@ -12,6 +12,9 @@ const {
 } = require('../../utils/map-pet-filter');
 const { collectPetServicePOIs, mergeMapPoints } = require('../../utils/map-pet-poi-collector');
 const { syncPetProfileGate, requirePetProfile } = require('../../utils/pet-profile-guard');
+const cloudApi = require('../../utils/cloud-api');
+const { refreshEventsFeedFromCloud } = require('../../utils/event-cloud-sync');
+const { refreshMapPointsFromCloud } = require('../../utils/map-point-cloud-sync');
 
 Page({
   data: {
@@ -43,7 +46,7 @@ Page({
     return tab === 'map' ? 'map' : 'event';
   },
 
-  onShow() {
+  async onShow() {
     syncPetProfileGate(this);
     const pendingTab = wx.getStorageSync('local_tab');
     if (pendingTab) {
@@ -51,10 +54,14 @@ Page({
       this.setData({ tab: this.normalizeTab(pendingTab) });
     }
     const city = store.getCity();
+    if (cloudApi.cloudEnabled()) {
+      await refreshEventsFeedFromCloud({ limit: 80 });
+      await refreshMapPointsFromCloud({ limit: 120, city });
+    }
     this.setData({ city, amapReady: amap.isAmapConfigured() }, () => {
       this.applyPlazaEvents();
     });
-    this.loadMapPreview(city);
+    await this.loadMapPreview(city);
   },
 
   applyPlazaEvents() {

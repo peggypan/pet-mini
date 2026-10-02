@@ -5,6 +5,8 @@ const { getDefaultPet } = require('../../utils/catalog');
 const { EVENT_CATEGORIES, RISK_TIPS } = require('../../utils/mock');
 const amap = require('../../utils/amap');
 const { blockSubPageWithoutProfile, syncPetProfileGate, requirePetProfile } = require('../../utils/pet-profile-guard');
+const cloudApi = require('../../utils/cloud-api');
+const { saveEventToCloud } = require('../../utils/event-cloud-sync');
 
 const WEEKS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 
@@ -337,7 +339,7 @@ Page({
     wx.previewImage({ urls: images, current: item.url });
   },
 
-  onSubmit() {
+  async onSubmit() {
     if (!requirePetProfile()) return;
     const {
       title, place, maxPeople, desc, detailContent, detailMediaList, role, mediaList, eventDate, category,
@@ -383,7 +385,7 @@ Page({
       ? (eventSessions[0] && eventSessions[0].date) || ''
       : eventDate;
 
-    const created = store.addMyEvent({
+    const eventPayload = {
       title,
       category,
       eventType,
@@ -421,7 +423,19 @@ Page({
       mediaList,
       images: mediaList.filter((m) => m.type === 'image').map((m) => m.url),
       cover: firstImage?.url || firstVideo?.poster || '',
-    });
+    };
+
+    let created;
+    try {
+      if (cloudApi.cloudEnabled()) {
+        created = await saveEventToCloud(eventPayload);
+      } else {
+        created = store.addMyEvent(eventPayload);
+      }
+    } catch (e) {
+      wx.showToast({ title: (e && e.message) || '发布失败', icon: 'none' });
+      return;
+    }
 
     store.setDraft('event_publish', null);
     wx.showToast({ title: '发布成功', icon: 'success' });

@@ -3,7 +3,7 @@
     <image class="avatar" src="{{post.avatar}}" mode="aspectFill"></image>
     <view class="author-info">
       <view class="name-row">
-        <text class="name">{{post.userName}} · {{post.petName}}</text>
+        <text class="name">{{post.userName}}{{post.petName ? ' · ' + post.petName : ''}}</text>
         <text class="lost-tag" wx:if="{{post.lostType}}">{{post.lostType === 'lost' ? '寻宠启事' : post.lostType === 'found' ? '招领信息' : post.lostType === 'rescue' ? '宠物救助' : '领养救助'}}</text>
         <text class="essence" wx:if="{{post.essence}}">精华</text>
       </view>

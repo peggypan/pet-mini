@@ -1,0 +1,19 @@
+{
+  "_comment": "示例结构，仅供对照字段。真实数据由 auth.login 创建，勿手动改 openid。",
+  "openid": "oXXXX_example_openid",
+  "nickname": "宠友1234",
+  "avatarUrl": "cloud://xxx.png",
+  "phone": "13800138000",
+  "phoneMasked": "138****8000",
+  "city": "北京",
+  "district": "朝阳区",
+  "deviceModel": "iPhone 15",
+  "ipRegion": "北京",
+  "points": 0,
+  "petCount": 1,
+  "status": 1,
+  "loginType": "phone",
+  "lastLoginAt": "2026-04-02T08:00:00.000Z",
+  "createdAt": "2026-04-01T08:00:00.000Z",
+  "updatedAt": "2026-04-02T08:00:00.000Z"
+}

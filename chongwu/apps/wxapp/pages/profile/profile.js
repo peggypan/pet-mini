@@ -2,6 +2,9 @@ const app = getApp();
 const { getDefaultPet } = require('../../utils/catalog');
 const { requirePetProfile } = require('../../utils/pet-profile-guard');
 const store = require('../../utils/store');
+const cloudApi = require('../../utils/cloud-api');
+const { refreshPointsFromCloud } = require('../../utils/points-ledger-cloud-sync');
+const { refreshPetsFromCloud } = require('../../utils/pet-cloud-sync');
 const { explainGetPhoneNumberFail } = require('../../utils/phone-login-errors');
 const {
   PRESET_PET_TAGS,
@@ -202,11 +205,25 @@ Page({
     });
   },
 
-  onShow() {
+  async onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 4 });
     }
     const token = wx.getStorageSync('token');
+    if (token && cloudApi.cloudEnabled()) {
+      try {
+        await refreshPetsFromCloud();
+      } catch (e) {
+        // keep local cache
+      }
+    }
+    if (token && cloudApi.cloudEnabled()) {
+      try {
+        await refreshPointsFromCloud();
+      } catch (e) {
+        // keep local cache
+      }
+    }
     const myEvents = store.listMyEvents();
     const statCounts = buildProfileStatCounts();
     this.setData({
@@ -474,11 +491,15 @@ Page({
   onLogout() {
     wx.showModal({
       title: '退出登录',
+      content: '退出后需重新登录才能同步云端数据',
       success: (res) => {
-        if (res.confirm) {
-          app.logout();
-          this.onShow();
-        }
+        if (!res.confirm) return;
+        app.logout();
+        this.setData({
+          isLogin: false,
+          userInfo: null,
+        });
+        wx.showToast({ title: '已退出登录', icon: 'none' });
       },
     });
   },

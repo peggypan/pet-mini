@@ -1,4 +1,5 @@
 const store = require('../../utils/store');
+const { saveMapPointToCloud } = require('../../utils/map-point-cloud-sync');
 const amap = require('../../utils/amap');
 const { chooseMedia } = require('../../utils/choose-media');
 const { blockSubPageWithoutProfile, requirePetProfile } = require('../../utils/pet-profile-guard');
@@ -154,7 +155,7 @@ Page({
     }, 1650);
   },
 
-  onSubmit() {
+  async onSubmit() {
     if (this.data.submitting) return;
     if (!requirePetProfile()) return;
     const {
@@ -172,7 +173,7 @@ Page({
       wx.showToast({ title: '请填写毒点说明', icon: 'none' });
       return;
     }
-    const { row, pointsAwarded } = store.addMapPoint({
+    const payload = {
       name,
       type,
       address,
@@ -184,13 +185,33 @@ Page({
       longitude,
       distance: latitude ? '已选位置' : '待选位置',
       images: (images || []).slice(0, MAX_SCENE_IMAGES),
-    });
-    if (!row) {
-      wx.showToast({ title: '提交失败，请检查信息', icon: 'none' });
-      return;
-    }
-    const pts = pointsAwarded || 5;
+    };
     this.setData({ submitting: true });
-    this.playPointsReward(pts);
+    wx.showLoading({ title: '提交中', mask: true });
+    try {
+      const { row, pointsAwarded, pending } = await saveMapPointToCloud(payload);
+      if (!row) {
+        wx.showToast({ title: '提交失败，请检查信息', icon: 'none' });
+        this.setData({ submitting: false });
+        return;
+      }
+      if (pending) {
+        wx.hideLoading();
+        wx.showModal({
+          title: '已提交审核',
+          content: `审核通过后将展示在友好地图，并发放 ${store.MAP_MARK_POINTS_REWARD || 5} 积分`,
+          showCancel: false,
+          success: () => wx.navigateBack(),
+        });
+        return;
+      }
+      wx.hideLoading();
+      const pts = pointsAwarded || store.MAP_MARK_POINTS_REWARD || 5;
+      this.playPointsReward(pts);
+    } catch (e) {
+      wx.hideLoading();
+      this.setData({ submitting: false });
+      wx.showToast({ title: e.message || '提交失败', icon: 'none' });
+    }
   },
 });

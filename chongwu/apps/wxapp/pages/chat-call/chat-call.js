@@ -1,4 +1,5 @@
 const store = require('../../utils/store');
+const { sendChatMessageOnCloud } = require('../../utils/chat-cloud-sync');
 
 Page({
   data: {
@@ -66,11 +67,11 @@ Page({
     wx.showToast({ title: '切换摄像头（演示）', icon: 'none' });
   },
 
-  onHangup() {
+  async onHangup() {
     this.clearTimer();
     const { threadId, duration, status } = this.data;
     if (threadId) {
-      store.addChatMessage(threadId, {
+      await sendChatMessageOnCloud(threadId, {
         from: 'me',
         type: 'call',
         callStatus: status === 'connected' ? 'ended' : 'missed',

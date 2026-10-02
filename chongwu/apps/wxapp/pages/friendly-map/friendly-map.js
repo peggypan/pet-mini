@@ -1,4 +1,6 @@
 const store = require('../../utils/store');
+const cloudApi = require('../../utils/cloud-api');
+const { refreshMapPointsFromCloud } = require('../../utils/map-point-cloud-sync');
 const { listAllMapPoints, listAllBuddies } = require('../../utils/catalog');
 const amap = require('../../utils/amap');
 const { filterPointsByPetSentiment, getPetSentiment } = require('../../utils/map-pet-filter');
@@ -189,6 +191,9 @@ Page({
   async initMap() {
     this.setData({ loading: true });
     const city = store.getCity();
+    if (cloudApi.cloudEnabled()) {
+      await refreshMapPointsFromCloud({ limit: 120, city });
+    }
     let latitude = 39.9042;
     let longitude = 116.4074;
 

@@ -1,5 +1,8 @@
 const { searchAll } = require('../../utils/global-search');
 const amap = require('../../utils/amap');
+const store = require('../../utils/store');
+const cloudApi = require('../../utils/cloud-api');
+const { refreshMerchantsFromCloud } = require('../../utils/merchant-cloud-sync');
 const { requirePetProfile } = require('../../utils/pet-profile-guard');
 
 const TAB_DEF = [
@@ -21,7 +24,10 @@ Page({
     hotWords: ['遛狗', '朝阳公园', '猫咖', '洗护', '露营', '友好餐厅'],
   },
 
-  onLoad(options) {
+  async onLoad(options) {
+    if (cloudApi.cloudEnabled()) {
+      await refreshMerchantsFromCloud({ city: store.getCity(), limit: 80 });
+    }
     const keyword = decodeURIComponent(options.keyword || '');
     if (keyword) {
       this.setData({ keyword, focusInput: false });

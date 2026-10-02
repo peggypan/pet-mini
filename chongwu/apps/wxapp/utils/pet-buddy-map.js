@@ -1,4 +1,6 @@
 const store = require('./store');
+const cloudApi = require('./cloud-api');
+const { ensureChatThreadOnCloud } = require('./chat-cloud-sync');
 const { listAllBuddies } = require('./catalog');
 const { buildPetAvatarMarkers } = require('./pet-map-markers');
 
@@ -54,18 +56,23 @@ function loadPetMap(page, options) {
   });
 }
 
-function openPeerChat(peer) {
+async function openPeerChat(peer) {
   if (!peer || peer.peerId == null) return;
   const peerName = encodeURIComponent(peer.userName || '宠友');
   const petName = encodeURIComponent(peer.petName || '');
   const avatar = encodeURIComponent(peer.avatar || '');
-  store.ensureChatThread({
+  const threadPayload = {
     id: `c_${peer.peerId}`,
     peerId: peer.peerId,
     peerName: peer.userName || '宠友',
     petName: peer.petName || '',
     avatar: peer.avatar || '',
-  });
+  };
+  if (cloudApi.cloudEnabled()) {
+    await ensureChatThreadOnCloud(threadPayload);
+  } else {
+    store.ensureChatThread(threadPayload);
+  }
   wx.navigateTo({
     url: `/pages/chat/chat?peerId=${peer.peerId}&peerName=${peerName}&petName=${petName}&avatar=${avatar}`,
   });

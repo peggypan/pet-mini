@@ -16,7 +16,20 @@ const { buildCommentThreads } = require('../../utils/social-post-comments');
 const { openSocialHashtagFilter } = require('../../utils/social-hashtag-nav');
 const { decoratePostFollow, followResultToast } = require('../../utils/pet-follow');
 const { requirePetProfile } = require('../../utils/pet-profile-guard');
-const { deleteOwnedSocialPost, finishAfterDelete } = require('../../utils/user-content-delete');
+const {
+  deleteOwnedSocialPost,
+  deleteOwnedLocalPost,
+  finishAfterDelete,
+} = require('../../utils/user-content-delete');
+const cloudApi = require('../../utils/cloud-api');
+const { fetchSocialPostFromCloud } = require('../../utils/social-cloud-sync');
+const { fetchLocalPostFromCloud } = require('../../utils/local-cloud-sync');
+const { REF_LOCAL, findLocalPostForDetail, localPostToDetailView } = require('../../utils/local-post-detail');
+const {
+  refreshPostCommentsFromCloud,
+  saveCommentToCloud,
+} = require('../../utils/social-comment-cloud-sync');
+const sensitiveWords = require('../../utils/sensitive-words');
 
 const { ZONE_LABEL_MAP, getZoneLabel } = require('../../utils/community-zones');
 
@@ -32,11 +45,13 @@ Page({
     panelTools: false,
     panelEmoji: false,
     pendingMedia: null,
+    postSource: 'social',
   },
 
   onLoad(options) {
     const postId = options.id || '';
-    this.setData({ postId });
+    const postSource = options.source === 'local' ? 'local' : 'social';
+    this.setData({ postId, postSource });
     this.loadPost(postId);
   },
 
@@ -44,36 +59,65 @@ Page({
     if (this.data.postId) this.loadPost(this.data.postId);
   },
 
-  loadPost(postId) {
-    const found = findSocialPost(postId);
-    const post = found ? normalizePostMedia(found) : null;
-    if (!post) {
+  async loadPost(postId) {
+    const { postSource } = this.data;
+    const isLocal = postSource === 'local';
+    let view = null;
+
+    if (isLocal) {
+      let local = findLocalPostForDetail(postId);
+      if (!local && cloudApi.cloudEnabled() && postId) {
+        const row = await fetchLocalPostFromCloud(postId);
+        local = row ? localPostToDetailView(row) : null;
+      }
+      view = local;
+    } else {
+      let found = findSocialPost(postId);
+      if (!found && cloudApi.cloudEnabled() && postId) {
+        found = await fetchSocialPostFromCloud(postId);
+      }
+      view = found ? normalizePostMedia(found) : null;
+    }
+
+    if (!view) {
       this.setData({ post: null });
       return;
     }
-    const flatComments = store.listPostComments(postId);
+
+    let flatComments = store.listPostComments(postId);
+    if (cloudApi.cloudEnabled() && postId) {
+      flatComments = await refreshPostCommentsFromCloud(postId, {
+        postRef: isLocal ? REF_LOCAL : 'social_posts',
+      });
+    }
+    const zoneLabel = isLocal
+      ? (view.lostType === 'adopt' ? '领养救助' : '同城互助')
+      : (getZoneLabel(view.zone) || ZONE_LABEL_MAP[view.zone] || '宠物社区');
     const enriched = decoratePostFollow(withContentParts({
-      ...post,
-      comments: Math.max(post.comments || 0, flatComments.length),
+      ...view,
+      comments: Math.max(view.comments || 0, flatComments.length),
     }));
     this.setData({
       post: enriched,
-      zoneLabel: getZoneLabel(post.zone) || ZONE_LABEL_MAP[post.zone] || '宠物社区',
+      zoneLabel,
       commentList: buildCommentThreads(flatComments),
     });
   },
 
   async onDeletePost() {
-    const { postId, post } = this.data;
+    const { postId, post, postSource } = this.data;
     if (!post || !post.isSelfAuthor) return;
-    const res = await deleteOwnedSocialPost(postId, {
-      title: post.lostType ? '删除寻宠救助信息' : '删除动态',
-    });
+    const isLocal = postSource === 'local';
+    const res = isLocal
+      ? await deleteOwnedLocalPost(postId, { title: '删除同城信息' })
+      : await deleteOwnedSocialPost(postId, {
+        title: post.lostType ? '删除寻宠救助信息' : '删除动态',
+      });
     if (!res.ok) {
       if (res.reason && !res.cancelled) wx.showToast({ title: res.reason, icon: 'none' });
       return;
     }
-    finishAfterDelete('/pages/social/social');
+    finishAfterDelete(isLocal ? '/pages/pet-rescue/pet-rescue' : '/pages/social/social');
   },
 
   onFollowAuthor() {
@@ -119,21 +163,25 @@ Page({
 
   onLike() {
     if (!requirePetProfile()) return;
-    const { post, postId } = this.data;
+    const { post, postId, postSource } = this.data;
     if (!post) return;
     const liked = !post.liked;
     const likes = liked ? (post.likes || 0) + 1 : Math.max(0, (post.likes || 0) - 1);
     const patch = { liked, likes };
-    store.updateSocialPost(postId, patch);
-    store.recordPostThumbLike({
-      channel: 'social',
-      postId,
-      liked,
-      title: (post.content || post.topic || '社区动态').slice(0, 32),
-      cover: post.image || (post.images && post.images[0]) || '',
-      userName: post.userName,
-      petName: post.petName,
-    });
+    if (postSource === 'local') {
+      store.updateLocalPost(postId, patch);
+    } else {
+      store.updateSocialPost(postId, patch);
+      store.recordPostThumbLike({
+        channel: 'social',
+        postId,
+        liked,
+        title: (post.content || post.topic || '社区动态').slice(0, 32),
+        cover: post.image || (post.images && post.images[0]) || '',
+        userName: post.userName,
+        petName: post.petName,
+      });
+    }
     this.setData({ post: { ...post, ...patch } });
   },
 
@@ -254,12 +302,16 @@ Page({
     });
   },
 
-  onComposerSend(e) {
+  async onComposerSend(e) {
     if (!requirePetProfile()) return;
     const text = (e.detail.value || this.data.commentText || '').trim();
     const { pendingMedia, postId, post, replyTarget } = this.data;
     if (!text && !pendingMedia) {
       wx.showToast({ title: '请输入评论或添加媒体', icon: 'none' });
+      return;
+    }
+    if (text && sensitiveWords.textBlocked(text)) {
+      wx.showToast({ title: '内容含违规词，请修改', icon: 'none' });
       return;
     }
 
@@ -288,25 +340,54 @@ Page({
       };
     }
 
-    store.addPostComment(postId, payload);
-    const flatComments = store.listPostComments(postId);
-    store.updateSocialPost(postId, { comments: flatComments.length });
-    this.setData({
-      commentText: '',
-      pendingMedia: null,
-      replyTarget: null,
-      commentPlaceholder: '写评论…',
-      commentList: buildCommentThreads(flatComments),
-      post: { ...post, comments: flatComments.length },
-    });
-    wx.showToast({ title: '已评论', icon: 'success' });
+    const { postSource } = this.data;
+    const isLocal = postSource === 'local';
+    const commentRef = isLocal ? REF_LOCAL : 'social_posts';
+
+    wx.showLoading({ title: '发送中…', mask: true });
+    try {
+      if (cloudApi.cloudEnabled()) {
+        await saveCommentToCloud(postId, payload, { postRef: commentRef });
+      } else {
+        store.addPostComment(postId, payload);
+        if (isLocal) {
+          store.updateLocalPost(postId, { comments: store.listPostComments(postId).length });
+        } else {
+          store.updateSocialPost(postId, { comments: store.listPostComments(postId).length });
+        }
+      }
+      const flatComments = store.listPostComments(postId);
+      const cachedPost = isLocal ? store.getLocalPost(postId) : store.getSocialPost(postId);
+      const comments = Math.max(
+        (cachedPost && cachedPost.comments) || 0,
+        post.comments || 0,
+        flatComments.length,
+      );
+      this.setData({
+        commentText: '',
+        pendingMedia: null,
+        replyTarget: null,
+        commentPlaceholder: '写评论…',
+        commentList: buildCommentThreads(flatComments),
+        post: { ...post, comments },
+      });
+      wx.showToast({ title: '已评论', icon: 'success' });
+    } catch (err) {
+      wx.showToast({ title: (err && err.message) || '评论失败', icon: 'none' });
+    } finally {
+      wx.hideLoading();
+    }
   },
 
   onShare() {
-    const { post, postId } = this.data;
+    const { post, postId, postSource } = this.data;
     if (!post) return;
     const shares = (post.shares || 0) + 1;
-    store.updateSocialPost(postId, { shares });
+    if (postSource === 'local') {
+      store.updateLocalPost(postId, { shares });
+    } else {
+      store.updateSocialPost(postId, { shares });
+    }
     this.setData({ post: { ...post, shares } });
   },
 
@@ -315,7 +396,10 @@ Page({
   },
 
   onShareAppMessage() {
-    const { post, postId } = this.data;
+    const { post, postId, postSource } = this.data;
+    const detailQuery = postSource === 'local'
+      ? `id=${postId}&source=local`
+      : `id=${postId}`;
     if (!post) {
       return { title: '宠头头 · 宠物社区', path: '/pages/social/social' };
     }
@@ -323,33 +407,34 @@ Page({
       const loc = post.geoLocation?.name || post.location || '同城';
       return {
         title: `急寻宠物！${loc} · ${(post.content || '').replace(/【.*?】/g, '').slice(0, 24)}`,
-        path: `/pages/social-detail/social-detail?id=${postId}`,
+        path: `/pages/social-detail/social-detail?${detailQuery}`,
       };
     }
     if (post.lostType === 'found') {
       const loc = post.geoLocation?.name || post.location || '同城';
       return {
         title: `招领宠物 · ${loc} · ${(post.content || '').replace(/【.*?】/g, '').slice(0, 24)}`,
-        path: `/pages/social-detail/social-detail?id=${postId}`,
+        path: `/pages/social-detail/social-detail?${detailQuery}`,
       };
     }
     if (post.lostType === 'rescue') {
       const loc = post.geoLocation?.name || post.location || '同城';
       return {
         title: `宠物救助 · ${loc} · ${(post.content || '').replace(/【.*?】/g, '').slice(0, 24)}`,
-        path: `/pages/social-detail/social-detail?id=${postId}`,
+        path: `/pages/social-detail/social-detail?${detailQuery}`,
       };
     }
     if (post.lostType === 'adopt') {
       const loc = post.geoLocation?.name || post.location || '同城';
+      const titleText = post.title || (post.content || '').slice(0, 24);
       return {
-        title: `爱心领养 · ${loc} · ${(post.content || '').replace(/【.*?】/g, '').slice(0, 24)}`,
-        path: `/pages/social-detail/social-detail?id=${postId}`,
+        title: `爱心领养 · ${loc} · ${titleText}`,
+        path: `/pages/social-detail/social-detail?${detailQuery}`,
       };
     }
     return {
       title: `${post.userName}：${(post.content || '').slice(0, 28)}`,
-      path: `/pages/social-detail/social-detail?id=${postId}`,
+      path: `/pages/social-detail/social-detail?${detailQuery}`,
     };
   },
 });

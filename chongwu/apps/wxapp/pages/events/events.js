@@ -5,6 +5,8 @@ const store = require('../../utils/store');
 const { openEventPublishEntry } = require('../../utils/event-publish-nav');
 const amap = require('../../utils/amap');
 const { requirePetProfile } = require('../../utils/pet-profile-guard');
+const cloudApi = require('../../utils/cloud-api');
+const { refreshEventsFeedFromCloud } = require('../../utils/event-cloud-sync');
 
 Page({
   data: {
@@ -25,9 +27,12 @@ Page({
     this.setData({ plazaFilter }, () => this.applyPlazaEvents());
   },
 
-  onShow() {
+  async onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 1 });
+    }
+    if (cloudApi.cloudEnabled()) {
+      await refreshEventsFeedFromCloud({ limit: 80 });
     }
     this.setData({ city: store.getCity() }, () => this.applyPlazaEvents());
   },

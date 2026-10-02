@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "users",
+  "description": "小程序用户。与 chongwu-admin UserRow、云函数 auth 对齐。系统字段 _id、_openid 由云数据库自动维护（云函数 add 时请在业务字段写 openid）。",
+  "type": "object",
+  "required": ["openid", "status", "createdAt", "updatedAt"],
+  "properties": {
+    "_id": { "type": "string", "description": "文档 ID，自动生成" },
+    "_openid": { "type": "string", "description": "创建者 openid（云函数写入时建议与 openid 一致，便于权限规则）" },
+    "openid": { "type": "string", "description": "微信 openid，业务唯一键" },
+    "nickname": { "type": "string", "description": "昵称", "default": "宠友" },
+    "avatarUrl": { "type": "string", "description": "头像 URL（云存储 fileID 或 https）", "default": "" },
+    "phone": { "type": "string", "description": "完整手机号（bindPhone 后）", "default": "" },
+    "phoneMasked": { "type": "string", "description": "展示用脱敏号", "default": "" },
+    "city": { "type": "string", "description": "常居城市", "default": "" },
+    "district": { "type": "string", "description": "区", "default": "" },
+    "deviceModel": { "type": "string", "description": "最近登录设备型号", "default": "" },
+    "ipRegion": { "type": "string", "description": "IP 归属地（云函数解析）", "default": "" },
+    "points": { "type": "number", "description": "积分余额", "default": 0 },
+    "petCount": { "type": "number", "description": "宠物数量冗余", "default": 0 },
+    "status": { "type": "integer", "description": "1 正常 0 禁用", "enum": [0, 1], "default": 1 },
+    "loginType": { "type": "string", "description": "wechat | phone", "default": "wechat" },
+    "lastLoginAt": { "description": "最近登录时间，serverDate" },
+    "createdAt": { "description": "创建时间，serverDate" },
+    "updatedAt": { "description": "更新时间，serverDate" }
+  }
+}

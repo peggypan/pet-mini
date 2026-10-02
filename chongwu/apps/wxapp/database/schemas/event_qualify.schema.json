@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "event_qualify",
+  "description": "活动发布资质（个人实名 / 商家入驻），对齐 event-qualify 与 admin EventQualifyRow。",
+  "type": "object",
+  "required": ["openid", "role", "verifyStatus", "createdAt", "updatedAt"],
+  "properties": {
+    "_id": { "type": "string" },
+    "_openid": { "type": "string" },
+    "openid": { "type": "string" },
+    "userId": { "type": "string" },
+    "userName": { "type": "string" },
+    "role": { "type": "string", "enum": ["personal", "merchant"] },
+    "verifyStatus": { "type": "string", "enum": ["none", "pending", "approved", "rejected"] },
+    "rejectReason": { "type": "string" },
+    "realName": { "type": "string" },
+    "idCard": { "type": "string" },
+    "contactPhone": { "type": "string" },
+    "idFrontImage": { "type": "string" },
+    "idBackImage": { "type": "string" },
+    "companyName": { "type": "string" },
+    "licenseNo": { "type": "string" },
+    "legalPerson": { "type": "string" },
+    "licenseImage": { "type": "string" },
+    "shopFrontImage": { "type": "string" },
+    "submittedAt": {},
+    "approvedAt": {},
+    "userDeleted": { "type": "boolean" },
+    "status": { "type": "integer", "default": 1 },
+    "createdAt": {},
+    "updatedAt": {}
+  }
+}

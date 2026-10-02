@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "points_ledger",
+  "description": "积分流水，对齐 admin PointsLedgerRow；余额以 users.points 为准。",
+  "type": "object",
+  "required": ["openid", "userId", "amount", "reason", "createdAt"],
+  "properties": {
+    "_id": { "type": "string" },
+    "_openid": { "type": "string" },
+    "openid": { "type": "string" },
+    "userId": { "type": "string" },
+    "userNickname": { "type": "string" },
+    "amount": { "type": "number" },
+    "reason": { "type": "string" },
+    "type": { "type": "string" },
+    "refId": { "type": "string" },
+    "refType": { "type": "string" },
+    "status": { "type": "integer", "default": 1 },
+    "createdAt": {}
+  }
+}

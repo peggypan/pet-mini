@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "social_posts",
+  "description": "社区动态。social-post、lost-publish、admin SocialPostRow 对齐。",
+  "type": "object",
+  "required": ["openid", "content", "zone", "auditStatus", "createdAt", "updatedAt"],
+  "properties": {
+    "_id": { "type": "string" },
+    "_openid": { "type": "string" },
+    "openid": { "type": "string" },
+    "userId": { "type": "string" },
+    "userName": { "type": "string" },
+    "petName": { "type": "string" },
+    "avatar": { "type": "string" },
+    "zone": { "type": "string", "description": "dog/cat/exotic/… · community-zones POST_ZONES" },
+    "topic": { "type": "string" },
+    "content": { "type": "string" },
+    "lostType": { "type": "string", "enum": ["lost", "found", "adopt", "rescue", ""], "description": "寻宠/招领/救助/领养" },
+    "mediaList": { "type": "array" },
+    "images": { "type": "array", "items": { "type": "string" } },
+    "image": { "type": "string", "description": "首图兼容字段" },
+    "circle": { "type": "string" },
+    "location": { "type": "string" },
+    "geoLocation": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "address": { "type": "string" },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" }
+      }
+    },
+    "city": { "type": "string" },
+    "likes": { "type": "number", "default": 0 },
+    "comments": { "type": "number", "default": 0 },
+    "shares": { "type": "number", "default": 0 },
+    "essence": { "type": "boolean", "default": false },
+    "auditStatus": { "type": "string", "enum": ["pending", "approved", "rejected", "hidden"], "default": "approved" },
+    "userDeleted": { "type": "boolean", "default": false },
+    "status": { "type": "integer", "default": 1 },
+    "createdAt": {},
+    "updatedAt": {}
+  }
+}

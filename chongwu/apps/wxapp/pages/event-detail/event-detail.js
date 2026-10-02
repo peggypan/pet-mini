@@ -6,6 +6,12 @@ const amap = require('../../utils/amap');
 const { drawQrCanvas } = require('../../utils/qrcode');
 const { requirePetProfile } = require('../../utils/pet-profile-guard');
 const { deleteOwnedEvent, finishAfterDelete } = require('../../utils/user-content-delete');
+const cloudApi = require('../../utils/cloud-api');
+const { fetchEventFromCloud } = require('../../utils/event-cloud-sync');
+const {
+  fetchMySignupByEvent,
+  saveSignupToCloud,
+} = require('../../utils/event-signup-cloud-sync');
 const { buildEventDetailSection, buildEventCoverImages } = require('../../utils/event-detail-content');
 
 function readUserPhone() {
@@ -28,15 +34,32 @@ Page({
     ticketPayload: '',
   },
 
-  onLoad(options) {
-    const event = findEvent(options.id);
+  async onLoad(options) {
+    let eventId = options.id || '';
+    if (!eventId && options.scene) {
+      const scene = decodeURIComponent(String(options.scene));
+      eventId = scene.replace(/^id=/, '').trim();
+    }
+    await this.loadEventDetail(eventId, options);
+  },
+
+  async loadEventDetail(id, options = {}) {
+    let event = findEvent(id);
+    if (!event && cloudApi.cloudEnabled() && id) {
+      const row = await fetchEventFromCloud(id);
+      event = row ? findEvent(id) : null;
+    }
     if (!event) {
       wx.showToast({ title: '活动不存在', icon: 'none' });
       return;
     }
     this._eventId = event.id;
-    const signedUp = store.listEventSignups().some((x) => String(x.eventId) === String(event.id));
-    const isOwner = !!store.getMyEvent(event.id);
+    let signedUp = store.listEventSignups().some((x) => String(x.eventId) === String(event.id));
+    if (cloudApi.cloudEnabled()) {
+      const mine = await fetchMySignupByEvent(event.id);
+      signedUp = !!mine;
+    }
+    const isOwner = store.isMyUserContent(event) || !!store.getMyEvent(event.id);
     this.setData({
       event,
       coverImages: buildEventCoverImages(event),
@@ -55,10 +78,13 @@ Page({
     }
   },
 
-  onShow() {
+  async onShow() {
     const event = this.data.event;
     if (!event) return;
-    const signedUp = store.listEventSignups().some((x) => String(x.eventId) === String(event.id));
+    let signedUp = store.listEventSignups().some((x) => String(x.eventId) === String(event.id));
+    if (cloudApi.cloudEnabled()) {
+      signedUp = !!(await fetchMySignupByEvent(event.id));
+    }
     this.setData({ signedUp });
   },
 
@@ -74,7 +100,7 @@ Page({
   /**
    * 报名并弹出核销二维码，码内含报名人和宠物信息
    */
-  openTicket() {
+  async openTicket() {
     if (!requirePetProfile()) return;
     const { event } = this.data;
     if (!event) return;
@@ -86,25 +112,47 @@ Page({
       petName: pet.name || '我家毛孩',
       petBreed: pet.breed || pet.breedName || '',
     };
-    let signup = store.getEventSignupByEventId(event.id);
-    if (!signup) {
-      signup = store.addEventSignup(event, defaults).signup;
-    } else {
-      signup = store.ensureEventSignupTicket(event.id, defaults);
+
+    wx.showLoading({ title: '报名中…', mask: true });
+    try {
+      let signup;
+      if (cloudApi.cloudEnabled()) {
+        signup = await fetchMySignupByEvent(event.id);
+        if (!signup) {
+          const res = await saveSignupToCloud(event, defaults);
+          signup = res.signup;
+        } else {
+          signup = store.ensureEventSignupTicket(event.id, defaults) || signup;
+        }
+      } else {
+        signup = store.getEventSignupByEventId(event.id);
+      }
+      if (!cloudApi.cloudEnabled()) {
+        if (!signup) {
+          signup = store.addEventSignup(event, defaults).signup;
+        } else {
+          signup = store.ensureEventSignupTicket(event.id, defaults);
+        }
+      }
+
+      const ticketPayload = store.buildTicketPayload(signup);
+      const patch = { signedUp: true, showTicket: true, signup, ticketPayload };
+      if (cloudApi.cloudEnabled()) {
+        const cached = store.getEventFromCache(event.id);
+        if (cached) patch.event = { ...event, remain: cached.remain, signupCount: cached.signupCount };
+      }
+      this.setData(patch, () => {
+        setTimeout(() => {
+          drawQrCanvas(this, 'ticketQr', ticketPayload).catch(() => {
+            wx.showToast({ title: '二维码绘制失败', icon: 'none' });
+          });
+        }, 80);
+      });
+    } catch (e) {
+      wx.showToast({ title: (e && e.message) || '报名失败', icon: 'none' });
+    } finally {
+      wx.hideLoading();
     }
-    const ticketPayload = store.buildTicketPayload(signup);
-    this.setData({
-      signedUp: true,
-      showTicket: true,
-      signup,
-      ticketPayload,
-    }, () => {
-      setTimeout(() => {
-        drawQrCanvas(this, 'ticketQr', ticketPayload).catch(() => {
-          wx.showToast({ title: '二维码绘制失败', icon: 'none' });
-        });
-      }, 80);
-    });
   },
 
   onCloseTicket() {

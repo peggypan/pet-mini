@@ -3,6 +3,9 @@ const { buildRescueList, filterRescueList } = require('../../utils/pet-rescue-li
 const amap = require('../../utils/amap');
 const { requirePetProfile } = require('../../utils/pet-profile-guard');
 const { deleteRescueItem } = require('../../utils/user-content-delete');
+const cloudApi = require('../../utils/cloud-api');
+const { refreshLocalPostsFromCloud } = require('../../utils/local-cloud-sync');
+const { refreshSocialFeedFromCloud } = require('../../utils/social-cloud-sync');
 
 Page({
   data: {
@@ -33,8 +36,14 @@ Page({
     wx.stopPullDownRefresh();
   },
 
-  reload() {
+  async reload() {
     try {
+      if (cloudApi.cloudEnabled()) {
+        await Promise.all([
+          refreshSocialFeedFromCloud({ zone: 'all', limit: 80 }),
+          refreshLocalPostsFromCloud({ type: 'all', limit: 80 }),
+        ]);
+      }
       const list = buildRescueList();
       this.applyFilter(list, this.data.filter);
       this.setData({ loadError: '' });
@@ -95,12 +104,9 @@ Page({
       return;
     }
 
-    if (item.kind === 'adopt') {
-      const lines = [item.desc || item.preview, item.contact ? '联系：' + item.contact : ''].filter(Boolean);
-      wx.showModal({
-        title: item.title,
-        content: lines.join('\n\n'),
-        showCancel: false,
+    if (item.source === 'local' && item.refId) {
+      wx.navigateTo({
+        url: `/pages/social-detail/social-detail?id=${item.refId}&source=local`,
       });
     }
   },

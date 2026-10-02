@@ -1,4 +1,4 @@
-/** 搭子广场无限列表：数据源不足时循环填充，feedKey 保证 wx:key 唯一 */
+/** 搭子广场分页：只展示真实数据源，不循环填充重复卡片 */
 const PAGE_SIZE = 8;
 const MAX_FEED_ITEMS = 200;
 
@@ -8,24 +8,24 @@ function appendFeedItems(sourceRows, currentList, decorateRow) {
   if (!sources.length) {
     return { list: [], hasMore: false, nextOffset: 0 };
   }
+  const cappedTotal = Math.min(sources.length, MAX_FEED_ITEMS);
   const start = list.length;
-  if (start >= MAX_FEED_ITEMS) {
+  if (start >= cappedTotal) {
     return { list, hasMore: false, nextOffset: start };
   }
-  const end = Math.min(start + PAGE_SIZE, MAX_FEED_ITEMS);
+  const end = Math.min(start + PAGE_SIZE, cappedTotal);
   const chunk = [];
   for (let i = start; i < end; i += 1) {
-    const src = sources[i % sources.length];
-    const round = Math.floor(i / sources.length);
+    const src = sources[i];
     const base = decorateRow(src);
     chunk.push({
       ...base,
-      feedKey: `${src.id}_r${round}_i${i}`,
+      feedKey: `${src.id}_${i}`,
     });
   }
   return {
     list: list.concat(chunk),
-    hasMore: end < MAX_FEED_ITEMS,
+    hasMore: end < cappedTotal,
     nextOffset: end,
   };
 }

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "pet_discover_daily",
+  "description": "搭搭每日滑动额度（used/bonus/shareCount），按 openid+date 一条。",
+  "type": "object",
+  "required": ["openid", "date", "used", "bonus", "shareCount"],
+  "properties": {
+    "_id": { "type": "string" },
+    "_openid": { "type": "string" },
+    "openid": { "type": "string" },
+    "userId": { "type": "string" },
+    "date": { "type": "string", "description": "YYYY-MM-DD 本地日历日" },
+    "used": { "type": "integer" },
+    "bonus": { "type": "integer" },
+    "shareCount": { "type": "integer" },
+    "updatedAt": {}
+  }
+}

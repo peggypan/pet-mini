@@ -1,0 +1,13 @@
+{
+  "title": "宠物友好地图 · 标记赠积分",
+  "type": "mapPointsCampaign",
+  "cover": "cloud://xxx/banners/example.jpg",
+  "link": "/pages/friendly-map/friendly-map",
+  "subtitle": "积分可兑换礼品",
+  "tag": "热门活动",
+  "sortOrder": 0,
+  "status": 1,
+  "city": "",
+  "startAt": null,
+  "endAt": null
+}

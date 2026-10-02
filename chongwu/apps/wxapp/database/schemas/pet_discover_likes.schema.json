@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "pet_discover_likes",
+  "description": "搭搭右滑喜欢记录（喜欢列表）。",
+  "type": "object",
+  "required": ["openid", "targetId", "likedAt", "status"],
+  "properties": {
+    "_id": { "type": "string" },
+    "_openid": { "type": "string" },
+    "openid": { "type": "string" },
+    "userId": { "type": "string" },
+    "targetId": { "type": "string" },
+    "targetType": { "type": "string", "enum": ["buddy", "healing"] },
+    "userName": { "type": "string" },
+    "petName": { "type": "string" },
+    "breed": { "type": "string" },
+    "avatar": { "type": "string" },
+    "distance": { "type": "string" },
+    "status": { "type": "integer", "default": 1 },
+    "likedAt": {}
+  }
+}

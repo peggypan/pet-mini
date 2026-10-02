@@ -1,7 +1,16 @@
 {
   "libVersion": "3.17.0",
-  "projectname": "pete",
+  "projectname": "petchongwu",
   "condition": {},
+  "cloudfunctionRoot": "cloudfunctions/",
+  "selectedEnvId": "cloud1-d8gnokqshc15dc3ae",
+  "envList": [
+    {
+      "envId": "cloud1-d8gnokqshc15dc3ae",
+      "alias": "cloud1",
+      "type": 2
+    }
+  ],
   "setting": {
     "urlCheck": false,
     "coverView": true,

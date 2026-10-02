@@ -8,12 +8,15 @@ const EVENT_STEP = 5;
 const store = require('../../utils/store');
 const { autoLocateCity } = require('../../utils/city-location');
 const { requirePetProfile } = require('../../utils/pet-profile-guard');
+const cloudApi = require('../../utils/cloud-api');
+const { refreshEventsFeedFromCloud } = require('../../utils/event-cloud-sync');
+const { refreshBannersFromCloud } = require('../../utils/banner-cloud-sync');
 Page({
   data: {
     city: '北京',
     cityAuto: false,
     showCityPicker: false,
-    banners: MOCK_HOME.banners,
+    banners: store.listHomeBanners(),
     tiles: MOCK_HOME.featureTiles,
     buddyPlaza: [],
     buddyHasMore: false,
@@ -22,17 +25,22 @@ Page({
     riskTip: RISK_TIPS.meet,
   },
 
-  onShow() {
+  async onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0 });
     }
     const loc = store.getCityLocation();
+    if (cloudApi.cloudEnabled()) {
+      await refreshEventsFeedFromCloud({ limit: 80 });
+      await refreshBannersFromCloud({ city: loc.city, limit: 10 });
+    }
     this._allEventCards = buildEventHomeCards(listAllEvents());
     this._buddySource = listAllBuddies().filter((b) => b.zone !== 'match');
     const buddyFeed = resetFeed(this._buddySource, buildBuddyPlazaCard);
     this.setData({
       city: loc.city || '北京',
       cityAuto: !!loc.auto,
+      banners: store.listHomeBanners(),
       buddyPlaza: buddyFeed.list,
       buddyHasMore: buddyFeed.hasMore,
     });

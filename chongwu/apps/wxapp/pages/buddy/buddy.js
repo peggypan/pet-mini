@@ -3,6 +3,9 @@ const { listAllBuddies } = require('../../utils/catalog');
 const { buildBuddyPlazaCard } = require('../../utils/buddy-plaza-card');
 const { appendFeedItems, resetFeed } = require('../../utils/buddy-plaza-feed');
 const store = require('../../utils/store');
+const cloudApi = require('../../utils/cloud-api');
+const { refreshBuddyFeedFromCloud } = require('../../utils/buddy-cloud-sync');
+const { resolveBuddyPosts } = require('../../utils/cloud-media');
 const { loadPetMap } = require('../../utils/pet-buddy-map');
 const amap = require('../../utils/amap');
 const { syncPetProfileGate, requirePetProfile } = require('../../utils/pet-profile-guard');
@@ -42,7 +45,7 @@ Page({
       comments,
       shares,
       liked: !!o.liked,
-      canDelete: !!store.getBuddyPost(row.id),
+      canDelete: !!(row.isMine || store.isMyUserContent(row)),
     };
   },
 
@@ -57,9 +60,24 @@ Page({
     return list;
   },
 
-  onShow() {
+  async onShow() {
     syncPetProfileGate(this);
     this.setData({ city: store.getCity() });
+    if (cloudApi.cloudEnabled()) {
+      try {
+        await refreshBuddyFeedFromCloud({ limit: 80 });
+        const cached = store.listBuddyPosts();
+        const needResolve = cached.some(
+          (p) => (p.cover && p.cover.startsWith('cloud://'))
+            || (p.avatar && p.avatar.startsWith('cloud://')),
+        );
+        if (needResolve) {
+          store.replaceAllBuddyPostsFromCloud(await resolveBuddyPosts(cached));
+        }
+      } catch (e) {
+        // keep cache
+      }
+    }
     this.reload();
     loadPetMap(this);
   },

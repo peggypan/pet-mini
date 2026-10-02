@@ -1,4 +1,5 @@
 const store = require('./store');
+const cloudApi = require('./cloud-api');
 const { MOCK_SOCIAL, MOCK_RESCUE } = require('./mock');
 
 const KIND_LABEL = { lost: '寻宠', found: '招领', rescue: '救助', adopt: '领养' };
@@ -44,6 +45,7 @@ function buildRescueList() {
 
   const pushSocial = (p) => {
     if (!p || !p.lostType || seenSocial.has(String(p.id))) return;
+    if (cloudApi.cloudEnabled() && p.lostType === 'adopt') return;
     seenSocial.add(String(p.id));
     items.push({
       id: 's_' + p.id,
@@ -65,54 +67,55 @@ function buildRescueList() {
     /* wx 未就绪时忽略 */
   }
 
-  (MOCK_SOCIAL.posts || []).forEach(pushSocial);
+  if (!cloudApi.cloudEnabled()) {
+    (MOCK_SOCIAL.posts || []).forEach(pushSocial);
+  }
 
   try {
-    store.listLocalPosts('adopt').forEach((p) => {
+    store.listLocalPosts().forEach((p) => {
+      const kind = p.type || 'adopt';
       items.push({
         id: 'l_' + p.id,
         source: 'local',
         refId: p.id,
-        kind: 'adopt',
-        tag: '领养',
-        title: p.title || '领养信息',
+        kind,
+        tag: KIND_LABEL[kind] || '同城',
+        title: p.title || (kind === 'adopt' ? '领养信息' : '同城信息'),
         preview: (p.desc || '').slice(0, 72),
         time: p.time || '刚刚',
-        location: p.location || '',
-        locationName: p.location || '',
-        locationAddress: '',
-        locationLat: '',
-        locationLng: '',
+        ...pickGeo(p),
         contact: p.contact || '',
         desc: p.desc || '',
-        cover: resolveCover('adopt', p),
+        cover: resolveCover(kind, p),
       });
     });
   } catch (e) {
     /* ignore */
   }
 
-  (MOCK_RESCUE || []).forEach((p) => {
-    if (items.some((x) => x.id === p.id)) return;
-    items.push({
-      id: p.id,
-      source: p.source || 'mock',
-      refId: p.refId || '',
-      kind: p.kind || 'adopt',
-      tag: p.tag || KIND_LABEL[p.kind] || '领养',
-      title: p.title || '',
-      preview: p.preview || '',
-      time: p.time || '刚刚',
-      location: p.location || '',
-      locationName: p.location || '',
-      locationAddress: p.locationAddress || '',
-      locationLat: p.locationLat || '',
-      locationLng: p.locationLng || '',
-      contact: p.contact || '',
-      desc: p.desc || p.preview || '',
-      cover: p.cover || resolveCover(p.kind || 'adopt', p),
+  if (!cloudApi.cloudEnabled()) {
+    (MOCK_RESCUE || []).forEach((p) => {
+      if (items.some((x) => x.id === p.id)) return;
+      items.push({
+        id: p.id,
+        source: p.source || 'mock',
+        refId: p.refId || '',
+        kind: p.kind || 'adopt',
+        tag: p.tag || KIND_LABEL[p.kind] || '领养',
+        title: p.title || '',
+        preview: p.preview || '',
+        time: p.time || '刚刚',
+        location: p.location || '',
+        locationName: p.location || '',
+        locationAddress: p.locationAddress || '',
+        locationLat: p.locationLat || '',
+        locationLng: p.locationLng || '',
+        contact: p.contact || '',
+        desc: p.desc || p.preview || '',
+        cover: p.cover || resolveCover(p.kind || 'adopt', p),
+      });
     });
-  });
+  }
 
   return items.map((item) => {
     let canDelete = false;
@@ -120,7 +123,8 @@ function buildRescueList() {
       const p = store.getSocialPost(item.refId);
       canDelete = store.isMyUserContent(p);
     } else if (item.source === 'local' && item.refId) {
-      canDelete = !!store.getLocalPost(item.refId);
+      const p = store.getLocalPost(item.refId);
+      canDelete = store.isMyUserContent(p);
     }
     return { ...item, canDelete };
   });

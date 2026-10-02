@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "buddy_posts",
+  "description": "搭子帖（搭搭 / 搭子广场）。与 buddy-publish、MOCK_BUDDY、admin BuddyPostRow 对齐。",
+  "type": "object",
+  "required": ["openid", "userName", "desc", "zone", "auditStatus", "createdAt", "updatedAt"],
+  "properties": {
+    "_id": { "type": "string" },
+    "_openid": { "type": "string", "description": "发布者 openid" },
+    "openid": { "type": "string" },
+    "userId": { "type": "string", "description": "users._id" },
+    "userName": { "type": "string", "description": "展示昵称" },
+    "avatar": { "type": "string" },
+    "petName": { "type": "string" },
+    "breed": { "type": "string" },
+    "age": { "type": "string" },
+    "personality": { "type": "string" },
+    "verified": { "type": "boolean", "default": false },
+    "buddyType": { "type": "string", "description": "遛狗搭子、疗愈类型等" },
+    "zone": { "type": "string", "enum": ["normal", "match", "healing"], "default": "normal" },
+    "expectTime": { "type": "string" },
+    "expectPlace": { "type": "string" },
+    "expectPlaceAddress": { "type": "string" },
+    "location": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "address": { "type": "string" },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" }
+      }
+    },
+    "desc": { "type": "string" },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "creditTags": { "type": "array", "items": { "type": "string" } },
+    "mediaList": {
+      "type": "array",
+      "description": "{ type: image|video, url, poster?, duration? }"
+    },
+    "images": { "type": "array", "items": { "type": "string" } },
+    "cover": { "type": "string" },
+    "openSignup": { "type": "boolean", "default": true },
+    "distance": { "type": "string", "default": "同城" },
+    "city": { "type": "string" },
+    "likes": { "type": "number", "default": 0 },
+    "comments": { "type": "number", "default": 0 },
+    "shares": { "type": "number", "default": 0 },
+    "auditStatus": { "type": "string", "enum": ["pending", "approved", "rejected", "hidden"], "default": "approved" },
+    "userDeleted": { "type": "boolean", "default": false },
+    "healingPetProfile": { "type": "boolean", "default": false },
+    "status": { "type": "integer", "default": 1 },
+    "createdAt": {},
+    "updatedAt": {}
+  }
+}

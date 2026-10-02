@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "chat_threads",
+  "description": "私信会话列表（按用户 openid + peerId 一条）。",
+  "type": "object",
+  "required": ["openid", "peerId", "status", "createdAt"],
+  "properties": {
+    "_id": { "type": "string" },
+    "_openid": { "type": "string" },
+    "openid": { "type": "string" },
+    "userId": { "type": "string" },
+    "peerId": { "type": "string" },
+    "peerName": { "type": "string" },
+    "petName": { "type": "string" },
+    "avatar": { "type": "string" },
+    "lastMessage": { "type": "string" },
+    "lastTime": { "type": "string" },
+    "unread": { "type": "integer" },
+    "status": { "type": "integer" },
+    "createdAt": {},
+    "updatedAt": {}
+  }
+}

@@ -13,6 +13,8 @@ const amap = require('../../utils/amap');
 const { decoratePostFollow, followResultToast } = require('../../utils/pet-follow');
 const { syncPetProfileGate, requirePetProfile } = require('../../utils/pet-profile-guard');
 const { deleteOwnedSocialPost } = require('../../utils/user-content-delete');
+const cloudApi = require('../../utils/cloud-api');
+const { refreshSocialFeedFromCloud } = require('../../utils/social-cloud-sync');
 
 Page({
   data: {
@@ -54,20 +56,28 @@ Page({
       wx.removeStorageSync('social_hashtag_filter');
       showPatch.hashtagFilter = String(hashtagFromNav);
     }
-    this.setData(showPatch, () => this.reloadPosts());
+    this.setData(showPatch, () => {
+      this.reloadPosts();
+    });
   },
 
   onCityTap() {
     wx.navigateTo({ url: '/pages/city-picker/city-picker' });
   },
 
-  reloadPosts() {
+  async reloadPosts() {
+    if (cloudApi.cloudEnabled()) {
+      await refreshSocialFeedFromCloud({ zone: 'all', limit: 80 });
+    }
     const local = store.listSocialPosts().map((p) => normalizePostMedia(p));
-    const mock = MOCK_SOCIAL.posts.map((p) => normalizePostMedia({
-      ...p,
-      ...(store.getSocialOverride(p.id) || {}),
-    }));
-    const posts = [...local, ...mock];
+    let posts = local;
+    if (!cloudApi.cloudEnabled()) {
+      const mock = MOCK_SOCIAL.posts.map((p) => normalizePostMedia({
+        ...p,
+        ...(store.getSocialOverride(p.id) || {}),
+      }));
+      posts = [...local, ...mock];
+    }
     this.setData({ posts }, () => this.applyDisplayPosts());
   },
 

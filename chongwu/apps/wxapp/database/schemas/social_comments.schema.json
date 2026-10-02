@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "social_comments",
+  "description": "社区动态评论，楼中楼用 parentId / replyToUserName。",
+  "type": "object",
+  "required": ["postId", "postRef", "openid", "type", "auditStatus", "createdAt", "updatedAt"],
+  "properties": {
+    "_id": { "type": "string" },
+    "_openid": { "type": "string" },
+    "openid": { "type": "string" },
+    "userId": { "type": "string" },
+    "postId": { "type": "string", "description": "关联帖 _id" },
+    "postRef": {
+      "type": "string",
+      "enum": ["social_posts", "local_posts"],
+      "default": "social_posts"
+    },
+    "userName": { "type": "string" },
+    "avatar": { "type": "string" },
+    "type": { "type": "string", "enum": ["text", "image", "video"] },
+    "content": { "type": "string" },
+    "url": { "type": "string" },
+    "poster": { "type": "string" },
+    "parentId": { "type": "string", "description": "回复的一级或子评论 id" },
+    "replyToUserName": { "type": "string" },
+    "auditStatus": { "type": "string", "enum": ["pending", "approved", "rejected", "hidden"], "default": "approved" },
+    "userDeleted": { "type": "boolean", "default": false },
+    "status": { "type": "integer", "default": 1 },
+    "createdAt": {},
+    "updatedAt": {}
+  }
+}

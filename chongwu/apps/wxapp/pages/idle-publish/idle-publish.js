@@ -1,5 +1,6 @@
 const api = require('../../utils/request');
 const store = require('../../utils/store');
+const sensitiveWords = require('../../utils/sensitive-words');
 const { pickMixedMedia, MAX_IMAGES } = require('../../utils/media-upload');
 
 const CONDITION_MAP = ['全新', '九成新', '轻微使用', '明显使用'];
@@ -144,8 +145,7 @@ Page({
       return;
     }
 
-    const banned = /活体|幼崽|出售猫|出售狗|卖猫|卖狗|繁殖|公猫配种|种公/;
-    if (banned.test(title) || banned.test(description)) {
+    if (sensitiveWords.textBlocked(title) || sensitiveWords.textBlocked(description)) {
       wx.showToast({ title: '禁止发布活体交易相关内容', icon: 'none' });
       return;
     }

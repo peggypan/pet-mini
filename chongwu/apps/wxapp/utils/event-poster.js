@@ -156,14 +156,24 @@ function drawMetaBlock(ctx, event, x, y, color, subColor) {
   });
 }
 
-function drawQrBlock(ctx, event, x, y, qrSize, labelColor, subColor) {
+function drawQrImage(ctx, qrImage, x, y, qrSize, fallbackSeed) {
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(x, y, qrSize, qrSize);
+  if (qrImage) {
+    ctx.drawImage(qrImage, x, y, qrSize, qrSize);
+  } else {
+    drawMiniQr(ctx, x, y, qrSize, fallbackSeed);
+  }
+}
+
+function drawQrBlock(ctx, event, x, y, qrSize, labelColor, subColor, qrImage) {
   const pad = 16;
   const boxW = qrSize + pad * 2;
   const boxH = qrSize + pad * 2 + 52;
   ctx.fillStyle = '#FFFFFF';
   roundRect(ctx, x, y, boxW, boxH, 16);
   ctx.fill();
-  drawMiniQr(ctx, x + pad, y + pad, qrSize, `event-${event.id}`);
+  drawQrImage(ctx, qrImage, x + pad, y + pad, qrSize, `event-${event.id}`);
   ctx.fillStyle = labelColor;
   ctx.font = '600 22px sans-serif';
   ctx.textAlign = 'center';
@@ -173,7 +183,7 @@ function drawQrBlock(ctx, event, x, y, qrSize, labelColor, subColor) {
   ctx.fillText('扫码查看活动详情', x + boxW / 2, y + pad + qrSize + 44);
 }
 
-function drawStyleFresh(ctx, event, coverImg) {
+function drawStyleFresh(ctx, event, coverImg, qrImage) {
   const grd = ctx.createLinearGradient(0, 0, 0, POSTER_H);
   grd.addColorStop(0, '#E8F4FF');
   grd.addColorStop(1, '#5BB8FF');
@@ -214,10 +224,10 @@ function drawStyleFresh(ctx, event, coverImg) {
   ctx.font = '800 32px sans-serif';
   ctx.fillText('宠头头', 56, 1060);
 
-  drawQrBlock(ctx, event, POSTER_W - 220, 980, 148, '#1A1A1A', '#999999');
+  drawQrBlock(ctx, event, POSTER_W - 220, 980, 148, '#1A1A1A', '#999999', qrImage);
 }
 
-function drawStyleMagazine(ctx, event, coverImg) {
+function drawStyleMagazine(ctx, event, coverImg, qrImage) {
   drawCover(ctx, coverImg, 0, 0, POSTER_W, POSTER_H, 'fill');
 
   const overlay = ctx.createLinearGradient(0, POSTER_H * 0.35, 0, POSTER_H);
@@ -256,14 +266,14 @@ function drawStyleMagazine(ctx, event, coverImg) {
   ctx.fillStyle = 'rgba(255,255,255,0.12)';
   roundRect(ctx, boxX - 16, 1080, qrSize + 32, qrSize + 88, 20);
   ctx.fill();
-  drawMiniQr(ctx, boxX, 1096, qrSize, `event-${event.id}-mag`);
+  drawQrImage(ctx, qrImage, boxX, 1096, qrSize, `event-${event.id}-mag`);
   ctx.fillStyle = '#FFFFFF';
   ctx.font = '600 24px sans-serif';
   ctx.textAlign = 'center';
   ctx.fillText('长按识别 · 宠头头小程序', POSTER_W / 2, 1096 + qrSize + 28);
 }
 
-function drawStyleCute(ctx, event, coverImg) {
+function drawStyleCute(ctx, event, coverImg, qrImage) {
   ctx.fillStyle = '#FFF8F0';
   ctx.fillRect(0, 0, POSTER_W, POSTER_H);
 
@@ -305,17 +315,17 @@ function drawStyleCute(ctx, event, coverImg) {
   ctx.font = '600 26px sans-serif';
   ctx.fillText(`🐾 ${event.host || '主理人'} 邀你来玩`, POSTER_W / 2, 900);
 
-  drawQrBlock(ctx, event, (POSTER_W - 196) / 2, 940, 132, '#FF6B9D', '#999999');
+  drawQrBlock(ctx, event, (POSTER_W - 196) / 2, 940, 132, '#FF6B9D', '#999999', qrImage);
 
   ctx.fillStyle = '#FFB6C1';
   ctx.font = '700 28px sans-serif';
   ctx.fillText('宠头头 · 一起带毛孩出门', POSTER_W / 2, 1160);
 }
 
-function drawPoster(ctx, styleId, event, coverImg) {
-  if (styleId === 'fresh') drawStyleFresh(ctx, event, coverImg);
-  else if (styleId === 'magazine') drawStyleMagazine(ctx, event, coverImg);
-  else drawStyleCute(ctx, event, coverImg);
+function drawPoster(ctx, styleId, event, coverImg, qrImage) {
+  if (styleId === 'fresh') drawStyleFresh(ctx, event, coverImg, qrImage);
+  else if (styleId === 'magazine') drawStyleMagazine(ctx, event, coverImg, qrImage);
+  else drawStyleCute(ctx, event, coverImg, qrImage);
 }
 
 function prepareCanvas(component, canvasId) {
@@ -365,15 +375,31 @@ async function loadCoverImage(canvas, src) {
   }
 }
 
+async function loadWxacodeImage(canvas, eventId) {
+  try {
+    const { fetchEventWxacodePath } = require('./wxacode-cloud');
+    const path = await fetchEventWxacodePath(eventId);
+    const loaded = await loadCanvasImage(canvas, path);
+    return loaded.img;
+  } catch (e) {
+    console.warn('[event-poster] wxacode', e);
+    return null;
+  }
+}
+
 async function generateEventPosters(component, event) {
   const coverSrc = event.cover || '/assets/mock/real_pup.jpg';
   const posters = [];
+  let qrImage = null;
   for (let i = 0; i < STYLES.length; i += 1) {
     const style = STYLES[i];
     const { canvas, ctx } = await prepareCanvas(component, `posterCanvas${i}`);
+    if (i === 0) {
+      qrImage = await loadWxacodeImage(canvas, event.id);
+    }
     const coverImg = await loadCoverImage(canvas, coverSrc);
     ctx.clearRect(0, 0, POSTER_W, POSTER_H);
-    drawPoster(ctx, style.id, event, coverImg);
+    drawPoster(ctx, style.id, event, coverImg, qrImage);
     const url = await exportCanvas(canvas);
     posters.push({ ...style, url });
   }

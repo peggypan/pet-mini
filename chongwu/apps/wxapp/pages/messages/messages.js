@@ -1,4 +1,6 @@
 const store = require('../../utils/store');
+const cloudApi = require('../../utils/cloud-api');
+const { refreshChatThreadsFromCloud } = require('../../utils/chat-cloud-sync');
 const { buildNotices, countUnreadNotices } = require('../../utils/notice-feed');
 const { syncPetProfileGate, requirePetProfile } = require('../../utils/pet-profile-guard');
 
@@ -27,8 +29,15 @@ Page({
     this.refreshTabBadge();
   },
 
-  onShow() {
+  async onShow() {
     syncPetProfileGate(this);
+    if (cloudApi.cloudEnabled()) {
+      try {
+        await refreshChatThreadsFromCloud();
+      } catch (e) {
+        // keep cache
+      }
+    }
     const notices = buildNotices();
     const noticeUnread = countUnreadNotices();
     this.setData({

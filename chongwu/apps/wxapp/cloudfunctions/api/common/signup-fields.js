@@ -4,12 +4,22 @@ function trim(s) {
 
 function pickSignupPayload(raw) {
   const p = raw || {};
+  const tags = Array.isArray(p.petTags) ? p.petTags.filter(Boolean).slice(0, 8) : [];
   return {
     eventId: trim(p.eventId),
     contactName: trim(p.contactName),
     phone: trim(p.phone),
     petName: trim(p.petName),
     petBreed: trim(p.petBreed),
+    petId: trim(p.petId),
+    petSpecies: trim(p.petSpecies),
+    petGender: trim(p.petGender),
+    petAge: trim(p.petAge),
+    petVaccineStatus: trim(p.petVaccineStatus),
+    petPersonality: trim(p.petPersonality),
+    petAvatar: trim(p.petAvatar),
+    petActivityArea: trim(p.petActivityArea),
+    petTags: tags,
   };
 }
 
@@ -60,6 +70,15 @@ function snapshotFromEvent(event, body) {
     phone: body.phone || '',
     petName: body.petName || '',
     petBreed: body.petBreed || '',
+    petId: body.petId || '',
+    petSpecies: body.petSpecies || '',
+    petGender: body.petGender || '',
+    petAge: body.petAge || '',
+    petVaccineStatus: body.petVaccineStatus || '',
+    petPersonality: body.petPersonality || '',
+    petAvatar: body.petAvatar || '',
+    petActivityArea: body.petActivityArea || '',
+    petTags: body.petTags || [],
   };
 }
 

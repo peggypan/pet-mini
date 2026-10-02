@@ -26,6 +26,7 @@
     "pages/event-publish/event-publish",
     "pages/event-qualify/event-qualify",
     "pages/my-events/my-events",
+    "pages/event-host-signups/event-host-signups",
     "pages/pet-rescue/pet-rescue",
     "pages/club-apply/club-apply",
     "pages/my-clubs/my-clubs",
@@ -54,6 +55,9 @@
     },
     "scope.writePhotosAlbum": {
       "desc": "你的相册权限将用于保存活动分享海报"
+    },
+    "scope.camera": {
+      "desc": "你的摄像头将用于扫描活动报名核销二维码"
     }
   },
   "window": {

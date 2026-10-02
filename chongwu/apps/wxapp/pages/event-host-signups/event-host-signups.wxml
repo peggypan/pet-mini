@@ -1,0 +1,60 @@
+<view class="page" wx:if="{{event}}">
+  <view class="hero">
+    <text class="hero-title">{{event.title}}</text>
+    <text class="hero-sub">仅发起人可查看名单与核销 · 共 {{list.length}} 人报名 · 已核销 {{checkedInCount}} 人</text>
+    <text class="hero-hint">扫码与云核销有关；打开相机本身不需云。若扫不出，请参与者重新打开「已报名」刷新二维码，或用手动输入核销码。</text>
+  </view>
+
+  <view class="scan-row">
+    <button class="scan-btn" bindtap="onScanCheckIn">扫码核销</button>
+    <button class="code-btn" bindtap="onManualCheckIn">输入核销码</button>
+  </view>
+
+  <view class="empty" wx:if="{{!list.length && !loading}}">
+    <text>暂无报名，分享活动邀请宠友参加</text>
+  </view>
+
+  <view class="list" wx:else>
+    <view
+      class="row"
+      wx:for="{{list}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="onTapSignupRow"
+    >
+      <view class="row-main">
+        <text class="name">{{item.contactName || '宠友'}}</text>
+        <text class="meta">{{item.petName || '宠物'}}{{item.petBreed ? ' · ' + item.petBreed : ''}}</text>
+        <text class="meta">手机 {{item.phone || '未填写'}} · 码 {{item.ticketCode}}</text>
+      </view>
+      <text class="badge {{item.checkedIn ? 'done' : ''}}">{{item.checkedIn ? '已核销' : '待核销'}}</text>
+    </view>
+  </view>
+</view>
+
+<view
+  class="detail-mask"
+  wx:if="{{checkInDetail}}"
+  catchtap="onCloseCheckInDetail"
+  catchtouchmove="noop"
+>
+  <view class="detail-sheet" catchtap="noop" catchtouchmove="noop">
+    <text class="detail-title">{{checkInDetail.title}}</text>
+    <text class="detail-sub">{{checkInDetail.subtitle}}</text>
+    <view class="detail-head" wx:if="{{checkInDetail.petAvatar}}">
+      <image class="detail-avatar" src="{{checkInDetail.petAvatar}}" mode="aspectFill"></image>
+    </view>
+    <view class="detail-rows">
+      <view class="detail-row" wx:for="{{checkInDetail.rows}}" wx:key="label">
+        <text class="detail-label">{{item.label}}</text>
+        <text class="detail-value">{{item.value}}</text>
+      </view>
+    </view>
+    <button
+      class="detail-cert-btn"
+      wx:if="{{checkInDetail.petId}}"
+      bindtap="onOpenParticipantPetCert"
+    >查看电子宠证（公开信息）</button>
+    <text class="detail-close" bindtap="onCloseCheckInDetail">关闭</text>
+  </view>
+</view>

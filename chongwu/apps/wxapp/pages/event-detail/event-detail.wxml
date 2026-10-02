@@ -1,3 +1,4 @@
+<page-meta page-style="{{showTicket ? 'overflow: hidden;' : ''}}"></page-meta>
 <view class="page" wx:if="{{event}}">
   <view class="cover-wrap aspect-34">
     <swiper
@@ -103,28 +104,35 @@
   </view>
 
   <view class="bottom">
-    <button class="btn-secondary" bindtap="onSignup">
-      {{isOwner ? '我的活动' : (signedUp ? '报名码' : '报名')}}
-    </button>
-    <button class="btn-secondary" bindtap="onChatHost" disabled="{{isOwner}}">发起私聊</button>
-    <button class="btn-primary" open-type="share">分享</button>
+    <button class="btn-secondary" open-type="share">分享</button>
+    <button class="btn-secondary" bindtap="onChatHost">私聊</button>
+    <button
+      class="{{isOwner ? 'btn-primary' : (signedUp ? 'btn-secondary btn-signed' : 'btn-primary')}}"
+      bindtap="onSignupTap"
+    >{{isOwner ? '报名管理' : (signedUp ? '已报名' : '报名')}}</button>
   </view>
+</view>
 
-  <view class="ticket-mask" wx:if="{{showTicket && signup}}" catchtap="onCloseTicket">
-    <view class="ticket-sheet" catchtap="noop">
-      <text class="ticket-eyebrow">线下核销码</text>
-      <text class="ticket-title">{{event.title}}</text>
-      <view class="ticket-qr-wrap">
-        <canvas type="2d" id="ticketQr" class="ticket-qr"></canvas>
-      </view>
-      <text class="ticket-code">核销码 {{signup.ticketCode}}</text>
-      <view class="ticket-info">
-        <text class="ticket-line">报名人：{{signup.contactName || '宠友'}}</text>
-        <text class="ticket-line">手机号：{{signup.phone || '未填写'}}</text>
-        <text class="ticket-line">宠物：{{signup.petName || '我家毛孩'}}{{signup.petBreed ? ' · ' + signup.petBreed : ''}}</text>
-      </view>
-      <text class="ticket-tip">扫码可看到报名人和宠物信息，入场请向主理人出示</text>
-      <text class="ticket-close" bindtap="onCloseTicket">关闭</text>
+<view
+  class="ticket-mask"
+  wx:if="{{showTicket && event}}"
+  catchtap="onCloseTicket"
+  catchtouchmove="noop"
+>
+  <view class="ticket-sheet" catchtap="noop" catchtouchmove="noop">
+    <text class="ticket-eyebrow">线下核销码</text>
+    <text class="ticket-title">{{event.title}}</text>
+    <view class="ticket-qr-wrap">
+      <canvas type="2d" id="ticketQrCanvas" class="ticket-qr-canvas"></canvas>
+      <view class="ticket-qr-loading" wx:if="{{!ticketQrReady}}">二维码生成中…</view>
     </view>
+    <text class="ticket-code">核销码 {{signup.ticketCode}}</text>
+    <view class="ticket-info">
+      <text class="ticket-line">报名人：{{signup.contactName || '宠友'}}</text>
+      <text class="ticket-line">手机号：{{signup.phone || '未填写'}}</text>
+      <text class="ticket-line">宠物：{{signup.petName || '我家毛孩'}}{{signup.petBreed ? ' · ' + signup.petBreed : ''}}</text>
+    </view>
+    <text class="ticket-tip">请向发起人出示此码；也可直接报下方 6 位核销码。若一直显示「生成中」，请关闭后重新点「已报名」。</text>
+    <text class="ticket-close" bindtap="onCloseTicket">关闭</text>
   </view>
 </view>

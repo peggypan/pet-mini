@@ -179,6 +179,9 @@
         placeholder="列表与头图下方展示的短介绍"
         placeholder-class="row-ph"
         maxlength="120"
+        fixed
+        disable-default-padding
+        cursor-spacing="24"
       ></textarea>
     </view>
 
@@ -193,6 +196,9 @@
         placeholder="活动流程、注意事项、装备要求等，可分段换行"
         placeholder-class="row-ph"
         maxlength="2000"
+        fixed
+        disable-default-padding
+        cursor-spacing="24"
       ></textarea>
       <text class="label-tip detail-media-tip">{{detailMediaLimitHint}}（{{detailMediaSummary}}）</text>
       <view class="media-grid detail-media-grid" wx:if="{{detailMediaList.length}}">

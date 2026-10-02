@@ -44,7 +44,17 @@ input, .picker, textarea {
   margin-bottom: 8rpx;
 }
 
-textarea { min-height: 180rpx; }
+/* iOS 上全局 textarea height:auto 会把输入框撑得很高 */
+.field-textarea {
+  height: 240rpx;
+  min-height: 240rpx;
+  max-height: 320rpx;
+  padding: 20rpx 24rpx;
+  font-size: 28rpx;
+  line-height: 1.5;
+  color: #1A1A1A;
+  margin-bottom: 8rpx;
+}
 
 .time-row {
   display: flex;

@@ -8,6 +8,14 @@ function signupApi(action, payload = {}) {
   return cloudApi.callApi('event_signups', action, payload);
 }
 
+function isApiNotImplemented(err) {
+  if (!err) return false;
+  if (err.code === 501) return true;
+  return /未实现|501/.test(String(err.message || ''));
+}
+
+const CLOUD_DEPLOY_HINT = '请上传部署最新 cloudfunctions/api 云函数';
+
 async function ensureCloudLogin() {
   const { refreshPetsFromCloud } = require('./pet-cloud-sync');
   try {
@@ -62,8 +70,17 @@ async function saveSignupToCloud(event, form) {
     phone: (form && form.phone) || '',
     petName: (form && form.petName) || '',
     petBreed: (form && form.petBreed) || '',
+    ...(form && form.petExtras ? form.petExtras : {}),
   };
-  const data = await signupApi('save', body);
+  let data;
+  try {
+    data = await signupApi('save', body);
+  } catch (e) {
+    if (isApiNotImplemented(e)) {
+      throw new Error(`${CLOUD_DEPLOY_HINT}（需 event_signups.save）`);
+    }
+    throw e;
+  }
   const signup = data && data.signup;
   if (!signup) throw new Error('报名失败');
 
@@ -99,9 +116,58 @@ async function removeSignupFromCloud(idOrEventId, byEventId) {
   return true;
 }
 
+async function listSignupsByEventForHost(eventId) {
+  if (!eventId) return [];
+  if (!cloudApi.cloudEnabled()) {
+    return store.listSignupsForEvent(eventId);
+  }
+  await ensureCloudLogin();
+  try {
+    const data = await signupApi('listByEvent', { eventId: String(eventId) });
+    return (data && data.list) || [];
+  } catch (e) {
+    if (isApiNotImplemented(e)) {
+      return store.listSignupsForEvent(eventId);
+    }
+    throw e;
+  }
+}
+
+async function checkInSignupForHost(eventId, ticketCode) {
+  if (!cloudApi.cloudEnabled()) {
+    return store.checkInEventSignup(eventId, ticketCode);
+  }
+  await ensureCloudLogin();
+  try {
+    const data = await signupApi('checkIn', {
+      eventId: String(eventId),
+      ticketCode: String(ticketCode || '').trim(),
+    });
+    const signup = data && data.signup;
+    if (signup) store.upsertSignupFromCloud(signup);
+    return {
+      ok: true,
+      alreadyCheckedIn: !!(data && data.alreadyCheckedIn),
+      signup,
+      participantPet: (data && data.participantPet) || null,
+    };
+  } catch (e) {
+    if (isApiNotImplemented(e)) {
+      return {
+        ok: false,
+        reason: `${CLOUD_DEPLOY_HINT}（需 event_signups.checkIn）`,
+      };
+    }
+    const msg = (e && e.message) || '核销失败';
+    return { ok: false, reason: msg };
+  }
+}
+
 module.exports = {
   refreshMySignupsFromCloud,
   fetchMySignupByEvent,
   saveSignupToCloud,
   removeSignupFromCloud,
+  listSignupsByEventForHost,
+  checkInSignupForHost,
 };

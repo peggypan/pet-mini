@@ -111,6 +111,7 @@ wx.cloud.callFunction({
 | `local_posts.listFeed` / `listMine` / `get` / `save` / `remove` | 同城结构化帖（领养等，pet-rescue） |
 | `events.listFeed` / `listMine` / `get` / `save` / `remove` | 活动（event-publish / 广场列表） |
 | `event_signups.listMine` / `getMyByEvent` / `get` / `save` / `remove` | 报名与核销码（名额与 `events.remain` 联动） |
+| `event_signups.listByEvent` / `checkIn` | 发起人查看报名列表、扫码核销（需部署最新 `api`） |
 | `event_qualify.getMine` / `submit` | 活动发布资质（个人实名 / 商家入驻，含证件图） |
 | `map_points.listFeed` / `listMine` / `get` / `save` / `remove` | 友好地图标点（提交 `pending`，广场仅 `approved`） |
 | `merchants.listFeed` / `listMine` / `get` / `save` / `remove` | 商家门店（`bizStatus`: 0 待审 / 1 营业 / 2 拒绝） |

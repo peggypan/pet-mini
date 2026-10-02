@@ -33,7 +33,17 @@
     </view>
 
     <text class="label">需求描述 *</text>
-    <textarea placeholder="描述你的搭子需求、宠物情况等" value="{{desc}}" data-field="desc" bindinput="onInput" maxlength="300"></textarea>
+    <textarea
+      class="field-textarea"
+      placeholder="描述你的搭子需求、宠物情况等"
+      value="{{desc}}"
+      data-field="desc"
+      bindinput="onInput"
+      maxlength="300"
+      fixed
+      disable-default-padding
+      cursor-spacing="24"
+    ></textarea>
 
     <text class="label">宠物相册</text>
     <text class="label-tip">{{mediaLimitHint}}（{{mediaSummary}}）</text>

@@ -273,23 +273,18 @@ function makeTicketCode() {
 }
 
 /**
- * 生成核销二维码文本，包含活动、报名人和宠物信息
+ * 写入二维码的短链接（须保持很短：本地 QR 仅支持约 130 字节，多行中文会导致码无法被微信识别）
  * @param {object} signup 报名记录
  * @returns {string}
  */
+function buildTicketQrContent(signup) {
+  const code = String(signup.ticketCode || '').trim().toUpperCase();
+  return code;
+}
+
+/** @deprecated 请用 buildTicketQrContent 生成二维码；详情页文字信息单独展示 */
 function buildTicketPayload(signup) {
-  const person = signup.contactName || '宠友';
-  const phone = signup.phone || '未填写';
-  const pet = signup.petName || '宠物';
-  const breed = signup.petBreed ? ` · ${signup.petBreed}` : '';
-  return [
-    '【宠头头核销】',
-    `活动：${signup.title || ''}`,
-    `姓名：${person}`,
-    `手机：${phone}`,
-    `宠物：${pet}${breed}`,
-    `核销码：${signup.ticketCode || ''}`,
-  ].join('\n');
+  return buildTicketQrContent(signup);
 }
 
 function getEventSignupByEventId(eventId) {
@@ -672,7 +667,34 @@ function removeSignupFromCache(idOrEventId, byEventId) {
   return true;
 }
 
+function listSignupsForEvent(eventId) {
+  return listEventSignups().filter((x) => String(x.eventId) === String(eventId));
+}
+
+function checkInEventSignup(eventId, ticketCode) {
+  const code = String(ticketCode || '').trim().toUpperCase();
+  if (!code) return { ok: false, reason: '缺少核销码' };
+  const list = listEventSignups();
+  const idx = list.findIndex(
+    (x) => String(x.eventId) === String(eventId) && String(x.ticketCode || '').toUpperCase() === code,
+  );
+  if (idx < 0) return { ok: false, reason: '未找到该报名' };
+  const row = list[idx];
+  if (row.checkedIn) {
+    return { ok: true, alreadyCheckedIn: true, signup: row };
+  }
+  const next = { ...row, checkedIn: true, checkedInAt: new Date().toISOString() };
+  list[idx] = next;
+  write(KEYS.eventSignups, list);
+  return { ok: true, alreadyCheckedIn: false, signup: next };
+}
+
 function addEventSignup(event, form) {
+  if (getMyEvent(event.id)) {
+    const err = new Error('您是活动发起人，无需报名');
+    err.code = 'EVENT_HOST';
+    throw err;
+  }
   const list = listEventSignups();
   const existed = list.find((x) => String(x.eventId) === String(event.id));
   if (existed) return { duplicated: true, signup: existed, list };
@@ -693,6 +715,7 @@ function addEventSignup(event, form) {
     phone: (info.phone || '').trim(),
     petName: (info.petName || '').trim(),
     petBreed: (info.petBreed || '').trim(),
+    ...(info.petExtras || {}),
     ticketCode: makeTicketCode(),
     checkedIn: false,
     createdAt: new Date().toISOString(),
@@ -1535,7 +1558,9 @@ function listMyEvents() {
 
 function getMyEvent(id) {
   const sid = String(id);
-  const fromCloud = listCloudEvents().find((e) => String(e.id) === sid);
+  const fromCloud = listCloudEvents().find(
+    (e) => String(e.id) === sid && e.isMine === true,
+  );
   if (fromCloud) return fromCloud;
   return read(KEYS.myEvents, []).find((e) => String(e.id) === sid) || null;
 }
@@ -2178,6 +2203,8 @@ module.exports = {
   removePostComment,
   addPostComment,
   listEventSignups,
+  listSignupsForEvent,
+  checkInEventSignup,
   upsertSignupFromCloud,
   replaceAllSignupsFromCloud,
   removeSignupFromCache,
@@ -2185,6 +2212,7 @@ module.exports = {
   getEventSignupByEventId,
   ensureEventSignupTicket,
   buildEventSignupNotice,
+  buildTicketQrContent,
   buildTicketPayload,
   listFollows,
   listFollowersOfMe,

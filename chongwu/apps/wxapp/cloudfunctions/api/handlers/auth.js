@@ -8,6 +8,7 @@ function publicUser(doc) {
     id: doc._id,
     openid: doc.openid || doc._openid || '',
     nickname: doc.nickname || '宠友',
+    bio: doc.bio || '',
     avatarUrl: doc.avatarUrl || '',
     phone: doc.phone || '',
     phoneMasked: doc.phoneMasked || doc.phone || '',
@@ -33,6 +34,7 @@ async function login(_payload, wxContext) {
         openid,
         _openid: openid,
         nickname,
+        bio: '',
         avatarUrl: '',
         phone: '',
         phoneMasked: '',
@@ -80,6 +82,38 @@ async function me(_payload, wxContext) {
 /**
  * 手机号：小程序 getPhoneNumber 的 code，需云函数 openapi
  */
+async function updateProfile(payload, wxContext) {
+  const openid = wxContext.OPENID;
+  if (!openid) return fail(401, '未登录');
+  const body = payload || {};
+  const patch = { updatedAt: now() };
+
+  if (body.nickname !== undefined) {
+    const nickname = String(body.nickname || '').trim();
+    if (!nickname) return fail(400, '请填写昵称');
+    if (nickname.length > 16) return fail(400, '昵称最多 16 字');
+    patch.nickname = nickname;
+  }
+  if (body.bio !== undefined) {
+    patch.bio = String(body.bio || '').trim().slice(0, 80);
+  }
+  if (body.avatarUrl !== undefined) {
+    patch.avatarUrl = String(body.avatarUrl || '').trim();
+  }
+  if (Object.keys(patch).length <= 1) {
+    return fail(400, '缺少 nickname / bio / avatarUrl');
+  }
+
+  const col = users();
+  const res = await col.where({ openid }).limit(1).get();
+  const doc = res.data[0];
+  if (!doc) return fail(404, '用户不存在，请先 login');
+
+  await col.doc(doc._id).update({ data: patch });
+  const got = await col.doc(doc._id).get();
+  return ok({ user: publicUser(got.data) });
+}
+
 async function bindPhone(payload, wxContext) {
   const openid = wxContext.OPENID;
   if (!openid) return fail(401, '未登录');
@@ -121,5 +155,6 @@ async function bindPhone(payload, wxContext) {
 module.exports = {
   login,
   me,
+  updateProfile,
   bindPhone,
 };

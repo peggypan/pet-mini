@@ -6,7 +6,7 @@
 
 1. [微信公众平台](https://mp.weixin.qq.com/) → 你的小程序 → **云开发** → 开通（按量计费即可）。
 2. 记录 **环境 ID**（形如 `cloud1-xxxx`）。
-3. **数据库集合**：共 **21** 个，分 6 期创建；清单、CLI 命令与控制台步骤见  
+3. **数据库集合**：共 **25** 个，分 6 期创建；清单、CLI 命令与控制台步骤见  
    **`apps/wxapp/database/README.md`**（脚本：`database/init-collections.sh`）。  
    今天只需先完成 **阶段 1**：`users`（可能已有）+ **`pets`**。  
 4. **权限**：各集合规则见 **`apps/wxapp/database/permissions.md`**。
@@ -98,10 +98,12 @@ wx.cloud.callFunction({
 | module.action | 说明 |
 |---------------|------|
 | `system.ping` | 连通性检测 |
+| `system.checkCollections` | 检测各集合是否已在控制台创建（返回 `missing` 列表） |
 | `system.getWxacode` | 活动海报等无限制小程序码（openapi `wxacode.getUnlimited`） |
 | `auth.login` | openid 登录/注册，写 `users` |
 | `auth.me` | 当前用户 |
 | `auth.bindPhone` | `getPhoneNumber` 的 code 换手机号 |
+| `auth.updateProfile` | 更新 `users` 网名 / 签名 / 头像 |
 | `pets.listMine` / `pets.get` / `pets.save` | 宠物档案 |
 | `buddy_posts.listFeed` / `listMine` / `get` / `save` / `remove` | 搭子广场 |
 | `social_posts.listFeed` / `listMine` / `get` / `save` / `remove` | 社区动态（含寻宠/招领同步） |

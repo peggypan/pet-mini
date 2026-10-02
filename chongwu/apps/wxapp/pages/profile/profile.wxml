@@ -20,7 +20,22 @@
           <view class="avatar-edit-badge">✎</view>
         </view>
         <view class="profile-meta">
-          <text class="name">{{isLogin ? (userInfo.nickname || pet.name || '宠友') : '未登录'}}</text>
+          <view class="name-row" wx:if="{{isLogin}}">
+            <input
+              class="name name-input"
+              type="nickname"
+              maxlength="16"
+              value="{{displayNickname}}"
+              placeholder="设置网名"
+              placeholder-class="name-placeholder"
+              confirm-type="done"
+              bindinput="onNicknameInput"
+              bindblur="onNicknameCommit"
+              bindconfirm="onNicknameCommit"
+            />
+            <text class="name-edit-hint">✎</text>
+          </view>
+          <text class="name" wx:else>未登录</text>
           <view class="follow-row">
             <view class="follow-item" bindtap="onProfileStatTap" data-stat="follow">
               <text class="follow-num">{{stats.following}}</text> 关注

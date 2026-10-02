@@ -1,6 +1,6 @@
 # 云数据库集合创建指南
 
-微信云开发使用的是 **集合（Collection）**，不是 MySQL 那种「表」。本项目一共 **21 个集合**，名称见 `collections.json`。
+微信云开发使用的是 **集合（Collection）**，不是 MySQL 那种「表」。本项目一共 **25 个集合**，名称见 `collections.json`。
 
 当前环境 ID：`cloud1-d8gnokqshc15dc3ae`
 
@@ -10,7 +10,7 @@
 
 | 统计 | 数量 |
 |------|------|
-| 集合总数 | **21** |
+| 集合总数 | **25** |
 | 你可能已有 | `users`（登录过则已有数据） |
 | 建议今天先建 | 阶段 **1** 共 2 个：`users` + `pets` |
 | 业务全量前 | 阶段 **1～6** 全部建齐 |
@@ -24,7 +24,7 @@
 | 阶段 | 集合 | 说明 |
 |------|------|------|
 | **1** | `users`, `pets` | 登录、宠物档案（**最先**） |
-| **2** | `buddy_posts`, `social_posts`, `social_comments`, `local_posts` | 搭搭、社区、同城 |
+| **2** | `buddy_posts`, `pet_discover_*`, `social_*`, `local_posts`, `chat_*` | 搭搭、社区、私信 |
 | **3** | `events`, `event_signups`, `event_qualify` | 活动 |
 | **4** | `map_points` | 友好地图 |
 | **5** | `merchants`, `merchant_applies`, `host_applies`, `clubs`, `club_members` | 商家与主理人 |
@@ -111,4 +111,31 @@ tcb db nosql execute --help
 5. **重新上传部署** 云函数 `api`（含 `pets.listMine` / `pets.get` / `pets.save`）。  
 6. 登录后 Console：`require('./utils/cloud-api').listMyPets()` 应返回 `{ list: [] }`。  
 
-不必一次性建满 21 个集合；**按阶段建**即可。
+不必一次性建满 25 个集合；**按阶段建**即可。
+
+---
+
+## 八、自检：集合是否已创建
+
+部署 `api` 云函数后，在开发者工具 **AppService Console** 执行：
+
+```javascript
+const cloudApi = require('./utils/cloud-api.js');
+cloudApi.callApi('system', 'checkCollections', { phase: 1 }).then(console.log);
+// phase: 1 | 2 | 3 | 4 | 5 | 6，不传则检查全部 25 个
+```
+
+返回 `missing` 为空即表示当前阶段集合已在云上创建。权限对照 **`permissions-map.json`**（与 `permissions.md` 模板 A～E 对应）。
+
+---
+
+## 九、用户资料存哪里？
+
+| 数据 | 云集合 | 写入方式 |
+|------|--------|----------|
+| 网名、签名、头像 | `users` | `auth.login` 建号；`auth.updateProfile` 更新 |
+| 宠物档案 | `pets` | `pets.save` |
+| 积分余额 | `users.points` | 云函数内部入账 |
+| 主页标签（本地优先） | — | 仍存 Storage `mvp_profile_pet_tags`，后续可迁到 `users` |
+
+开云后改网名/签名会写入 **`users`**，换机登录 `auth.me` 会拉回云端资料。

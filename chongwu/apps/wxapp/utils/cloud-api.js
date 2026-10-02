@@ -53,6 +53,10 @@ function bindPhone(phoneCode) {
   return callApi('auth', 'bindPhone', { phoneCode });
 }
 
+function updateProfile(payload) {
+  return callApi('auth', 'updateProfile', payload || {});
+}
+
 function listMyPets() {
   return callApi('pets', 'listMine');
 }
@@ -184,6 +188,7 @@ module.exports = {
   login,
   getProfile,
   bindPhone,
+  updateProfile,
   listMyPets,
   getPet,
   savePet,

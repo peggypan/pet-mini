@@ -2,6 +2,7 @@
   "_comment": "示例结构，仅供对照字段。真实数据由 auth.login 创建，勿手动改 openid。",
   "openid": "oXXXX_example_openid",
   "nickname": "宠友1234",
+  "bio": "和毛孩子一起，遇见同城宠友与好活动～",
   "avatarUrl": "cloud://xxx.png",
   "phone": "13800138000",
   "phoneMasked": "138****8000",

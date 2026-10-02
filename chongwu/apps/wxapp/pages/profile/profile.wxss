@@ -143,12 +143,44 @@ page {
   min-width: 0;
 }
 
+.name-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 10rpx;
+  min-width: 0;
+}
+
 .name {
   display: block;
   font-size: 44rpx;
   font-weight: 800;
   color: #ffffff;
   margin-bottom: 10rpx;
+}
+
+.name-row .name {
+  flex: 1;
+  margin-bottom: 0;
+  min-width: 0;
+}
+
+.name-input {
+  height: 56rpx;
+  line-height: 56rpx;
+  padding: 0;
+  background: transparent;
+}
+
+.name-placeholder {
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 600;
+}
+
+.name-edit-hint {
+  flex-shrink: 0;
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.75);
 }
 
 .follow-row {

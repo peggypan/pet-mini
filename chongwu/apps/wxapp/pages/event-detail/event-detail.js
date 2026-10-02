@@ -12,6 +12,7 @@ const {
   fetchMySignupByEvent,
   saveSignupToCloud,
 } = require('../../utils/event-signup-cloud-sync');
+const { ensureChatThreadOnCloud } = require('../../utils/chat-cloud-sync');
 const { buildEventDetailSection, buildEventCoverImages } = require('../../utils/event-detail-content');
 
 function readUserPhone() {
@@ -59,7 +60,7 @@ Page({
       const mine = await fetchMySignupByEvent(event.id);
       signedUp = !!mine;
     }
-    const isOwner = store.isMyUserContent(event) || !!store.getMyEvent(event.id);
+    const isOwner = event.isMine === true || !!store.getMyEvent(event.id);
     this.setData({
       event,
       coverImages: buildEventCoverImages(event),
@@ -94,6 +95,14 @@ Page({
 
   onSignup() {
     if (!requirePetProfile()) return;
+    if (this.data.isOwner) {
+      wx.navigateTo({ url: '/pages/my-events/my-events' });
+      return;
+    }
+    if (this.data.signedUp) {
+      this.openTicket();
+      return;
+    }
     this.openTicket();
   },
 
@@ -165,32 +174,51 @@ Page({
     wx.navigateTo({ url: `/pages/event-poster/event-poster?id=${event.id}` });
   },
 
-  onChatHost() {
+  async onChatHost() {
     if (!requirePetProfile()) return;
-    const { event } = this.data;
+    const { event, isOwner } = this.data;
     if (!event) return;
-    const peerId = event.hostId || `host_${event.id}`;
-    const peerName = encodeURIComponent(event.host || '主理人');
-    const petName = encodeURIComponent(event.hostPetName || '活动主理');
-    const avatar = encodeURIComponent(event.hostAvatar || '');
+    if (isOwner) {
+      wx.showToast({ title: '这是您发起的活动', icon: 'none' });
+      return;
+    }
+    const peerId = event.hostId || event.publisherId || `host_${event.id}`;
+    const peerNameRaw = event.host || '主理人';
+    const petNameRaw = event.hostPetName || '活动主理';
+    const avatarRaw = event.hostAvatar || '';
     wx.showModal({
-      title: '联系主理人',
-      content: `将向「${event.host}」发起私信。${RISK_TIPS.meet}`,
-      confirmText: '发起私聊',
-      success: (res) => {
+      title: '发起私聊',
+      content: `将向「${peerNameRaw}」发起私信。${RISK_TIPS.meet}`,
+      confirmText: '去聊天',
+      success: async (res) => {
         if (!res.confirm) return;
-        store.ensureChatThread({
+        await ensureChatThreadOnCloud({
           id: `c_${peerId}`,
           peerId,
-          peerName: event.host || '主理人',
-          petName: event.hostPetName || '活动主理',
-          avatar: event.hostAvatar || '',
+          peerName: peerNameRaw,
+          petName: petNameRaw,
+          avatar: avatarRaw,
         });
+        const peerName = encodeURIComponent(peerNameRaw);
+        const petName = encodeURIComponent(petNameRaw);
+        const avatar = encodeURIComponent(avatarRaw);
         wx.navigateTo({
           url: `/pages/chat/chat?peerId=${peerId}&peerName=${peerName}&petName=${petName}&avatar=${avatar}`,
         });
       },
     });
+  },
+
+  onShareAppMessage() {
+    const { event } = this.data;
+    if (!event) {
+      return { title: '宠头头 · 同城宠物活动', path: '/pages/events/events' };
+    }
+    return {
+      title: event.title || '一起来参加宠物活动',
+      path: `/pages/event-detail/event-detail?id=${event.id}`,
+      imageUrl: (this.data.coverImages && this.data.coverImages[0]) || event.cover || '',
+    };
   },
 
   onCoverSwiperChange(e) {

@@ -103,11 +103,11 @@
   </view>
 
   <view class="bottom">
-    <button class="btn-secondary {{isOwner ? 'btn-full' : ''}}" bindtap="onSharePoster">分享海报</button>
-    <button class="btn-secondary" wx:if="{{!isOwner}}" bindtap="onChatHost">联系主理人</button>
-    <button class="btn-primary" wx:if="{{!isOwner}}" bindtap="onSignup">
-      {{signedUp ? '查看报名码' : '立即报名'}}
+    <button class="btn-secondary" bindtap="onSignup">
+      {{isOwner ? '我的活动' : (signedUp ? '报名码' : '报名')}}
     </button>
+    <button class="btn-secondary" bindtap="onChatHost" disabled="{{isOwner}}">发起私聊</button>
+    <button class="btn-primary" open-type="share">分享</button>
   </view>
 
   <view class="ticket-mask" wx:if="{{showTicket && signup}}" catchtap="onCloseTicket">

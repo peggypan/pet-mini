@@ -17,6 +17,11 @@ const {
   sampleImageColors,
 } = require('../../utils/image-palette');
 const amap = require('../../utils/amap');
+const { getDisplayNickname } = require('../../utils/user-profile-display');
+const {
+  persistUserProfileFields,
+  pullUserProfileFromCloud,
+} = require('../../utils/persist-user-profile');
 const TAB_KEYS = ['myEvents', 'joined', 'buddy', 'social'];
 
 function buildProfileStatCounts() {
@@ -152,6 +157,8 @@ Page({
     heroGradient: gradientStyleString(DEFAULT),
     heroSourceImage: '',
     profileBio: '和毛孩子一起，遇见同城宠友与好活动～',
+    displayNickname: '宠友',
+    nicknameSaving: false,
   },
 
   pickHeroImageSource() {
@@ -224,11 +231,19 @@ Page({
         // keep local cache
       }
     }
+    if (token && cloudApi.cloudEnabled()) {
+      try {
+        await pullUserProfileFromCloud();
+      } catch (e) {
+        // keep local cache
+      }
+    }
     const myEvents = store.listMyEvents();
     const statCounts = buildProfileStatCounts();
     this.setData({
       isLogin: !!token,
       userInfo: wx.getStorageSync('userInfo'),
+      displayNickname: getDisplayNickname(),
       pet: getDefaultPet(),
       stats: {
         following: statCounts.following,
@@ -362,6 +377,37 @@ Page({
       confirmText: '知道了',
     });
   },
+  onNicknameInput(e) {
+    this.setData({ displayNickname: e.detail.value || '' });
+  },
+
+  async onNicknameCommit() {
+    if (!this.data.isLogin || this.data.nicknameSaving) return;
+    const next = String(this.data.displayNickname || '').trim();
+    if (!next) {
+      this.setData({ displayNickname: getDisplayNickname() });
+      wx.showToast({ title: '网名不能为空', icon: 'none' });
+      return;
+    }
+    const prev = getDisplayNickname();
+    if (next === prev) return;
+    this.setData({ nicknameSaving: true });
+    try {
+      await persistUserProfileFields({ nickname: next });
+      this.setData({
+        displayNickname: next,
+        userInfo: wx.getStorageSync('userInfo'),
+      });
+      wx.showToast({ title: '网名已更新', icon: 'success' });
+    } catch (e) {
+      this.setData({ displayNickname: prev });
+      const msg = (e && (e.message || e.errMsg)) || '保存失败';
+      wx.showToast({ title: String(msg).slice(0, 40), icon: 'none' });
+    } finally {
+      this.setData({ nicknameSaving: false });
+    }
+  },
+
   onEditProfile() {
     if (!this.data.isLogin) {
       wx.showToast({ title: '请先登录', icon: 'none' });

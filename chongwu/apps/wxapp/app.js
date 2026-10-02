@@ -7,10 +7,18 @@ const { refreshSensitiveWordsFromCloud } = require('./utils/sensitive-words-clou
 
 function persistSession(app, data) {
   if (!data || !data.token) return;
+  const localProfile = store.getUserProfile();
+  const localNick = (localProfile.nickname || '').trim();
+  const localBio = (localProfile.bio || '').trim();
+  let user = data.user || {};
+  if (localNick) user = { ...user, nickname: localNick };
+  else if (user.nickname) store.setUserProfile({ nickname: String(user.nickname).trim() });
+  if (localBio) user = { ...user, bio: localBio };
+  else if (user.bio) store.setUserProfile({ bio: String(user.bio).trim() });
   app.globalData.token = data.token;
-  app.globalData.userInfo = data.user;
+  app.globalData.userInfo = user;
   wx.setStorageSync('token', data.token);
-  wx.setStorageSync('userInfo', data.user);
+  wx.setStorageSync('userInfo', user);
 }
 
 App({

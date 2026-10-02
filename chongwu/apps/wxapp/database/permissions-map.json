@@ -1,0 +1,52 @@
+{
+  "note": "云开发控制台 → 集合 → 权限设置 → 自定义安全规则，按 name 粘贴对应 rule",
+  "templates": {
+    "A_user_private": {
+      "read": "doc._openid == auth.openid",
+      "write": false
+    },
+    "B_owner_write": {
+      "read": true,
+      "write": "doc._openid == auth.openid"
+    },
+    "C_cloud_only": {
+      "read": false,
+      "write": false
+    },
+    "D_public_read": {
+      "read": true,
+      "write": false
+    },
+    "E_comments": {
+      "read": true,
+      "write": "doc._openid == auth.openid"
+    }
+  },
+  "collections": [
+    { "name": "users", "template": "A_user_private" },
+    { "name": "pets", "template": "B_owner_write" },
+    { "name": "buddy_posts", "template": "B_owner_write" },
+    { "name": "pet_discover_likes", "template": "C_cloud_only" },
+    { "name": "pet_discover_daily", "template": "C_cloud_only" },
+    { "name": "social_posts", "template": "B_owner_write" },
+    { "name": "social_comments", "template": "E_comments" },
+    { "name": "local_posts", "template": "B_owner_write" },
+    { "name": "chat_threads", "template": "C_cloud_only" },
+    { "name": "chat_messages", "template": "C_cloud_only" },
+    { "name": "events", "template": "B_owner_write" },
+    { "name": "event_signups", "template": "C_cloud_only" },
+    { "name": "event_qualify", "template": "C_cloud_only" },
+    { "name": "map_points", "template": "C_cloud_only" },
+    { "name": "merchants", "template": "C_cloud_only" },
+    { "name": "merchant_applies", "template": "C_cloud_only" },
+    { "name": "host_applies", "template": "C_cloud_only" },
+    { "name": "clubs", "template": "C_cloud_only" },
+    { "name": "club_members", "template": "C_cloud_only" },
+    { "name": "pet_certs_public", "template": "D_public_read" },
+    { "name": "banners", "template": "D_public_read" },
+    { "name": "splash_ads", "template": "D_public_read" },
+    { "name": "points_ledger", "template": "C_cloud_only" },
+    { "name": "sensitive_words", "template": "C_cloud_only" },
+    { "name": "admin_users", "template": "C_cloud_only" }
+  ]
+}

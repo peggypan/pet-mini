@@ -1,23 +1,114 @@
 <view class="page">
-  <view class="city-bar" bindtap="onCityTap">
-    <text class="city-bar-text">{{city}} · 宠友圈</text>
-    <text class="city-bar-arrow">切换 ›</text>
+  <view class="comm-header">
+    <view class="comm-title-row">
+      <view class="comm-title-block">
+        <text class="comm-title">宠物社区</text>
+        <text class="comm-sub">图文视频 · 互动分享</text>
+      </view>
+      <view class="city-bar" bindtap="onCityTap">
+        <text class="city-bar-text">{{city}}</text>
+        <text class="city-bar-arrow">›</text>
+      </view>
+    </view>
   </view>
-  <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="tabs">
-    <view class="tab {{innerTab === item.id ? 'on' : ''}}" wx:for="{{innerTabs}}" wx:key="id" data-id="{{item.id}}" bindtap="onInnerTab">{{item.name}}</view>
+
+  <view class="zone-panel">
+    <text class="zone-panel-title">社区分区</text>
+    <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="zone-scroll">
+      <view class="zone-row">
+        <view
+          class="zone-cell theme-{{item.theme}} {{activeZone === item.id ? 'on' : ''}}"
+          wx:for="{{communityZones}}"
+          wx:key="id"
+          bindtap="onPickZone"
+          data-id="{{item.id}}"
+        >
+          <view class="zone-icon-wrap">
+            <text class="zone-icon">{{item.icon}}</text>
+          </view>
+          <text class="zone-name">{{item.name}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="topic-scroll">
+    <view
+      class="topic-pill"
+      wx:for="{{hotTopics}}"
+      wx:key="id"
+      data-name="{{item.name}}"
+      bindtap="onTopicTap"
+    >{{item.name}}</view>
   </scroll-view>
 
-  <view wx:if="{{innerTab === 'all'}}">
+  <view class="feed-head">
+    <text class="feed-title">{{hashtagFilter ? hashtagFilter : activeZoneLabel + ' · 动态'}}</text>
+    <text class="feed-count">{{displayPosts.length}} 条</text>
+    <text class="hashtag-clear" wx:if="{{hashtagFilter}}" catchtap="onClearHashtagFilter">清除话题</text>
+  </view>
+
+  <view class="post-list">
     <view class="post-card" wx:for="{{displayPosts}}" wx:key="id" bindtap="onPostTap" data-id="{{item.id}}">
+      <view class="post-top">
+        <view class="zone-badge theme-{{item.zoneTheme}}">
+          <text>{{item.zoneIcon}} {{item.zoneLabel}}</text>
+        </view>
+        <text class="post-time">{{item.time}}</text>
+      </view>
       <view class="head">
         <image class="avatar" src="{{item.avatar}}" mode="aspectFill"></image>
         <view class="user">
           <text class="name">{{item.userName}} · {{item.petName}}</text>
-          <text class="meta">{{item.time}} · {{item.location || '同城'}}</text>
+          <text
+            class="meta place-tap"
+            wx:if="{{item.location && item.location !== '同城'}}"
+            catchtap="onOpenPlace"
+            data-name="{{item.geoLocation.name || item.location}}"
+            data-place="{{item.location}}"
+            data-address="{{item.geoLocation.address || item.location}}"
+            data-lat="{{item.geoLocation.latitude}}"
+            data-lng="{{item.geoLocation.longitude}}"
+          >{{item.geoLocation.name || item.location}}</text>
+          <text class="meta" wx:else>{{item.location || '同城'}}</text>
+        </view>
+        <view class="user-actions" wx:if="{{item.isSelfAuthor}}">
+          <text class="owner-delete" catchtap="onDeletePost" data-id="{{item.id}}">删除</text>
+        </view>
+        <view class="user-actions" wx:elif="{{!item.isSelfAuthor}}">
+          <button
+            size="mini"
+            class="head-follow {{item.followed ? 'followed' : ''}}"
+            catchtap="onFollowAuthor"
+            data-id="{{item.authorId}}"
+            data-name="{{item.userName}}"
+            data-pet="{{item.petName}}"
+            data-avatar="{{item.avatar}}"
+          >{{item.followed ? '已关注' : '关注'}}</button>
+          <button
+            size="mini"
+            class="head-share"
+            open-type="share"
+            catchtap="onSharePost"
+            data-id="{{item.id}}"
+          >
+            <image class="head-share-icon" src="/assets/icons/icon-share-forward.png" mode="aspectFit"></image>
+          </button>
         </view>
       </view>
       <text class="topic" wx:if="{{item.topic}}">{{item.topic}}</text>
-      <text class="content" wx:if="{{item.content}}">{{item.content}}</text>
+      <view class="content" wx:if="{{item.contentParts && item.contentParts.length}}">
+        <block wx:for="{{item.contentParts}}" wx:key="index" wx:for-item="part">
+          <text
+            class="content-tag content-tag-hashtag"
+            wx:if="{{part.tag && part.type === 'hashtag'}}"
+            catchtap="onContentHashtagTap"
+            data-topic="{{part.topic}}"
+          >{{part.text}}</text>
+          <text class="content-tag content-tag-{{part.type}}" wx:elif="{{part.tag}}">{{part.text}}</text>
+          <text wx:else>{{part.text}}</text>
+        </block>
+      </view>
       <view
         class="media-row {{item.mediaList.length === 1 ? 'single' : ''}}"
         wx:if="{{item.mediaList && item.mediaList.length}}"
@@ -26,7 +117,7 @@
       >
         <block wx:for="{{item.mediaList}}" wx:key="index" wx:for-item="media">
           <view
-            class="media-thumb-wrap"
+            class="media-thumb-wrap aspect-34 {{item.mediaList.length === 1 ? '' : 'aspect-34-third'}}"
             wx:if="{{index < 6}}"
             data-id="{{item.id}}"
             data-index="{{index}}"
@@ -38,74 +129,61 @@
               src="{{media.type === 'image' ? media.url : media.poster}}"
               mode="aspectFill"
             ></image>
-            <view class="media-thumb media-thumb-video-placeholder" wx:elif="{{media.type === 'video'}}"></view>
+            <video
+              class="media-thumb cover-video"
+              wx:elif="{{media.type === 'video'}}"
+              src="{{media.url}}"
+              object-fit="cover"
+              muted="{{true}}"
+              autoplay="{{true}}"
+              loop="{{true}}"
+              controls="{{false}}"
+              show-center-play-btn="{{false}}"
+              show-play-btn="{{false}}"
+              show-fullscreen-btn="{{false}}"
+              enable-progress-gesture="{{false}}"
+            ></video>
             <view class="media-video-mask" wx:if="{{media.type === 'video'}}">
               <text class="media-video-tag">▶</text>
               <text class="media-video-dur" wx:if="{{media.duration}}">{{media.duration}}s</text>
             </view>
           </view>
         </block>
-        <view class="media-more" wx:if="{{item.mediaList.length > 6}}">+{{item.mediaList.length - 6}}</view>
+        <view class="media-more aspect-34 aspect-34-third" wx:if="{{item.mediaList.length > 6}}">+{{item.mediaList.length - 6}}</view>
       </view>
-      <view class="footer">
-        <view class="btn" catchtap="onLikeTap" data-id="{{item.id}}">{{item.liked ? '❤️' : '♡'}} {{item.likes}}</view>
-        <view class="btn">💬 {{item.comments}}</view>
-        <button class="btn share-btn" open-type="share" catchtap="onSharePost" data-id="{{item.id}}">↗ 分享</button>
-      </view>
-    </view>
-  </view>
-
-  <view wx:if="{{innerTab === 'featured'}}">
-    <view class="featured-card" wx:for="{{featuredCommunities}}" wx:key="id" bindtap="onEnterCircle" data-id="{{item.id}}">
-      <view class="featured-head">
-        <text class="featured-icon">{{item.icon}}</text>
-        <view class="featured-info">
-          <text class="featured-name">{{item.name}}</text>
-          <text class="featured-meta">{{item.members}} 成员 · {{item.active}}</text>
+      <view class="feed-actions">
+        <view
+          class="feed-action {{item.liked ? 'is-liked' : ''}}"
+          catchtap="onLikeTap"
+          data-id="{{item.id}}"
+        >
+          <view class="feed-icon feed-icon-like"></view>
+          <text>{{item.likes || 0}}</text>
         </view>
-        <text class="featured-enter">进入 ›</text>
-      </view>
-      <text class="featured-topic">{{item.lastTopic}}</text>
-      <text class="featured-preview">{{item.lastPreview}}</text>
-      <view class="featured-images {{item.previewImages.length === 1 ? 'single' : ''}}" wx:if="{{item.previewImages.length}}">
-        <image
-          class="featured-img"
-          wx:for="{{item.previewImages}}"
-          wx:for-item="imgUrl"
-          wx:key="*this"
-          src="{{imgUrl}}"
-          mode="{{item.previewImages.length === 1 ? 'widthFix' : 'aspectFill'}}"
-        ></image>
-      </view>
-      <view class="featured-tags">
-        <text class="featured-tag">💬 私聊</text>
-        <text class="featured-tag">↗ 分享</text>
-        <text class="featured-tag"># 话题</text>
+        <view class="feed-action" catchtap="onPostTap" data-id="{{item.id}}">
+          <view class="feed-icon feed-icon-comment"></view>
+          <text>{{item.comments || 0}}</text>
+        </view>
+        <button
+          class="feed-action-share-btn"
+          open-type="share"
+          catchtap="onSharePost"
+          data-id="{{item.id}}"
+        >
+          <view class="feed-icon feed-icon-share"></view>
+          <text>分享</text>
+        </button>
       </view>
     </view>
-  </view>
 
-  <view wx:if="{{innerTab === 'circle'}}" class="grid">
-    <view class="circle-card" wx:for="{{circles}}" wx:key="id" bindtap="onCircleTap" data-id="{{item.id}}">
-      <text class="icon">{{item.icon}}</text>
-      <text class="c-name">{{item.name}}</text>
-      <text class="c-num">{{item.members}} 成员</text>
+    <view class="feed-empty" wx:if="{{displayPosts.length === 0}}">
+      <text class="feed-empty-icon">🐾</text>
+      <text class="feed-empty-text">这个分区还没有动态</text>
+      <view class="feed-empty-btn" bindtap="onCreatePost">来发第一条</view>
     </view>
   </view>
 
-  <view wx:if="{{innerTab === 'topic'}}">
-    <view class="topic-row" wx:for="{{topics}}" wx:key="id" bindtap="onTopicTap" data-name="{{item.name}}">
-      <text class="t-name">{{item.name}}</text>
-      <text class="t-num">{{item.posts}} 讨论</text>
-    </view>
-  </view>
+  <view class="fab" bindtap="onCreatePost">发帖</view>
 
-  <view wx:if="{{innerTab === 'qa'}}">
-    <view class="qa-card" wx:for="{{qaList}}" wx:key="id">
-      <text class="q-title">{{item.title}}</text>
-      <text class="q-meta">{{item.userName}} · {{item.answers}} 回答</text>
-    </view>
-  </view>
-
-  <view class="fab" bindtap="onCreatePost">+</view>
+  <pet-profile-gate show="{{petProfileBlocked}}" />
 </view>

@@ -58,18 +58,24 @@
         bindtap="onEmojiTab"
       >{{item.name}}</view>
     </scroll-view>
-    <view class="emoji-grid">
-      <view
-        class="emoji-cell"
-        wx:for="{{emojiList}}"
-        wx:key="*this"
-        data-emoji="{{item}}"
-        bindtap="onPickEmoji"
-      >{{item}}</view>
+    <scroll-view scroll-y class="emoji-scroll" enhanced show-scrollbar="{{false}}">
+      <view class="emoji-grid">
+        <view
+          class="emoji-cell"
+          wx:for="{{emojiList}}"
+          wx:key="*this"
+          data-emoji="{{item}}"
+          bindtap="onPickEmoji"
+        >{{item}}</view>
+      </view>
+    </scroll-view>
+    <view class="emoji-bar">
+      <text class="emoji-bar-tip">点击表情插入输入框</text>
+      <view class="emoji-del" bindtap="onEmojiDelete">⌫</view>
     </view>
   </view>
 
-  <view class="input-bar {{fixed ? 'fixed' : ''}}">
+  <view class="input-bar {{fixed ? 'fixed' : ''}} {{disabled ? 'is-disabled' : ''}}">
     <slot name="prefix"></slot>
     <view class="bar-circle-btn" bindtap="onToggleVoice">
       <view class="wx-bar-icon {{voiceMode ? 'wx-keyboard' : 'wx-voice-ring'}}"></view>
@@ -80,6 +86,7 @@
           class="text-input"
           placeholder="{{placeholder}}"
           value="{{value}}"
+          disabled="{{disabled}}"
           bindinput="onInput"
           bindfocus="onInputFocus"
           confirm-type="send"
@@ -98,9 +105,18 @@
     <view class="bar-circle-btn" bindtap="onToggleEmoji">
       <view class="wx-bar-icon wx-smile"></view>
     </view>
-    <view class="bar-circle-btn {{showTools ? 'plus-open' : ''}}" bindtap="onToggleTools">
+    <view
+      wx:if="{{!showSend || voiceMode}}"
+      class="bar-circle-btn {{showTools ? 'plus-open' : ''}}"
+      bindtap="onToggleTools"
+    >
       <view class="wx-bar-icon wx-plus"></view>
     </view>
+    <view
+      wx:elif="{{showSend}}"
+      class="bar-send-btn"
+      bindtap="onSend"
+    >发送</view>
     <slot name="suffix"></slot>
   </view>
 </view>

@@ -1,42 +1,65 @@
 const store = require('../../utils/store');
-
-function formatTime(iso) {
-  if (!iso) return '';
-  const d = new Date(iso);
-  const pad = (n) => `${n}`.padStart(2, '0');
-  return `${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
+const { buildNotices, countUnreadNotices } = require('../../utils/notice-feed');
+const { syncPetProfileGate, requirePetProfile } = require('../../utils/pet-profile-guard');
 
 Page({
   data: {
     tab: 'chat',
     chats: [],
     notices: [],
+    noticeUnread: 0,
+    chatUnread: 0,
+    petProfileBlocked: false,
+  },
+
+  refreshTabBadge() {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      const bar = this.getTabBar();
+      bar.setData({ selected: 3 });
+      if (typeof bar.refreshUnread === 'function') bar.refreshUnread();
+    }
+  },
+
+  consumeNoticeUnread() {
+    store.markMessagesRead();
+    const notices = (this.data.notices || []).map((n) => ({ ...n, read: true }));
+    this.setData({ notices, noticeUnread: 0 });
+    this.refreshTabBadge();
   },
 
   onShow() {
-    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({ selected: 3 });
-    }
-    const chats = store.listChatThreads();
-    const notices = store.listMessages().map((m) => ({
-      ...m,
-      timeText: formatTime(m.createdAt),
-    }));
-    this.setData({ chats, notices });
-    store.markMessagesRead();
+    syncPetProfileGate(this);
+    const notices = buildNotices();
+    const noticeUnread = countUnreadNotices();
+    this.setData({
+      chats: store.listChatThreads(),
+      notices,
+      noticeUnread,
+      chatUnread: store.countUnreadChats(),
+    }, () => {
+      if (this.data.tab === 'notice') this.consumeNoticeUnread();
+      else this.refreshTabBadge();
+    });
   },
 
   onTab(e) {
-    this.setData({ tab: e.currentTarget.dataset.tab });
+    const tab = e.currentTarget.dataset.tab;
+    this.setData({ tab });
+    if (tab === 'notice') this.consumeNoticeUnread();
   },
 
   onChatTap(e) {
+    if (!requirePetProfile()) return;
     const { peerid } = e.currentTarget.dataset;
     wx.navigateTo({ url: `/pages/chat/chat?peerId=${peerid}` });
   },
 
   onDiscoverTap() {
     wx.switchTab({ url: '/pages/discover/discover' });
+  },
+
+  onNoticeTap(e) {
+    const url = e.currentTarget.dataset.url;
+    if (url) wx.navigateTo({ url });
   },
 });

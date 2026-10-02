@@ -1,22 +1,34 @@
 const { MOCK_SOCIAL } = require('../../utils/mock');
 const store = require('../../utils/store');
-const { buildFeaturedCommunities } = require('../../utils/circle-community');
+const {
+  COMMUNITY_ZONES,
+  getZoneLabel,
+  filterPostsByZone,
+  decoratePostZone,
+} = require('../../utils/community-zones');
 const { normalizePostMedia, previewPostMedia } = require('../../utils/social-post-media');
+const { withContentParts } = require('../../utils/social-content-parts');
+const { openSocialHashtagFilter } = require('../../utils/social-hashtag-nav');
+const amap = require('../../utils/amap');
+const { decoratePostFollow, followResultToast } = require('../../utils/pet-follow');
+const { syncPetProfileGate, requirePetProfile } = require('../../utils/pet-profile-guard');
+const { deleteOwnedSocialPost } = require('../../utils/user-content-delete');
 
 Page({
   data: {
-    innerTab: 'all',
-    innerTabs: MOCK_SOCIAL.innerTabs,
-    circles: MOCK_SOCIAL.circles,
-    topics: MOCK_SOCIAL.topics,
-    qaList: MOCK_SOCIAL.qaList,
-    featuredCommunities: [],
+    communityZones: COMMUNITY_ZONES,
+    hotTopics: MOCK_SOCIAL.topics,
+    activeZone: 'all',
+    activeZoneLabel: '全部',
     posts: [],
     displayPosts: [],
     city: '北京',
+    petProfileBlocked: false,
+    hashtagFilter: '',
   },
 
   onShow() {
+    syncPetProfileGate(this);
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 2 });
     }
@@ -25,13 +37,24 @@ Page({
       wx.removeStorageSync('social_tab');
       if (pendingTab === 'map') {
         wx.navigateTo({ url: '/pages/buddy/buddy' });
-      } else {
-        this.setData({ innerTab: pendingTab });
+      } else if (COMMUNITY_ZONES.some((z) => z.id === pendingTab)) {
+        this.setData({ activeZone: pendingTab });
       }
     }
-    this.setData({ city: store.getCity() });
-    this.reloadPosts();
-    this.reloadFeatured();
+    const pendingZone = wx.getStorageSync('social_zone');
+    if (pendingZone) {
+      wx.removeStorageSync('social_zone');
+      if (COMMUNITY_ZONES.some((z) => z.id === pendingZone)) {
+        this.setData({ activeZone: pendingZone });
+      }
+    }
+    const hashtagFromNav = wx.getStorageSync('social_hashtag_filter');
+    const showPatch = { city: store.getCity() };
+    if (hashtagFromNav) {
+      wx.removeStorageSync('social_hashtag_filter');
+      showPatch.hashtagFilter = String(hashtagFromNav);
+    }
+    this.setData(showPatch, () => this.reloadPosts());
   },
 
   onCityTap() {
@@ -40,26 +63,72 @@ Page({
 
   reloadPosts() {
     const local = store.listSocialPosts().map((p) => normalizePostMedia(p));
-    const mock = MOCK_SOCIAL.posts.map((p) => normalizePostMedia({ ...p, ...(store.getSocialOverride(p.id) || {}) }));
+    const mock = MOCK_SOCIAL.posts.map((p) => normalizePostMedia({
+      ...p,
+      ...(store.getSocialOverride(p.id) || {}),
+    }));
     const posts = [...local, ...mock];
-    this.setData({ posts, displayPosts: posts });
+    this.setData({ posts }, () => this.applyDisplayPosts());
   },
 
-  reloadFeatured() {
-    const featuredCommunities = buildFeaturedCommunities((circleId) => store.getCircleLastMessage(circleId));
-    this.setData({ featuredCommunities });
+  applyDisplayPosts() {
+    const { posts, activeZone, hashtagFilter } = this.data;
+    let filtered = filterPostsByZone(posts, activeZone);
+    if (hashtagFilter) {
+      const tag = String(hashtagFilter);
+      filtered = filtered.filter(
+        (p) => (p.content && p.content.indexOf(tag) >= 0) || p.topic === tag,
+      );
+    }
+    filtered = filtered
+      .map(decoratePostZone)
+      .map(withContentParts)
+      .map(decoratePostFollow);
+    this.setData({
+      displayPosts: filtered,
+      activeZoneLabel: getZoneLabel(activeZone),
+    });
   },
 
-  onInnerTab(e) {
-    this.setData({ innerTab: e.currentTarget.dataset.id });
+  onContentHashtagTap(e) {
+    const topic = e.currentTarget.dataset.topic;
+    openSocialHashtagFilter(topic);
+  },
+
+  onClearHashtagFilter() {
+    this.setData({ hashtagFilter: '' }, () => this.applyDisplayPosts());
+  },
+
+  onPickZone(e) {
+    const id = e.currentTarget.dataset.id;
+    if (!id || id === this.data.activeZone) return;
+    this.setData({ activeZone: id }, () => this.applyDisplayPosts());
+  },
+
+  onTopicTap(e) {
+    if (!requirePetProfile()) return;
+    const topic = e.currentTarget.dataset.name;
+    const zone = this.data.activeZone !== 'all' ? this.data.activeZone : '';
+    let url = `/pages/social-post/social-post?topic=${encodeURIComponent(topic)}`;
+    if (zone) url += `&zone=${zone}`;
+    wx.navigateTo({ url });
   },
 
   onCreatePost() {
-    wx.navigateTo({ url: '/pages/social-post/social-post' });
+    if (!requirePetProfile()) return;
+    const zone = this.data.activeZone !== 'all' ? this.data.activeZone : '';
+    wx.navigateTo({
+      url: zone ? `/pages/social-post/social-post?zone=${zone}` : '/pages/social-post/social-post',
+    });
   },
 
   onPostTap(e) {
+    if (!requirePetProfile()) return;
     wx.navigateTo({ url: `/pages/social-detail/social-detail?id=${e.currentTarget.dataset.id}` });
+  },
+
+  onOpenPlace(e) {
+    amap.openPlaceFromTap(e);
   },
 
   onPreviewPostMedia(e) {
@@ -68,36 +137,56 @@ Page({
     if (post) previewPostMedia(post, index);
   },
 
+  onFollowAuthor(e) {
+    if (!requirePetProfile()) return;
+    const { id, name, pet, avatar } = e.currentTarget.dataset;
+    if (!id || id === 'me') return;
+    const result = store.toggleFollow({
+      id,
+      userName: name || '宠友',
+      petName: pet || '',
+      avatar: avatar || '',
+    });
+    wx.showToast({ title: followResultToast(result.followed), icon: 'none' });
+    this.applyDisplayPosts();
+  },
+
+  async onDeletePost(e) {
+    const { id } = e.currentTarget.dataset;
+    const res = await deleteOwnedSocialPost(id);
+    if (!res.ok) {
+      if (res.reason && !res.cancelled) wx.showToast({ title: res.reason, icon: 'none' });
+      return;
+    }
+    this.reloadPosts();
+  },
+
   onLikeTap(e) {
+    if (!requirePetProfile()) return;
     const { id } = e.currentTarget.dataset;
     const posts = this.data.posts.map((p) => {
       if (p.id !== id) return p;
       const liked = !p.liked;
       const likes = liked ? (p.likes || 0) + 1 : Math.max(0, (p.likes || 0) - 1);
       store.updateSocialPost(id, { liked, likes });
+      store.recordPostThumbLike({
+        channel: 'social',
+        postId: id,
+        liked,
+        title: (p.content || p.topic || '社区动态').slice(0, 32),
+        cover: p.image || (p.images && p.images[0]) || '',
+        userName: p.userName,
+        petName: p.petName,
+      });
       return { ...p, liked, likes };
     });
-    this.setData({ posts, displayPosts: posts });
+    this.setData({ posts }, () => this.applyDisplayPosts());
   },
 
   onSharePost(e) {
     const id = e.currentTarget.dataset.id;
     const post = this.data.posts.find((p) => p.id === id);
     if (post) this.setData({ sharePost: post });
-  },
-
-  onEnterCircle(e) {
-    const id = e.currentTarget.dataset.id;
-    wx.navigateTo({ url: `/pages/circle-community/circle-community?id=${id}` });
-  },
-
-  onTopicTap(e) {
-    const topic = e.currentTarget.dataset.name;
-    wx.navigateTo({ url: `/pages/social-post/social-post?topic=${encodeURIComponent(topic)}` });
-  },
-
-  onCircleTap(e) {
-    this.onEnterCircle(e);
   },
 
   onShareAppMessage() {
@@ -110,7 +199,7 @@ Page({
       };
     }
     return {
-      title: '宠头头 · 社区精选',
+      title: '宠头头 · 宠物社区',
       path: '/pages/social/social',
     };
   },

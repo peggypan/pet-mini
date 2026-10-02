@@ -1,15 +1,28 @@
 const store = require('../../utils/store');
-const { MOCK_PET } = require('../../utils/mock');
+const { MOCK_PET, RISK_TIPS } = require('../../utils/mock');
 const amap = require('../../utils/amap');
 const { pickMixedMedia, MEDIA_LIMIT_HINT, mediaSlots } = require('../../utils/media-upload');
+const { blockSubPageWithoutProfile, requirePetProfile } = require('../../utils/pet-profile-guard');
 
 const PLACEHOLDERS = {
   lost: '描述走失时间、体貌特征、是否戴项圈、酬谢方式等…',
   found: '描述捡到时间、宠物特征、当前安置情况、联系方式等…',
+  rescue: '描述救助对象、伤情/状况、当前安置、所需物资或志愿者等…',
+  adopt: '描述宠物情况、健康状况、领养要求、是否绝育等…',
+};
+
+const TYPE_TAG = { lost: '寻宠', found: '招领', rescue: '救助', adopt: '领养' };
+
+const SHARE_PAGE_TAG = {
+  lost: '寻宠启事',
+  found: '招领信息',
+  rescue: '宠物救助',
+  adopt: '领养救助',
 };
 
 Page({
   data: {
+    pageMode: 'lost-found',
     postType: 'lost',
     zones: [
       { id: 'cat', name: '猫咪' },
@@ -30,8 +43,31 @@ Page({
     shareTitle: '',
   },
 
-  onLoad() {
+  onLoad(options) {
+    blockSubPageWithoutProfile(this);
     this.checkPermissions();
+    const opts = options || {};
+    const pageMode = opts.mode === 'rescue-adopt' ? 'rescue-adopt' : 'lost-found';
+    let postType = 'lost';
+
+    if (pageMode === 'rescue-adopt') {
+      wx.setNavigationBarTitle({ title: '领养救助' });
+      wx.showModal({
+        title: '风险提示',
+        content: RISK_TIPS.adopt,
+        showCancel: false,
+      });
+      const raw = opts.postType;
+      postType = raw === 'rescue' || raw === 'adopt' ? raw : 'adopt';
+    } else {
+      postType = opts.postType === 'found' ? 'found' : 'lost';
+    }
+
+    this.setData({
+      pageMode,
+      postType,
+      placeholder: PLACEHOLDERS[postType],
+    });
   },
 
   checkPermissions() {
@@ -57,6 +93,11 @@ Page({
 
   onType(e) {
     const postType = e.currentTarget.dataset.type;
+    const { pageMode } = this.data;
+    const allowed = pageMode === 'rescue-adopt'
+      ? ['rescue', 'adopt']
+      : ['lost', 'found'];
+    if (!allowed.includes(postType)) return;
     this.setData({
       postType,
       placeholder: PLACEHOLDERS[postType],
@@ -105,14 +146,7 @@ Page({
   },
 
   onOpenLocation() {
-    const { geoLocation } = this.data;
-    if (!geoLocation) return;
-    amap.openNavigation({
-      lat: geoLocation.latitude,
-      lng: geoLocation.longitude,
-      name: geoLocation.name || '走失地点',
-      address: geoLocation.address || '',
-    });
+    amap.openPlace(this.data.geoLocation || {});
   },
 
   syncMediaUI(list) {
@@ -152,6 +186,7 @@ Page({
   },
 
   onSubmit() {
+    if (!requirePetProfile()) return;
     const {
       postType, zone, location, geoLocation, phone, content, mediaList,
     } = this.data;
@@ -171,11 +206,14 @@ Page({
 
     const banned = /活体|出售猫|出售狗|卖猫|卖狗|买卖|配种|繁殖/;
     if (banned.test(text) || banned.test(location || '')) {
-      wx.showToast({ title: '禁止借寻宠/招领进行活体交易', icon: 'none' });
+      const banTip = postType === 'lost' || postType === 'found'
+        ? '禁止借寻宠/招领进行活体交易'
+        : '禁止借领养救助进行活体交易';
+      wx.showToast({ title: banTip, icon: 'none' });
       return;
     }
 
-    const tag = postType === 'lost' ? '寻宠' : '招领';
+    const tag = TYPE_TAG[postType] || '寻宠';
     const locText = geoLocation
       ? `${geoLocation.name || geoLocation.address}`
       : location;
@@ -202,21 +240,34 @@ Page({
       essence: false,
     });
 
-    const shareTitle = postType === 'lost'
-      ? `急寻宠物！${locText ? locText + ' · ' : ''}${text.slice(0, 20)}`
-      : `招领宠物 · ${locText || '同城'} · ${text.slice(0, 20)}`;
+    let shareTitle;
+    if (postType === 'lost') {
+      shareTitle = `急寻宠物！${locText ? locText + ' · ' : ''}${text.slice(0, 20)}`;
+    } else if (postType === 'found') {
+      shareTitle = `招领宠物 · ${locText || '同城'} · ${text.slice(0, 20)}`;
+    } else if (postType === 'rescue') {
+      shareTitle = `宠物救助 · ${locText || '同城'} · ${text.slice(0, 20)}`;
+    } else {
+      shareTitle = `爱心领养 · ${locText || '同城'} · ${text.slice(0, 20)}`;
+    }
 
     this.setData({ lastPublishedId: row.id, shareTitle });
 
-    store.pushMessage(
-      `${tag}信息已发布`,
-      '已同步到交友广场，分享给好友可扩大寻找范围',
-      'social'
-    );
+    let successHint = '已同步到宠物社区，分享给好友可扩大寻找范围';
+    let successModal = '分享给同城好友，一起帮忙寻找或认领';
+    if (postType === 'adopt') {
+      successHint = '已同步到宠物社区，分享给好友可扩大领养信息传播';
+      successModal = '分享给同城好友，一起帮毛孩子寻找新家';
+    } else if (postType === 'rescue') {
+      successHint = '已同步到宠物社区，分享给好友可汇聚更多救助力量';
+      successModal = '分享给同城好友，一起参与爱心救助';
+    }
+
+    store.pushMessage(`${tag}信息已发布`, successHint, 'social');
 
     wx.showModal({
       title: '发布成功',
-      content: '分享给同城好友，一起帮忙寻找或认领',
+      content: successModal,
       confirmText: '立即分享',
       cancelText: '完成',
       success: (res) => {
@@ -241,18 +292,22 @@ Page({
         path: `/pages/social-detail/social-detail?id=${lastPublishedId}`,
       };
     }
-    const tag = postType === 'lost' ? '寻宠启事' : '招领信息';
+    const tag = SHARE_PAGE_TAG[postType] || '同城互助';
     const loc = geoLocation?.name || location || '同城';
     const preview = (content || '').trim().slice(0, 24);
+    const { pageMode } = this.data;
+    const sharePath = pageMode === 'rescue-adopt'
+      ? `/pages/lost-publish/lost-publish?mode=rescue-adopt&postType=${postType}`
+      : '/pages/lost-publish/lost-publish';
     return {
       title: preview ? `${tag} · ${loc} · ${preview}` : `${tag} · 宠头头同城互助`,
-      path: '/pages/lost-publish/lost-publish',
+      path: sharePath,
     };
   },
 
   onShareTimeline() {
     const { shareTitle, postType } = this.data;
-    const tag = postType === 'lost' ? '寻宠启事' : '招领信息';
+    const tag = SHARE_PAGE_TAG[postType] || '同城互助';
     return {
       title: shareTitle || `${tag} · 宠头头`,
     };

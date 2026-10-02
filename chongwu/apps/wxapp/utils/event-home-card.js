@@ -1,5 +1,3 @@
-const { MOCK_EVENTS } = require('./mock');
-
 const BASE = '/assets/mock';
 const AVATAR_POOL = [
   `${BASE}/real_avatar.jpg`,
@@ -15,21 +13,44 @@ const CARD_META = {
 };
 
 function parseJoined(seats) {
-  const [a, b] = String(seats || '8/20').split('/');
-  return { joined: Number(a) || 8, cap: Number(b) || 20 };
+  const raw = String(seats || '0/20');
+  if (raw.includes('/') && !raw.includes('人')) {
+    const [a, b] = raw.split('/');
+    return { joined: Number(a) || 0, cap: Number(b) || 20 };
+  }
+  const cap = Number(String(raw).replace(/\D/g, '')) || 20;
+  return { joined: 0, cap };
+}
+
+function formatDateMD(isoOrYmd) {
+  if (!isoOrYmd) return '';
+  const d = new Date(isoOrYmd);
+  if (!Number.isNaN(d.getTime())) {
+    return `${d.getMonth() + 1}/${d.getDate()}`;
+  }
+  const m = String(isoOrYmd).match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return `${Number(m[2])}/${Number(m[3])}`;
+  return '';
+}
+
+function buildTimeHint(event) {
+  const t = String(event.time || '').trim();
+  if (t) return t.length > 28 ? `${t.slice(0, 28)}…` : t;
+  const tag = event.tag || '';
+  const timeMatch = tag.match(/(\d{1,2}:\d{2})/);
+  return `${tag} ${timeMatch ? timeMatch[1] : ''}`.trim();
 }
 
 function buildEventHomeCard(event, index) {
   const meta = CARD_META[event.id] || {};
   const { joined } = parseJoined(event.seats);
   const played = joined * 42 + 680 + index * 120;
-  const timeMatch = String(event.time || '').match(/(\d{1,2}:\d{2})/);
-  const timeHint = meta.timeHint
-    || `${event.tag || ''} ${timeMatch ? timeMatch[1] : ''}`.trim();
+  const dateSrc = event.eventDate || event.publishedAt || event.createdAt;
+  const timeHint = meta.timeHint || buildTimeHint(event);
 
   return {
     ...event,
-    cardDateMD: meta.dateMD || '9/16',
+    cardDateMD: meta.dateMD || formatDateMD(dateSrc) || formatDateMD(new Date()) || '今日',
     cardTimeHint: timeHint,
     cardDistance: meta.distance || `${(2 + index * 1.3).toFixed(1)}km`,
     cardLocationLine: event.place || '',
@@ -41,12 +62,12 @@ function buildEventHomeCard(event, index) {
     ].filter(Boolean).slice(0, 4),
     cardPlayed: played,
     cardJoined: joined,
-    cardCategory: meta.category || event.sourceText || '活动',
+    cardCategory: meta.category || event.category || event.sourceText || '活动',
   };
 }
 
 function buildEventHomeCards(events) {
-  return (events || MOCK_EVENTS).map((ev, i) => buildEventHomeCard(ev, i));
+  return (events || []).map((ev, i) => buildEventHomeCard(ev, i));
 }
 
 module.exports = {

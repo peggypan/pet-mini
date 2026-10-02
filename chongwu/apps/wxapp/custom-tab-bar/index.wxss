@@ -389,6 +389,22 @@
   overflow: visible;
 }
 
+.tab-unread {
+  position: absolute;
+  top: -8rpx;
+  right: -16rpx;
+  min-width: 28rpx;
+  height: 28rpx;
+  padding: 0 6rpx;
+  border-radius: 14rpx;
+  background: #FF5A7A;
+  color: #ffffff;
+  font-size: 18rpx;
+  font-weight: 700;
+  line-height: 28rpx;
+  text-align: center;
+}
+
 .tab-icon-emoji {
   font-size: 44rpx;
   line-height: 1;

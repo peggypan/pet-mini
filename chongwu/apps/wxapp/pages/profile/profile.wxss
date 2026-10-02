@@ -63,6 +63,7 @@ page {
 .play-links,
 .tag-row,
 .bio-line,
+.activity-area-row,
 .mood-bar,
 .login-block,
 .bento {
@@ -152,12 +153,21 @@ page {
 
 .follow-row {
   display: flex;
-  gap: 28rpx;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20rpx 24rpx;
 }
 
 .follow-item {
+  display: inline-block;
   font-size: 26rpx;
   color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+  padding: 4rpx 0;
+}
+
+.follow-item-wide {
+  font-size: 24rpx;
 }
 
 .follow-num {
@@ -235,6 +245,42 @@ page {
   font-size: 24rpx;
   color: rgba(255, 255, 255, 0.75);
   flex-shrink: 0;
+}
+
+.activity-area-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12rpx;
+  margin-bottom: 12rpx;
+  padding: 14rpx 20rpx;
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 16rpx;
+}
+
+.activity-pin {
+  font-size: 28rpx;
+  line-height: 1.3;
+  flex-shrink: 0;
+}
+
+.activity-area-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.activity-area-main {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1.4;
+}
+
+.activity-area-sub {
+  display: block;
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .bio-quote {
@@ -335,8 +381,10 @@ page {
   min-height: 148rpx;
   padding: 28rpx 24rpx;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  text-align: center;
 }
 
 .bento-kicker {
@@ -372,6 +420,14 @@ page {
   font-weight: 800;
 }
 
+.bento-sub-sm {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 20rpx;
+  color: rgba(255, 255, 255, 0.72);
+  font-weight: 500;
+}
+
 .bento-scroll {
   width: 100%;
   white-space: nowrap;
@@ -386,10 +442,13 @@ page {
 .bento-mini {
   display: inline-flex;
   flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex-shrink: 0;
   width: 220rpx;
-  min-height: 148rpx;
-  padding: 18rpx 18rpx;
-  border-radius: 24rpx;
+  min-height: 104rpx;
+  padding: 10rpx 16rpx;
+  border-radius: 20rpx;
   background: rgba(255, 255, 255, 0.14);
   border: 1rpx solid rgba(255, 255, 255, 0.18);
   box-sizing: border-box;
@@ -397,22 +456,53 @@ page {
   vertical-align: top;
 }
 
+.bento-mini-contact-btn {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+  width: 220rpx;
+  min-width: 220rpx;
+  max-width: 220rpx;
+  line-height: normal;
+  font-size: inherit;
+  font-weight: normal;
+  text-align: left;
+  color: inherit;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  vertical-align: top;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+.bento-mini-contact-btn::after {
+  border: none;
+}
+
+.bento-mini-contact-btn .bento-mini {
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .mini-icon {
-  font-size: 36rpx;
-  margin-bottom: 10rpx;
+  font-size: 30rpx;
+  margin-bottom: 4rpx;
+  line-height: 1;
 }
 
 .mini-title {
-  font-size: 26rpx;
+  font-size: 24rpx;
   font-weight: 800;
   color: #ffffff;
-  margin-bottom: 6rpx;
+  margin-bottom: 2rpx;
+  line-height: 1.25;
 }
 
 .mini-sub {
-  font-size: 20rpx;
+  font-size: 18rpx;
   color: rgba(255, 255, 255, 0.68);
-  line-height: 1.4;
+  line-height: 1.3;
 }
 
 .sheet {
@@ -502,11 +592,13 @@ page {
   border: 1rpx solid #f0f0f0;
 }
 
-.feed-cover {
-  width: 160rpx;
-  height: 160rpx;
+.feed-cover-wrap {
   border-radius: 16rpx;
-  flex-shrink: 0;
+  overflow: hidden;
+  background: #e8f4fc;
+}
+
+.feed-cover {
   background: #e8f4fc;
 }
 
@@ -568,25 +660,10 @@ page {
 }
 
 .feed-link {
-  font-size: 26rpx;
   color: #4da7f8;
-  font-weight: 700;
 }
 
 .sheet-footer {
-  padding: 12rpx 36rpx 4rpx;
+  padding: 24rpx 32rpx calc(28rpx + env(safe-area-inset-bottom));
   background: #ffffff;
-}
-
-.logout {
-  margin: 0;
-  background: #f5f5f5;
-  color: #999999;
-  border-radius: 999rpx;
-  border: none;
-  font-size: 28rpx;
-}
-
-.logout::after {
-  border: none;
 }

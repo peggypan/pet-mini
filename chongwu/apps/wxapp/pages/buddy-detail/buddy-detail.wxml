@@ -8,6 +8,16 @@
         <text class="credit-tag" wx:for="{{buddy.creditTags}}" wx:key="*this">{{item}}</text>
       </view>
     </view>
+    <view class="user-actions">
+      <button
+        size="mini"
+        class="head-follow {{followed ? 'followed' : ''}}"
+        bindtap="onFollow"
+      >{{followed ? '已关注' : '关注'}}</button>
+      <button size="mini" class="head-share" open-type="share" bindtap="onShare">
+        <image class="head-share-icon" src="/assets/icons/icon-share-forward.png" mode="aspectFit"></image>
+      </button>
+    </view>
   </view>
 
   <view class="card" bindtap="onCert">
@@ -19,10 +29,9 @@
 
   <view class="card">
     <text class="card-title">找搭子需求</text>
-    <text class="desc">{{buddy.desc}}</text>
     <view class="media-grid {{buddy.mediaList.length === 1 ? 'single' : ''}}" wx:if="{{buddy.mediaList && buddy.mediaList.length}}">
       <view
-        class="media-item {{item.type === 'video' ? 'is-video' : ''}}"
+        class="media-item aspect-34 {{buddy.mediaList.length === 1 ? '' : 'aspect-34-third'}} {{item.type === 'video' ? 'is-video' : ''}}"
         wx:for="{{buddy.mediaList}}"
         wx:key="index"
         data-index="{{index}}"
@@ -34,7 +43,19 @@
           src="{{item.url}}"
           mode="aspectFill"
         ></image>
-        <view class="media-video-wrap" wx:else>
+        <view class="media-video-wrap" wx:elif="{{item.type === 'video' && item.videoAutoPlay}}">
+          <video
+            class="media-thumb cover-video"
+            src="{{item.url}}"
+            poster="{{item.poster || ''}}"
+            object-fit="cover"
+            autoplay="{{true}}"
+            controls="{{true}}"
+            show-center-play-btn="{{true}}"
+            enable-progress-gesture="{{true}}"
+          ></video>
+        </view>
+        <view class="media-video-wrap" wx:elif="{{item.type === 'video'}}">
           <image class="media-thumb" src="{{item.poster || item.url}}" mode="aspectFill"></image>
           <view class="video-play-mask">
             <text class="video-play-icon">▶</text>
@@ -43,13 +64,30 @@
         </view>
       </view>
     </view>
-    <text class="expect">期望时间：{{buddy.expectTime}}</text>
-    <text class="expect">期望地点：{{buddy.expectPlace}}</text>
+    <text class="desc">{{buddy.desc}}</text>
+    <view class="expect expect-time">
+      <text class="expect-label">期望时间：</text>
+      <text class="expect-val">{{buddy.expectTime}}</text>
+    </view>
+    <view class="expect expect-place-row">
+      <text class="expect-label">期望地点：</text>
+      <view class="map-loc-row" bindtap="onOpenPlace">
+        <view class="map-loc-main">
+          <text class="map-loc-name">{{buddy.expectPlace}}</text>
+          <text
+            class="map-loc-addr"
+            wx:if="{{buddy.expectPlaceAddress && buddy.expectPlaceAddress !== buddy.expectPlace}}"
+          >{{buddy.expectPlaceAddress}}</text>
+        </view>
+        <text class="map-loc-arrow">›</text>
+      </view>
+    </view>
   </view>
 
   <view class="bottom">
-    <button class="btn-secondary" bindtap="onFollow">{{followed ? '已收藏' : '收藏搭子'}}</button>
-    <button class="btn-secondary" bindtap="onReport">举报</button>
-    <button class="btn-primary" bindtap="onChat">发起私聊</button>
+    <button class="btn-secondary btn-danger-text" wx:if="{{isOwner}}" bindtap="onDeleteBuddy">删除</button>
+    <button class="btn-secondary" wx:if="{{!isOwner}}" bindtap="onCollectBuddy">{{collected ? '已收藏' : '收藏搭子'}}</button>
+    <button class="btn-secondary" wx:if="{{!isOwner}}" bindtap="onReport">举报</button>
+    <button class="btn-primary" wx:if="{{!isOwner}}" bindtap="onChat">发起私聊</button>
   </view>
 </view>

@@ -4,18 +4,45 @@
     <view class="item" wx:for="{{created}}" wx:key="id">
       <view class="item-head">
         <text class="name">{{item.title}}</text>
-        <text class="status approved">{{auditText[item.auditStatus || item.status] || '已上线'}}</text>
+        <view class="item-head-right">
+          <text class="status approved">{{auditText[item.auditStatus || item.status] || '已上线'}}</text>
+          <text class="item-delete" catchtap="onDeleteCreated" data-id="{{item.id}}">删除</text>
+        </view>
       </view>
-      <text class="meta">{{roleText[item.role] || '个人'}} · {{item.place}} · {{item.time}}</text>
+      <view class="meta">
+        <text>{{roleText[item.role] || '个人'}} · </text>
+        <text
+          class="place-tap"
+          catchtap="onOpenPlace"
+          data-name="{{item.place}}"
+          data-place="{{item.place}}"
+          data-address="{{item.placeAddress}}"
+          data-lat="{{item.location.latitude}}"
+          data-lng="{{item.location.longitude}}"
+        >{{item.place}}</text>
+        <text> · {{item.time}}</text>
+      </view>
     </view>
     <view class="empty" wx:if="{{created.length === 0}}">暂无</view>
   </view>
 
   <view class="section">
     <text class="title">我报名的</text>
-    <view class="item" wx:for="{{joined}}" wx:key="id">
+    <view class="item" wx:for="{{joined}}" wx:key="id" bindtap="onOpenTicket" data-id="{{item.eventId}}">
       <text class="name">{{item.title}}</text>
-      <text class="meta">{{item.place}} · {{item.time}}</text>
+      <view class="meta">
+        <text
+          class="place-tap"
+          catchtap="onOpenPlace"
+          data-name="{{item.place}}"
+          data-place="{{item.place}}"
+          data-address="{{item.placeAddress}}"
+          data-lat="{{item.locationLat}}"
+          data-lng="{{item.locationLng}}"
+        >{{item.place}}</text>
+        <text> · {{item.time}}</text>
+      </view>
+      <text class="meta-link">查看核销码</text>
     </view>
     <view class="empty" wx:if="{{joined.length === 0}}">暂无</view>
   </view>

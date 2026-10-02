@@ -11,10 +11,32 @@
     <text class="label">地图选点 *</text>
     <view class="loc-pick" bindtap="onPickLocation">
       <view class="loc-info">
-        <text class="loc-title">{{latitude ? '已选位置' : '高德地图选点'}}</text>
-        <text class="loc-addr">{{address || '点击在地图上选择友好点位'}}</text>
+        <text class="loc-title">{{latitude ? '已选位置' : '腾讯地图选点（必填）'}}</text>
+        <text class="loc-addr">{{address || '在腾讯地图选点，标记将显示在友好地图'}}</text>
       </view>
       <text class="loc-arrow">›</text>
+    </view>
+
+    <text class="label">场景照片</text>
+    <text class="field-hint">选填 · 上传实地环境，帮助其他宠友判断（{{sceneSummary}}）</text>
+    <view class="scene-grid" wx:if="{{images.length}}">
+      <view
+        class="scene-item aspect-34 aspect-34-third"
+        wx:for="{{images}}"
+        wx:key="*this"
+        data-index="{{index}}"
+        bindtap="onPreviewSceneImage"
+      >
+        <image class="scene-thumb aspect-34-fill" src="{{item}}" mode="aspectFill"></image>
+        <view class="scene-remove" data-index="{{index}}" catchtap="onRemoveSceneImage">×</view>
+      </view>
+      <view class="scene-add aspect-34 aspect-34-third" wx:if="{{sceneCanAdd}}" bindtap="onChooseSceneImage">
+        <text class="add-icon">＋</text>
+      </view>
+    </view>
+    <view class="scene-empty" wx:elif="{{sceneCanAdd}}" bindtap="onChooseSceneImage">
+      <text class="empty-icon">📷</text>
+      <text class="empty-text">点击上传地点场景图</text>
     </view>
 
     <view class="switch-row" wx:if="{{type !== '宠物不友好' && type !== '宠物毒点'}}">
@@ -32,6 +54,20 @@
         maxlength="200"
       ></textarea>
     </block>
-    <button class="submit" bindtap="onSubmit">提交审核</button>
+    <text class="points-tip">有效标记 +5 积分/次，积分可兑礼品（即将上线）</text>
+    <button class="submit" bindtap="onSubmit" loading="{{submitting}}" disabled="{{submitting}}">提交</button>
+  </view>
+
+  <view class="points-reward-mask" wx:if="{{showPointsReward}}" catchtouchmove="noop">
+    <view class="points-reward-card {{pointsAnimActive ? 'active' : ''}}">
+      <view class="points-spark s1"></view>
+      <view class="points-spark s2"></view>
+      <view class="points-spark s3"></view>
+      <view class="points-ring"></view>
+      <text class="points-icon">✨</text>
+      <text class="points-num">+{{pointsAwarded}}</text>
+      <text class="points-label">积分</text>
+      <text class="points-sub">地点已提交 · 友好地图展示中</text>
+    </view>
   </view>
 </view>

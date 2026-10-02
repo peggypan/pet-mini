@@ -35,12 +35,16 @@ page { background: #F5F8FC; }
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
 }
 
-.club-cover {
+.club-cover-wrap {
   width: 176rpx;
-  height: 176rpx;
-  border-radius: 18rpx;
-  flex-shrink: 0;
   margin-right: 20rpx;
+  border-radius: 18rpx;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.club-cover {
+  background: #e8eef5;
 }
 
 .club-body {
@@ -126,12 +130,6 @@ page { background: #F5F8FC; }
   gap: 28rpx;
 }
 
-.link-btn {
-  font-size: 24rpx;
-  color: #1E88E5;
-  font-weight: 600;
-}
-
 .link-btn.warn {
   color: #1E88E5;
 }
@@ -165,14 +163,6 @@ page { background: #F5F8FC; }
 
 .empty-btn {
   margin-top: 28rpx;
-  padding: 0 48rpx;
-  line-height: 72rpx;
   background: linear-gradient(135deg, #5BB8FF, #4DA7F8);
   color: #1A1A1A;
-  border-radius: 999rpx;
-  font-size: 26rpx;
-  font-weight: 700;
-  border: none;
 }
-
-.empty-btn::after { border: none; }

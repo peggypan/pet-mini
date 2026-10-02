@@ -7,7 +7,7 @@
   <view class="pet-map-section">
     <view class="pet-map-head">
       <view class="pet-map-head-text">
-        <text class="pet-map-title">宠搭地图</text>
+        <text class="pet-map-title">宠友搭子</text>
         <text class="pet-map-sub">点击地图进入全景 · 点头像私聊</text>
       </view>
       <view class="pet-map-count">{{mapPeerCount}} 位在附近</view>
@@ -32,8 +32,10 @@
 
   <view class="zone-tabs">
     <view class="zone-tab {{zoneTab === 'normal' ? 'on' : ''}}" data-zone="normal" bindtap="onZoneTab">普通搭子</view>
+    <view class="zone-tab {{zoneTab === 'healing' ? 'on' : ''}}" data-zone="healing" bindtap="onZoneTab">疗愈搭子</view>
     <view class="zone-tab {{zoneTab === 'match' ? 'on' : ''}}" data-zone="match" bindtap="onZoneTab">相亲&借配</view>
   </view>
+  <view class="match-tip healing-tip" wx:if="{{zoneTab === 'healing'}}">💚 {{healingTip}}</view>
   <view class="match-tip" wx:if="{{zoneTab === 'match'}}">⚠️ {{matchTip}}</view>
 
   <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="filter-scroll">
@@ -42,47 +44,97 @@
     <view class="filter {{filterVerified ? 'on' : ''}}" bindtap="onToggleVerified">疫苗已核验</view>
   </scroll-view>
 
-  <view class="list">
-    <view class="card" wx:for="{{list}}" wx:key="id" bindtap="onCardTap" data-id="{{item.id}}">
-      <view class="card-head">
-        <image class="avatar" src="{{item.avatar}}" mode="aspectFill"></image>
-        <view class="info">
-          <text class="name">{{item.userName}} · {{item.petName}}</text>
-          <text class="meta">{{item.distance}} · {{item.buddyType}}</text>
-        </view>
-        <text class="verified" wx:if="{{item.verified}}">已核验</text>
-      </view>
-      <view class="pet-card">
-        <text class="pet-line">{{item.breed}} · {{item.age}} · {{item.personality}}</text>
-        <view class="tags">
-          <text class="tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag">{{tag}}</text>
-        </view>
-      </view>
-      <text class="desc">{{item.desc}}</text>
+  <view class="buddy-plaza-list">
+    <view
+      class="buddy-plaza-card"
+      wx:for="{{list}}"
+      wx:key="feedKey"
+      bindtap="onCardTap"
+      data-id="{{item.id}}"
+    >
       <view
-        class="media-row {{item.mediaList.length === 1 ? 'single' : ''}}"
-        wx:if="{{item.mediaList && item.mediaList.length}}"
-        catchtap="onPreviewMedia"
+        class="buddy-plaza-cover aspect-34"
+        catchtap="onPreviewCover"
         data-id="{{item.id}}"
       >
-        <block wx:for="{{item.mediaList}}" wx:key="index" wx:for-item="media">
-          <view class="media-thumb-wrap" wx:if="{{index < 3}}" data-id="{{item.id}}" data-index="{{index}}" catchtap="onPreviewMedia">
-            <image class="media-thumb" src="{{media.type === 'image' ? media.url : (media.poster || media.url)}}" mode="aspectFill"></image>
-            <view class="media-video-mask" wx:if="{{media.type === 'video'}}">
-              <text class="media-video-tag">▶</text>
-              <text class="media-video-dur" wx:if="{{media.duration}}">{{media.duration}}s</text>
-            </view>
-          </view>
-        </block>
-        <view class="media-more" wx:if="{{item.mediaList.length > 3}}">+{{item.mediaList.length - 3}}</view>
+        <image
+          class="aspect-34-fill"
+          src="{{item.coverIsVideo ? (item.coverPoster || item.cover) : item.cover}}"
+          mode="aspectFill"
+        ></image>
+        <view class="cover-video-mask" wx:if="{{item.coverIsVideo}}">
+          <text class="cover-video-tag">▶</text>
+        </view>
+        <text class="buddy-plaza-dist">{{item.distanceLabel}}</text>
       </view>
-      <text class="expect">期望：{{item.expectTime}} · {{item.expectPlace}}</text>
-      <view class="credit" wx:if="{{item.creditTags.length}}">
-        <text class="credit-tag" wx:for="{{item.creditTags}}" wx:key="*this" wx:for-item="ct">{{ct}}</text>
+      <view class="buddy-plaza-body">
+        <text class="buddy-plaza-name">{{item.titleLine}}</text>
+        <view class="buddy-plaza-score">
+          <text class="buddy-plaza-star">★</text>
+          <text class="buddy-plaza-score-text" wx:if="{{item.verified}}">已核验</text>
+          <text class="buddy-plaza-score-div" wx:if="{{item.verified}}">|</text>
+          <text class="buddy-plaza-score-text">{{item.buddyType}}</text>
+        </view>
+        <text class="buddy-plaza-pet-line" wx:if="{{item.petLine}}">{{item.petLine}}</text>
+        <text
+          class="buddy-plaza-place place-tap"
+          wx:if="{{item.expectPlace}}"
+          catchtap="onOpenPlace"
+          data-name="{{item.expectPlace}}"
+          data-place="{{item.expectPlace}}"
+          data-address="{{item.expectPlaceAddress}}"
+          data-lat="{{item.placeLat}}"
+          data-lng="{{item.placeLng}}"
+        >{{item.expectPlace}}</text>
+        <view class="buddy-plaza-tags" wx:if="{{item.tags.length}}">
+          <text class="buddy-plaza-tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag">{{tag}}</text>
+        </view>
+        <text class="buddy-plaza-intro" wx:if="{{item.intro}}">{{item.intro}}</text>
+        <view class="feed-actions feed-actions-compact">
+          <view
+            class="feed-action {{item.liked ? 'is-liked' : ''}}"
+            catchtap="onLikeTap"
+            data-id="{{item.id}}"
+            data-feed-key="{{item.feedKey}}"
+          >
+            <view class="feed-icon feed-icon-like"></view>
+            <text>{{item.likes || 0}}</text>
+          </view>
+          <view class="feed-action" catchtap="onCommentTap" data-id="{{item.id}}">
+            <view class="feed-icon feed-icon-comment"></view>
+            <text>{{item.comments || 0}}</text>
+          </view>
+          <button
+            class="feed-action-share-btn"
+            open-type="share"
+            catchtap="onShareTap"
+            data-id="{{item.id}}"
+          >
+            <view class="feed-icon feed-icon-share"></view>
+            <text>分享</text>
+          </button>
+          <view
+            class="feed-action feed-action-delete"
+            wx:if="{{item.canDelete}}"
+            catchtap="onDeleteBuddy"
+            data-id="{{item.id}}"
+          >
+            <text>删除</text>
+          </view>
+        </view>
       </view>
     </view>
-    <view class="empty" wx:if="{{list.length === 0}}"><text>暂无搭子，来发布第一条吧</text></view>
+    <view class="buddy-plaza-empty" wx:if="{{list.length === 0 && !listLoading}}">
+      <text>暂无搭子，来发布第一条吧</text>
+    </view>
+    <view class="feed-footer" wx:if="{{list.length > 0}}">
+      <text wx:if="{{listLoading}}">加载中…</text>
+      <text wx:elif="{{listHasMore}}">上拉加载更多</text>
+      <text wx:else>— 已经到底啦 —</text>
+    </view>
   </view>
 
-  <view class="fab" bindtap="onPublish">发布找搭子</view>
+  <view class="fab fab-publish" bindtap="onPublish">发布找搭子</view>
+
+  <pet-profile-gate show="{{petProfileBlocked}}" />
 </view>

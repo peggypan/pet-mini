@@ -8,7 +8,7 @@
         wx:key="id"
         bindtap="onZone"
         data-id="{{item.id}}"
-      >{{item.name}}</view>
+      >{{item.icon}} {{item.name}}</view>
     </view>
 
     <text class="label"># 话题</text>
@@ -27,19 +27,31 @@
     </view>
 
     <text class="label">内容</text>
-    <textarea
-      class="textarea"
-      maxlength="300"
-      placeholder="分享养宠日常、约遛、求助…（禁止活体交易与私下诊疗）"
-      value="{{content}}"
-      bindinput="onInput"
-    ></textarea>
+    <view class="textarea-wrap">
+      <view class="textarea-mirror" wx:if="{{content}}">
+        <block wx:for="{{contentParts}}" wx:key="index" wx:for-item="part">
+          <text class="mirror-hashtag" wx:if="{{part.tag && part.type === 'hashtag'}}">{{part.text}}</text>
+          <text class="mirror-bracket" wx:elif="{{part.tag}}">{{part.text}}</text>
+          <text wx:else>{{part.text}}</text>
+        </block>
+      </view>
+      <textarea
+        class="textarea {{content ? 'textarea-overlay' : ''}}"
+        maxlength="300"
+        placeholder="分享养宠日常、图片或视频…输入 #话题 可高亮（禁止活体交易与私下诊疗）"
+        value="{{content}}"
+        bindinput="onInput"
+        auto-height
+        show-confirm-bar="{{false}}"
+        cursor-spacing="24"
+      ></textarea>
+    </view>
 
     <text class="label">相册 / 视频</text>
     <text class="label-tip">{{mediaLimitHint}}（{{mediaSummary}}）</text>
     <view class="media-grid" wx:if="{{mediaList.length}}">
       <view
-        class="media-item"
+        class="media-item aspect-34 aspect-34-third"
         wx:for="{{mediaList}}"
         wx:key="index"
         data-index="{{index}}"
@@ -49,7 +61,7 @@
         <text class="video-flag" wx:if="{{item.type === 'video'}}">▶ 视频</text>
         <view class="remove-media" data-index="{{index}}" catchtap="onRemoveMedia">×</view>
       </view>
-      <view class="media-add" wx:if="{{mediaCanAdd}}" bindtap="onChooseMedia">
+      <view class="media-add aspect-34 aspect-34-third" wx:if="{{mediaCanAdd}}" bindtap="onChooseMedia">
         <text class="add-icon">＋</text>
       </view>
     </view>
@@ -74,5 +86,7 @@
 
     <button class="submit" bindtap="onSubmit">发布动态</button>
   </view>
+
+  <pet-profile-gate show="{{petProfileBlocked}}" />
 </view>
 

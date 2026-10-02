@@ -1,12 +1,4 @@
 <view class="page">
-  <view class="hero">
-    <text class="hero-icon">🐕‍🦺</text>
-    <view class="hero-text">
-      <text class="hero-title">寻宠·领养救助</text>
-      <text class="hero-sub">走失寻回 · 拾获招领 · 爱心领养</text>
-    </view>
-  </view>
-
   <view class="action-row">
     <view class="action-card lost" bindtap="onPublishLost">
       <text class="action-icon">🐕‍🦺</text>
@@ -16,7 +8,7 @@
     <view class="action-card adopt" bindtap="onPublishAdopt">
       <text class="action-icon">🐱</text>
       <text class="action-name">领养救助</text>
-      <text class="action-tip">发布领养 · 寻找新家</text>
+      <text class="action-tip">选点 · 图片 · 视频 · 分享</text>
     </view>
   </view>
 
@@ -44,20 +36,39 @@
       bindtap="onItemTap"
       data-id="{{item.id}}"
     >
-      <image class="cover" wx:if="{{item.cover}}" src="{{item.cover}}" mode="aspectFill"></image>
-      <view class="cover cover-placeholder" wx:else>
-        <text>{{item.tag}}</text>
+      <view class="cover-wrap aspect-34 aspect-34-sm">
+        <image class="cover" src="{{item.cover}}" mode="aspectFill"></image>
       </view>
       <view class="body">
         <view class="item-head">
-          <text class="tag tag-lost" wx:if="{{item.kind === 'lost'}}">寻宠</text>
-          <text class="tag tag-found" wx:if="{{item.kind === 'found'}}">招领</text>
-          <text class="tag tag-adopt" wx:if="{{item.kind === 'adopt'}}">领养</text>
-          <text class="time">{{item.time}}</text>
+          <view class="item-tags">
+            <text class="tag tag-lost" wx:if="{{item.kind === 'lost'}}">寻宠</text>
+            <text class="tag tag-found" wx:if="{{item.kind === 'found'}}">招领</text>
+            <text class="tag tag-rescue" wx:if="{{item.kind === 'rescue'}}">救助</text>
+            <text class="tag tag-adopt" wx:if="{{item.kind === 'adopt'}}">领养</text>
+          </view>
+          <view class="item-head-right">
+            <text class="time">{{item.time}}</text>
+            <text
+              class="item-delete"
+              wx:if="{{item.canDelete}}"
+              catchtap="onDeleteItem"
+              data-id="{{item.id}}"
+            >删除</text>
+          </view>
         </view>
         <text class="title">{{item.title}}</text>
         <text class="preview">{{item.preview}}</text>
-        <text class="loc" wx:if="{{item.location}}">🐾 {{item.location}}</text>
+        <text
+          class="loc place-tap"
+          wx:if="{{item.location}}"
+          catchtap="onOpenPlace"
+          data-name="{{item.locationName || item.location}}"
+          data-place="{{item.location}}"
+          data-address="{{item.locationAddress || item.location}}"
+          data-lat="{{item.locationLat}}"
+          data-lng="{{item.locationLng}}"
+        >🐾 {{item.location}}</text>
       </view>
     </view>
 

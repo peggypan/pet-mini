@@ -111,12 +111,14 @@ page {
   box-sizing: border-box;
 }
 
-.event-cover {
-  width: 120rpx;
-  height: 120rpx;
-  border-radius: 16rpx;
+.event-cover-wrap {
   margin-right: 16rpx;
-  flex-shrink: 0;
+  border-radius: 16rpx;
+  overflow: hidden;
+  background: #E8F0EA;
+}
+
+.event-cover {
   background: #E8F0EA;
 }
 
@@ -180,8 +182,10 @@ page {
 }
 
 .friend-cover {
-  width: 100%;
-  height: 220rpx;
+  background: #E8F0EA;
+}
+
+.friend-cover-img {
   background: #E8F0EA;
 }
 

@@ -1,0 +1,179 @@
+page { background: #F5F8FC; }
+
+.page {
+  padding: 32rpx 28rpx calc(40rpx + env(safe-area-inset-bottom));
+}
+
+.verify-badge {
+  display: inline-block;
+  margin-bottom: 20rpx;
+  padding: 10rpx 24rpx;
+  border-radius: 999rpx;
+  background: rgba(30, 136, 229, 0.12);
+  color: #1e88e5;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.error {
+  padding: 40rpx 32rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  color: #666;
+  font-size: 28rpx;
+  line-height: 1.55;
+  text-align: center;
+}
+
+.error-icon {
+  display: block;
+  font-size: 48rpx;
+  margin-bottom: 16rpx;
+}
+
+.cert-card {
+  padding: 40rpx 32rpx;
+  background: linear-gradient(135deg, #E8F4FF, #fff);
+  border-radius: 28rpx;
+  text-align: center;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.06);
+}
+
+.avatar {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  margin-bottom: 16rpx;
+  border: 6rpx solid #fff;
+}
+
+.name {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 800;
+  color: #1A1A1A;
+}
+
+.line, .meta {
+  display: block;
+  font-size: 24rpx;
+  color: #666666;
+  margin-top: 8rpx;
+}
+
+.personality {
+  display: block;
+  margin-top: 16rpx;
+  font-size: 26rpx;
+  color: #1a1a1a;
+}
+
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  justify-content: center;
+  margin-top: 12rpx;
+}
+
+.tag {
+  font-size: 20rpx;
+  color: #1E88E5;
+  background: rgba(126, 200, 255, 0.25);
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+}
+
+.verified {
+  display: block;
+  font-size: 26rpx;
+  color: #1E88E5;
+  margin-top: 12rpx;
+  font-weight: 600;
+}
+
+.vaccine-tag {
+  display: block;
+  font-size: 26rpx;
+  margin-top: 12rpx;
+  font-weight: 600;
+}
+
+.vaccine-tag.vaccinating { color: #e08a5a; }
+.vaccine-tag.none { color: #999999; }
+
+.activity-area {
+  margin-top: 20rpx;
+  padding: 20rpx 24rpx;
+  border-radius: 16rpx;
+  background: rgba(0, 145, 255, 0.08);
+  text-align: left;
+}
+
+.activity-label {
+  display: block;
+  font-size: 22rpx;
+  color: #999999;
+  margin-bottom: 6rpx;
+}
+
+.activity-name {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.proof-block {
+  margin-top: 24rpx;
+  padding: 20rpx 24rpx;
+  border-radius: 16rpx;
+  background: rgba(30, 136, 229, 0.06);
+  text-align: left;
+}
+
+.proof-block.empty {
+  background: #f5f8fc;
+}
+
+.proof-label {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 6rpx;
+}
+
+.proof-hint {
+  display: block;
+  font-size: 22rpx;
+  color: #999999;
+  margin-bottom: 12rpx;
+}
+
+.proof-missing {
+  display: block;
+  font-size: 24rpx;
+  color: #666666;
+  line-height: 1.45;
+}
+
+.proof-img {
+  width: 100%;
+  border-radius: 12rpx;
+  background: #ffffff;
+}
+
+.brand {
+  display: block;
+  margin-top: 24rpx;
+  font-size: 22rpx;
+  color: #999999;
+}
+
+.privacy-note {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 22rpx;
+  color: #bbbbbb;
+}

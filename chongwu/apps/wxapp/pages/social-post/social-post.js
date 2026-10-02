@@ -3,16 +3,16 @@ const { pickMixedMedia, MEDIA_LIMIT_HINT, mediaSlots } = require('../../utils/me
 const { getDefaultPet } = require('../../utils/catalog');
 const { EMOJI_TABS, getEmojiList } = require('../../utils/pet-emoji');
 const { HOT_TOPICS } = require('../../utils/circle-community');
+const { POST_ZONES } = require('../../utils/community-zones');
+const { blockSubPageWithoutProfile, syncPetProfileGate, requirePetProfile } = require('../../utils/pet-profile-guard');
+const { parseContentParts } = require('../../utils/social-content-parts');
 
 Page({
   data: {
-    zones: [
-      { id: 'cat', name: '猫咪' },
-      { id: 'dog', name: '狗狗' },
-      { id: 'other', name: '异宠' },
-    ],
+    zones: POST_ZONES,
     zone: 'dog',
     content: '',
+    contentParts: [],
     mediaList: [],
     mediaLimitHint: MEDIA_LIMIT_HINT,
     mediaCanAdd: true,
@@ -23,13 +23,23 @@ Page({
     showEmoji: true,
     hotTopics: HOT_TOPICS,
     selectedTopic: '',
+    petProfileBlocked: false,
+  },
+
+  onShow() {
+    syncPetProfileGate(this);
   },
 
   onLoad(options) {
+    blockSubPageWithoutProfile(this);
+    const patch = {};
     if (options.topic) {
-      const topic = decodeURIComponent(options.topic);
-      this.setData({ selectedTopic: topic });
+      patch.selectedTopic = decodeURIComponent(options.topic);
     }
+    if (options.zone && POST_ZONES.some((z) => z.id === options.zone)) {
+      patch.zone = options.zone;
+    }
+    if (Object.keys(patch).length) this.setData(patch);
   },
 
   onPickTopic(e) {
@@ -45,8 +55,15 @@ Page({
     this.setData({ zone: e.currentTarget.dataset.id });
   },
 
+  syncContentParts(content) {
+    this.setData({
+      content,
+      contentParts: parseContentParts(content),
+    });
+  },
+
   onInput(e) {
-    this.setData({ content: e.detail.value });
+    this.syncContentParts(e.detail.value);
   },
 
   onEmojiTab(e) {
@@ -57,7 +74,7 @@ Page({
   onPickEmoji(e) {
     const emoji = e.currentTarget.dataset.emoji || '';
     if (!emoji) return;
-    this.setData({ content: `${this.data.content || ''}${emoji}` });
+    this.syncContentParts(`${this.data.content || ''}${emoji}`);
   },
 
   syncMediaUI(list) {
@@ -94,6 +111,7 @@ Page({
   },
 
   onSubmit() {
+    if (!requirePetProfile()) return;
     const { zone, content, mediaList, selectedTopic } = this.data;
     const text = (content || '').trim();
     if (!text && !mediaList.length) {

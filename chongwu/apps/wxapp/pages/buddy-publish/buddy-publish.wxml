@@ -1,5 +1,8 @@
 <view class="page">
   <view class="card">
+    <view class="healing-publish-hint" wx:if="{{zone === 'healing' && !petHealingEnabled}}">
+      尚未开启宠物疗愈，请先在「编辑档案」中开启并选择疗愈类型
+    </view>
     <text class="label">搭子类型</text>
     <picker range="{{buddyTypes}}" bindchange="onTypeChange">
       <view class="picker">{{buddyType}}</view>
@@ -37,7 +40,7 @@
 
     <view class="media-grid" wx:if="{{mediaList.length}}">
       <view
-        class="media-item"
+        class="media-item aspect-34 aspect-34-third"
         wx:for="{{mediaList}}"
         wx:key="index"
         data-index="{{index}}"
@@ -54,7 +57,7 @@
         </view>
         <view class="remove-media" data-index="{{index}}" catchtap="onRemoveMedia">×</view>
       </view>
-      <view class="media-add" wx:if="{{mediaCanAdd}}" bindtap="onChooseMedia">
+      <view class="media-add aspect-34 aspect-34-third" wx:if="{{mediaCanAdd}}" bindtap="onChooseMedia">
         <text class="add-icon">＋</text>
       </view>
     </view>
@@ -71,5 +74,7 @@
 
     <button class="submit" bindtap="onSubmit">立即发布</button>
   </view>
+
+  <pet-profile-gate show="{{petProfileBlocked}}" />
 </view>
 

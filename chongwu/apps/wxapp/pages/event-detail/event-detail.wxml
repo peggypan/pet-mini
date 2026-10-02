@@ -1,5 +1,26 @@
 <view class="page" wx:if="{{event}}">
-  <image class="cover" src="{{event.cover}}" mode="aspectFill"></image>
+  <view class="cover-wrap aspect-34">
+    <swiper
+      class="cover-swiper"
+      wx:if="{{coverImages.length}}"
+      indicator-dots="{{coverImages.length > 1}}"
+      indicator-color="rgba(255,255,255,0.45)"
+      indicator-active-color="#ffffff"
+      circular="{{coverImages.length > 1}}"
+      bindchange="onCoverSwiperChange"
+    >
+      <swiper-item wx:for="{{coverImages}}" wx:key="*this">
+        <image
+          class="cover aspect-34-fill"
+          src="{{item}}"
+          mode="aspectFill"
+          bindtap="onPreviewCover"
+          data-src="{{item}}"
+        ></image>
+      </swiper-item>
+    </swiper>
+    <view class="cover-counter" wx:if="{{coverImages.length > 1}}">{{coverCurrent + 1}}/{{coverImages.length}}</view>
+  </view>
   <view class="card">
     <text class="tag">{{event.tag}}</text>
     <text class="title">{{event.title}}</text>
@@ -9,13 +30,12 @@
       <text class="info-label">时间</text>
       <text class="info-val">{{event.time}}</text>
     </view>
-    <view class="info-row">
+    <view class="info-row info-row-tap" bindtap="onOpenPlace">
       <text class="info-label">地点</text>
-      <text class="info-val">{{event.place}}</text>
-    </view>
-    <view class="info-row">
-      <text class="info-label">费用</text>
-      <text class="info-val">{{event.fee}}</text>
+      <view class="info-place">
+        <text class="info-val place-tap">{{event.place}}</text>
+        <text class="info-addr" wx:if="{{event.placeAddress && event.placeAddress !== event.place}}">{{event.placeAddress}}</text>
+      </view>
     </view>
     <view class="info-row">
       <text class="info-label">名额</text>
@@ -28,18 +48,83 @@
 
     <view class="host-row">
       <image class="host-avatar" src="{{event.hostAvatar}}" mode="aspectFill"></image>
-      <view>
+      <view class="host-meta">
         <text class="host-name">发起人 · {{event.host}}</text>
         <text class="host-tip">活动主理人 · 可私信咨询</text>
       </view>
+      <text
+        class="host-delete"
+        wx:if="{{isOwner}}"
+        catchtap="onDeleteEvent"
+      >删除活动</text>
+    </view>
+  </view>
+
+  <view class="event-safety-tip">{{eventSafetyTip}}</view>
+
+  <view class="detail-panel" wx:if="{{detailSection.show}}">
+    <text class="detail-panel-title">活动详情</text>
+    <text class="detail-panel-text" wx:if="{{detailSection.text}}">{{detailSection.text}}</text>
+    <view class="detail-image-wrap aspect-34" wx:if="{{detailSection.images.length}}">
+      <swiper
+        class="detail-image-swiper"
+        indicator-dots="{{detailSection.images.length > 1}}"
+        indicator-color="rgba(0,0,0,0.2)"
+        indicator-active-color="#4DA7F8"
+        circular="{{detailSection.images.length > 1}}"
+        bindchange="onDetailImageSwiperChange"
+      >
+        <swiper-item wx:for="{{detailSection.images}}" wx:key="*this">
+          <image
+            class="detail-swiper-img aspect-34-fill"
+            src="{{item}}"
+            mode="aspectFill"
+            bindtap="onPreviewDetailImage"
+            data-src="{{item}}"
+          ></image>
+        </swiper-item>
+      </swiper>
+      <view class="detail-image-counter" wx:if="{{detailSection.images.length > 1}}">
+        {{detailImageCurrent + 1}}/{{detailSection.images.length}}
+      </view>
+    </view>
+    <view class="detail-gallery" wx:if="{{detailSection.media.length}}">
+      <video
+        wx:for="{{detailSection.media}}"
+        wx:key="index"
+        class="detail-gallery-video"
+        src="{{item.url}}"
+        poster="{{item.poster}}"
+        controls
+        show-center-play-btn
+        object-fit="cover"
+      ></video>
     </view>
   </view>
 
   <view class="bottom">
-    <button class="btn-secondary" bindtap="onSharePoster">分享海报</button>
-    <button class="btn-secondary" bindtap="onChatHost">联系主理人</button>
-    <button class="btn-primary" bindtap="onSignup" disabled="{{signedUp}}">
-      {{signedUp ? '已报名' : '立即报名'}}
+    <button class="btn-secondary {{isOwner ? 'btn-full' : ''}}" bindtap="onSharePoster">分享海报</button>
+    <button class="btn-secondary" wx:if="{{!isOwner}}" bindtap="onChatHost">联系主理人</button>
+    <button class="btn-primary" wx:if="{{!isOwner}}" bindtap="onSignup">
+      {{signedUp ? '查看报名码' : '立即报名'}}
     </button>
+  </view>
+
+  <view class="ticket-mask" wx:if="{{showTicket && signup}}" catchtap="onCloseTicket">
+    <view class="ticket-sheet" catchtap="noop">
+      <text class="ticket-eyebrow">线下核销码</text>
+      <text class="ticket-title">{{event.title}}</text>
+      <view class="ticket-qr-wrap">
+        <canvas type="2d" id="ticketQr" class="ticket-qr"></canvas>
+      </view>
+      <text class="ticket-code">核销码 {{signup.ticketCode}}</text>
+      <view class="ticket-info">
+        <text class="ticket-line">报名人：{{signup.contactName || '宠友'}}</text>
+        <text class="ticket-line">手机号：{{signup.phone || '未填写'}}</text>
+        <text class="ticket-line">宠物：{{signup.petName || '我家毛孩'}}{{signup.petBreed ? ' · ' + signup.petBreed : ''}}</text>
+      </view>
+      <text class="ticket-tip">扫码可看到报名人和宠物信息，入场请向主理人出示</text>
+      <text class="ticket-close" bindtap="onCloseTicket">关闭</text>
+    </view>
   </view>
 </view>

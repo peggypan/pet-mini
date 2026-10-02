@@ -15,12 +15,29 @@ page { background: #F5F8FC; }
 }
 
 .tab {
+  position: relative;
   flex: 1;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 18rpx 0;
   border-radius: 24rpx;
   font-size: 28rpx;
   color: #999999;
+}
+
+.tab-badge {
+  min-width: 28rpx;
+  height: 28rpx;
+  margin-left: 8rpx;
+  padding: 0 8rpx;
+  border-radius: 14rpx;
+  background: #FF5A7A;
+  color: #ffffff;
+  font-size: 18rpx;
+  font-weight: 700;
+  line-height: 28rpx;
+  text-align: center;
 }
 
 .tab.on {
@@ -99,12 +116,33 @@ page { background: #F5F8FC; }
   background: #fff;
 }
 
+.notice-item.is-unread {
+  background: #F3F9FF;
+}
+
+.notice-title-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
 .notice-title {
-  display: block;
+  flex: 1;
   font-size: 28rpx;
   font-weight: 700;
   color: #1A1A1A;
-  margin-bottom: 8rpx;
+}
+
+.notice-dot {
+  width: 14rpx;
+  height: 14rpx;
+  margin-left: 12rpx;
+  border-radius: 50%;
+  background: #FF5A7A;
+}
+
+.notice-item.notice-tap:active {
+  opacity: 0.72;
 }
 
 .notice-content {
@@ -115,9 +153,29 @@ page { background: #F5F8FC; }
   margin-bottom: 8rpx;
 }
 
+.notice-line {
+  display: block;
+  font-size: 26rpx;
+  color: #666666;
+  line-height: 1.55;
+}
+
+.notice-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12rpx;
+}
+
 .notice-time {
   font-size: 22rpx;
   color: #B0BEC5;
+}
+
+.notice-link {
+  font-size: 22rpx;
+  color: #1E88E5;
+  font-weight: 600;
 }
 
 .empty {
@@ -131,9 +189,4 @@ page { background: #F5F8FC; }
   margin-top: 24rpx;
   background: #4DA7F8;
   color: #fff;
-  border-radius: 40rpx;
-  font-size: 26rpx;
-  border: none;
 }
-
-.empty-btn::after { border: none; }

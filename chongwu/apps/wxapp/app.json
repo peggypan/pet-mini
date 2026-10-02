@@ -4,6 +4,7 @@
     "pages/home/home",
     "pages/search/search",
     "pages/pet-discover/pet-discover",
+    "pages/pet-discover-detail/pet-discover-detail",
     "pages/events/events",
     "pages/buddy/buddy",
     "pages/buddy-map/buddy-map",
@@ -34,7 +35,8 @@
     "pages/messages/messages",
     "pages/pet-form/pet-form",
     "pages/pet-cert/pet-cert",
-    "pages/pet-raise/pet-raise",
+    "pages/pet-cert-poster/pet-cert-poster",
+    "pages/pet-cert-verify/pet-cert-verify",
     "pages/chat/chat",
     "pages/chat-call/chat-call"
   ],
@@ -69,7 +71,7 @@
     "list": [
       { "pagePath": "pages/home/home", "text": "首页" },
       { "pagePath": "pages/pet-discover/pet-discover", "text": "搭搭" },
-      { "pagePath": "pages/social/social", "text": "宠友圈" },
+      { "pagePath": "pages/social/social", "text": "社区" },
       { "pagePath": "pages/messages/messages", "text": "消息" },
       { "pagePath": "pages/profile/profile", "text": "我的" }
     ]

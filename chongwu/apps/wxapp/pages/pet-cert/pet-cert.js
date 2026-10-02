@@ -1,59 +1,101 @@
 const { getDefaultPet } = require('../../utils/catalog');
-const petRaise = require('../../utils/pet-raise');
-const { chooseMedia } = require('../../utils/choose-media');
+const store = require('../../utils/store');
+const {
+  isPetProfileComplete,
+  getPetAuditStatus,
+  petProfileGateMessage,
+  hasPetProfile,
+  requirePetProfile,
+} = require('../../utils/pet-profile-guard');
+const { drawQrCanvas } = require('../../utils/qrcode');
+const {
+  buildPetCertQrContent,
+  parsePetCertScanPayload,
+} = require('../../utils/pet-cert-qrcode');
 
 Page({
   data: {
     pet: {},
-    virtualPet: null,
+    profileComplete: false,
+    auditStatus: '',
+    auditBannerText: '',
+    qrDrawing: false,
   },
 
   onShow() {
     const pet = getDefaultPet();
-    this.setData({
-      pet,
-      virtualPet: petRaise.getState(pet),
+    const profileComplete = isPetProfileComplete();
+    const auditStatus = getPetAuditStatus(pet) || '';
+    const auditBannerText = profileComplete ? (petProfileGateMessage(pet) || '') : '';
+    const certReady = profileComplete && auditStatus !== 'rejected' && auditStatus !== 'hidden';
+    this.setData({ pet, profileComplete, auditStatus, auditBannerText }, () => {
+      if (certReady) this.refreshCertQr(pet);
     });
   },
 
-  onEdit() {
-    wx.navigateTo({ url: '/pages/pet-form/pet-form' });
+  async refreshCertQr(pet) {
+    if (this.data.qrDrawing) return;
+    const row = pet.id ? store.getPet(pet.id) || pet : store.listPets()[0] || pet;
+    if (row && row.id) store.registerPublicPetCert(row);
+    this.setData({ qrDrawing: true });
+    try {
+      await wx.nextTick();
+      const content = buildPetCertQrContent(row);
+      await drawQrCanvas(this, 'petCertQr', content);
+    } catch (e) {
+      console.warn('pet cert qr', e);
+    } finally {
+      this.setData({ qrDrawing: false });
+    }
   },
 
-  onShare() {
-    wx.showToast({ title: '海报生成（演示）', icon: 'none' });
-  },
-
-  onEnterRaise() {
-    wx.navigateTo({ url: '/pages/pet-raise/pet-raise' });
-  },
-
-  onUploadPhoto() {
-    chooseMedia({
-      count: 1,
-      mediaType: ['image'],
-      sourceType: ['album', 'camera'],
+  onScanVerify() {
+    wx.scanCode({
+      onlyFromCamera: false,
+      scanType: ['qrCode', 'barCode'],
       success: (res) => {
-        const file = (res.tempFiles || [])[0];
-        if (!file) return;
-        wx.showLoading({ title: '生成中…', mask: true });
-        setTimeout(() => {
-          const result = petRaise.generateFromPhoto(file.tempFilePath, getDefaultPet());
-          wx.hideLoading();
-          wx.showToast({ title: result.message, icon: result.ok ? 'success' : 'none' });
-          if (result.state) {
-            this.setData({ virtualPet: result.state });
-          }
-        }, 500);
+        const pet = parsePetCertScanPayload(res.result);
+        if (!pet || !pet.name) {
+          wx.showToast({ title: '无法识别的宠证码', icon: 'none' });
+          return;
+        }
+        wx.setStorageSync('_scan_pet_cert', pet);
+        wx.navigateTo({ url: '/pages/pet-cert-verify/pet-cert-verify?from=scan' });
+      },
+      fail: (err) => {
+        if (err.errMsg && err.errMsg.includes('cancel')) return;
+        wx.showToast({ title: '扫码失败', icon: 'none' });
       },
     });
   },
 
-  onQuickFeed() {
-    const result = petRaise.interact('feed', getDefaultPet());
-    wx.showToast({ title: result.message, icon: result.ok ? 'success' : 'none' });
-    if (result.state) {
-      this.setData({ virtualPet: result.state });
+  onEdit() {
+    const pet = this.data.pet || {};
+    const q = pet.id ? `?petId=${pet.id}` : '';
+    wx.navigateTo({ url: `/pages/pet-form/pet-form${q}` });
+  },
+
+  onOpenActivityArea() {
+    const pet = this.data.pet || {};
+    const lat = Number(pet.activityAreaLatitude);
+    const lng = Number(pet.activityAreaLongitude);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+    wx.openLocation({
+      latitude: lat,
+      longitude: lng,
+      name: pet.activityAreaName || '常活动区域',
+      address: pet.activityAreaAddress || '',
+      scale: 16,
+    });
+  },
+
+  onShare() {
+    if (!hasPetProfile()) {
+      requirePetProfile();
+      return;
     }
+    const pet = this.data.pet || {};
+    const q = pet.id ? `?petId=${pet.id}` : '';
+    wx.navigateTo({ url: `/pages/pet-cert-poster/pet-cert-poster${q}` });
   },
 });

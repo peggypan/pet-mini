@@ -80,19 +80,19 @@ page {
 
 .pet-map-tap-hint {
   margin-bottom: 20rpx;
-  padding: 10rpx 28rpx;
+  padding: 14rpx 36rpx;
   border-radius: 999rpx;
   background-color: rgba(255, 255, 255, 0.92);
-  font-size: 22rpx;
+  font-size: 30rpx;
   font-weight: 700;
   color: #1E88E5;
-  line-height: 1.3;
+  line-height: 1.35;
   text-align: center;
 }
 
 .zone-tabs {
   display: flex;
-  gap: 32rpx;
+  gap: 24rpx;
   margin-bottom: 20rpx;
   padding: 0 8rpx;
 }
@@ -132,6 +132,11 @@ page {
   line-height: 1.5;
 }
 
+.healing-tip {
+  background: #eefaf3;
+  color: #2d6a4f;
+}
+
 .filter-scroll {
   white-space: nowrap;
   margin-bottom: 20rpx;
@@ -154,181 +159,84 @@ page {
   font-weight: 700;
 }
 
-.card {
-  padding: 24rpx;
-  margin-bottom: 16rpx;
-  background: #FFFFFF;
-  border-radius: 28rpx;
-  box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.04);
-}
-
-.card-head {
-  display: flex;
-  align-items: center;
-  margin-bottom: 16rpx;
-}
-
-.avatar {
-  width: 72rpx;
-  height: 72rpx;
-  border-radius: 50%;
-  margin-right: 16rpx;
-}
-
-.info {
-  flex: 1;
-  min-width: 0;
-}
-
-.name {
-  display: block;
-  font-size: 28rpx;
-  font-weight: 700;
-  color: #1A1A1A;
-}
-
-.meta {
-  font-size: 22rpx;
-  color: #999999;
-}
-
-.verified {
-  font-size: 20rpx;
-  color: #1E88E5;
-  background: rgba(126, 200, 255, 0.25);
-  padding: 6rpx 14rpx;
-  border-radius: 8rpx;
-  font-weight: 600;
-}
-
-.pet-card {
-  padding: 16rpx;
-  margin-bottom: 14rpx;
-  border-radius: 16rpx;
-  background: #F5F8FC;
-}
-
-.pet-line {
-  display: block;
-  font-size: 24rpx;
-  color: #666666;
-  margin-bottom: 10rpx;
-}
-
-.tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8rpx;
-}
-
-.tag {
-  font-size: 20rpx;
-  color: #1E88E5;
-  background: rgba(126, 200, 255, 0.25);
-  padding: 4rpx 12rpx;
-  border-radius: 8rpx;
-  font-weight: 600;
-}
-
-.desc {
-  display: block;
-  font-size: 28rpx;
-  color: #333333;
-  line-height: 1.6;
-  margin-bottom: 10rpx;
-}
-
-.media-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10rpx;
-  margin-bottom: 10rpx;
-  align-items: center;
-}
-
-.media-row.single .media-thumb-wrap {
-  width: 100%;
-  height: 320rpx;
-}
-
-.media-thumb-wrap {
-  position: relative;
-  width: calc((100% - 20rpx) / 3);
-  height: 200rpx;
-  border-radius: 12rpx;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.media-thumb {
-  width: 100%;
-  height: 100%;
-  background: #E8F4FF;
-}
-
-.media-video-mask {
+.cover-video-mask {
   position: absolute;
-  inset: 0;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   background: rgba(0, 0, 0, 0.22);
+  pointer-events: none;
 }
 
-.media-video-tag {
-  font-size: 40rpx;
-  color: #FFFFFF;
+.cover-video-tag {
+  font-size: 36rpx;
+  color: #ffffff;
   line-height: 1;
-  margin-bottom: 6rpx;
 }
 
-.media-video-dur {
-  font-size: 20rpx;
-  color: #FFFFFF;
-  background: rgba(0, 0, 0, 0.45);
-  padding: 2rpx 10rpx;
-  border-radius: 999rpx;
+.buddy-plaza-body {
+  padding-bottom: 12rpx;
 }
 
-.media-more {
-  width: 80rpx;
-  height: 160rpx;
-  border-radius: 12rpx;
-  background: #F5F8FC;
+.buddy-plaza-intro {
+  margin-bottom: 4rpx;
+}
+
+.buddy-plaza-actions {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24rpx;
-  color: #999999;
+  justify-content: flex-end;
+  margin-top: 8rpx;
 }
 
-.expect {
-  display: block;
+.buddy-plaza-delete {
   font-size: 22rpx;
-  color: #999999;
-  margin-bottom: 10rpx;
-}
-
-.credit {
-  display: flex;
-  gap: 8rpx;
-  flex-wrap: wrap;
-}
-
-.credit-tag {
-  font-size: 20rpx;
-  color: #1E88E5;
-  background: rgba(30, 136, 229, 0.12);
+  color: #ff2442;
   padding: 4rpx 12rpx;
-  border-radius: 8rpx;
+  border-radius: 999rpx;
+  background: #fff5f5;
+  border: 1rpx solid #ffc9c9;
 }
 
-.empty {
-  padding: 80rpx;
+.feed-action-delete text {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #ff2442;
+}
+
+.feed-actions-compact {
+  padding-top: 10rpx;
+  margin-top: 8rpx;
+  border-top: 1rpx solid #eef2f6;
+}
+
+.feed-actions-compact .feed-action text,
+.feed-actions-compact .feed-action-share-btn text {
+  font-size: 20rpx;
+}
+
+.feed-actions-compact .feed-icon {
+  transform: scale(0.88);
+}
+
+.buddy-plaza-empty {
+  width: 100%;
+  padding: 80rpx 24rpx;
   text-align: center;
   color: #999999;
   font-size: 26rpx;
+}
+
+.feed-footer {
+  width: 100%;
+  padding: 28rpx 16rpx 8rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: #999999;
 }
 
 .fab {
@@ -339,12 +247,12 @@ page {
   align-items: center;
   justify-content: center;
   padding: 0 36rpx;
-  height: 88rpx;
+  height: 96rpx;
   line-height: 1.4;
   border-radius: 999rpx;
   background: linear-gradient(135deg, #5BB8FF 0%, #4DA7F8 100%);
   color: #1A1A1A;
-  font-size: 28rpx;
+  font-size: 32rpx;
   font-weight: 700;
   box-shadow: 0 8rpx 28rpx rgba(77, 167, 248, 0.4);
   z-index: 20;

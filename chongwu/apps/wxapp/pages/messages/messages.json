@@ -1,3 +1,6 @@
 {
+  "usingComponents": {
+    "pet-profile-gate": "/components/pet-profile-gate/pet-profile-gate"
+  },
   "navigationBarTitleText": "消息"
 }

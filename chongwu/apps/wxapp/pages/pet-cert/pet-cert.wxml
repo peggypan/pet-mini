@@ -1,45 +1,46 @@
 <view class="page">
+  <view class="audit-banner rejected" wx:if="{{profileComplete && auditStatus === 'rejected'}}">
+    <text class="audit-title">档案未通过</text>
+    <text class="audit-desc">{{auditBannerText || '请修改资料后重新保存'}}</text>
+  </view>
+  <view class="audit-banner hidden" wx:elif="{{profileComplete && auditStatus === 'hidden'}}">
+    <text class="audit-title">档案已隐藏</text>
+    <text class="audit-desc">{{auditBannerText || '请联系平台客服'}}</text>
+  </view>
+
   <text class="section-title">电子宠证</text>
   <view class="cert-card">
     <image class="avatar" src="{{pet.avatar}}" mode="aspectFill"></image>
     <text class="name">{{pet.name}}</text>
     <text class="line">{{pet.breed}} · {{pet.age}} · {{pet.personality}}</text>
-    <text class="verified" wx:if="{{pet.verified}}">疫苗已核验 ✓</text>
+    <view class="healing-cert-badge" wx:if="{{pet.healingPet}}">💚 宠物疗愈 · {{pet.healingBuddyType || '疗愈搭子'}}</view>
+    <text class="verified" wx:if="{{pet.vaccineStatus === 'immune' || pet.verified}}">已免疫 ✓</text>
+    <text class="vaccine-tag vaccinating" wx:elif="{{pet.vaccineStatus === 'vaccinating'}}">免疫中</text>
+    <text class="vaccine-tag none" wx:elif="{{pet.vaccineStatus === 'none'}}">未免疫</text>
     <view class="tag-row" wx:if="{{pet.socialTags && pet.socialTags.length}}">
       <text class="tag" wx:for="{{pet.socialTags}}" wx:key="*this">{{item}}</text>
+    </view>
+    <view
+      class="activity-area"
+      wx:if="{{pet.activityAreaName || pet.activityAreaAddress}}"
+      bindtap="onOpenActivityArea"
+    >
+      <text class="activity-label">常活动区域</text>
+      <text class="activity-name">{{pet.activityAreaName || pet.activityAreaAddress}}</text>
+      <text class="activity-addr" wx:if="{{pet.activityAreaAddress && pet.activityAreaName && pet.activityAreaAddress !== pet.activityAreaName}}">{{pet.activityAreaAddress}}</text>
+      <text class="activity-hint" wx:if="{{pet.activityAreaLatitude}}">点击查看地图 ›</text>
     </view>
     <text class="brand">宠头头 · 电子宠证</text>
   </view>
 
-  <text class="section-title">数字宠物养成</text>
-  <view class="digital-card" wx:if="{{virtualPet}}">
-    <view class="digital-preview">
-      <block wx:if="{{virtualPet.hasPhoto}}">
-        <view class="photo-wrap" style="transform: scale({{virtualPet.displayScale}})">
-          <image class="digital-photo" src="{{virtualPet.photoUrl}}" mode="aspectFit"></image>
-        </view>
-      </block>
-      <block wx:else>
-        <text class="digital-emoji">🥚</text>
-        <text class="digital-tip">上传照片生成数字形象</text>
-      </block>
+  <view class="qr-section" wx:if="{{profileComplete && auditStatus !== 'rejected' && auditStatus !== 'hidden'}}">
+    <text class="qr-title">线下查验二维码</text>
+    <text class="qr-sub">档案完善后自动生成，扫码可查看宠证信息与免疫证明</text>
+    <view class="qr-canvas-wrap">
+      <canvas type="2d" id="petCertQr" class="cert-qr-canvas"></canvas>
     </view>
-    <view class="digital-info">
-      <view class="digital-row">
-        <text class="digital-name">{{virtualPet.name}}</text>
-        <text class="digital-stage">{{virtualPet.growthStageName}} · Lv.{{virtualPet.level}}</text>
-      </view>
-      <view class="growth-bar">
-        <view class="growth-fill" style="width: {{virtualPet.growthPercent}}%"></view>
-      </view>
-      <text class="growth-text">生长 {{virtualPet.growthPercent}}% · {{virtualPet.feedSummary}}</text>
-      <text class="dialogue">{{virtualPet.dialogue}}</text>
-    </view>
-    <view class="digital-actions">
-      <button class="btn-mini" wx:if="{{!virtualPet.hasPhoto}}" bindtap="onUploadPhoto">📷 上传照片</button>
-      <button class="btn-mini" bindtap="onQuickFeed">🍖 快捷喂食</button>
-      <button class="btn-mini primary" bindtap="onEnterRaise">进入养成空间 ›</button>
-    </view>
+    <text class="qr-tip">微信「扫一扫」或点击下方按钮查验其他宠物</text>
+    <button class="btn-scan" bindtap="onScanVerify">扫码查验</button>
   </view>
 
   <view class="bottom-actions">

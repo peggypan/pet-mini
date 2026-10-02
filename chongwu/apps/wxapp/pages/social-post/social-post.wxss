@@ -47,17 +47,20 @@ page { background: #F5F8FC; }
 }
 
 .clear-topic {
-  margin-left: 16rpx;
-  font-size: 24rpx;
-  color: #999;
+  margin-left: 8rpx;
 }
 
-.zone-row { display: flex; margin-bottom: 24rpx; }
+.zone-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-bottom: 24rpx;
+}
+
 .zone {
-  padding: 10rpx 22rpx;
-  margin-right: 12rpx;
+  padding: 10rpx 20rpx;
   border-radius: 28rpx;
-  background: #F5F8FC;
+  background: #f5f8fc;
   font-size: 24rpx;
   color: #666;
 }
@@ -66,6 +69,36 @@ page { background: #F5F8FC; }
   color: #2A2A2A;
   font-weight: 600;
 }
+.textarea-wrap {
+  position: relative;
+  width: 100%;
+  margin-bottom: 28rpx;
+  background: #F5F8FC;
+  border-radius: 14rpx;
+  min-height: 240rpx;
+}
+
+.textarea-mirror {
+  padding: 18rpx;
+  font-size: 28rpx;
+  line-height: 1.5;
+  word-break: break-word;
+  white-space: pre-wrap;
+  color: #333333;
+  box-sizing: border-box;
+  min-height: 204rpx;
+}
+
+.mirror-hashtag {
+  color: #1E88E5;
+  font-weight: 600;
+}
+
+.mirror-bracket {
+  font-weight: 700;
+  color: #1E88E5;
+}
+
 .textarea {
   width: 100%;
   min-height: 240rpx;
@@ -73,8 +106,19 @@ page { background: #F5F8FC; }
   background: #F5F8FC;
   border-radius: 14rpx;
   font-size: 28rpx;
+  line-height: 1.5;
   box-sizing: border-box;
-  margin-bottom: 28rpx;
+}
+
+.textarea-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  min-height: 100%;
+  background: transparent;
+  color: transparent;
+  caret-color: #333333;
 }
 
 .tool-row {
@@ -103,20 +147,18 @@ page { background: #F5F8FC; }
 .media-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 14rpx;
+  align-items: flex-start;
+  gap: 12rpx;
   margin-bottom: 20rpx;
 }
 
 .media-item {
   position: relative;
-  width: 196rpx;
-  height: 196rpx;
+  border-radius: 14rpx;
+  overflow: hidden;
 }
 
 .media-thumb {
-  width: 100%;
-  height: 100%;
-  border-radius: 14rpx;
   background: #E2EBF4;
 }
 
@@ -161,8 +203,8 @@ page { background: #F5F8FC; }
 }
 
 .media-add {
-  width: 196rpx;
-  height: 196rpx;
+  position: relative;
+  width: calc((100% - 28rpx) / 3);
   display: flex;
   align-items: center;
   justify-content: center;

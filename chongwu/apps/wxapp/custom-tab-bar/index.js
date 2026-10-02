@@ -1,9 +1,12 @@
 const { openEventPublishEntry } = require('../utils/event-publish-nav');
+const store = require('../utils/store');
+const { requirePetProfile } = require('../utils/pet-profile-guard');
 
 Component({
   data: {
     selected: 0,
     showQuickNav: false,
+    messagesUnread: 0,
     leftTabs: [],
     rightTabs: [],
     centerTab: null,
@@ -19,7 +22,7 @@ Component({
         emoji: '🐾',
         label: '搭搭',
       },
-      { pagePath: '/pages/social/social', label: '宠友圈', center: true },
+      { pagePath: '/pages/social/social', label: '社区', center: true },
       {
         pagePath: '/pages/messages/messages',
         emoji: '💬',
@@ -42,10 +45,21 @@ Component({
   lifetimes: {
     attached() {
       this.syncSideTabs();
+      this.refreshUnread();
+    },
+  },
+
+  pageLifetimes: {
+    show() {
+      this.refreshUnread();
     },
   },
 
   methods: {
+    refreshUnread() {
+      this.setData({ messagesUnread: store.countUnreadMessages() });
+    },
+
     syncSideTabs() {
       const list = this.data.list;
       const centerIndex = list.findIndex((item) => item.center);
@@ -78,6 +92,9 @@ Component({
       const id = e.currentTarget.dataset.action;
       const action = this.data.quickCards[id];
       if (!action) return;
+      if (id === 'buddy' || id === 'event' || id === 'social') {
+        if (!requirePetProfile()) return;
+      }
       this.setData({ showQuickNav: false });
       if (action.type === 'tab') {
         const tabIndex = this.data.list.findIndex((t) => t.pagePath === action.path);

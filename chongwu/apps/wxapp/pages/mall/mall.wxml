@@ -52,7 +52,7 @@
         bindtap="onMallProduct"
         data-id="{{item.id}}"
       >
-        <view class="mall-cover-wrap">
+        <view class="mall-cover-wrap aspect-34">
           <image class="mall-cover" src="{{item.cover}}" mode="aspectFill"></image>
           <text class="mall-tag" wx:if="{{item.tag}}">{{item.tag}}</text>
         </view>

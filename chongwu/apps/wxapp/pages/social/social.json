@@ -1,4 +1,7 @@
 {
-  "navigationBarTitleText": "宠友圈",
+  "usingComponents": {
+    "pet-profile-gate": "/components/pet-profile-gate/pet-profile-gate"
+  },
+  "navigationBarTitleText": "宠物社区",
   "enableShareAppMessage": true
 }

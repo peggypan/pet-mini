@@ -2,12 +2,13 @@ const store = require('../../utils/store');
 const { pickMixedMedia, MEDIA_LIMIT_HINT, mediaSlots } = require('../../utils/media-upload');
 const { ROLE_LABEL } = require('../../utils/event-qualify');
 const { getDefaultPet } = require('../../utils/catalog');
+const { EVENT_CATEGORIES, RISK_TIPS } = require('../../utils/mock');
 const amap = require('../../utils/amap');
+const { blockSubPageWithoutProfile, syncPetProfileGate, requirePetProfile } = require('../../utils/pet-profile-guard');
 
 const WEEKS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 
-const CATEGORIES = ['遛狗社交', '撸猫社交', '宠物聚会', '萌宠摄影', '宠物科普', '爱心领养', '赛事举办', '其他'];
-const REFUND_POLICIES = ['随时退 · 开场前全额退', '开场前24小时可退', '一旦报名不退不改'];
+const CATEGORIES = EVENT_CATEGORIES;
 const SIGNUP_SCOPES = ['所有人', '仅限女生', '仅限男生', '仅限认证宠友'];
 
 function newSessionId() {
@@ -37,10 +38,8 @@ Page({
     eventDate: '',
     eventTime: '',
     today: formatToday(),
-    refundPolicy: '',
-    price: '',
-    feeIncludes: '',
     maxPeople: '20',
+    eventSafetyTip: RISK_TIPS.event,
     deadlineDate: '',
     deadlineTime: '',
     signupScope: '所有人',
@@ -49,13 +48,24 @@ Page({
     timedTime: '',
     timedLabel: '不使用定时报名',
     desc: '',
+    detailContent: '',
+    detailMediaList: [],
+    detailMediaLimitHint: '详情配图最多 6 张',
+    detailMediaCanAdd: true,
+    detailMediaSummary: '0/6 图',
     mediaList: [],
     mediaLimitHint: MEDIA_LIMIT_HINT,
     mediaCanAdd: true,
     mediaSummary: '0/6 图 · 0/3 视频',
+    petProfileBlocked: false,
+  },
+
+  onShow() {
+    syncPetProfileGate(this);
   },
 
   onLoad(options) {
+    blockSubPageWithoutProfile(this);
     const role = options.role === 'merchant' ? 'merchant' : 'personal';
     const draft = store.getDraft('event_publish');
     if (draft) {
@@ -66,6 +76,9 @@ Page({
       this.refreshTimedLabel();
       if (draft.mediaList && draft.mediaList.length) {
         this.syncMediaUI(draft.mediaList);
+      }
+      if (draft.detailMediaList && draft.detailMediaList.length) {
+        this.syncDetailMediaUI(draft.detailMediaList);
       }
     }
     this.setData({ role });
@@ -145,13 +158,6 @@ Page({
       i === index ? { ...s, time: e.detail.value } : s
     ));
     this.setData({ eventSessions });
-  },
-
-  onPickRefund() {
-    wx.showActionSheet({
-      itemList: REFUND_POLICIES,
-      success: (res) => this.setData({ refundPolicy: REFUND_POLICIES[res.tapIndex] }),
-    });
   },
 
   onPickScope() {
@@ -250,9 +256,6 @@ Page({
       location: d.location,
       eventDate: d.eventDate,
       eventTime: d.eventTime,
-      refundPolicy: d.refundPolicy,
-      price: d.price,
-      feeIncludes: d.feeIncludes,
       maxPeople: d.maxPeople,
       deadlineDate: d.deadlineDate,
       deadlineTime: d.deadlineTime,
@@ -261,6 +264,9 @@ Page({
       timedDate: d.timedDate,
       timedTime: d.timedTime,
       desc: d.desc,
+      detailContent: d.detailContent,
+      detailMediaList: d.detailMediaList,
+      mediaList: d.mediaList,
     });
     wx.showToast({ title: '草稿已保存', icon: 'success' });
   },
@@ -272,6 +278,37 @@ Page({
       mediaCanAdd: slots.canAddAny,
       mediaSummary: slots.summary,
     });
+  },
+
+  syncDetailMediaUI(list) {
+    const images = (list || []).filter((m) => m.type === 'image');
+    const canAdd = images.length < 6;
+    this.setData({
+      detailMediaList: images,
+      detailMediaCanAdd: canAdd,
+      detailMediaSummary: `${images.length}/6 图`,
+    });
+  },
+
+  onChooseDetailMedia() {
+    pickMixedMedia(this.data.detailMediaList, { mediaType: ['image'] })
+      .then((list) => this.syncDetailMediaUI(list.filter((m) => m.type === 'image')))
+      .catch(() => {});
+  },
+
+  onRemoveDetailMedia(e) {
+    const index = Number(e.currentTarget.dataset.index);
+    if (Number.isNaN(index)) return;
+    const next = (this.data.detailMediaList || []).filter((_, i) => i !== index);
+    this.syncDetailMediaUI(next);
+  },
+
+  onPreviewDetailMedia(e) {
+    const index = Number(e.currentTarget.dataset.index);
+    const item = (this.data.detailMediaList || [])[index];
+    if (!item) return;
+    const urls = this.data.detailMediaList.map((m) => m.url);
+    wx.previewImage({ urls, current: item.url });
   },
 
   onChooseMedia() {
@@ -301,8 +338,9 @@ Page({
   },
 
   onSubmit() {
+    if (!requirePetProfile()) return;
     const {
-      title, place, price, maxPeople, desc, role, mediaList, eventDate, category, refundPolicy,
+      title, place, maxPeople, desc, detailContent, detailMediaList, role, mediaList, eventDate, category,
       eventType, eventSessions,
     } = this.data;
 
@@ -328,18 +366,9 @@ Page({
       wx.showToast({ title: '请在地图上选择活动地点', icon: 'none' });
       return;
     }
-    if (!refundPolicy) {
-      wx.showToast({ title: '请选择退款政策', icon: 'none' });
-      return;
-    }
     const people = Number(maxPeople);
     if (!people || people < 2 || people > 100) {
       wx.showToast({ title: '人数需在 2-100 人之间', icon: 'none' });
-      return;
-    }
-    const amount = Number(price || 0);
-    if (Number.isNaN(amount) || amount < 0) {
-      wx.showToast({ title: '活动价格格式不正确', icon: 'none' });
       return;
     }
 
@@ -350,6 +379,10 @@ Page({
     const pet = getDefaultPet();
     const publisherName = role === 'merchant' ? '商家' : (pet.name ? `我 · ${pet.name}` : '我');
 
+    const savedEventDate = eventType === 'multi'
+      ? (eventSessions[0] && eventSessions[0].date) || ''
+      : eventDate;
+
     const created = store.addMyEvent({
       title,
       category,
@@ -358,20 +391,29 @@ Page({
       place,
       placeAddress: this.data.placeAddress,
       location: this.data.location,
+      eventDate: savedEventDate,
       time,
-      refundPolicy,
-      price: amount,
-      feeText: amount > 0 ? `¥${amount}/人` : '免费',
-      fee: amount > 0 ? `¥${amount}/人` : '免费',
-      feeIncludes: this.data.feeIncludes,
+      refundPolicy: '',
+      price: 0,
+      maxPeople: people,
+      remain: people,
+      seats: `0/${people}`,
+      feeText: '免费',
+      fee: '免费报名',
+      feeIncludes: '',
       deadline: this.data.deadlineDate
         ? `${this.data.deadlineDate} ${this.data.deadlineTime || '23:59'}`
         : '',
       signupScope: this.data.signupScope,
       timedSignup: this.data.timedSignup,
       desc,
+      detailContent,
+      detailMediaList: (detailMediaList || []).filter((m) => m.type === 'image'),
+      detailImages: (detailMediaList || []).filter((m) => m.type === 'image').map((m) => m.url),
       role,
       publisherName,
+      host: publisherName,
+      hostAvatar: pet.avatar || pet.avatarUrl,
       depositPaid: false,
       depositAmount: 0,
       status: 'approved',

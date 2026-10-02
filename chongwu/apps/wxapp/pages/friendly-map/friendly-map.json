@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "友好地图 · 高德",
+  "navigationBarTitleText": "友好地图 · 腾讯",
   "usingComponents": {
     "pet-map-fab": "/components/pet-map-fab/pet-map-fab"
   }

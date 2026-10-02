@@ -274,14 +274,7 @@ Page({
   },
 
   onNav() {
-    const p = this.data.selectedPoint;
-    if (!p) return;
-    amap.openNavigation({
-      lat: p.latitude,
-      lng: p.longitude,
-      name: p.name,
-      address: p.address,
-    });
+    amap.openPlace(this.data.selectedPoint || {});
   },
 
   onRelocate() {

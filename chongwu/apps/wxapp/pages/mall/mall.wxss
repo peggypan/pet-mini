@@ -185,15 +185,11 @@ page {
 }
 
 .mall-cover-wrap {
-  position: relative;
-  width: 100%;
-  height: 200rpx;
   background: #E2EBF4;
 }
 
 .mall-cover {
-  width: 100%;
-  height: 100%;
+  background: #E2EBF4;
 }
 
 .mall-tag {

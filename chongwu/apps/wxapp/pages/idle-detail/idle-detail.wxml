@@ -7,7 +7,9 @@
   <!-- 图片轮播 -->
   <swiper class="item-swiper" indicator-dots circular wx:if="{{item.images.length > 0}}">
     <swiper-item wx:for="{{item.images}}" wx:key="*this">
-      <image src="{{item}}" mode="aspectFill" class="swiper-image"></image>
+      <view class="swiper-slide aspect-34">
+        <image src="{{item}}" mode="aspectFill" class="swiper-image"></image>
+      </view>
     </swiper-item>
   </swiper>
 
@@ -30,7 +32,11 @@
       <image src="{{item.user.avatarUrl || '/assets/default-avatar.png'}}" class="seller-avatar"></image>
       <view class="seller-info">
         <text class="seller-name">{{item.user.nickname || '卖家'}}</text>
-        <text class="seller-location">{{item.district || item.location}}</text>
+        <text
+          class="seller-location place-tap"
+          wx:if="{{item.district || item.location}}"
+          bindtap="onOpenPlace"
+        >{{item.district || item.location}}</text>
       </view>
     </view>
   </view>

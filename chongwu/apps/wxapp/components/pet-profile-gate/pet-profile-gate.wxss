@@ -1,0 +1,70 @@
+.gate {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 9999;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48rpx;
+  box-sizing: border-box;
+}
+
+.gate-card {
+  width: 100%;
+  max-width: 620rpx;
+  padding: 48rpx 40rpx 40rpx;
+  border-radius: 28rpx;
+  background: #ffffff;
+  text-align: center;
+  box-shadow: 0 24rpx 64rpx rgba(0, 0, 0, 0.12);
+}
+
+.gate-icon {
+  display: block;
+  font-size: 72rpx;
+  margin-bottom: 16rpx;
+}
+
+.gate-title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 16rpx;
+}
+
+.gate-desc {
+  display: block;
+  font-size: 26rpx;
+  color: #666666;
+  line-height: 1.55;
+  margin-bottom: 36rpx;
+}
+
+.gate-btn {
+  width: 100%;
+  margin: 0 0 16rpx;
+  border-radius: 999rpx;
+  font-size: 30rpx;
+  line-height: 88rpx;
+  height: 88rpx;
+}
+
+.gate-btn.primary {
+  background: linear-gradient(135deg, #4da7f8 0%, #1e88e5 100%);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.gate-btn.ghost {
+  background: #f5f8fc;
+  color: #666666;
+}
+
+.gate-btn::after {
+  border: none;
+}

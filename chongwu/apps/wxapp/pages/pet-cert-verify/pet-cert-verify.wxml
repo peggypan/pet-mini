@@ -1,0 +1,46 @@
+<view class="page">
+  <view class="verify-badge">线下查验 · 公开信息</view>
+
+  <view class="error" wx:if="{{loadError}}">
+    <text class="error-icon">⚠️</text>
+    <text>{{loadError}}</text>
+  </view>
+
+  <view class="cert-card" wx:if="{{pet}}">
+    <image class="avatar" src="{{pet.avatar}}" mode="aspectFill"></image>
+    <text class="name">{{pet.name}}</text>
+    <text class="line">{{pet.breed}} · {{pet.speciesLabel}} · {{pet.genderLabel}}</text>
+    <text class="meta" wx:if="{{pet.birthday}}">生日 {{pet.birthday}}</text>
+    <text class="meta" wx:if="{{pet.weight}}">体重 {{pet.weight}} kg · 毛色 {{pet.color}}</text>
+    <text class="meta" wx:if="{{pet.isSterilized}}">已绝育</text>
+    <text class="verified" wx:if="{{pet.vaccineStatus === 'immune'}}">{{pet.vaccineLabel}}</text>
+    <text class="vaccine-tag vaccinating" wx:elif="{{pet.vaccineStatus === 'vaccinating'}}">{{pet.vaccineLabel}}</text>
+    <text class="vaccine-tag none" wx:elif="{{pet.vaccineStatus === 'none'}}">{{pet.vaccineLabel}}</text>
+    <text class="personality" wx:if="{{pet.personality}}">{{pet.personality}}</text>
+    <view class="tag-row" wx:if="{{pet.socialTags && pet.socialTags.length}}">
+      <text class="tag" wx:for="{{pet.socialTags}}" wx:key="*this">{{item}}</text>
+    </view>
+    <view class="activity-area" wx:if="{{pet.activityAreaName}}">
+      <text class="activity-label">常活动区域</text>
+      <text class="activity-name">{{pet.activityAreaName}}</text>
+    </view>
+
+    <view class="proof-block" wx:if="{{pet.vaccineProofUrl}}">
+      <text class="proof-label">免疫证明</text>
+      <text class="proof-hint">供线下活动查验，请点击查看大图</text>
+      <image
+        class="proof-img"
+        src="{{pet.vaccineProofUrl}}"
+        mode="widthFix"
+        bindtap="onPreviewProof"
+      ></image>
+    </view>
+    <view class="proof-block empty" wx:elif="{{pet.vaccineStatus === 'immune' || pet.vaccineStatus === 'vaccinating'}}">
+      <text class="proof-label">免疫证明</text>
+      <text class="proof-missing">档案标注为{{pet.vaccineLabel}}，但未附带证明图片</text>
+    </view>
+
+    <text class="brand">宠头头 · 电子宠证查验页</text>
+    <text class="privacy-note">未展示紧急联系人及联系电话</text>
+  </view>
+</view>

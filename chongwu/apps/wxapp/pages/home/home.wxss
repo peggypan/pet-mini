@@ -56,17 +56,36 @@ page {
   font-size: 22rpx;
 }
 
+/* 轮播 16:9 ≈ 设计稿 1600×900 */
+.banner-wrap {
+  margin-bottom: 24rpx;
+  border-radius: 32rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.06);
+}
+
+.banner-wrap.aspect-169::before {
+  display: block;
+}
+
 .banner {
-  height: 300rpx;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
   border-radius: 32rpx;
   overflow: hidden;
-  margin-bottom: 24rpx;
-  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.06);
 }
 
 .banner-item {
   position: relative;
+  width: 100%;
   height: 100%;
+  box-sizing: border-box;
+}
+
+.banner-item:active {
+  opacity: 0.92;
 }
 
 .banner-img {
@@ -78,214 +97,161 @@ page {
   position: absolute;
   left: 28rpx;
   bottom: 28rpx;
+  z-index: 2;
   color: #fff;
   font-size: 32rpx;
   font-weight: 700;
   text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.3);
 }
 
-/* —— 布丁 Pudding 风格 bento 宫格 —— */
-.pudding-board {
-  margin-bottom: 28rpx;
-  padding: 16rpx;
-  background: rgba(255, 255, 255, 0.72);
-  border-radius: 32rpx;
-  box-shadow: 0 8rpx 32rpx rgba(69, 180, 255, 0.08);
-  background-image:
-    linear-gradient(rgba(69, 180, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(69, 180, 255, 0.04) 1px, transparent 1px);
-  background-size: 40rpx 40rpx;
+.banner-campaign .banner-img-dim {
+  filter: brightness(0.85);
 }
 
-.pudding-row {
-  display: flex;
-  gap: 12rpx;
+.banner-campaign-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  background: linear-gradient(
+    115deg,
+    rgba(0, 145, 255, 0.88) 0%,
+    rgba(30, 136, 229, 0.72) 42%,
+    rgba(245, 158, 11, 0.55) 100%
+  );
 }
 
-.pudding-row-main {
-  margin-bottom: 12rpx;
-  align-items: stretch;
-}
-
-.pudding-col {
-  flex: 1;
+.banner-campaign-body {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 2;
   display: flex;
   flex-direction: column;
-  gap: 12rpx;
-  min-width: 0;
+  justify-content: center;
+  padding: 32rpx 36rpx;
+  box-sizing: border-box;
 }
 
-.pudding-mini-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12rpx;
-  flex: 1;
+.banner-campaign-tag {
+  align-self: flex-start;
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  font-size: 22rpx;
+  font-weight: 600;
+  margin-bottom: 12rpx;
 }
 
-.pudding-tile {
+.banner-campaign-title {
+  color: #ffffff;
+  font-size: 36rpx;
+  font-weight: 800;
+  line-height: 1.25;
+  text-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.15);
+}
+
+.banner-campaign-sub {
+  margin-top: 10rpx;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 24rpx;
+  line-height: 1.45;
+}
+
+.banner-campaign-cta {
+  margin-top: auto;
+  align-self: flex-start;
+  color: #ffffff;
+  font-size: 26rpx;
+  font-weight: 700;
+  padding: 10rpx 0;
+}
+
+/* —— 服务宫格（参照上门洗护/喂遛高饱和卡片） —— */
+.service-board {
+  margin-bottom: 28rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.service-row {
+  display: flex;
+  gap: 16rpx;
+}
+
+.service-card {
   position: relative;
-  border-radius: 28rpx;
+  flex: 1;
+  min-width: 0;
+  min-height: 208rpx;
+  padding: 28rpx 22rpx 24rpx;
+  border-radius: 24rpx;
   overflow: hidden;
-  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
   transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
-.pudding-tile:active {
+.service-card:active {
   transform: scale(0.98);
   opacity: 0.94;
 }
 
-.tile-large {
-  width: 48%;
-  min-height: 232rpx;
-  padding: 20rpx 20rpx 18rpx;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.tile-wide {
-  flex: 1;
-  min-height: 108rpx;
-  padding: 18rpx 20rpx;
-  display: flex;
-  align-items: center;
-}
-
-.tile-small {
-  min-width: 0;
-  min-height: 112rpx;
-  padding: 16rpx 14rpx;
-  display: flex;
-  align-items: center;
-  box-sizing: border-box;
-}
-
-.tile-half {
-  flex: 1;
-  min-height: 108rpx;
-  padding: 18rpx 20rpx;
-  display: flex;
-  align-items: center;
-}
-
-.tile-full {
+.service-card-wide {
   width: 100%;
-  min-height: 108rpx;
-  padding: 18rpx 20rpx;
-  display: flex;
-  align-items: center;
+  min-height: 168rpx;
 }
 
-.theme-blue {
-  background: linear-gradient(145deg, #45B4FF 0%, #6EC5FF 42%, #A8DCFF 100%);
+.theme-svc-blue {
+  background: linear-gradient(145deg, #3d9eff 0%, #2a7fe8 55%, #1f6fd4 100%);
+  box-shadow: 0 14rpx 32rpx rgba(42, 127, 232, 0.38);
 }
 
-.theme-yellow {
-  background: linear-gradient(145deg, #FFF4D0 0%, #FFF9E8 55%, #FFFFFF 100%);
+.theme-svc-orange {
+  background: linear-gradient(145deg, #ffab4a 0%, #ff8c2e 50%, #ff7618 100%);
+  box-shadow: 0 14rpx 32rpx rgba(255, 118, 24, 0.34);
 }
 
-.theme-green {
-  background: linear-gradient(145deg, #B8DCFF 0%, #D8ECFF 55%, #FFFFFF 100%);
+.theme-svc-warm {
+  background: linear-gradient(145deg, #ff9a8b 0%, #ff7e6b 45%, #ff6b57 100%);
+  box-shadow: 0 14rpx 32rpx rgba(255, 107, 87, 0.28);
 }
 
-.theme-pink {
-  background: linear-gradient(145deg, #FFD6D6 0%, #FFECEC 55%, #FFFFFF 100%);
-}
-
-.theme-cyan {
-  background: linear-gradient(145deg, #B8E8F0 0%, #DCF3F8 55%, #FFFFFF 100%);
-}
-
-.theme-gold {
-  background: linear-gradient(145deg, #FFE9B8 0%, #FFF5DC 55%, #FFFFFF 100%);
-}
-
-.tile-glow {
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-}
-
-.tile-glow-blue {
-  width: 200rpx;
-  height: 200rpx;
-  right: -40rpx;
-  top: -40rpx;
-  background: rgba(255, 255, 255, 0.22);
-}
-
-.tile-copy {
+.svc-copy {
   position: relative;
   z-index: 2;
-  flex: 1;
-  min-width: 0;
+  max-width: 58%;
 }
 
-.tile-copy-light .tile-title,
-.tile-copy-light .tile-sub {
-  color: #FFFFFF;
+.service-card-wide .svc-copy,
+.service-card-text-only .svc-copy {
+  max-width: 100%;
 }
 
-.tile-title {
+.svc-title {
   display: block;
-  font-size: 30rpx;
+  font-size: 34rpx;
   font-weight: 800;
+  color: #ffffff;
+  line-height: 1.28;
+  margin-bottom: 10rpx;
   letter-spacing: 0.5rpx;
-  margin-bottom: 4rpx;
 }
 
-.tile-title-dark {
-  color: #3D3028;
-  font-size: 28rpx;
+.service-card-wide .svc-title {
+  font-size: 32rpx;
 }
 
-.tile-small .tile-copy {
-  width: 100%;
-  min-width: 0;
-}
-
-.tile-small .tile-title-dark {
-  font-size: 24rpx;
-  white-space: nowrap;
-  letter-spacing: 0;
-}
-
-.tile-sub {
+.svc-sub {
   display: block;
-  font-size: 20rpx;
-  line-height: 1.4;
-  opacity: 0.92;
-}
-
-.tile-copy-light .tile-sub {
-  opacity: 0.88;
-  font-size: 20rpx;
-}
-
-.tile-sub-dark {
-  color: #7A6A5A;
-  font-size: 20rpx;
-}
-
-.tile-small .tile-sub-dark {
-  font-size: 18rpx;
-}
-
-.tile-thumbs {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  gap: 10rpx;
-  margin-top: 12rpx;
-}
-
-.tile-thumb {
-  width: 56rpx;
-  height: 56rpx;
-  border-radius: 12rpx;
-  border: 3rpx solid rgba(255, 255, 255, 0.85);
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.12);
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1.45;
 }
 
 .section {
@@ -311,8 +277,37 @@ page {
   color: #999999;
 }
 
+.buddy-load-more {
+  width: 100%;
+  margin-top: 8rpx;
+  padding: 20rpx 16rpx 4rpx;
+  text-align: center;
+}
+
+.buddy-load-more-text {
+  font-size: 24rpx;
+  color: #1E88E5;
+  font-weight: 600;
+}
+
+.event-load-more {
+  margin-top: 8rpx;
+  padding: 24rpx 16rpx 8rpx;
+  text-align: center;
+}
+
+.event-load-more-text {
+  font-size: 26rpx;
+  color: #1E88E5;
+  font-weight: 600;
+}
+
 .h-scroll {
   white-space: nowrap;
+}
+
+.buddy-plaza-section {
+  width: 100%;
 }
 
 .buddy-card {
@@ -379,17 +374,15 @@ page {
 }
 
 .event-card-media {
-  position: relative;
   width: 240rpx;
   flex-shrink: 0;
-  min-height: 300rpx;
   background: #e8eef5;
+  border-radius: 24rpx 0 0 24rpx;
+  overflow: hidden;
 }
 
 .event-card-cover {
-  width: 100%;
-  height: 100%;
-  min-height: 300rpx;
+  background: #e8eef5;
 }
 
 .event-card-media-shade {
@@ -559,22 +552,23 @@ page {
 }
 
 .community-card {
-  padding: 24rpx;
-  margin-bottom: 16rpx;
+  padding: 18rpx 20rpx;
+  margin-bottom: 12rpx;
   background: #FFFFFF;
-  border-radius: 24rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
+  border-radius: 20rpx;
+  box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.035);
 }
 
 .community-head {
   display: flex;
   align-items: center;
-  margin-bottom: 12rpx;
+  margin-bottom: 8rpx;
 }
 
 .community-icon {
-  font-size: 44rpx;
-  margin-right: 14rpx;
+  font-size: 36rpx;
+  margin-right: 10rpx;
+  line-height: 1;
 }
 
 .community-info {
@@ -584,62 +578,65 @@ page {
 
 .community-name {
   display: block;
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 800;
   color: #1A1A1A;
+  line-height: 1.3;
 }
 
 .community-meta {
-  font-size: 22rpx;
+  display: block;
+  font-size: 20rpx;
   color: #1E88E5;
   font-weight: 600;
+  margin-top: 2rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .community-preview {
-  display: block;
-  font-size: 26rpx;
-  color: #555;
-  line-height: 1.5;
-  margin-bottom: 14rpx;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 24rpx;
+  color: #666;
+  line-height: 1.45;
+  margin-bottom: 10rpx;
 }
 
 .community-images {
   display: flex;
-  gap: 10rpx;
-  margin-bottom: 14rpx;
-  border-radius: 16rpx;
+  gap: 8rpx;
+  margin-bottom: 10rpx;
+  border-radius: 14rpx;
   overflow: hidden;
+  align-items: flex-start;
 }
 
-.community-images.single {
-  display: block;
-}
-
-.community-images.single .community-img {
+.community-images.single .community-img-wrap {
   width: 100%;
-  height: auto;
-  display: block;
-  border-radius: 16rpx;
+}
+
+.community-img-wrap {
+  border-radius: 14rpx;
+  background: #F0F0F0;
 }
 
 .community-img {
-  flex: 1;
-  width: 100%;
-  height: 200rpx;
-  min-width: 0;
-  border-radius: 12rpx;
   background: #F0F0F0;
 }
 
 .community-tags {
   display: flex;
-  gap: 10rpx;
+  gap: 8rpx;
 }
 
 .community-tag {
-  font-size: 20rpx;
-  color: #666;
-  padding: 6rpx 14rpx;
+  font-size: 18rpx;
+  color: #888;
+  padding: 4rpx 12rpx;
   background: #F5F8FC;
   border-radius: 999rpx;
 }
@@ -728,39 +725,3 @@ page {
   background: rgba(126, 200, 255, 0.35);
 }
 
-.pudding-col .tile-small {
-  flex: 1;
-}
-
-/* 右列小卡文字与左侧大卡标题同一水平线 */
-.pudding-col .tile-small {
-  align-items: flex-start;
-  padding: 20rpx 20rpx 16rpx;
-  box-sizing: border-box;
-}
-
-.pudding-col .tile-small .tile-title-dark {
-  font-size: 30rpx;
-  letter-spacing: 0.5rpx;
-  white-space: nowrap;
-}
-
-/* 友好地图卡片右下角迷你地图 */
-.tile-map-corner {
-  position: absolute;
-  right: 10rpx;
-  bottom: 10rpx;
-  width: 160rpx;
-  height: 104rpx;
-  border-radius: 16rpx;
-  overflow: hidden;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.12);
-  background: #E8F2E8;
-  z-index: 1;
-}
-
-.tile-map-img {
-  width: 100%;
-  height: 100%;
-  display: block;
-}

@@ -4,87 +4,167 @@
     <view class="author-info">
       <view class="name-row">
         <text class="name">{{post.userName}} · {{post.petName}}</text>
-        <text class="lost-tag" wx:if="{{post.lostType}}">{{post.lostType === 'lost' ? '寻宠启事' : '招领信息'}}</text>
+        <text class="lost-tag" wx:if="{{post.lostType}}">{{post.lostType === 'lost' ? '寻宠启事' : post.lostType === 'found' ? '招领信息' : post.lostType === 'rescue' ? '宠物救助' : '领养救助'}}</text>
         <text class="essence" wx:if="{{post.essence}}">精华</text>
       </view>
       <text class="meta">{{zoneLabel}} · {{post.time}}</text>
+    </view>
+    <view class="user-actions" wx:if="{{post.isSelfAuthor}}">
+      <text class="owner-delete" catchtap="onDeletePost">删除</text>
+    </view>
+    <view class="user-actions" wx:elif="{{!post.isSelfAuthor}}">
+      <button
+        size="mini"
+        class="head-follow {{post.followed ? 'followed' : ''}}"
+        bindtap="onFollowAuthor"
+      >{{post.followed ? '已关注' : '关注'}}</button>
     </view>
   </view>
 
   <view
     class="loc-card"
-    wx:if="{{post.geoLocation}}"
+    wx:if="{{post.geoLocation || (post.location && post.location !== '同城')}}"
     bindtap="onOpenPostLocation"
-    data-lat="{{post.geoLocation.latitude}}"
-    data-lng="{{post.geoLocation.longitude}}"
-    data-name="{{post.geoLocation.name}}"
-    data-address="{{post.geoLocation.address}}"
   >
-    <text class="loc-card-name">{{post.geoLocation.name || '走失/发现地点'}}</text>
-    <text class="loc-card-addr">{{post.geoLocation.address}}</text>
-    <text class="loc-card-tip">点击查看地图导航</text>
+    <text class="loc-card-name place-tap">{{post.geoLocation.name || post.location}}</text>
+    <text class="loc-card-addr" wx:if="{{post.geoLocation.address && post.geoLocation.address !== post.geoLocation.name}}">{{post.geoLocation.address}}</text>
   </view>
 
   <view class="content-card">
-    <text class="content" wx:if="{{post.content}}">{{post.content}}</text>
+    <view class="content" wx:if="{{post.contentParts && post.contentParts.length}}">
+      <block wx:for="{{post.contentParts}}" wx:key="index" wx:for-item="part">
+        <text
+          class="content-tag content-tag-hashtag"
+          wx:if="{{part.tag && part.type === 'hashtag'}}"
+          catchtap="onContentHashtagTap"
+          data-topic="{{part.topic}}"
+        >{{part.text}}</text>
+        <text class="content-tag content-tag-{{part.type}}" wx:elif="{{part.tag}}">{{part.text}}</text>
+        <text wx:else>{{part.text}}</text>
+      </block>
+    </view>
     <view class="post-media" wx:if="{{post.mediaList && post.mediaList.length}}">
       <block wx:for="{{post.mediaList}}" wx:key="index" wx:for-item="media">
-        <image
-          class="post-media-img {{post.mediaList.length === 1 ? 'single' : ''}}"
+        <view
+          class="post-media-wrap aspect-34 {{post.mediaList.length === 1 ? '' : 'aspect-34-third'}}"
           wx:if="{{media.type === 'image'}}"
-          src="{{media.url}}"
-          mode="{{post.mediaList.length === 1 ? 'widthFix' : 'aspectFill'}}"
           bindtap="onPreviewImage"
           data-src="{{media.url}}"
-        ></image>
-        <video
-          class="post-media-video {{post.mediaList.length === 1 ? 'single' : ''}}"
+        >
+          <image class="post-media-img" src="{{media.url}}" mode="aspectFill"></image>
+        </view>
+        <view
+          class="post-media-wrap aspect-34 {{post.mediaList.length === 1 ? '' : 'aspect-34-third'}}"
           wx:if="{{media.type === 'video'}}"
-          src="{{media.url}}"
-          poster="{{media.poster}}"
-          controls
-          show-center-play-btn
-          object-fit="cover"
-        ></video>
+        >
+          <video
+            class="post-media-video"
+            src="{{media.url}}"
+            poster="{{media.poster}}"
+            controls
+            show-center-play-btn
+            object-fit="cover"
+          ></video>
+        </view>
       </block>
     </view>
   </view>
 
-  <view class="stat-row">
-    <text>{{post.likes || 0}} 赞</text>
-    <text>{{commentList.length}} 评论</text>
-    <text>{{post.shares || 0}} 分享</text>
+  <view class="feed-actions feed-actions-stat">
+    <view class="feed-action {{post.liked ? 'is-liked' : ''}}" bindtap="onLike">
+      <view class="feed-icon feed-icon-like"></view>
+      <text>{{post.likes || 0}}</text>
+    </view>
+    <view class="feed-action">
+      <view class="feed-icon feed-icon-comment"></view>
+      <text>{{post.comments || 0}}</text>
+    </view>
+    <button class="feed-action-share-btn" open-type="share">
+      <view class="feed-icon feed-icon-share"></view>
+      <text>{{post.shares || 0}}</text>
+    </button>
   </view>
 
   <view class="comment-panel">
     <text class="panel-title">评论</text>
-    <view class="comment-item" wx:for="{{commentList}}" wx:key="id">
-      <image class="c-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
-      <view class="c-body">
-        <view class="c-top">
-          <text class="c-name">{{item.userName}}</text>
-          <text class="c-time">{{item.time}}</text>
+    <view class="comment-thread" wx:for="{{commentList}}" wx:key="id" wx:for-item="root">
+      <view class="comment-item">
+        <image class="c-avatar" src="{{root.avatar}}" mode="aspectFill"></image>
+        <view class="c-body">
+          <view class="c-top">
+            <text class="c-name">{{root.userName}}</text>
+            <text class="c-time">{{root.time}}</text>
+          </view>
+          <text class="c-text" wx:if="{{root.type === 'text' || !root.type}}">{{root.content}}</text>
+          <image
+            class="c-image"
+            wx:if="{{root.type === 'image'}}"
+            src="{{root.url}}"
+            mode="widthFix"
+            bindtap="onPreviewCommentImage"
+            data-url="{{root.url}}"
+          ></image>
+          <view
+            class="c-video"
+            wx:if="{{root.type === 'video'}}"
+            bindtap="onPreviewCommentVideo"
+            data-url="{{root.url}}"
+            data-poster="{{root.poster}}"
+          >
+            <image class="c-video-cover" src="{{root.poster || root.url}}" mode="aspectFill"></image>
+            <text class="c-video-play">▶</text>
+          </view>
+          <text class="c-text sub" wx:if="{{root.type !== 'text' && root.content && root.content !== '[图片]' && root.content !== '[视频]'}}">{{root.content}}</text>
+          <view class="c-actions">
+            <text
+              class="c-reply-btn"
+              catchtap="onReplyComment"
+              data-id="{{root.id}}"
+              data-name="{{root.userName}}"
+            >回复</text>
+          </view>
         </view>
-        <text class="c-text" wx:if="{{item.type === 'text' || !item.type}}">{{item.content}}</text>
-        <image
-          class="c-image"
-          wx:if="{{item.type === 'image'}}"
-          src="{{item.url}}"
-          mode="widthFix"
-          bindtap="onPreviewCommentImage"
-          data-url="{{item.url}}"
-        ></image>
-        <view
-          class="c-video"
-          wx:if="{{item.type === 'video'}}"
-          bindtap="onPreviewCommentVideo"
-          data-url="{{item.url}}"
-          data-poster="{{item.poster}}"
-        >
-          <image class="c-video-cover" src="{{item.poster || item.url}}" mode="aspectFill"></image>
-          <text class="c-video-play">▶</text>
+      </view>
+      <view class="comment-replies" wx:if="{{root.replies && root.replies.length}}">
+        <view class="comment-item comment-item-reply" wx:for="{{root.replies}}" wx:key="id" wx:for-item="item">
+          <image class="c-avatar c-avatar-sm" src="{{item.avatar}}" mode="aspectFill"></image>
+          <view class="c-body">
+            <view class="c-top">
+              <text class="c-name">{{item.userName}}</text>
+              <text class="c-time">{{item.time}}</text>
+            </view>
+            <text class="c-text" wx:if="{{item.type === 'text' || !item.type}}">
+              <text class="c-reply-to" wx:if="{{item.replyToUserName}}">回复 {{item.replyToUserName}}：</text>{{item.content}}
+            </text>
+            <image
+              class="c-image"
+              wx:if="{{item.type === 'image'}}"
+              src="{{item.url}}"
+              mode="widthFix"
+              bindtap="onPreviewCommentImage"
+              data-url="{{item.url}}"
+            ></image>
+            <view
+              class="c-video"
+              wx:if="{{item.type === 'video'}}"
+              bindtap="onPreviewCommentVideo"
+              data-url="{{item.url}}"
+              data-poster="{{item.poster}}"
+            >
+              <image class="c-video-cover" src="{{item.poster || item.url}}" mode="aspectFill"></image>
+              <text class="c-video-play">▶</text>
+            </view>
+            <text class="c-text sub" wx:if="{{item.type !== 'text' && item.content && item.content !== '[图片]' && item.content !== '[视频]'}}">{{item.content}}</text>
+            <view class="c-actions">
+              <text
+                class="c-reply-btn"
+                catchtap="onReplyComment"
+                data-id="{{item.id}}"
+                data-name="{{item.userName}}"
+              >回复</text>
+            </view>
+          </view>
         </view>
-        <text class="c-text sub" wx:if="{{item.type !== 'text' && item.content && item.content !== '[图片]' && item.content !== '[视频]'}}">{{item.content}}</text>
       </view>
     </view>
     <view class="comment-empty" wx:if="{{commentList.length === 0}}">
@@ -101,19 +181,27 @@
     </view>
   </view>
 
+  <view class="reply-hint" wx:if="{{replyTarget}}">
+    <text class="reply-hint-text">回复 {{replyTarget.userName}}</text>
+    <text class="reply-hint-cancel" catchtap="onCancelReply">取消</text>
+  </view>
+
   <chat-composer
     value="{{commentText}}"
-    placeholder="写评论…"
+    extraSendable="{{!!pendingMedia}}"
+    placeholder="{{commentPlaceholder}}"
     bind:input="onComposerInput"
     bind:send="onComposerSend"
     bind:tool="onComposerTool"
     bind:voice="onComposerVoice"
     bind:panelchange="onPanelChange"
   >
-    <view slot="prefix" class="bar-like" bindtap="onLike">
-      <text class="bar-like-icon">{{post.liked ? '❤️' : '♡'}}</text>
+    <view slot="prefix" class="bar-like {{post.liked ? 'is-liked' : ''}}" bindtap="onLike">
+      <view class="feed-icon feed-icon-like"></view>
     </view>
-    <button slot="suffix" class="bar-share" open-type="share" wx:if="{{post.lostType}}">分享</button>
+    <button slot="suffix" class="bar-share" open-type="share" wx:if="{{post.lostType}}">
+      <view class="feed-icon feed-icon-share"></view>
+    </button>
   </chat-composer>
 </view>
 

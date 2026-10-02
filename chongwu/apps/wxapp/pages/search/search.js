@@ -1,4 +1,6 @@
 const { searchAll } = require('../../utils/global-search');
+const amap = require('../../utils/amap');
+const { requirePetProfile } = require('../../utils/pet-profile-guard');
 
 const TAB_DEF = [
   { id: 'all', name: '全部' },
@@ -76,8 +78,15 @@ Page({
     this.setData({ results, hasAnyResult, tabs, activeTab: this.data.activeTab || 'all' });
   },
 
+  onOpenPlace(e) {
+    amap.openPlaceFromTap(e);
+  },
+
   onResultTap(e) {
     const { type, id } = e.currentTarget.dataset;
+    if (type === 'buddy' || type === 'event' || type === 'point') {
+      if (!requirePetProfile()) return;
+    }
     if (type === 'buddy') {
       wx.navigateTo({ url: `/pages/buddy-detail/buddy-detail?id=${id}` });
       return;

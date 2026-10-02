@@ -3,12 +3,27 @@
     <image class="peer-avatar" src="{{peer.avatar}}" mode="aspectFill"></image>
     <view class="peer-info">
       <text class="peer-name">{{peer.userName}} · {{peer.petName}}</text>
-      <text class="peer-tip">借宠交友 · 文明礼貌沟通</text>
+      <text class="peer-tip">输入框右侧笑脸可发表情包</text>
     </view>
-    <view class="call-entry" bindtap="onVideoCall">📹</view>
+    <view class="peer-actions">
+      <button
+        class="peer-follow {{followed ? 'followed' : ''}}"
+        size="mini"
+        bindtap="onToggleFollow"
+      >{{followed ? '已关注' : '关注'}}</button>
+      <view
+        class="peer-like-btn {{peerLiked ? 'active' : ''}}"
+        bindtap="onTogglePeerLike"
+      >
+        <text class="peer-like-icon">{{peerLiked ? '♥' : '♡'}}</text>
+      </view>
+    </view>
   </view>
 
   <scroll-view scroll-y class="msg-scroll" scroll-into-view="{{scrollInto}}" scroll-with-animation>
+    <view class="chat-limit-tip" wx:if="{{showChatLimitTip}}">
+      <text>{{chatLimitTip}}</text>
+    </view>
     <view
       class="msg-row {{item.from === 'me' ? 'me' : 'peer'}}"
       wx:for="{{messages}}"
@@ -22,6 +37,12 @@
       ></image>
 
       <view class="bubble" wx:if="{{item.type === 'text' || !item.type}}">{{item.content}}</view>
+
+      <view class="bubble share-comment-bubble" wx:if="{{item.type === 'shareComment'}}">
+        <text class="share-comment-tag">分享评论</text>
+        <text class="share-comment-title">{{item.shareTitle || '分享'}}</text>
+        <text class="share-comment-body" wx:if="{{item.content}}">{{item.content}}</text>
+      </view>
 
       <view class="voice-wrap" wx:if="{{item.type === 'voice'}}">
         <view class="voice-text-bubble" wx:if="{{item.voiceText}}">
@@ -75,9 +96,8 @@
         data-address="{{item.location.address}}"
         bindtap="onOpenLocation"
       >
-        <text class="loc-name">{{item.location.name || '位置分享'}}</text>
+        <text class="loc-name place-tap">{{item.location.name || '位置分享'}}</text>
         <text class="loc-addr">{{item.location.address}}</text>
-        <text class="loc-tip">点击查看地图</text>
       </view>
 
       <view class="bubble event-bubble" wx:if="{{item.type === 'event'}}">
@@ -110,12 +130,27 @@
 
   <chat-composer
     value="{{inputText}}"
-    placeholder="说点什么…"
+    placeholder="{{composerPlaceholder}}"
+    disabled="{{composerDisabled}}"
     bind:input="onComposerInput"
     bind:send="onComposerSend"
     bind:tool="onComposerTool"
     bind:voice="onComposerVoice"
     bind:panelchange="onPanelChange"
+    bind:blocked="onComposerBlocked"
   />
+
+  <pet-profile-gate show="{{petProfileBlocked}}" />
+
+  <view class="heart-center-layer" wx:if="{{centerHeartAnim}}">
+    <view class="heart-center-stage">
+      <text class="heart-center-main">♥</text>
+      <text class="heart-center-spark hs1">✦</text>
+      <text class="heart-center-spark hs2">♥</text>
+      <text class="heart-center-spark hs3">✦</text>
+      <text class="heart-center-spark hs4">✦</text>
+      <text class="heart-center-spark hs5">♥</text>
+    </view>
+  </view>
 </view>
 

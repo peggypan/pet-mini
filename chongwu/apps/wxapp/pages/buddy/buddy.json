@@ -1,1 +1,8 @@
-{ "navigationBarTitleText": "搭子广场" }
+{
+  "usingComponents": {
+    "pet-profile-gate": "/components/pet-profile-gate/pet-profile-gate"
+  },
+  "navigationBarTitleText": "搭子广场",
+  "enableShareAppMessage": true,
+  "onReachBottomDistance": 120
+}

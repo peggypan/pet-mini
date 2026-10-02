@@ -1,7 +1,13 @@
 <view class="page">
   <view class="tabs">
-    <view class="tab {{tab === 'chat' ? 'on' : ''}}" bindtap="onTab" data-tab="chat">私信</view>
-    <view class="tab {{tab === 'notice' ? 'on' : ''}}" bindtap="onTab" data-tab="notice">通知</view>
+    <view class="tab {{tab === 'chat' ? 'on' : ''}}" bindtap="onTab" data-tab="chat">
+      <text>私信</text>
+      <text class="tab-badge" wx:if="{{chatUnread > 0}}">{{chatUnread > 99 ? '99+' : chatUnread}}</text>
+    </view>
+    <view class="tab {{tab === 'notice' ? 'on' : ''}}" bindtap="onTab" data-tab="notice">
+      <text>通知</text>
+      <text class="tab-badge" wx:if="{{noticeUnread > 0}}">{{noticeUnread > 99 ? '99+' : noticeUnread}}</text>
+    </view>
   </view>
 
   <view wx:if="{{tab === 'chat'}}">
@@ -29,13 +35,30 @@
   </view>
 
   <view wx:if="{{tab === 'notice'}}">
-    <view class="notice-item" wx:for="{{notices}}" wx:key="id">
-      <text class="notice-title">{{item.title}}</text>
-      <text class="notice-content">{{item.content}}</text>
-      <text class="notice-time">{{item.timeText}}</text>
+    <view
+      class="notice-item {{item.url ? 'notice-tap' : ''}} {{item.read ? '' : 'is-unread'}}"
+      wx:for="{{notices}}"
+      wx:key="id"
+      bindtap="onNoticeTap"
+      data-url="{{item.url}}"
+    >
+      <view class="notice-title-row">
+        <text class="notice-title">{{item.title}}</text>
+        <view class="notice-dot" wx:if="{{!item.read}}"></view>
+      </view>
+      <block wx:if="{{item.lines && item.lines.length}}">
+        <text class="notice-line" wx:for="{{item.lines}}" wx:for-item="line" wx:key="*this">{{line}}</text>
+      </block>
+      <text class="notice-content" wx:else>{{item.content}}</text>
+      <view class="notice-foot">
+        <text class="notice-time">{{item.timeText}}</text>
+        <text class="notice-link" wx:if="{{item.url}}">查看报名码</text>
+      </view>
     </view>
     <view class="empty" wx:if="{{notices.length === 0}}">
       <text>暂无通知</text>
     </view>
   </view>
+
+  <pet-profile-gate show="{{petProfileBlocked}}" />
 </view>

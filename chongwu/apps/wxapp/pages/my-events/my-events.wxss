@@ -58,6 +58,19 @@ page { background: #F5F8FC; }
   margin-bottom: 6rpx;
 }
 
+.item-head-right {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  flex-shrink: 0;
+}
+
+.item-delete {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #ff2442;
+}
+
 .name {
   flex: 1;
   font-size: 26rpx;
@@ -69,6 +82,14 @@ page { background: #F5F8FC; }
   display: block;
   font-size: 22rpx;
   color: #999999;
+}
+
+.meta-link {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #1E88E5;
+  font-weight: 600;
 }
 
 .status {

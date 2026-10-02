@@ -83,7 +83,7 @@ Page({
     if (guided) return;
     wx.showModal({
       title: '先绑定你家毛孩子',
-      content: '完善宠物类型与年龄后，首页内容会更贴合你的养宠场景～',
+      content: '需先完善宠物档案，才能使用搭子、活动与社区等功能。',
       confirmText: '去绑定',
       cancelText: '稍后再说',
       success: (res) => {

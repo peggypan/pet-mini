@@ -15,9 +15,19 @@ Component({
     showLocation: { type: Boolean, value: true },
     showAa: { type: Boolean, value: true },
     showEmojiPanel: { type: Boolean, value: true },
+    disabled: { type: Boolean, value: false },
+    /** 无文字但可发送（如已选图片待评论） */
+    extraSendable: { type: Boolean, value: false },
+  },
+
+  observers: {
+    'value, extraSendable'(value, extraSendable) {
+      this.syncSendButton(value, extraSendable);
+    },
   },
 
   data: {
+    showSend: false,
     showTools: false,
     showEmoji: false,
     voiceMode: false,
@@ -67,6 +77,7 @@ Component({
       this.recorder.onStart(() => {
         this._cancelVoice = false;
       });
+      this.syncSendButton(this.properties.value, this.properties.extraSendable);
     },
 
     detached() {
@@ -75,6 +86,18 @@ Component({
   },
 
   methods: {
+    syncSendButton(value, extraSendable) {
+      const showSend = !!(String(value || '').trim()) || !!extraSendable;
+      if (showSend === this.data.showSend) return;
+      const patch = { showSend };
+      if (showSend) {
+        patch.showTools = false;
+      }
+      this.setData(patch, () => {
+        if (showSend) this.emitPanelChange();
+      });
+    },
+
     emitPanelChange() {
       this.triggerEvent('panelchange', {
         showTools: this.data.showTools,
@@ -89,7 +112,9 @@ Component({
     },
 
     onInput(e) {
-      this.triggerEvent('input', { value: e.detail.value });
+      const value = e.detail.value;
+      this.syncSendButton(value, this.properties.extraSendable);
+      this.triggerEvent('input', { value });
     },
 
     onInputFocus() {
@@ -98,22 +123,38 @@ Component({
     },
 
     onSend() {
+      if (this.properties.disabled) {
+        this.triggerEvent('blocked');
+        return;
+      }
       this.triggerEvent('send', { value: (this.properties.value || '').trim() });
     },
 
     onToggleVoice() {
+      if (this.properties.disabled) {
+        this.triggerEvent('blocked');
+        return;
+      }
       const voiceMode = !this.data.voiceMode;
       this.setData({ voiceMode, showTools: false, showEmoji: false });
       this.emitPanelChange();
     },
 
     onToggleTools() {
+      if (this.properties.disabled) {
+        this.triggerEvent('blocked');
+        return;
+      }
       const showTools = !this.data.showTools;
       this.setData({ showTools, showEmoji: false, voiceMode: false });
       this.emitPanelChange();
     },
 
     onToggleEmoji() {
+      if (this.properties.disabled) {
+        this.triggerEvent('blocked');
+        return;
+      }
       const showEmoji = !this.data.showEmoji;
       this.setData({
         showEmoji,
@@ -136,7 +177,19 @@ Component({
       this.triggerEvent('input', { value: next });
     },
 
+    onEmojiDelete() {
+      const raw = this.properties.value || '';
+      if (!raw) return;
+      const chars = Array.from(raw);
+      chars.pop();
+      this.triggerEvent('input', { value: chars.join('') });
+    },
+
     onTool(e) {
+      if (this.properties.disabled) {
+        this.triggerEvent('blocked');
+        return;
+      }
       const action = e.currentTarget.dataset.action;
       this.setData({ showTools: false });
       this.emitPanelChange();
@@ -144,6 +197,10 @@ Component({
     },
 
     onVoiceStart(e) {
+      if (this.properties.disabled) {
+        this.triggerEvent('blocked');
+        return;
+      }
       if (this.data.recording) return;
       this._startY = (e.touches && e.touches[0] && e.touches[0].clientY) || 0;
       this.setData({ cancelArmed: false });

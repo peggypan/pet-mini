@@ -55,8 +55,8 @@
   <view class="social-block social-entry">
     <view class="social-header">
       <view class="social-title-wrap">
-        <text class="social-title">宠物交友广场</text>
-        <text class="social-sub">同城宠友 · 活动 · 寻宠互助</text>
+        <text class="social-title">宠物社区</text>
+        <text class="social-sub">图文视频 · 点赞评论分享</text>
       </view>
       <text class="social-more" bindtap="goSocial">全部 ›</text>
     </view>
@@ -91,7 +91,7 @@
     </view>
 
     <view class="social-entry-footer" bindtap="goSocial">
-      <text>进入交友广场，查看更多动态</text>
+      <text>进入宠物社区，查看更多动态</text>
     </view>
   </view>
 

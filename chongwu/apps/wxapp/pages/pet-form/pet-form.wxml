@@ -6,10 +6,59 @@
       <image wx:if="{{avatarUrl}}" class="avatar-preview" src="{{avatarUrl}}" mode="aspectFill"></image>
       <view wx:else class="avatar-placeholder">
         <text class="avatar-icon">📷</text>
-        <text class="avatar-tip">上传宠物照片</text>
-        <text class="avatar-sub">用于生成数字宠物形象</text>
+        <text class="avatar-tip">上传宠物主照片 *</text>
+        <text class="avatar-sub">展示在宠证与社区</text>
       </view>
-      <text class="avatar-change" wx:if="{{avatarUrl}}">点击更换</text>
+      <text class="avatar-change" wx:if="{{avatarUrl}}">点击更换主照片</text>
+    </view>
+
+    <view class="form-item">
+      <text class="label">多角度照片 *</text>
+      <text class="field-hint">可上传侧面、背面等，最多 6 张</text>
+      <view class="photo-grid">
+        <view class="photo-cell" wx:for="{{galleryPhotos}}" wx:key="*this">
+          <image class="photo-thumb" src="{{item}}" mode="aspectFill"></image>
+          <text class="photo-del" catchtap="onRemoveGalleryPhoto" data-index="{{index}}">×</text>
+        </view>
+        <view class="photo-add" wx:if="{{galleryPhotos.length < 6}}" bindtap="onChooseGalleryPhotos">
+          <text class="photo-add-icon">+</text>
+          <text class="photo-add-text">添加</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <text class="label">疫苗情况 *</text>
+      <view class="vaccine-chips">
+        <view
+          class="vaccine-chip {{vaccineStatus === 'immune' ? 'on' : ''}}"
+          data-value="immune"
+          bindtap="onVaccineStatusTap"
+        >已免疫</view>
+        <view
+          class="vaccine-chip {{vaccineStatus === 'vaccinating' ? 'on' : ''}}"
+          data-value="vaccinating"
+          bindtap="onVaccineStatusTap"
+        >免疫中</view>
+        <view
+          class="vaccine-chip {{vaccineStatus === 'none' ? 'on' : ''}}"
+          data-value="none"
+          bindtap="onVaccineStatusTap"
+        >未免疫</view>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <text class="label">免疫证明 *</text>
+      <text class="field-hint">已免疫或免疫中时必填 · 扫码查验时可查看（不含电话等隐私）</text>
+      <view class="proof-upload" bindtap="onChooseVaccineProof">
+        <image wx:if="{{vaccineProofUrl}}" class="proof-preview" src="{{vaccineProofUrl}}" mode="aspectFit"></image>
+        <view wx:else class="proof-placeholder">
+          <text class="proof-icon">📄</text>
+          <text>上传免疫证明（照片）</text>
+        </view>
+        <text class="proof-change" wx:if="{{vaccineProofUrl}}">点击更换</text>
+      </view>
     </view>
 
     <view class="form-item">
@@ -18,7 +67,7 @@
     </view>
 
     <view class="form-item">
-      <text class="label">种类</text>
+      <text class="label">种类 *</text>
       <picker bindchange="onSpeciesChange" value="{{species - 1}}" range="{{['狗', '猫', '其他']}}">
         <view class="picker">
           <text>{{species === 1 ? '猫' : species === 2 ? '狗' : '其他'}}</text>
@@ -27,22 +76,23 @@
     </view>
 
     <view class="form-item">
-      <text class="label">品种</text>
+      <text class="label">品种 *</text>
       <input value="{{breedName}}" bindinput="onInputChange" data-field="breedName" placeholder="请输入品种" />
     </view>
 
     <view class="form-item">
-      <text class="label">性别</text>
-      <picker bindchange="onGenderChange" value="{{gender}}" range="{{['未知', '公', '母']}}">
+      <text class="label">性别 *</text>
+      <picker bindchange="onGenderChange" value="{{gender === 1 ? 0 : gender === 2 ? 1 : 0}}" range="{{['公', '母']}}">
         <view class="picker">
-          <text>{{gender === 0 ? '未知' : gender === 1 ? '公' : '母'}}</text>
+          <text wx:if="{{gender === 1 || gender === 2}}">{{gender === 1 ? '公' : '母'}}</text>
+          <text wx:else class="placeholder">请选择性别</text>
         </view>
       </picker>
     </view>
 
     <view class="form-item">
-      <text class="label">生日</text>
-      <picker mode="date" bindchange="onInputChange" data-field="birthday">
+      <text class="label">生日 *</text>
+      <picker mode="date" bindchange="onBirthdayChange">
         <view class="picker">
           <text wx:if="{{birthday}}">{{birthday}}</text>
           <text wx:else class="placeholder">请选择生日</text>
@@ -51,27 +101,95 @@
     </view>
 
     <view class="form-item">
-      <text class="label">体重(kg)</text>
+      <text class="label">体重(kg) *</text>
       <input value="{{weight}}" bindinput="onInputChange" data-field="weight" placeholder="请输入体重" type="digit" />
     </view>
 
     <view class="form-item">
-      <text class="label">毛色</text>
+      <text class="label">毛色 *</text>
       <input value="{{color}}" bindinput="onInputChange" data-field="color" placeholder="请输入毛色" />
     </view>
 
     <view class="form-item">
-      <text class="label">绝育状态</text>
+      <text class="label">绝育状态 *</text>
       <switch checked="{{isSterilized}}" bindchange="onSterilizedChange" />
     </view>
 
     <view class="form-item">
-      <text class="label">性格描述</text>
+      <text class="label">紧急联系人 *</text>
+      <input
+        value="{{emergencyContactName}}"
+        bindinput="onInputChange"
+        data-field="emergencyContactName"
+        placeholder="请输入联系人姓名"
+      />
+    </view>
+
+    <view class="form-item">
+      <text class="label">联系电话 *</text>
+      <input
+        value="{{emergencyContactPhone}}"
+        bindinput="onInputChange"
+        data-field="emergencyContactPhone"
+        placeholder="请输入手机号"
+        type="number"
+        maxlength="11"
+      />
+    </view>
+
+    <view class="form-item">
+      <text class="label">常活动区域</text>
+      <text class="field-hint">选填 · 腾讯地图选点，将展示在宠物资料</text>
+      <view class="loc-pick" bindtap="onChooseActivityArea">
+        <view class="loc-info">
+          <text class="loc-title">{{activityAreaLatitude ? '已选常活动区域' : '点击跳转地图选点'}}</text>
+          <text class="loc-addr">{{activityAreaName || activityAreaAddress || '如常去的公园、小区周边'}}</text>
+          <text class="loc-addr sub" wx:if="{{activityAreaAddress && activityAreaName && activityAreaAddress !== activityAreaName}}">{{activityAreaAddress}}</text>
+        </view>
+        <text class="loc-arrow">›</text>
+      </view>
+      <text class="loc-clear" wx:if="{{activityAreaLatitude}}" catchtap="onClearActivityArea">清除选点</text>
+    </view>
+
+    <view class="form-item healing-section">
+      <view class="healing-head">
+        <view>
+          <text class="label">宠物疗愈</text>
+          <text class="field-hint">开启后可在「疗愈搭子」展示，保存即可生效</text>
+        </view>
+        <switch checked="{{healingPet}}" bindchange="onHealingPetChange" color="#2d6a4f" />
+      </view>
+      <block wx:if="{{healingPet}}">
+        <text class="label sub">疗愈类型 *</text>
+        <view class="vaccine-chips healing-chips">
+          <view
+            class="vaccine-chip healing-chip {{healingBuddyType === item ? 'on' : ''}}"
+            wx:for="{{healingTypeOptions}}"
+            wx:key="*this"
+            data-type="{{item}}"
+            bindtap="onHealingTypeTap"
+          >{{item}}</view>
+        </view>
+        <text class="label sub">疗愈介绍</text>
+        <textarea
+          class="healing-intro"
+          value="{{healingIntro}}"
+          bindinput="onInputChange"
+          data-field="healingIntro"
+          placeholder="如：慢热但治愈，适合情绪陪伴、康复期短距同行（选填）"
+          maxlength="200"
+        />
+        <text class="healing-tip-inline">{{healingTip}}</text>
+      </block>
+    </view>
+
+    <view class="form-item">
+      <text class="label">性格描述 *</text>
       <input value="{{personality}}" bindinput="onInputChange" data-field="personality" placeholder="如：活泼外向 / 慢热粘人" />
     </view>
 
     <view class="form-item">
-      <text class="label">交友标签</text>
+      <text class="label">交友标签 *</text>
       <input value="{{socialTagsText}}" bindinput="onInputChange" data-field="socialTagsText" placeholder="用顿号分隔，如：爱遛狗、友好、已绝育" />
     </view>
 

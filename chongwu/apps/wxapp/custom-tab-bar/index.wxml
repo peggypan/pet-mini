@@ -15,11 +15,11 @@
           <view class="fig fig-leash"></view>
         </view>
       </view>
-      <!-- 宠友圈 -->
+      <!-- 宠物社区 -->
       <view class="quick-card card-social" data-action="social" catchtap="onQuickAction">
         <view class="card-copy">
-          <text class="card-title">宠友圈</text>
-          <text class="card-sub">晒宠日常交流</text>
+          <text class="card-title">宠物社区</text>
+          <text class="card-sub">图文视频 · 互动分享</text>
         </view>
         <view class="illus illus-social">
           <view class="fig fig-bubble b1"></view>
@@ -99,6 +99,10 @@
               src="{{selected === item.tabIndex ? item.iconActive : item.icon}}"
               mode="aspectFit"
             ></image>
+            <text
+              class="tab-unread"
+              wx:if="{{item.pagePath === '/pages/messages/messages' && messagesUnread > 0}}"
+            >{{messagesUnread > 99 ? '99+' : messagesUnread}}</text>
           </view>
           <text class="tab-label {{selected === item.tabIndex ? 'active-label' : ''}}">{{item.label}}</text>
         </view>

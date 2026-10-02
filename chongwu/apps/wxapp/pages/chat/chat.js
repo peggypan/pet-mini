@@ -3,6 +3,9 @@ const store = require('../../utils/store');
 const { openEventPublishEntry } = require('../../utils/event-publish-nav');
 const amap = require('../../utils/amap');
 const { chooseMedia } = require('../../utils/choose-media');
+const { evaluateChatSendLimit, canSendOutgoing } = require('../../utils/chat-send-limit');
+const { syncPetProfileGate, requirePetProfile, blockSubPageWithoutProfile } = require('../../utils/pet-profile-guard');
+const { followResultToast } = require('../../utils/pet-follow');
 
 Page({
   data: {
@@ -14,9 +17,19 @@ Page({
     panelEmoji: false,
     scrollInto: '',
     playingId: '',
+    showChatLimitTip: false,
+    chatLimitTip: '',
+    composerDisabled: false,
+    composerPlaceholder: '说点什么…',
+    petProfileBlocked: false,
+    followed: false,
+    peerLiked: false,
+    centerHeartAnim: false,
   },
 
   onLoad(options) {
+    blockSubPageWithoutProfile(this);
+    this.entryOptions = options || {};
     this.peerOptions = {
       peerId: options.peerId || '',
       peerName: options.peerName ? decodeURIComponent(options.peerName) : '',
@@ -27,10 +40,92 @@ Page({
   },
 
   onShow() {
+    syncPetProfileGate(this);
+    if (this.data.peer) this.syncPeerActions(this.data.peer);
     if (this.data.threadId) {
-      this.setData({ messages: store.getChatMessages(this.data.threadId) });
+      const messages = store.getChatMessages(this.data.threadId);
+      this.setData({ messages });
+      this.syncLimitState(messages);
       this.scrollBottom();
     }
+  },
+
+  syncPeerActions(peer) {
+    if (!peer || !peer.id) return;
+    this.setData({
+      followed: store.isFollowed(peer.id),
+      peerLiked: store.isHeartLiked(peer.id, 'chat'),
+    });
+  },
+
+  onToggleFollow() {
+    const peer = this.data.peer;
+    if (!peer || !peer.id) return;
+    const result = store.toggleFollow({
+      id: peer.id,
+      userName: peer.userName,
+      petName: peer.petName,
+      avatar: peer.avatar,
+    });
+    this.setData({ followed: result.followed });
+    wx.showToast({ title: followResultToast(result.followed), icon: 'none' });
+  },
+
+  onTogglePeerLike() {
+    const peer = this.data.peer;
+    if (!peer || !peer.id) return;
+    const next = !this.data.peerLiked;
+    store.setHeartLike({
+      id: peer.id,
+      source: 'chat',
+      userName: peer.userName,
+      petName: peer.petName,
+      avatar: peer.avatar,
+    }, next);
+    if (next) {
+      if (wx.vibrateShort) wx.vibrateShort({ type: 'light' });
+      this.playCenterHeartAnim();
+      this.setData({ peerLiked: true });
+      return;
+    }
+    this.setData({ peerLiked: false, centerHeartAnim: false });
+  },
+
+  playCenterHeartAnim() {
+    this.setData({ centerHeartAnim: true });
+    if (this._likeAnimTimer) clearTimeout(this._likeAnimTimer);
+    this._likeAnimTimer = setTimeout(() => {
+      this.setData({ centerHeartAnim: false });
+    }, 920);
+  },
+
+  getLimitState(messages) {
+    const peerId = this.data.peer && this.data.peer.id;
+    return evaluateChatSendLimit({
+      peerId,
+      messages: messages || this.data.messages,
+      peerFollowsMe: peerId ? store.isFollowedByPeer(peerId) : false,
+    });
+  },
+
+  syncLimitState(messages) {
+    const limit = this.getLimitState(messages);
+    this._limitState = limit;
+    this.setData({
+      showChatLimitTip: limit.showTip,
+      chatLimitTip: limit.tipText,
+      composerDisabled: limit.composerDisabled,
+      composerPlaceholder: limit.composerDisabled ? '等待对方关注或回复后可继续发送' : '说点什么…',
+    });
+    return limit;
+  },
+
+  guardOutgoing(messageType) {
+    const limit = this.getLimitState(this.data.messages);
+    const check = canSendOutgoing(limit, messageType);
+    if (check.ok) return true;
+    wx.showToast({ title: check.reason || limit.tipText, icon: 'none', duration: 2800 });
+    return false;
   },
 
   initThread(options) {
@@ -68,10 +163,33 @@ Page({
       avatar: thread.avatar,
     };
     store.markThreadRead(thread.id);
-    const messages = store.getChatMessages(thread.id);
+    let messages = store.getChatMessages(thread.id);
+    this.syncPeerActions(peer);
     this.setData({ threadId: thread.id, peer, messages });
     wx.setNavigationBarTitle({ title: `${peer.userName} · ${peer.petName}` });
+    messages = this.maybeApplyEntryShareComment(messages);
+    this.syncLimitState(messages);
     this.scrollBottom(messages.length);
+  },
+
+  maybeApplyEntryShareComment(messages) {
+    const o = this.entryOptions || {};
+    if (o.shareComment !== '1' || !this.data.threadId) return messages;
+    if (messages.some((m) => m.from === 'me' && m.type === 'shareComment')) {
+      return messages;
+    }
+    const title = o.shareTitle ? decodeURIComponent(o.shareTitle) : '分享';
+    const text = o.shareText ? decodeURIComponent(o.shareText) : '';
+    const row = store.addChatMessage(this.data.threadId, {
+      from: 'me',
+      type: 'shareComment',
+      content: text,
+      shareTitle: title,
+      shareRef: o.shareRef || '',
+    });
+    const next = [...messages, row];
+    this.setData({ messages: next });
+    return next;
   },
 
   scrollBottom(index) {
@@ -83,8 +201,11 @@ Page({
   appendMessage(row, autoReply) {
     const messages = [...this.data.messages, row];
     this.setData({ messages });
+    const limit = this.syncLimitState(messages);
     this.scrollBottom(messages.length - 1);
-    if (autoReply) {
+    if (!autoReply) return;
+    const shouldReply = limit.unlocked || limit.extraSentCount >= 1;
+    if (shouldReply) {
       setTimeout(() => this.mockPeerReply(row), 900);
     }
   },
@@ -109,11 +230,16 @@ Page({
     const row = store.addChatMessage(this.data.threadId, reply);
     const messages = [...this.data.messages, row];
     this.setData({ messages });
+    this.syncLimitState(messages);
     this.scrollBottom(messages.length - 1);
   },
 
   onComposerInput(e) {
     this.setData({ inputText: e.detail.value });
+  },
+
+  onComposerBlocked() {
+    this.guardOutgoing('text');
   },
 
   onPanelChange(e) {
@@ -122,14 +248,21 @@ Page({
   },
 
   onComposerSend(e) {
+    if (!requirePetProfile()) return;
+    if (this.data.composerDisabled) {
+      this.guardOutgoing('text');
+      return;
+    }
     const text = (e.detail.value || '').trim();
     if (!text) return;
+    if (!this.guardOutgoing('text')) return;
     const row = store.addChatMessage(this.data.threadId, { from: 'me', type: 'text', content: text });
     this.setData({ inputText: '' });
     this.appendMessage(row, true);
   },
 
   onComposerVoice(e) {
+    if (!this.guardOutgoing('voice')) return;
     const { filePath, duration } = e.detail;
     const row = store.addChatMessage(this.data.threadId, {
       from: 'me',
@@ -142,6 +275,10 @@ Page({
   },
 
   onComposerTool(e) {
+    if (this.data.composerDisabled) {
+      this.guardOutgoing('text');
+      return;
+    }
     const { action } = e.detail;
     if (action === 'photo') {
       this.pickImage(['album']);
@@ -153,10 +290,6 @@ Page({
     }
     if (action === 'video') {
       this.onChooseVideo();
-      return;
-    }
-    if (action === 'videocall') {
-      this.onVideoCall();
       return;
     }
     if (action === 'activity') {
@@ -177,6 +310,7 @@ Page({
   },
 
   onAaCollect() {
+    if (!this.guardOutgoing('aa')) return;
     const { pickAaAmount } = require('../../utils/chat-tool-actions');
     pickAaAmount()
       .then(({ aaAmount, aaPeople, aaPer }) => {
@@ -194,6 +328,7 @@ Page({
   },
 
   pickImage(sourceType) {
+    if (!this.guardOutgoing('image')) return;
     chooseMedia({
       count: 1,
       mediaType: ['image'],
@@ -225,6 +360,7 @@ Page({
           openEventPublishEntry();
           return;
         }
+        if (!this.guardOutgoing('event')) return;
         const row = store.addChatMessage(this.data.threadId, {
           from: 'me',
           type: 'event',
@@ -292,6 +428,7 @@ Page({
   },
 
   onChooseVideo() {
+    if (!this.guardOutgoing('video')) return;
     chooseMedia({
       count: 1,
       mediaType: ['video'],
@@ -317,6 +454,7 @@ Page({
   },
 
   onChooseLocation() {
+    if (!this.guardOutgoing('location')) return;
     amap.choosePoint()
       .then((loc) => {
         const row = store.addChatMessage(this.data.threadId, {
@@ -345,22 +483,6 @@ Page({
       });
   },
 
-  onVideoCall() {
-    const { peer, threadId } = this.data;
-    if (!peer) return;
-    wx.showModal({
-      title: '发起视频通话',
-      content: `向 ${peer.userName} 发起视频通话？`,
-      confirmText: '呼叫',
-      success: (res) => {
-        if (!res.confirm) return;
-        wx.navigateTo({
-          url: `/pages/chat-call/chat-call?threadId=${threadId}&peerId=${peer.id}&peerName=${encodeURIComponent(peer.userName)}&petName=${encodeURIComponent(peer.petName)}&avatar=${encodeURIComponent(peer.avatar)}`,
-        });
-      },
-    });
-  },
-
   onPreviewImage(e) {
     const url = e.currentTarget.dataset.url;
     const images = this.data.messages.filter((m) => m.type === 'image').map((m) => m.url);
@@ -374,12 +496,6 @@ Page({
   },
 
   onOpenLocation(e) {
-    const { lat, lng, name, address } = e.currentTarget.dataset;
-    amap.openNavigation({
-      lat: Number(lat),
-      lng: Number(lng),
-      name: name || '位置',
-      address: address || '',
-    });
+    amap.openPlaceFromTap(e);
   },
 });

@@ -12,14 +12,44 @@
       <button class="act-btn" bindtap="onPublishEvent">发起活动</button>
       <button class="act-btn outline" bindtap="onMyEvents">我的活动</button>
     </view>
+    <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="event-plaza-filter-scroll">
+      <view
+        class="event-plaza-filter {{plazaFilter === 'all' ? 'on' : ''}}"
+        data-id="all"
+        bindtap="onPlazaFilter"
+      >全部活动</view>
+      <view
+        class="event-plaza-filter healing {{plazaFilter === 'healing' ? 'on' : ''}}"
+        data-id="healing"
+        bindtap="onPlazaFilter"
+      >疗愈活动</view>
+    </scroll-view>
+    <view class="event-healing-tip" wx:if="{{plazaFilter === 'healing'}}">💚 {{healingEventTip}}</view>
     <view class="event-card" wx:for="{{events}}" wx:key="id" bindtap="onEventTap" data-id="{{item.id}}">
-      <image class="cover" src="{{item.cover}}" mode="aspectFill"></image>
+      <view class="cover-wrap aspect-34 aspect-34-sm">
+        <image class="cover" src="{{item.cover}}" mode="aspectFill"></image>
+        <view class="event-healing-badge" wx:if="{{item.isHealing}}">疗愈活动</view>
+      </view>
       <view class="body">
-        <text class="source">{{item.sourceText}}</text>
+        <text class="source">{{item.sourceText}}{{item.category ? ' · ' + item.category : ''}}</text>
         <text class="title">{{item.title}}</text>
-        <text class="meta">{{item.time}} · {{item.place}}</text>
+        <view class="meta">
+          <text>{{item.time}} · </text>
+          <text
+            class="place-tap"
+            catchtap="onOpenPlace"
+            data-name="{{item.place}}"
+            data-place="{{item.place}}"
+            data-address="{{item.placeAddress}}"
+            data-lat="{{item.location.latitude}}"
+            data-lng="{{item.location.longitude}}"
+          >{{item.place}}</text>
+        </view>
         <text class="meta">{{item.fee}} · 剩余{{item.remain}}名额</text>
       </view>
+    </view>
+    <view class="event-empty" wx:if="{{!events.length}}">
+      <text>{{plazaFilter === 'healing' ? '暂无疗愈活动' : '暂无活动'}}</text>
     </view>
   </view>
 
@@ -35,7 +65,7 @@
         enable-zoom="{{false}}"
       ></map>
       <view class="map-preview-mask">
-        <text class="map-preview-tag">{{amapReady ? '高德地图' : '地图预览'}}</text>
+        <text class="map-preview-tag">{{amapReady ? '腾讯地图' : '地图预览'}}</text>
         <text class="map-preview-tip">点击进入全屏友好地图 ›</text>
       </view>
     </view>
@@ -58,11 +88,16 @@
         <text class="map-name">{{item.name}}</text>
         <text class="map-type">{{item.type}}</text>
       </view>
-      <text class="map-meta">{{item.distance}} · {{item.address}}</text>
+      <text
+        class="map-meta place-tap"
+        catchtap="onNavMap"
+        data-id="{{item.id}}"
+      >{{item.distance}} · {{item.address}}</text>
       <text class="map-allow danger" wx:if="{{item.danger}}">⚠️ {{item.dangerDesc || '危险区域，请远离'}}</text>
       <text class="map-allow {{item.allowPet ? 'ok' : 'no'}}" wx:else>{{item.allowPet ? '允许携宠' : '禁止携宠'}}</text>
       <button class="nav-btn" size="mini" wx:if="{{!item.danger}}" bindtap="onNavMap" data-id="{{item.id}}">导航一下</button>
     </view>
   </view>
 
+  <pet-profile-gate show="{{petProfileBlocked}}" />
 </view>

@@ -1,1 +1,6 @@
-{ "navigationBarTitleText": "发布找搭子" }
+{
+  "navigationBarTitleText": "发布找搭子",
+  "usingComponents": {
+    "pet-profile-gate": "/components/pet-profile-gate/pet-profile-gate"
+  }
+}

@@ -1,13 +1,14 @@
-const { BUDDY_TYPES } = require('../../utils/mock');
+const { buddyTypesForZone } = require('../../utils/mock');
 const { getDefaultPet } = require('../../utils/catalog');
 const store = require('../../utils/store');
 const { pickMixedMedia, MEDIA_LIMIT_HINT, mediaSlots } = require('../../utils/media-upload');
 const amap = require('../../utils/amap');
+const { blockSubPageWithoutProfile, syncPetProfileGate, requirePetProfile } = require('../../utils/pet-profile-guard');
 
 Page({
   data: {
     zone: 'normal',
-    buddyTypes: BUDDY_TYPES.filter((t) => t !== '宠物相亲&借配'),
+    buddyTypes: buddyTypesForZone('normal'),
     buddyType: '遛狗搭子',
     expectDate: '',
     expectDateLabel: '',
@@ -23,14 +24,34 @@ Page({
     mediaLimitHint: MEDIA_LIMIT_HINT,
     mediaCanAdd: true,
     mediaSummary: '0/6 图 · 0/3 视频',
+    petProfileBlocked: false,
+    petHealingEnabled: false,
   },
 
   onLoad(options) {
+    blockSubPageWithoutProfile(this);
     const zone = options.zone || 'normal';
-    const buddyTypes = zone === 'match' ? ['宠物相亲&借配'] : BUDDY_TYPES.filter((t) => t !== '宠物相亲&借配');
+    const buddyTypes = buddyTypesForZone(zone);
+    const pet = getDefaultPet();
+    let buddyType = buddyTypes[0];
+    let petHealingEnabled = !!pet.healingPet;
+    if (zone === 'healing' && pet.healingPet && pet.healingBuddyType) {
+      buddyType = pet.healingBuddyType;
+    }
     const now = new Date();
     const minDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    this.setData({ zone, buddyTypes, buddyType: buddyTypes[0], minDate });
+    this.setData({
+      zone,
+      buddyTypes,
+      buddyType,
+      petHealingEnabled,
+      desc: zone === 'healing' && pet.healingIntro ? pet.healingIntro : this.data.desc,
+      minDate,
+    });
+  },
+
+  onShow() {
+    syncPetProfileGate(this);
   },
 
   formatDateLabel(dateStr) {
@@ -141,6 +162,7 @@ Page({
   },
 
   onSubmit() {
+    if (!requirePetProfile()) return;
     const { buddyType, expectTime, expectPlace, expectPlaceAddress, location, desc, zone, openSignup, mediaList } = this.data;
     const text = (desc || '').trim();
     if (!text && !mediaList.length) {

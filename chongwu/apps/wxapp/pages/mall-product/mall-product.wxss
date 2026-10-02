@@ -1,8 +1,10 @@
 page { background: #EEF4FA; }
 .page { padding-bottom: 160rpx; }
+.cover-wrap {
+  background: #E2EBF4;
+}
+
 .cover {
-  width: 100%;
-  height: 520rpx;
   background: #E2EBF4;
 }
 .card {

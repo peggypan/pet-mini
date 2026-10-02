@@ -1,23 +1,24 @@
 /**
- * 高德地图 Web 服务封装（逆地理、地理编码、POI 搜索、导航）
+ * 腾讯地图 WebService 封装（逆地理、地理编码、POI 搜索、导航）
+ * 小程序地图组件与选点均走腾讯地图。
  */
-const { AMAP_WEB_KEY, isAmapConfigured } = require('./amap-config');
+const { TENCENT_MAP_KEY, isTencentMapConfigured, isAmapConfigured } = require('./amap-config');
 const { findNearestCity, findCityByName } = require('./china-cities');
 
-const BASE = 'https://restapi.amap.com';
+const BASE = 'https://apis.map.qq.com/ws';
 
 function request(path, data) {
   return new Promise((resolve, reject) => {
     wx.request({
       url: `${BASE}${path}`,
-      data: { key: AMAP_WEB_KEY, ...data },
+      data: { key: TENCENT_MAP_KEY, ...data },
       success: (res) => {
         if (res.statusCode !== 200 || !res.data) {
-          reject(new Error('高德请求失败'));
+          reject(new Error('腾讯地图请求失败'));
           return;
         }
-        if (String(res.data.status) !== '1') {
-          reject(new Error(res.data.info || '高德接口错误'));
+        if (Number(res.data.status) !== 0) {
+          reject(new Error(res.data.message || '腾讯地图接口错误'));
           return;
         }
         resolve(res.data);
@@ -27,24 +28,19 @@ function request(path, data) {
   });
 }
 
-function parseAddressComponent(comp) {
-  if (!comp) return { province: '', city: '', district: '' };
-  let city = comp.city;
-  if (Array.isArray(city)) city = city[0] || '';
-  if (!city) {
-    city = (comp.province || '').replace(/(市|省|自治区|特别行政区)$/, '');
-  }
+function parseTencentAddressComponent(comp) {
+  if (!comp) return { province: '', city: '', district: '', adcode: '' };
   return {
     province: comp.province || '',
-    city: (city || '').replace(/市$/, ''),
+    city: (comp.city || '').replace(/市$/, ''),
     district: comp.district || '',
     adcode: comp.adcode || '',
   };
 }
 
-/** 逆地理编码：坐标 → 地址与城市 */
+/** 逆地理编码：坐标 → 地址与城市（location 为 lat,lng） */
 function reverseGeocode(lng, lat) {
-  if (!isAmapConfigured()) {
+  if (!isTencentMapConfigured()) {
     const nearest = findNearestCity(lat, lng);
     return Promise.resolve({
       lng,
@@ -58,19 +54,19 @@ function reverseGeocode(lng, lat) {
       source: 'fallback',
     });
   }
-  return request('/v3/geocode/regeo', {
-    location: `${lng},${lat}`,
-    extensions: 'base',
+  return request('/geocoder/v1/', {
+    location: `${lat},${lng}`,
   }).then((data) => {
-    const regeo = data.regeocode || {};
-    const comp = parseAddressComponent(regeo.addressComponent);
+    const result = data.result || {};
+    const comp = parseTencentAddressComponent(result.address_component);
+    const formatted = result.address || result.formatted_addresses?.recommend || '';
     return {
       lng,
       lat,
       ...comp,
-      address: regeo.formatted_address || '',
-      formattedAddress: regeo.formatted_address || '',
-      source: 'amap',
+      address: formatted,
+      formattedAddress: formatted,
+      source: 'tencent',
     };
   });
 }
@@ -79,7 +75,7 @@ function reverseGeocode(lng, lat) {
 function geocode(address, city) {
   const addr = (address || '').trim();
   if (!addr) return Promise.reject(new Error('地址为空'));
-  if (!isAmapConfigured()) {
+  if (!isTencentMapConfigured()) {
     const found = findCityByName(city || addr) || findNearestCity(39.9, 116.4);
     return Promise.resolve({
       lng: found.lng,
@@ -90,46 +86,49 @@ function geocode(address, city) {
       source: 'fallback',
     });
   }
-  return request('/v3/geocode/geo', {
+  return request('/geocoder/v1/', {
     address: addr,
-    city: city || '',
+    region: city || '',
   }).then((data) => {
-    const geo = (data.geocodes || [])[0];
-    if (!geo) throw new Error('未解析到坐标');
-    const [lng, lat] = (geo.location || '').split(',').map(Number);
+    const result = (data.result || {});
+    const loc = result.location || {};
+    if (!loc.lat || !loc.lng) throw new Error('未解析到坐标');
+    const comp = parseTencentAddressComponent(result.address_components);
     return {
-      lng,
-      lat,
-      province: geo.province || '',
-      city: (geo.city || '').replace(/市$/, ''),
-      district: geo.district || '',
-      formattedAddress: geo.formatted_address || addr,
-      source: 'amap',
+      lng: loc.lng,
+      lat: loc.lat,
+      province: comp.province,
+      city: comp.city,
+      district: comp.district,
+      formattedAddress: result.title || addr,
+      source: 'tencent',
     };
   });
 }
 
-/** POI 关键词提示 */
+/** POI 关键词提示（地点搜索） */
 function searchTips(keyword, city) {
   const kw = (keyword || '').trim();
   if (!kw) return Promise.resolve([]);
-  if (!isAmapConfigured()) {
+  if (!isTencentMapConfigured()) {
     return Promise.resolve([{ name: kw, address: city || '', district: '' }]);
   }
-  return request('/v3/assistant/inputtips', {
-    keywords: kw,
-    city: city || '',
-    citylimit: city ? 'true' : 'false',
-  }).then((data) => (data.tips || []).filter((t) => t.location).map((t) => ({
-    id: t.id,
-    name: t.name,
-    address: t.address || t.district || '',
-    district: t.district || '',
-    location: t.location,
-  })));
+  return request('/place/v1/suggestion', {
+    keyword: kw,
+    region: city || '',
+    region_fix: city ? 1 : 0,
+  }).then((data) => (data.data || [])
+    .filter((t) => t.location && t.location.lat && t.location.lng)
+    .map((t) => ({
+      id: t.id,
+      name: t.title,
+      address: t.address || t.category || '',
+      district: t.ad_info && t.ad_info.district ? t.ad_info.district : '',
+      location: `${t.location.lng},${t.location.lat}`,
+    })));
 }
 
-/** 周边 POI 搜索（宠物医院/门店等） */
+/** 周边 POI 搜索 */
 function searchPlaceAround(options = {}) {
   const {
     keywords = '',
@@ -141,19 +140,53 @@ function searchPlaceAround(options = {}) {
     pageSize = 20,
   } = options;
   if (!latitude || !longitude) return Promise.resolve([]);
-  if (!isAmapConfigured()) return Promise.resolve([]);
-  return request('/v3/place/around', {
-    location: `${longitude},${latitude}`,
-    keywords: keywords || undefined,
-    city: city || undefined,
-    radius: Math.min(Number(radius) || 8000, 50000),
-    offset: Math.min(Number(pageSize) || 20, 25),
-    page: page || 1,
-    extensions: 'all',
-  }).then((data) => data.pois || []);
+  if (!isTencentMapConfigured()) return Promise.resolve([]);
+  const boundary = `nearby(${latitude},${longitude},${Math.min(Number(radius) || 8000, 50000)},1)`;
+  return request('/place/v1/search', {
+    boundary,
+    keyword: keywords || undefined,
+    page_size: Math.min(Number(pageSize) || 20, 20),
+    page_index: page || 1,
+    orderby: '_distance',
+  }).then((data) => (data.data || []).map((poi) => ({
+    id: poi.id,
+    name: poi.title,
+    address: poi.address || '',
+    location: poi.location ? `${poi.location.lng},${poi.location.lat}` : '',
+    distance: poi._distance,
+    cityname: (poi.ad_info && poi.ad_info.city) || city || '',
+  })));
 }
 
-/** 打开地图导航（系统地图，可唤起高德 App） */
+function toCoord(value) {
+  const n = Number(value);
+  return Number.isFinite(n) && n !== 0 ? n : 0;
+}
+
+function extractPlace(options = {}) {
+  const rawLoc = options.location || options.geoLocation || {};
+  const loc = typeof rawLoc === 'string'
+    ? { name: rawLoc, address: rawLoc }
+    : (rawLoc || {});
+  const name = String(options.name || loc.name || options.place || options.expectPlace || '').trim();
+  const address = String(
+    options.address
+    || loc.address
+    || options.placeAddress
+    || options.expectPlaceAddress
+    || name
+    || '',
+  ).trim();
+  return {
+    lat: toCoord(options.lat || options.latitude || loc.latitude),
+    lng: toCoord(options.lng || options.longitude || loc.longitude),
+    name: name || '地点',
+    address,
+    city: options.city || loc.city || '',
+  };
+}
+
+/** 打开地图导航（微信 openLocation → 腾讯地图） */
 function openNavigation(options) {
   const { lat, lng, name, address, scale } = options;
   if (!lat || !lng) {
@@ -173,7 +206,45 @@ function openNavigation(options) {
   });
 }
 
-/** 选点：微信选点 + 高德逆地理补全 */
+function openPlace(options = {}) {
+  const place = extractPlace(options);
+  if (place.lat && place.lng) {
+    return openNavigation(place);
+  }
+  if (!place.address || place.address === '同城') {
+    wx.showToast({ title: '暂无地点坐标', icon: 'none' });
+    return Promise.reject(new Error('no place'));
+  }
+  wx.showLoading({ title: '定位中' });
+  return geocode(place.address, place.city)
+    .then((geo) => {
+      wx.hideLoading();
+      return openNavigation({
+        lat: geo.lat,
+        lng: geo.lng,
+        name: place.name,
+        address: geo.formattedAddress || place.address,
+      });
+    })
+    .catch((err) => {
+      wx.hideLoading();
+      wx.showToast({ title: '暂无法打开地图', icon: 'none' });
+      return Promise.reject(err);
+    });
+}
+
+function openPlaceFromTap(e) {
+  const d = (e && e.currentTarget && e.currentTarget.dataset) || {};
+  return openPlace({
+    lat: d.lat,
+    lng: d.lng,
+    name: d.name || d.place,
+    address: d.address,
+    city: d.city,
+  });
+}
+
+/** 选点：微信腾讯地图选点 + 逆地理补全 */
 function choosePoint(options = {}) {
   return new Promise((resolve, reject) => {
     wx.chooseLocation({
@@ -190,7 +261,7 @@ function choosePoint(options = {}) {
             province: regeo.province,
             district: regeo.district,
             adcode: regeo.adcode,
-            source: regeo.source,
+            source: regeo.source || 'tencent',
           });
         } catch (e) {
           resolve({
@@ -210,7 +281,6 @@ function choosePoint(options = {}) {
   });
 }
 
-/** 批量补全点位坐标（无 lat/lng 时地理编码） */
 async function enrichPointsWithCoords(points, city) {
   const list = [];
   for (const p of points) {
@@ -287,12 +357,16 @@ function buildMapMarkers(points, options = {}) {
 }
 
 module.exports = {
+  isTencentMapConfigured,
   isAmapConfigured,
   reverseGeocode,
   geocode,
   searchTips,
   searchPlaceAround,
+  extractPlace,
   openNavigation,
+  openPlace,
+  openPlaceFromTap,
   choosePoint,
   enrichPointsWithCoords,
   buildMapMarkers,

@@ -1,5 +1,5 @@
-const { listAllBuddies, listAllMapPoints } = require('./catalog');
-const { MOCK_EVENTS, MOCK_MERCHANTS } = require('./mock');
+const { listAllBuddies, listAllMapPoints, listAllEvents } = require('./catalog');
+const { MOCK_MERCHANTS } = require('./mock');
 
 function norm(text) {
   return String(text || '').toLowerCase().trim();
@@ -32,8 +32,8 @@ function searchAll(keyword) {
   ).slice(0, 30);
 
   const events = filterByKeyword(
-    MOCK_EVENTS,
-    ['title', 'place', 'desc', 'host', 'tag', 'fee', 'require'],
+    listAllEvents(),
+    ['title', 'place', 'desc', 'host', 'tag', 'fee', 'require', 'category', 'publisherName'],
     k,
   ).slice(0, 30);
 

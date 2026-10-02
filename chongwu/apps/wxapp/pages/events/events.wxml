@@ -9,13 +9,47 @@
     <button class="act-btn outline" bindtap="onMyEvents">我的活动</button>
   </view>
 
+  <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="event-plaza-filter-scroll">
+    <view
+      class="event-plaza-filter {{plazaFilter === 'all' ? 'on' : ''}}"
+      data-id="all"
+      bindtap="onPlazaFilter"
+    >全部活动</view>
+    <view
+      class="event-plaza-filter healing {{plazaFilter === 'healing' ? 'on' : ''}}"
+      data-id="healing"
+      bindtap="onPlazaFilter"
+    >疗愈活动</view>
+  </scroll-view>
+  <view class="event-healing-tip" wx:if="{{plazaFilter === 'healing'}}">💚 {{healingEventTip}}</view>
+
   <view class="event-card" wx:for="{{events}}" wx:key="id" bindtap="onEventTap" data-id="{{item.id}}">
-    <image class="cover" src="{{item.cover}}" mode="aspectFill"></image>
+    <view class="cover-wrap aspect-34 aspect-34-sm">
+      <image class="cover" src="{{item.cover}}" mode="aspectFill"></image>
+      <view class="event-healing-badge" wx:if="{{item.isHealing}}">疗愈活动</view>
+    </view>
     <view class="body">
-      <text class="source">{{item.sourceText}}</text>
+      <text class="source">{{item.sourceText}}{{item.category ? ' · ' + item.category : ''}}</text>
       <text class="title">{{item.title}}</text>
-      <text class="meta">{{item.time}} · {{item.place}}</text>
-      <text class="meta">{{item.fee}} · 剩余{{item.remain}}名额</text>
+        <view class="meta">
+          <text>{{item.time}} · </text>
+          <text
+            class="place-tap"
+            catchtap="onOpenPlace"
+            data-name="{{item.place}}"
+            data-place="{{item.place}}"
+            data-address="{{item.placeAddress}}"
+            data-lat="{{item.location.latitude}}"
+            data-lng="{{item.location.longitude}}"
+          >{{item.place}}</text>
+        </view>
+      <text class="meta">免费报名 · 剩余{{item.remain}}名额</text>
     </view>
   </view>
+
+  <view class="event-empty" wx:if="{{!events.length}}">
+    <text>{{plazaFilter === 'healing' ? '暂无疗愈活动，可发起活动并选择「疗愈活动」分类' : '暂无活动'}}</text>
+  </view>
+
+  <view class="event-safety-tip">{{eventSafetyTip}}</view>
 </view>

@@ -385,4 +385,11 @@ module.exports = {
   POSTER_H,
   STYLES,
   generateEventPosters,
+  drawMiniQr,
+  roundRect,
+  wrapText,
+  drawCover,
+  prepareCanvas,
+  exportCanvas,
+  loadCanvasImage,
 };

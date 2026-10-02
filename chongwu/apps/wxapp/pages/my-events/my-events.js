@@ -1,4 +1,6 @@
 const store = require('../../utils/store');
+const { deleteOwnedEvent } = require('../../utils/user-content-delete');
+const amap = require('../../utils/amap');
 
 const AUDIT_TEXT = {
   pending: '已上线',
@@ -24,5 +26,24 @@ Page({
       created: store.listMyEvents(),
       joined: store.listEventSignups(),
     });
+  },
+
+  async onDeleteCreated(e) {
+    const { id } = e.currentTarget.dataset;
+    const res = await deleteOwnedEvent(id);
+    if (!res.ok) {
+      if (res.reason && !res.cancelled) wx.showToast({ title: res.reason, icon: 'none' });
+      return;
+    }
+    this.onShow();
+  },
+
+  onOpenPlace(e) {
+    amap.openPlaceFromTap(e);
+  },
+
+  onOpenTicket(e) {
+    const id = e.currentTarget.dataset.id;
+    if (id) wx.navigateTo({ url: `/pages/event-detail/event-detail?id=${id}&ticket=1` });
   },
 });

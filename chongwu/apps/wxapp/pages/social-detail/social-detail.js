@@ -11,12 +11,14 @@ const {
 const amap = require('../../utils/amap');
 const { chooseMedia } = require('../../utils/choose-media');
 const { normalizePostMedia } = require('../../utils/social-post-media');
+const { withContentParts } = require('../../utils/social-content-parts');
+const { buildCommentThreads } = require('../../utils/social-post-comments');
+const { openSocialHashtagFilter } = require('../../utils/social-hashtag-nav');
+const { decoratePostFollow, followResultToast } = require('../../utils/pet-follow');
+const { requirePetProfile } = require('../../utils/pet-profile-guard');
+const { deleteOwnedSocialPost, finishAfterDelete } = require('../../utils/user-content-delete');
 
-const ZONE_MAP = {
-  cat: '猫咪专区',
-  dog: '狗狗专区',
-  other: '异宠',
-};
+const { ZONE_LABEL_MAP, getZoneLabel } = require('../../utils/community-zones');
 
 Page({
   data: {
@@ -25,6 +27,8 @@ Page({
     zoneLabel: '',
     commentList: [],
     commentText: '',
+    commentPlaceholder: '写评论…',
+    replyTarget: null,
     panelTools: false,
     panelEmoji: false,
     pendingMedia: null,
@@ -47,15 +51,50 @@ Page({
       this.setData({ post: null });
       return;
     }
-    const comments = store.listPostComments(postId);
+    const flatComments = store.listPostComments(postId);
+    const enriched = decoratePostFollow(withContentParts({
+      ...post,
+      comments: Math.max(post.comments || 0, flatComments.length),
+    }));
     this.setData({
-      post: {
-        ...post,
-        comments: Math.max(post.comments || 0, comments.length),
-      },
-      zoneLabel: ZONE_MAP[post.zone] || '交友广场',
-      commentList: comments,
+      post: enriched,
+      zoneLabel: getZoneLabel(post.zone) || ZONE_LABEL_MAP[post.zone] || '宠物社区',
+      commentList: buildCommentThreads(flatComments),
     });
+  },
+
+  async onDeletePost() {
+    const { postId, post } = this.data;
+    if (!post || !post.isSelfAuthor) return;
+    const res = await deleteOwnedSocialPost(postId, {
+      title: post.lostType ? '删除寻宠救助信息' : '删除动态',
+    });
+    if (!res.ok) {
+      if (res.reason && !res.cancelled) wx.showToast({ title: res.reason, icon: 'none' });
+      return;
+    }
+    finishAfterDelete('/pages/social/social');
+  },
+
+  onFollowAuthor() {
+    if (!requirePetProfile()) return;
+    const post = this.data.post;
+    if (!post || post.isSelfAuthor || !post.authorId || post.authorId === 'me') return;
+    const result = store.toggleFollow({
+      id: post.authorId,
+      userName: post.userName,
+      petName: post.petName,
+      avatar: post.avatar,
+    });
+    wx.showToast({ title: followResultToast(result.followed), icon: 'none' });
+    this.setData({
+      post: { ...post, followed: result.followed },
+    });
+  },
+
+  onContentHashtagTap(e) {
+    const topic = e.currentTarget.dataset.topic;
+    openSocialHashtagFilter(topic);
   },
 
   onPreviewImage(e) {
@@ -79,12 +118,22 @@ Page({
   },
 
   onLike() {
+    if (!requirePetProfile()) return;
     const { post, postId } = this.data;
     if (!post) return;
     const liked = !post.liked;
     const likes = liked ? (post.likes || 0) + 1 : Math.max(0, (post.likes || 0) - 1);
     const patch = { liked, likes };
     store.updateSocialPost(postId, patch);
+    store.recordPostThumbLike({
+      channel: 'social',
+      postId,
+      liked,
+      title: (post.content || post.topic || '社区动态').slice(0, 32),
+      cover: post.image || (post.images && post.images[0]) || '',
+      userName: post.userName,
+      petName: post.petName,
+    });
     this.setData({ post: { ...post, ...patch } });
   },
 
@@ -188,13 +237,35 @@ Page({
     this.setData({ pendingMedia: null });
   },
 
+  onReplyComment(e) {
+    const { id, name } = e.currentTarget.dataset;
+    if (!id) return;
+    const userName = name || '宠友';
+    this.setData({
+      replyTarget: { id, userName },
+      commentPlaceholder: `回复 ${userName}…`,
+    });
+  },
+
+  onCancelReply() {
+    this.setData({
+      replyTarget: null,
+      commentPlaceholder: '写评论…',
+    });
+  },
+
   onComposerSend(e) {
+    if (!requirePetProfile()) return;
     const text = (e.detail.value || this.data.commentText || '').trim();
-    const { pendingMedia, postId, post } = this.data;
+    const { pendingMedia, postId, post, replyTarget } = this.data;
     if (!text && !pendingMedia) {
       wx.showToast({ title: '请输入评论或添加媒体', icon: 'none' });
       return;
     }
+
+    const replyMeta = replyTarget
+      ? { parentId: replyTarget.id, replyToUserName: replyTarget.userName }
+      : {};
 
     let payload;
     if (pendingMedia) {
@@ -205,6 +276,7 @@ Page({
         url: pendingMedia.url,
         poster: pendingMedia.poster || '',
         content: text || (pendingMedia.type === 'image' ? '[图片]' : '[视频]'),
+        ...replyMeta,
       };
     } else {
       payload = {
@@ -212,17 +284,20 @@ Page({
         avatar: MOCK_PET.avatar,
         type: 'text',
         content: text,
+        ...replyMeta,
       };
     }
 
     store.addPostComment(postId, payload);
-    const comments = store.listPostComments(postId);
-    store.updateSocialPost(postId, { comments: comments.length });
+    const flatComments = store.listPostComments(postId);
+    store.updateSocialPost(postId, { comments: flatComments.length });
     this.setData({
       commentText: '',
       pendingMedia: null,
-      commentList: comments,
-      post: { ...post, comments: comments.length },
+      replyTarget: null,
+      commentPlaceholder: '写评论…',
+      commentList: buildCommentThreads(flatComments),
+      post: { ...post, comments: flatComments.length },
     });
     wx.showToast({ title: '已评论', icon: 'success' });
   },
@@ -235,20 +310,14 @@ Page({
     this.setData({ post: { ...post, shares } });
   },
 
-  onOpenPostLocation(e) {
-    const { lat, lng, name, address } = e.currentTarget.dataset;
-    amap.openNavigation({
-      lat: Number(lat),
-      lng: Number(lng),
-      name: name || '走失/发现地点',
-      address: address || '',
-    });
+  onOpenPostLocation() {
+    amap.openPlace(this.data.post || {});
   },
 
   onShareAppMessage() {
     const { post, postId } = this.data;
     if (!post) {
-      return { title: '宠头头交友广场', path: '/pages/social/social' };
+      return { title: '宠头头 · 宠物社区', path: '/pages/social/social' };
     }
     if (post.lostType === 'lost') {
       const loc = post.geoLocation?.name || post.location || '同城';
@@ -261,6 +330,20 @@ Page({
       const loc = post.geoLocation?.name || post.location || '同城';
       return {
         title: `招领宠物 · ${loc} · ${(post.content || '').replace(/【.*?】/g, '').slice(0, 24)}`,
+        path: `/pages/social-detail/social-detail?id=${postId}`,
+      };
+    }
+    if (post.lostType === 'rescue') {
+      const loc = post.geoLocation?.name || post.location || '同城';
+      return {
+        title: `宠物救助 · ${loc} · ${(post.content || '').replace(/【.*?】/g, '').slice(0, 24)}`,
+        path: `/pages/social-detail/social-detail?id=${postId}`,
+      };
+    }
+    if (post.lostType === 'adopt') {
+      const loc = post.geoLocation?.name || post.location || '同城';
+      return {
+        title: `爱心领养 · ${loc} · ${(post.content || '').replace(/【.*?】/g, '').slice(0, 24)}`,
         path: `/pages/social-detail/social-detail?id=${postId}`,
       };
     }

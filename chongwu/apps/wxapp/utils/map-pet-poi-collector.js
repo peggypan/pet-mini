@@ -25,7 +25,7 @@ function normalizePoi(poi, category, city) {
     longitude: loc.longitude,
     distance: poi.distance ? `${(Number(poi.distance) / 1000).toFixed(1)}km` : '',
     rating: poi.biz_ext && poi.biz_ext.rating ? Number(poi.biz_ext.rating) : 4.5,
-    source: 'amap',
+    source: 'tencent',
   };
 }
 

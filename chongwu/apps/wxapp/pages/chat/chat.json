@@ -1,6 +1,7 @@
 {
   "navigationBarTitleText": "私信",
   "usingComponents": {
-    "chat-composer": "/components/chat-composer/chat-composer"
+    "chat-composer": "/components/chat-composer/chat-composer",
+    "pet-profile-gate": "/components/pet-profile-gate/pet-profile-gate"
   }
 }

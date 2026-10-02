@@ -1,5 +1,6 @@
 const api = require('../../utils/request');
 const { findIdleItem } = require('../../utils/catalog');
+const amap = require('../../utils/amap');
 
 Page({
   data: {
@@ -26,6 +27,15 @@ Page({
     } else {
       wx.showToast({ title: '商品不存在', icon: 'none' });
     }
+  },
+
+  onOpenPlace() {
+    const item = this.data.item || {};
+    amap.openPlace({
+      name: item.district || item.location || '交易地点',
+      address: item.location || item.district || '',
+      location: item.geoLocation || item.location,
+    });
   },
 
   onBuyTap() {

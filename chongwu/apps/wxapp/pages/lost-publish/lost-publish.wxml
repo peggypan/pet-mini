@@ -2,12 +2,12 @@
 <view class="page">
   <view class="tip-card">
     <text class="tip-title">同城互助 · 禁止活体交易</text>
-    <text class="tip-desc">请选择走失/发现地点，上传照片或视频，并分享给同城好友扩大寻找范围。</text>
+    <text class="tip-desc">请选择地点，上传照片或视频，并分享给同城好友扩大传播范围。</text>
   </view>
 
   <view class="card">
     <text class="label">信息类型</text>
-    <view class="type-row">
+    <view class="type-row" wx:if="{{pageMode === 'lost-found'}}">
       <view
         class="type-item {{postType === 'lost' ? 'on' : ''}}"
         bindtap="onType"
@@ -25,6 +25,24 @@
         <text class="type-sub">捡到待认领的宠物</text>
       </view>
     </view>
+    <view class="type-row" wx:else>
+      <view
+        class="type-item {{postType === 'rescue' ? 'on' : ''}}"
+        bindtap="onType"
+        data-type="rescue"
+      >
+        <text class="type-name">救助</text>
+        <text class="type-sub">流浪/受伤需帮助</text>
+      </view>
+      <view
+        class="type-item {{postType === 'adopt' ? 'on' : ''}}"
+        bindtap="onType"
+        data-type="adopt"
+      >
+        <text class="type-name">领养</text>
+        <text class="type-sub">寻找爱心新家</text>
+      </view>
+    </view>
 
     <text class="label">宠物类型</text>
     <view class="zone-row">
@@ -38,18 +56,17 @@
     </view>
 
     <text class="label">发生地点 *</text>
-    <view class="loc-picker" bindtap="onChooseLocation">
-      <view class="loc-main" wx:if="{{geoLocation}}">
-        <text class="loc-name">{{geoLocation.name || '已选位置'}}</text>
+    <view class="loc-picker">
+      <view class="loc-main" wx:if="{{geoLocation}}" bindtap="onOpenLocation">
+        <text class="loc-name place-tap">{{geoLocation.name || '已选位置'}}</text>
         <text class="loc-addr">{{geoLocation.address}}</text>
-        <text class="loc-tip">点击重新选择 · 点击查看地图</text>
       </view>
-      <view class="loc-empty" wx:else>
-        <text class="loc-empty-text">高德地图选点 · 走失/发现地点</text>
+      <view class="loc-empty" wx:else bindtap="onChooseLocation">
+        <text class="loc-empty-text">腾讯地图选点 · 发生/安置地点</text>
       </view>
     </view>
     <view class="loc-actions" wx:if="{{geoLocation}}">
-      <text class="loc-action" catchtap="onOpenLocation">查看地图</text>
+      <text class="loc-action" catchtap="onChooseLocation">重新选点</text>
       <text class="loc-action danger" catchtap="onClearLocation">清除</text>
     </view>
     <input
@@ -90,7 +107,7 @@
 
     <view class="media-grid" wx:if="{{mediaList.length}}">
       <view
-        class="media-item"
+        class="media-item aspect-34 aspect-34-third"
         wx:for="{{mediaList}}"
         wx:key="index"
         data-index="{{index}}"
@@ -119,7 +136,7 @@
 
   <view class="bottom">
     <button class="share-btn" open-type="share">分享给好友</button>
-    <button class="submit" bindtap="onSubmit">发布到交友广场</button>
+    <button class="submit" bindtap="onSubmit">发布到宠物社区</button>
   </view>
 </view>
 

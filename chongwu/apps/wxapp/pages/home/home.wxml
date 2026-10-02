@@ -12,101 +12,131 @@
     </view>
   </view>
 
-  <swiper class="banner" autoplay circular indicator-dots indicator-color="rgba(255,255,255,0.4)" indicator-active-color="#fff">
-    <swiper-item wx:for="{{banners}}" wx:key="id">
-      <view class="banner-item">
-        <image class="banner-img" src="{{item.cover}}" mode="aspectFill"></image>
-        <text class="banner-title">{{item.title}}</text>
-      </view>
-    </swiper-item>
-  </swiper>
+  <view class="banner-wrap aspect-169">
+    <swiper
+      class="banner"
+      autoplay
+      circular
+      indicator-dots
+      indicator-color="rgba(255,255,255,0.4)"
+      indicator-active-color="#fff"
+    >
+      <swiper-item wx:for="{{banners}}" wx:key="id">
+        <view
+          class="banner-item {{item.type === 'mapPointsCampaign' ? 'banner-campaign' : ''}}"
+          bindtap="onBannerTap"
+          data-id="{{item.id}}"
+        >
+          <block wx:if="{{item.type === 'mapPointsCampaign'}}">
+            <image class="banner-img banner-img-dim" src="{{item.cover}}" mode="aspectFill"></image>
+            <view class="banner-campaign-overlay"></view>
+            <view class="banner-campaign-body">
+              <text class="banner-campaign-tag">{{item.tag}}</text>
+              <text class="banner-campaign-title">{{item.title}}</text>
+              <text class="banner-campaign-sub" wx:if="{{item.subtitle}}">{{item.subtitle}}</text>
+              <text class="banner-campaign-cta">去标记地点 ›</text>
+            </view>
+          </block>
+          <block wx:else>
+            <image class="banner-img" src="{{item.cover}}" mode="aspectFill"></image>
+            <text class="banner-title">{{item.title}}</text>
+          </block>
+        </view>
+      </swiper-item>
+    </swiper>
+  </view>
 
-  <!-- 布丁风格 bento 宫格 -->
-  <view class="pudding-board">
-    <view class="pudding-row pudding-row-main">
-      <!-- 左侧大卡：宠友搭子 -->
+  <!-- 服务宫格 · 高饱和色块 + 右侧插画 -->
+  <view class="service-board">
+    <view class="service-row">
       <view
-        class="pudding-tile tile-large theme-blue"
+        class="service-card theme-svc-blue service-card-text-only"
         bindtap="onFeatureTap"
         data-id="buddy"
       >
-        <view class="tile-glow tile-glow-blue"></view>
-        <view class="tile-copy tile-copy-light">
-          <text class="tile-title">{{tiles.buddy.name}} ›</text>
-          <text class="tile-sub">{{tiles.buddy.subtitle}}</text>
-        </view>
-        <view class="tile-thumbs">
-          <image
-            class="tile-thumb"
-            wx:for="{{tiles.buddy.thumbs}}"
-            wx:key="*this"
-            src="{{item}}"
-            mode="aspectFill"
-          ></image>
+        <view class="svc-copy">
+          <text class="svc-title">{{tiles.buddy.name}}</text>
+          <text class="svc-sub">{{tiles.buddy.subtitle}}</text>
         </view>
       </view>
-
-      <view class="pudding-col">
-        <!-- 右侧：友好地图 -->
-        <view
-          class="pudding-tile tile-small theme-green"
-          bindtap="onFeatureTap"
-          data-id="map"
-        >
-          <view class="tile-copy">
-            <text class="tile-title tile-title-dark">{{tiles.map.name}} ›</text>
-            <text class="tile-sub tile-sub-dark">{{tiles.map.subtitle}}</text>
-          </view>
-          <view class="tile-map-corner">
-            <image
-              class="tile-map-img"
-              src="{{tiles.map.cornerImg}}"
-              mode="aspectFill"
-            ></image>
-          </view>
+      <view
+        class="service-card theme-svc-orange service-card-text-only"
+        bindtap="onFeatureTap"
+        data-id="map"
+      >
+        <view class="svc-copy">
+          <text class="svc-title">{{tiles.map.name}}</text>
+          <text class="svc-sub">{{tiles.map.subtitle}}</text>
         </view>
       </view>
     </view>
-
-    <!-- 第二行：寻宠领养（通栏） -->
-    <view class="pudding-row pudding-row-sub">
-      <view
-        class="pudding-tile tile-full theme-pink"
-        bindtap="onFeatureTap"
-        data-id="rescue"
-      >
-        <view class="tile-copy">
-          <text class="tile-title tile-title-dark">{{tiles.rescue.name}} ›</text>
-          <text class="tile-sub tile-sub-dark">{{tiles.rescue.subtitle}}</text>
-        </view>
+    <view
+      class="service-card service-card-wide theme-svc-warm service-card-text-only"
+      bindtap="onFeatureTap"
+      data-id="rescue"
+    >
+      <view class="svc-copy">
+        <text class="svc-title">{{tiles.rescue.name}}</text>
+        <text class="svc-sub">{{tiles.rescue.subtitle}}</text>
       </view>
     </view>
   </view>
 
-  <view class="section">
+  <view class="section buddy-plaza-section">
     <view class="section-head">
-      <text class="section-title">推荐搭子</text>
+      <text class="section-title">宠物搭子广场</text>
       <text class="section-more" bindtap="onMoreBuddy">更多 ›</text>
     </view>
-    <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="h-scroll">
-      <view class="buddy-card" wx:for="{{buddies}}" wx:key="id" bindtap="onBuddyTap" data-id="{{item.id}}">
-        <image class="buddy-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
-        <text class="buddy-name">{{item.userName}} · {{item.petName}}</text>
-        <text class="buddy-meta">{{item.buddyType}} · {{item.distance}}</text>
-        <view class="buddy-tags">
-          <text class="tag" wx:if="{{item.verified}}">已核验</text>
-          <text class="tag soft">{{item.breed}}</text>
+    <view class="buddy-plaza-list">
+      <view
+        class="buddy-plaza-card"
+        wx:for="{{buddyPlaza}}"
+        wx:key="feedKey"
+      >
+        <view
+          class="buddy-plaza-cover aspect-34"
+          catchtap="onPreviewCover"
+          data-id="{{item.id}}"
+        >
+          <image
+            class="aspect-34-fill"
+            src="{{item.coverIsVideo ? (item.coverPoster || item.cover) : item.cover}}"
+            mode="aspectFill"
+          ></image>
+          <view class="cover-video-mask" wx:if="{{item.coverIsVideo}}">
+            <text class="cover-video-tag">▶</text>
+          </view>
+          <text class="buddy-plaza-dist">{{item.distanceLabel}}</text>
+        </view>
+        <view class="buddy-plaza-body" bindtap="onBuddyTap" data-id="{{item.id}}">
+          <text class="buddy-plaza-name">{{item.titleLine}}</text>
+          <view class="buddy-plaza-score">
+            <text class="buddy-plaza-star">★</text>
+            <text class="buddy-plaza-score-text" wx:if="{{item.verified}}">已核验</text>
+            <text class="buddy-plaza-score-div" wx:if="{{item.verified}}">|</text>
+            <text class="buddy-plaza-score-text">{{item.buddyType}}</text>
+          </view>
+          <text class="buddy-plaza-pet-line" wx:if="{{item.petLine}}">{{item.petLine}}</text>
+          <text class="buddy-plaza-place" wx:if="{{item.expectPlace}}">{{item.expectPlace}}</text>
+          <view class="buddy-plaza-tags" wx:if="{{item.tags.length}}">
+            <text class="buddy-plaza-tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag">{{tag}}</text>
+          </view>
+          <text class="buddy-plaza-intro" wx:if="{{item.intro}}">{{item.intro}}</text>
         </view>
       </view>
-    </scroll-view>
+    </view>
+    <view class="buddy-load-more" wx:if="{{buddyHasMore}}" bindtap="onLoadMoreBuddy">
+      <text class="buddy-load-more-text">继续下滑或点击加载更多搭子</text>
+    </view>
   </view>
 
   <view class="section">
     <view class="section-head">
       <text class="section-title">近期活动</text>
+      <text class="section-more" bindtap="onMoreEvents">全部 ›</text>
     </view>
     <view class="event-card-v2" wx:for="{{events}}" wx:key="id" bindtap="onEventTap" data-id="{{item.id}}">
-      <view class="event-card-media">
+      <view class="event-card-media aspect-34">
         <image class="event-card-cover" src="{{item.cover}}" mode="aspectFill"></image>
         <view class="event-card-media-shade"></view>
         <view class="event-card-media-foot">
@@ -144,36 +174,8 @@
         <text class="event-card-seats">剩余 {{item.remain}} 名额 · {{item.fee}}</text>
       </view>
     </view>
-  </view>
-
-  <view class="section">
-    <view class="section-head">
-      <text class="section-title">宠友圈精选</text>
-      <text class="section-more" bindtap="onMoreSocial">更多 ›</text>
-    </view>
-    <view class="community-card" wx:for="{{featuredCommunities}}" wx:key="id" bindtap="onEnterCommunity" data-id="{{item.id}}">
-      <view class="community-head">
-        <text class="community-icon">{{item.icon}}</text>
-        <view class="community-info">
-          <text class="community-name">{{item.name}}</text>
-          <text class="community-meta">{{item.members}} 成员 · {{item.lastTopic}}</text>
-        </view>
-      </view>
-      <text class="community-preview">{{item.lastPreview}}</text>
-      <view class="community-images {{item.previewImages.length === 1 ? 'single' : ''}}" wx:if="{{item.previewImages.length}}">
-        <image
-          class="community-img"
-          wx:for="{{item.previewImages}}"
-          wx:for-item="imgUrl"
-          wx:key="*this"
-          src="{{imgUrl}}"
-          mode="{{item.previewImages.length === 1 ? 'widthFix' : 'aspectFill'}}"
-        ></image>
-      </view>
-      <view class="community-tags">
-        <text class="community-tag">🐱 私聊</text>
-        <text class="community-tag">🦴 分享</text>
-      </view>
+    <view class="event-load-more" wx:if="{{eventHasMore}}" bindtap="onLoadMoreEvents">
+      <text class="event-load-more-text">继续下滑或点击加载更多活动</text>
     </view>
   </view>
 

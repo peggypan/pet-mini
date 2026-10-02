@@ -1,4 +1,4 @@
-const HOME = '/pages/home/home';
+const { openLaunchTab } = require('../../utils/app-entry');
 
 Page({
   data: {
@@ -11,13 +11,13 @@ Page({
 
   checkAndEnter() {
     if (!wx.getPrivacySetting) {
-      wx.reLaunch({ url: HOME });
+      openLaunchTab();
       return;
     }
     wx.getPrivacySetting({
       success: (res) => {
         if (!res.needAuthorization) {
-          wx.reLaunch({ url: HOME });
+          openLaunchTab();
           return;
         }
         this.setData({ contractName: res.privacyContractName || '' });
@@ -40,7 +40,7 @@ Page({
       app.handlePrivacyAgree('agree-privacy-btn');
     }
     app.globalData.privacyAccepted = true;
-    wx.reLaunch({ url: HOME });
+    openLaunchTab();
   },
 
   onDisagree() {

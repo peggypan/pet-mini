@@ -1,0 +1,58 @@
+<view class="page" wx:if="{{buddy}}">
+  <image class="hero" src="{{buddy.cover}}" mode="aspectFill"></image>
+
+  <view class="panel">
+    <view class="healing-badge" wx:if="{{buddy.isHealing}}">
+      <text>💚 疗愈搭子</text>
+    </view>
+
+    <view class="title-row">
+      <text class="pet-name">{{buddy.petName}}</text>
+      <text class="breed">| {{buddy.breed}}</text>
+      <view class="score-box">
+        <text class="score-label">缘分值</text>
+        <text class="score-num">{{score}}%</text>
+      </view>
+    </view>
+
+    <text class="owner-line">{{buddy.userName}} · {{buddy.buddyType || '宠友'}} · {{buddy.distance}}</text>
+
+    <view class="place-row" bindtap="onOpenPlace">
+      <text class="place-label">期望地点</text>
+      <view class="place-val">
+        <text class="place-name">{{buddy.expectPlace}}</text>
+        <text
+          class="place-addr"
+          wx:if="{{buddy.expectPlaceAddress && buddy.expectPlaceAddress !== buddy.expectPlace}}"
+        >{{buddy.expectPlaceAddress}}</text>
+      </view>
+      <text class="place-arrow">›</text>
+    </view>
+
+    <view class="tag-row" wx:if="{{displayTags.length}}">
+      <text class="tag {{buddy.isHealing ? 'tag-healing' : ''}}" wx:for="{{displayTags}}" wx:key="*this">{{item}}</text>
+    </view>
+
+    <text class="desc" wx:if="{{buddy.desc}}">{{buddy.desc}}</text>
+
+    <view class="media-grid" wx:if="{{previewUrls.length > 1}}">
+      <image
+        class="media-thumb"
+        wx:for="{{previewUrls}}"
+        wx:key="*this"
+        src="{{item}}"
+        mode="aspectFill"
+        data-url="{{item}}"
+        bindtap="onPreviewImage"
+      ></image>
+    </view>
+  </view>
+
+  <view class="footer">
+    <button class="footer-share" open-type="share" bindtap="onShare">
+      <image class="footer-share-icon" src="/assets/icons/icon-share-forward.png" mode="aspectFit"></image>
+      <text>分享</text>
+    </button>
+    <button class="btn-primary footer-chat" bindtap="onChat">发起聊天邀请</button>
+  </view>
+</view>

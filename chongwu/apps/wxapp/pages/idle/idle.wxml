@@ -37,14 +37,11 @@
       bindtap="onItemTap"
       data-id="{{item.id}}"
     >
-      <view class="goods-visual">
-        <image
-          wx:if="{{item.images[0]}}"
-          src="{{item.images[0]}}"
-          class="goods-img"
-          mode="aspectFill"
-        ></image>
-        <view class="goods-icon-wrap" wx:else>
+      <view class="goods-visual aspect-34" wx:if="{{item.images[0]}}">
+        <image src="{{item.images[0]}}" class="goods-img" mode="aspectFill"></image>
+      </view>
+      <view class="goods-visual goods-visual-empty aspect-34" wx:else>
+        <view class="goods-icon-wrap">
           <text class="goods-icon">{{item.displayIcon}}</text>
         </view>
       </view>

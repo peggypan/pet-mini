@@ -1,10 +1,13 @@
 const { MOCK_SOCIAL, MOCK_NEARBY } = require('../../utils/mock');
+const { listAllEvents } = require('../../utils/catalog');
 const store = require('../../utils/store');
+const amap = require('../../utils/amap');
+const { followResultToast } = require('../../utils/pet-follow');
 
 Page({
   data: {
     topics: MOCK_SOCIAL.topics,
-    events: MOCK_SOCIAL.events,
+    events: [],
     friends: [],
     filter: 'all',
     filters: [
@@ -20,6 +23,7 @@ Page({
       this.getTabBar().setData({ selected: 1 });
     }
     this.reloadFriends();
+    this.setData({ events: listAllEvents() });
   },
 
   reloadFriends(filterId) {
@@ -54,13 +58,17 @@ Page({
     wx.navigateTo({ url: `/pages/event-detail/event-detail?id=${e.currentTarget.dataset.id}` });
   },
 
+  onOpenPlace(e) {
+    amap.openPlaceFromTap(e);
+  },
+
   onFollowTap(e) {
     const { id } = e.currentTarget.dataset;
     const friend = MOCK_NEARBY.find((f) => String(f.id) === String(id));
     if (!friend) return;
     const result = store.toggleFollow(friend);
     wx.showToast({
-      title: result.followed ? '已关注宠友' : '已取消关注',
+      title: followResultToast(result.followed),
       icon: 'none',
     });
     this.reloadFriends();

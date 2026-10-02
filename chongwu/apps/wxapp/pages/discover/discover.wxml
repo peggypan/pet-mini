@@ -36,11 +36,24 @@
         bindtap="onEventTap"
         data-id="{{item.id}}"
       >
-        <image class="event-cover" src="{{item.cover}}" mode="aspectFill"></image>
+        <view class="event-cover-wrap aspect-34 aspect-34-sm">
+          <image class="event-cover" src="{{item.cover}}" mode="aspectFill"></image>
+        </view>
         <view class="event-body">
           <text class="event-tag">{{item.tag}}</text>
           <text class="event-title">{{item.title}}</text>
-          <text class="event-meta">{{item.place}} · {{item.fee}}</text>
+          <view class="event-meta">
+            <text
+              class="place-tap"
+              catchtap="onOpenPlace"
+              data-name="{{item.place}}"
+              data-place="{{item.place}}"
+              data-address="{{item.placeAddress}}"
+              data-lat="{{item.location.latitude}}"
+              data-lng="{{item.location.longitude}}"
+            >{{item.place}}</text>
+            <text> · {{item.fee}}</text>
+          </view>
           <text class="event-seats">{{item.seats}} 已报名</text>
         </view>
       </view>
@@ -63,7 +76,9 @@
 
     <view class="friend-list">
       <view class="friend-card" wx:for="{{friends}}" wx:key="id" bindtap="onCardTap" data-id="{{item.id}}">
-        <image class="friend-cover" src="{{item.cover}}" mode="aspectFill"></image>
+        <view class="friend-cover aspect-34">
+          <image class="friend-cover-img" src="{{item.cover}}" mode="aspectFill"></image>
+        </view>
         <view class="friend-body">
           <view class="friend-top">
             <image class="friend-avatar" src="{{item.avatar}}" mode="aspectFill"></image>

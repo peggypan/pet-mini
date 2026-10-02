@@ -36,19 +36,19 @@
         <text class="msg-topic" wx:if="{{item.topic}}">{{item.topic}}</text>
         <text class="msg-text">{{item.content}}</text>
         <view class="msg-images" wx:if="{{item.mediaList.length}}">
-          <image
-            class="msg-img"
+          <view
+            class="msg-img-wrap aspect-34 {{item.mediaList.length === 1 ? '' : 'aspect-34-third'}}"
             wx:for="{{item.mediaList}}"
             wx:for-item="media"
             wx:for-index="mediaIndex"
             wx:key="url"
             wx:if="{{media.type === 'image'}}"
-            src="{{media.url}}"
-            mode="aspectFill"
             data-msg-index="{{index}}"
             data-url="{{media.url}}"
             bindtap="onPreviewMsgImage"
-          ></image>
+          >
+            <image class="msg-img" src="{{media.url}}" mode="aspectFill"></image>
+          </view>
         </view>
         <view class="msg-actions">
           <text

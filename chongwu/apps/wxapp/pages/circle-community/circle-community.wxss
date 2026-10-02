@@ -169,14 +169,17 @@ page { background: #F5F8FC; }
 .msg-images {
   display: flex;
   flex-wrap: wrap;
-  gap: 10rpx;
+  align-items: flex-start;
+  gap: 12rpx;
   margin-top: 10rpx;
 }
 
-.msg-img {
-  width: 200rpx;
-  height: 200rpx;
+.msg-img-wrap {
   border-radius: 16rpx;
+  background: #E8F0F6;
+}
+
+.msg-img {
   background: #E8F0F6;
 }
 
@@ -394,10 +397,7 @@ page { background: #F5F8FC; }
 }
 
 .clear-topic {
-  margin-left: 12rpx;
-  font-size: 28rpx;
-  color: #999;
-  padding: 0 8rpx;
+  margin-left: 4rpx;
 }
 
 .composer-row {

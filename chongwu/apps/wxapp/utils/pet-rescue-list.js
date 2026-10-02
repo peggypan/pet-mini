@@ -1,7 +1,14 @@
 const store = require('./store');
 const { MOCK_SOCIAL, MOCK_RESCUE } = require('./mock');
 
-const KIND_LABEL = { lost: '寻宠', found: '招领', adopt: '领养' };
+const KIND_LABEL = { lost: '寻宠', found: '招领', rescue: '救助', adopt: '领养' };
+
+const KIND_DEFAULT_COVER = {
+  lost: '/assets/mock/real_pup.jpg',
+  found: '/assets/mock/real_tall_dog.jpg',
+  rescue: '/assets/mock/helper1.png',
+  adopt: '/assets/mock/real_cat.jpg',
+};
 
 function pickCover(post) {
   if (post.image) return post.image;
@@ -10,10 +17,25 @@ function pickCover(post) {
   return '';
 }
 
+function resolveCover(kind, post) {
+  return pickCover(post) || KIND_DEFAULT_COVER[kind] || KIND_DEFAULT_COVER.lost;
+}
+
 function pickLocation(post) {
-  if (post.location) return post.location;
   if (post.geoLocation && post.geoLocation.name) return post.geoLocation.name;
+  if (post.location) return post.location;
   return '';
+}
+
+function pickGeo(post) {
+  const g = post.geoLocation || {};
+  return {
+    location: pickLocation(post),
+    locationName: g.name || post.location || '',
+    locationAddress: g.address || '',
+    locationLat: g.latitude || '',
+    locationLng: g.longitude || '',
+  };
 }
 
 function buildRescueList() {
@@ -32,8 +54,8 @@ function buildRescueList() {
       title: (p.userName || '宠友') + (p.petName ? ' · ' + p.petName : ''),
       preview: (p.content || '').replace(/\n/g, ' ').slice(0, 72),
       time: p.time || '刚刚',
-      location: pickLocation(p),
-      cover: pickCover(p),
+      ...pickGeo(p),
+      cover: resolveCover(p.lostType, p),
     });
   };
 
@@ -56,9 +78,14 @@ function buildRescueList() {
         title: p.title || '领养信息',
         preview: (p.desc || '').slice(0, 72),
         time: p.time || '刚刚',
-        location: '',
+        location: p.location || '',
+        locationName: p.location || '',
+        locationAddress: '',
+        locationLat: '',
+        locationLng: '',
         contact: p.contact || '',
         desc: p.desc || '',
+        cover: resolveCover('adopt', p),
       });
     });
   } catch (e) {
@@ -77,13 +104,26 @@ function buildRescueList() {
       preview: p.preview || '',
       time: p.time || '刚刚',
       location: p.location || '',
+      locationName: p.location || '',
+      locationAddress: p.locationAddress || '',
+      locationLat: p.locationLat || '',
+      locationLng: p.locationLng || '',
       contact: p.contact || '',
       desc: p.desc || p.preview || '',
-      cover: p.cover || '',
+      cover: p.cover || resolveCover(p.kind || 'adopt', p),
     });
   });
 
-  return items;
+  return items.map((item) => {
+    let canDelete = false;
+    if (item.source === 'social' && item.refId) {
+      const p = store.getSocialPost(item.refId);
+      canDelete = store.isMyUserContent(p);
+    } else if (item.source === 'local' && item.refId) {
+      canDelete = !!store.getLocalPost(item.refId);
+    }
+    return { ...item, canDelete };
+  });
 }
 
 function filterRescueList(list, filter) {

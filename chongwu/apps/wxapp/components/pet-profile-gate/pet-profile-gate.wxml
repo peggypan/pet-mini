@@ -1,0 +1,9 @@
+<view class="gate" wx:if="{{show}}" catchtouchmove="noop">
+  <view class="gate-card">
+    <text class="gate-icon">🐾</text>
+    <text class="gate-title">先完善宠物档案</text>
+    <text class="gate-desc">请填写全部必填项（常活动区域可选），完成后可使用搭子、活动、社区与私信等功能</text>
+    <button class="gate-btn primary" bindtap="onGoForm">去填写档案</button>
+    <button class="gate-btn ghost" bindtap="onGoHome">返回首页</button>
+  </view>
+</view>

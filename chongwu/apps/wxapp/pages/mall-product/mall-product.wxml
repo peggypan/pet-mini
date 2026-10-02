@@ -1,6 +1,8 @@
 <!-- 商城商品下单 -->
 <view class="page" wx:if="{{product}}">
-  <image class="cover" src="{{product.cover}}" mode="aspectFill"></image>
+  <view class="cover-wrap aspect-34">
+    <image class="cover" src="{{product.cover}}" mode="aspectFill"></image>
+  </view>
   <view class="card">
     <view class="tag-row">
       <text class="tag" wx:if="{{product.tag}}">{{product.tag}}</text>

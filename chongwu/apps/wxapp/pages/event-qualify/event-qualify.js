@@ -1,5 +1,5 @@
 const store = require('../../utils/store');
-const { DEPOSIT, STATUS_TEXT, maskIdCard, getStepHint } = require('../../utils/event-qualify');
+const { STATUS_TEXT, maskIdCard, getStepHint } = require('../../utils/event-qualify');
 const { chooseMedia } = require('../../utils/choose-media');
 
 function pickImage(field) {
@@ -33,7 +33,6 @@ Page({
     qualify: null,
     stepHint: '',
     statusText: STATUS_TEXT,
-    depositCfg: DEPOSIT.personal,
     // 个人
     realName: '',
     idCard: '',
@@ -92,11 +91,9 @@ Page({
   refreshQualify() {
     const { role } = this.data;
     const qualify = store.getEventPublishQualify(role);
-    const depositCfg = DEPOSIT[role === 'merchant' ? 'merchant' : 'personal'];
     const maskedId = qualify.verify?.idCard ? maskIdCard(qualify.verify.idCard) : '';
     this.setData({
       qualify: { ...qualify, maskedId },
-      depositCfg,
       stepHint: getStepHint(qualify.nextStep, role),
     });
   },
@@ -188,33 +185,6 @@ Page({
     this.refreshQualify();
   },
 
-  onPayDeposit() {
-    const { role, qualify, depositCfg } = this.data;
-    if (qualify.verifyStatus !== 'approved') {
-      wx.showToast({ title: '请先完成资质审核', icon: 'none' });
-      return;
-    }
-    if (qualify.depositPaid) {
-      wx.showToast({ title: '保证金已缴纳', icon: 'none' });
-      return;
-    }
-    wx.showModal({
-      title: '缴纳保证金',
-      content: `${depositCfg.label} ¥${depositCfg.amount}\n${depositCfg.desc}\n\n（演示环境模拟支付）`,
-      confirmText: '确认支付',
-      success: (res) => {
-        if (!res.confirm) return;
-        wx.showLoading({ title: '支付中', mask: true });
-        setTimeout(() => {
-          store.payEventDeposit(role);
-          wx.hideLoading();
-          wx.showToast({ title: '缴纳成功', icon: 'success' });
-          this.refreshQualify();
-        }, 800);
-      },
-    });
-  },
-
   onMockApprove() {
     const { role, qualify } = this.data;
     if (qualify.verifyStatus !== 'pending') return;
@@ -226,7 +196,7 @@ Page({
   onGoPublish() {
     const { role, qualify } = this.data;
     if (!qualify.canPublish) {
-      wx.showToast({ title: '请先完成资质与保证金', icon: 'none' });
+      wx.showToast({ title: '请先完成资质认证', icon: 'none' });
       return;
     }
     wx.redirectTo({ url: `/pages/event-publish/event-publish?role=${role}` });

@@ -1,6 +1,7 @@
 {
   "navigationBarTitleText": "本地生活",
   "usingComponents": {
-    "pet-map-fab": "/components/pet-map-fab/pet-map-fab"
+    "pet-map-fab": "/components/pet-map-fab/pet-map-fab",
+    "pet-profile-gate": "/components/pet-profile-gate/pet-profile-gate"
   }
 }

@@ -7,7 +7,9 @@
   <!-- 我的俱乐部（我是主理人） -->
   <block wx:if="{{tab === 'mine'}}">
     <view class="club-card" wx:if="{{myClubs.length}}">
-      <image class="club-cover" src="{{item.cover}}" mode="aspectFill"></image>
+      <view class="club-cover-wrap aspect-34">
+        <image class="club-cover" src="{{item.cover}}" mode="aspectFill"></image>
+      </view>
       <view class="club-body">
         <view class="club-head">
           <text class="club-name">{{item.name}}</text>
@@ -29,7 +31,9 @@
   <!-- 加入的俱乐部 -->
   <block wx:if="{{tab === 'joined'}}">
     <view class="club-card" wx:for="{{joinedClubs}}" wx:key="id">
-      <image class="club-cover" src="{{item.cover}}" mode="aspectFill"></image>
+      <view class="club-cover-wrap aspect-34">
+        <image class="club-cover" src="{{item.cover}}" mode="aspectFill"></image>
+      </view>
       <view class="club-body">
         <view class="club-head">
           <text class="club-name">{{item.name}}</text>
@@ -51,7 +55,9 @@
       <text class="section-title">同城俱乐部 · 推荐加入</text>
     </view>
     <view class="club-card" wx:for="{{recommendClubs}}" wx:key="id">
-      <image class="club-cover" src="{{item.cover}}" mode="aspectFill"></image>
+      <view class="club-cover-wrap aspect-34">
+        <image class="club-cover" src="{{item.cover}}" mode="aspectFill"></image>
+      </view>
       <view class="club-body">
         <view class="club-head">
           <text class="club-name">{{item.name}}</text>

@@ -1,5 +1,8 @@
 const { RISK_TIPS } = require('../../utils/mock');
 const { buildRescueList, filterRescueList } = require('../../utils/pet-rescue-list');
+const amap = require('../../utils/amap');
+const { requirePetProfile } = require('../../utils/pet-profile-guard');
+const { deleteRescueItem } = require('../../utils/user-content-delete');
 
 Page({
   data: {
@@ -8,6 +11,7 @@ Page({
       { id: 'all', name: '全部' },
       { id: 'lost', name: '寻宠' },
       { id: 'found', name: '招领' },
+      { id: 'rescue', name: '救助' },
       { id: 'adopt', name: '领养' },
     ],
     list: [],
@@ -56,11 +60,29 @@ Page({
   },
 
   onPublishLost() {
+    if (!requirePetProfile()) return;
     wx.navigateTo({ url: '/pages/lost-publish/lost-publish' });
   },
 
   onPublishAdopt() {
-    wx.navigateTo({ url: '/pages/adopt-publish/adopt-publish' });
+    if (!requirePetProfile()) return;
+    wx.navigateTo({ url: '/pages/lost-publish/lost-publish?mode=rescue-adopt&postType=adopt' });
+  },
+
+  async onDeleteItem(e) {
+    const { id } = e.currentTarget.dataset;
+    const item = this.data.list.find((x) => x.id === id);
+    if (!item || !item.canDelete) return;
+    const res = await deleteRescueItem(item);
+    if (!res.ok) {
+      if (res.reason && !res.cancelled) wx.showToast({ title: res.reason, icon: 'none' });
+      return;
+    }
+    this.reload();
+  },
+
+  onOpenPlace(e) {
+    amap.openPlaceFromTap(e);
   },
 
   onItemTap(e) {

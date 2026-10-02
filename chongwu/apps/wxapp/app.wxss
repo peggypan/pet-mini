@@ -19,6 +19,13 @@ page {
   --shadow-soft: 0 4rpx 24rpx rgba(30, 136, 229, 0.06);
   --shadow-card: 0 8rpx 32rpx rgba(30, 136, 229, 0.08);
   --shadow-primary: 0 8rpx 28rpx rgba(77, 167, 248, 0.32);
+  --btn-font-size: 32rpx;
+  --btn-font-weight: 700;
+  --btn-height: 96rpx;
+  --btn-sm-font-size: 28rpx;
+  --btn-sm-min-height: 80rpx;
+  --btn-link-font-size: 28rpx;
+  --btn-link-min-height: 72rpx;
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-primary);
@@ -75,8 +82,9 @@ page::-webkit-scrollbar {
   color: #FFFFFF;
   border-radius: 56rpx;
   padding: 28rpx 56rpx;
-  font-size: 30rpx;
-  font-weight: 600;
+  font-size: var(--btn-font-size);
+  font-weight: var(--btn-font-weight);
+  min-height: var(--btn-height);
   border: none;
   display: inline-flex;
   align-items: center;
@@ -101,8 +109,9 @@ page::-webkit-scrollbar {
   border: 2rpx solid var(--border-color);
   border-radius: 56rpx;
   padding: 26rpx 52rpx;
-  font-size: 30rpx;
-  font-weight: 500;
+  font-size: var(--btn-font-size);
+  font-weight: var(--btn-font-weight);
+  min-height: var(--btn-height);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -122,6 +131,13 @@ button {
   padding: 0;
   box-sizing: border-box;
   overflow: visible;
+  font-size: var(--btn-font-size);
+  font-weight: var(--btn-font-weight);
+}
+
+button[size="mini"] {
+  font-size: 26rpx;
+  font-weight: 600;
 }
 
 button::after {
@@ -132,14 +148,113 @@ button::after {
   background: linear-gradient(135deg, var(--primary-bright) 0%, var(--primary) 100%);
   color: #FFFFFF;
   border-radius: 36rpx;
-  padding: 14rpx 28rpx;
-  font-size: 24rpx;
+  padding: 18rpx 32rpx;
+  font-size: var(--btn-sm-font-size);
   font-weight: 600;
+  min-height: var(--btn-sm-min-height);
+  line-height: 1.35;
   border: none;
   box-shadow: var(--shadow-primary);
+  box-sizing: border-box;
 }
 
 .btn-small::after {
+  border: none;
+}
+
+/** 全宽次要按钮（如退出登录） */
+.btn-block-soft {
+  width: 100%;
+  margin: 0;
+  min-height: var(--btn-height);
+  padding: 26rpx 32rpx;
+  line-height: 1.35;
+  font-size: 30rpx;
+  font-weight: 600;
+  border-radius: 999rpx;
+  border: none;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f4f8;
+  color: var(--text-secondary);
+}
+
+.btn-block-soft::after {
+  border: none;
+}
+
+/** 弹层主行动按钮（如去分享） */
+.btn-action-main {
+  width: 100%;
+  margin: 0;
+  min-height: var(--btn-height);
+  padding: 26rpx 32rpx;
+  line-height: 1.35;
+  font-size: 32rpx;
+  font-weight: 700;
+  border-radius: 999rpx;
+  border: none;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.btn-action-main::after {
+  border: none;
+}
+
+/** 文字链 / 小字可点区域（统一字号与触控高度） */
+.btn-text-link,
+.link-btn,
+.feed-link,
+.clear-topic,
+.share-quota-cancel,
+.c-reply-btn {
+  font-size: var(--btn-link-font-size);
+  line-height: 1.4;
+  min-height: var(--btn-link-min-height);
+  padding: 12rpx 16rpx;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.btn-text-link,
+.link-btn,
+.feed-link,
+.c-reply-btn {
+  color: var(--primary-dark);
+}
+
+.clear-topic,
+.share-quota-cancel {
+  color: var(--text-muted);
+}
+
+/** 空状态 / 次要胶囊按钮 */
+.btn-empty-action,
+.empty-btn {
+  min-height: var(--btn-sm-min-height);
+  padding: 20rpx 40rpx;
+  line-height: 1.35;
+  font-size: var(--btn-sm-font-size);
+  font-weight: 700;
+  border-radius: 999rpx;
+  border: none;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-btn::after,
+.btn-empty-action::after {
   border: none;
 }
 
@@ -334,4 +449,390 @@ textarea {
   align-items: center;
   line-height: 1.5;
   color: var(--text-primary);
+}
+
+/* ========== 内容图统一 3:4（宽:高）========== */
+.aspect-34 {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.aspect-34::before {
+  content: '';
+  display: block;
+  width: 100%;
+  padding-top: 133.333333%;
+}
+
+.aspect-34 > image,
+.aspect-34 > video,
+.aspect-34 > .aspect-34-fill,
+.aspect-34 .aspect-34-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.aspect-34 video,
+.aspect-34 .cover-video {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+.aspect-34-third {
+  width: calc((100% - 24rpx) / 3);
+  flex: 0 0 calc((100% - 24rpx) / 3);
+  max-width: calc((100% - 24rpx) / 3);
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.aspect-34-half {
+  width: calc((100% - 10rpx) / 2);
+  flex-shrink: 0;
+}
+
+.aspect-34-sm {
+  width: 132rpx;
+  flex-shrink: 0;
+}
+
+.aspect-34-md {
+  width: 160rpx;
+  flex-shrink: 0;
+}
+
+.aspect-34-inline {
+  width: 200rpx;
+  flex-shrink: 0;
+}
+
+/* ========== 宠物搭子广场 · 双列 + 封面 3:4 ========== */
+.buddy-plaza-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  row-gap: 16rpx;
+  width: 100%;
+}
+
+.buddy-plaza-card {
+  width: calc((100% - 16rpx) / 2);
+  box-sizing: border-box;
+  background: #ffffff;
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+}
+
+.buddy-plaza-cover {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 20rpx 20rpx 0 0;
+  background: #eef2f6;
+}
+
+.cover-video {
+  pointer-events: none;
+  background: #111111;
+}
+
+.buddy-plaza-dist {
+  position: absolute;
+  top: 12rpx;
+  right: 12rpx;
+  z-index: 2;
+  max-width: 70%;
+  padding: 4rpx 12rpx;
+  font-size: 20rpx;
+  color: #ffffff;
+  text-align: right;
+  line-height: 1.3;
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 999rpx;
+}
+
+.buddy-plaza-body {
+  padding: 14rpx 16rpx 16rpx;
+}
+
+.buddy-plaza-name {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 800;
+  color: #1a1a1a;
+  line-height: 1.35;
+  margin-bottom: 8rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.buddy-plaza-score {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4rpx;
+  max-width: 100%;
+  padding: 4rpx 10rpx;
+  margin-bottom: 8rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 183, 120, 0.22);
+}
+
+.buddy-plaza-star {
+  font-size: 22rpx;
+  color: #f5a623;
+  line-height: 1;
+}
+
+.buddy-plaza-score-text {
+  font-size: 20rpx;
+  color: #8a5a20;
+  font-weight: 600;
+}
+
+.buddy-plaza-score-div {
+  font-size: 20rpx;
+  color: rgba(138, 90, 32, 0.45);
+}
+
+.buddy-plaza-pet-line {
+  display: block;
+  font-size: 22rpx;
+  color: #666666;
+  margin-bottom: 8rpx;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.buddy-plaza-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6rpx;
+  margin-bottom: 6rpx;
+  max-height: 36rpx;
+  overflow: hidden;
+}
+
+.buddy-plaza-tag {
+  font-size: 18rpx;
+  color: #888888;
+  background: #f3f5f7;
+  padding: 2rpx 8rpx;
+  border-radius: 6rpx;
+}
+
+.buddy-plaza-intro {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 20rpx;
+  color: #999999;
+  line-height: 1.4;
+}
+
+/* 16:9 横图（设计稿 1600×900） */
+.aspect-169 {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.aspect-169::before {
+  content: '';
+  display: block;
+  width: 100%;
+  padding-top: 56.25%;
+}
+
+.aspect-169 > image,
+.aspect-169 > video,
+.aspect-169 > .aspect-34-fill,
+.aspect-169 .aspect-34-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ========== 动态/搭子 · 统一点赞评论分享 ========== */
+.feed-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding-top: 18rpx;
+  margin-top: 16rpx;
+  border-top: 1rpx solid #eef2f6;
+}
+
+.feed-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  min-width: 0;
+  flex: 1;
+  padding: 8rpx 0;
+  font-size: 24rpx;
+  color: #8a96a3;
+  line-height: 1;
+}
+
+.feed-action.is-liked {
+  color: #e85d75;
+}
+
+.feed-action-share-btn {
+  margin: 0;
+  padding: 8rpx 0;
+  background: transparent;
+  border: none;
+  line-height: 1;
+  font-size: 24rpx;
+  color: #8a96a3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  flex: 1;
+}
+
+.feed-action-share-btn::after {
+  border: none;
+}
+
+.feed-icon {
+  width: 36rpx;
+  height: 36rpx;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.feed-icon-like::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 22rpx;
+  height: 20rpx;
+  margin-left: -11rpx;
+  margin-top: -12rpx;
+  background: currentColor;
+  transform: rotate(-45deg);
+  border-radius: 4rpx 4rpx 0 4rpx;
+}
+
+.feed-icon-like::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 12rpx;
+  height: 12rpx;
+  margin-left: -14rpx;
+  margin-top: -14rpx;
+  background: currentColor;
+  border-radius: 50%;
+}
+
+.feed-action.is-liked .feed-icon-like::before,
+.feed-action.is-liked .feed-icon-like::after {
+  background: #e85d75;
+}
+
+.feed-icon-comment::before {
+  content: '';
+  position: absolute;
+  left: 6rpx;
+  top: 8rpx;
+  width: 24rpx;
+  height: 18rpx;
+  border: 3rpx solid currentColor;
+  border-radius: 8rpx;
+  box-sizing: border-box;
+}
+
+.feed-icon-comment::after {
+  content: '';
+  position: absolute;
+  left: 10rpx;
+  bottom: 6rpx;
+  width: 0;
+  height: 0;
+  border: 6rpx solid transparent;
+  border-top-color: currentColor;
+  transform: rotate(-35deg);
+}
+
+.feed-icon-share::before {
+  content: '';
+  position: absolute;
+  left: 8rpx;
+  top: 10rpx;
+  width: 14rpx;
+  height: 14rpx;
+  border: 3rpx solid currentColor;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+.feed-icon-share::after {
+  content: '';
+  position: absolute;
+  right: 6rpx;
+  bottom: 8rpx;
+  width: 16rpx;
+  height: 16rpx;
+  border-top: 3rpx solid currentColor;
+  border-right: 3rpx solid currentColor;
+  transform: rotate(45deg);
+}
+
+/* 主操作按钮字号 · 与发布页「发布活动 / 立即发布」一致 */
+.submit,
+.act-btn,
+.submit-btn,
+.tool-btn,
+.nav-btn,
+.btn-primary,
+.btn-secondary,
+.fab-publish {
+  font-size: var(--btn-font-size) !important;
+  font-weight: var(--btn-font-weight) !important;
+}
+
+.submit,
+.act-btn,
+.submit-btn,
+.btn-primary,
+.fab-publish {
+  min-height: var(--btn-height);
+  line-height: 1.35;
+}
+
+.place-tap {
+  color: #1E88E5;
+}
+
+.place-tap:active {
+  opacity: 0.7;
+}
+
+.buddy-plaza-place {
+  display: block;
+  margin: 4rpx 0 6rpx;
+  font-size: 22rpx;
+  line-height: 1.4;
+  color: #666666;
 }

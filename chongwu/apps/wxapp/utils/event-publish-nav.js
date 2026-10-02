@@ -1,4 +1,7 @@
+const { requirePetProfile } = require('./pet-profile-guard');
+
 function openEventPublishEntry() {
+  if (!requirePetProfile()) return;
   wx.showActionSheet({
     itemList: ['个人发布活动', '商家发布活动'],
     success: (res) => {

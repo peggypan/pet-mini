@@ -22,14 +22,24 @@
         <view class="profile-meta">
           <text class="name">{{isLogin ? (userInfo.nickname || pet.name || '宠友') : '未登录'}}</text>
           <view class="follow-row">
-            <text class="follow-item"><text class="follow-num">{{stats.buddies}}</text> 关注</text>
-            <text class="follow-item"><text class="follow-num">{{stats.posts}}</text> 粉丝</text>
+            <view class="follow-item" bindtap="onProfileStatTap" data-stat="follow">
+              <text class="follow-num">{{stats.following}}</text> 关注
+            </view>
+            <view class="follow-item" bindtap="onProfileStatTap" data-stat="fans">
+              <text class="follow-num">{{stats.followers}}</text> 粉丝
+            </view>
+            <view class="follow-item" bindtap="onProfileStatTap" data-stat="heart">
+              <text class="follow-num">{{stats.heart}}</text> 喜欢
+            </view>
+            <view class="follow-item follow-item-wide" bindtap="onProfileStatTap" data-stat="likesCollects">
+              <text class="follow-num">{{stats.likesCollects}}</text> 获赞和收藏
+            </view>
           </view>
         </view>
       </view>
 
       <view class="play-links">
-        <text class="play-link">约了 <text class="play-num">{{stats.buddies}}</text> 位宠友</text>
+        <text class="play-link">约了 <text class="play-num">{{stats.following}}</text> 位宠友</text>
         <text class="play-dot">·</text>
         <text class="play-link">参与 <text class="play-num">{{stats.events}}</text> 场活动</text>
         <text class="play-dot">·</text>
@@ -56,6 +66,18 @@
         <text class="bio-edit" wx:if="{{isLogin}}">✎</text>
       </view>
 
+      <view
+        class="activity-area-row"
+        wx:if="{{pet.activityAreaName || pet.activityAreaAddress}}"
+        catchtap="onOpenPetActivityArea"
+      >
+        <text class="activity-pin">📍</text>
+        <view class="activity-area-text">
+          <text class="activity-area-main">{{pet.activityAreaName || pet.activityAreaAddress}}</text>
+          <text class="activity-area-sub" wx:if="{{pet.activityAreaLatitude}}">常活动区域 · 点击查看</text>
+        </view>
+      </view>
+
       <view class="mood-bar">
         <text class="mood-emoji">🐾</text>
         <view class="mood-track"><view class="mood-fill"></view></view>
@@ -77,12 +99,13 @@
         <view class="bento-row bento-row-main">
           <view class="bento-card bento-lg" bindtap="onPetCert">
             <text class="bento-kicker">宠物档案</text>
-            <text class="bento-title">电子宠证 & 数字宠物</text>
-            <text class="bento-sub">上传照片 · 喂食养成</text>
+            <text class="bento-title">电子宠证</text>
+            <text class="bento-sub">宠物档案 · 疫苗核验</text>
             <text class="bento-arrow">›</text>
           </view>
-          <view class="bento-card bento-sm">
-            <text class="bento-title-sm">勋章 · 0</text>
+          <view class="bento-card bento-sm" bindtap="onPoints">
+            <text class="bento-title-sm">积分 · {{pointsBalance}}</text>
+            <text class="bento-sub-sm">地图标记得积分</text>
           </view>
         </view>
 
@@ -93,16 +116,18 @@
               <text class="mini-title">我的俱乐部</text>
               <text class="mini-sub">{{clubTileSub}}</text>
             </view>
-            <view class="bento-mini" bindtap="onMessages">
-              <text class="mini-icon">💬</text>
-              <text class="mini-title">消息中心</text>
-              <text class="mini-sub">{{unreadCount ? unreadCount + ' 条未读' : '私信与通知'}}</text>
-            </view>
             <view class="bento-mini" bindtap="onClubApply">
               <text class="mini-icon">🤝</text>
               <text class="mini-title">成为主理人</text>
               <text class="mini-sub">开俱乐部 · 办活动</text>
             </view>
+            <button class="bento-mini-contact-btn" open-type="contact" session-from="profile-contact">
+              <view class="bento-mini">
+                <text class="mini-icon">💬</text>
+                <text class="mini-title">联系我们</text>
+                <text class="mini-sub">微信客服 · 在线沟通</text>
+              </view>
+            </button>
             <view class="bento-mini" bindtap="onOrders">
               <text class="mini-icon">💳</text>
               <text class="mini-title">服务预约</text>
@@ -143,10 +168,22 @@
             <text class="feed-badge" wx:if="{{item.extra}}">{{item.extra}}</text>
           </view>
           <view class="feed-card">
-            <image class="feed-cover" src="{{item.cover}}" mode="aspectFill"></image>
+            <view class="feed-cover-wrap aspect-34 aspect-34-md">
+              <image class="feed-cover" src="{{item.cover}}" mode="aspectFill"></image>
+            </view>
             <view class="feed-body">
               <text class="feed-title">{{item.title}}</text>
-              <text class="feed-loc">{{item.place}}</text>
+              <text
+                class="feed-loc place-tap"
+                wx:if="{{item.placeNav}}"
+                catchtap="onOpenPlace"
+                data-name="{{item.place}}"
+                data-place="{{item.place}}"
+                data-address="{{item.placeAddress}}"
+                data-lat="{{item.placeLat}}"
+                data-lng="{{item.placeLng}}"
+              >{{item.place}}</text>
+              <text class="feed-loc" wx:else>{{item.place}}</text>
               <text class="feed-org">{{item.org}}</text>
             </view>
           </view>
@@ -163,7 +200,7 @@
       </view>
 
       <view class="sheet-footer" wx:if="{{isLogin}}">
-        <button class="logout" bindtap="onLogout">退出登录</button>
+        <button class="logout btn-block-soft" bindtap="onLogout">退出登录</button>
       </view>
     </view>
   </view>

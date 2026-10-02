@@ -1,1 +1,6 @@
-{ "navigationBarTitleText": "发起活动" }
+{
+  "navigationBarTitleText": "发起活动",
+  "usingComponents": {
+    "pet-profile-gate": "/components/pet-profile-gate/pet-profile-gate"
+  }
+}

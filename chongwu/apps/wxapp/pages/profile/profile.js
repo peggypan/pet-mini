@@ -1,5 +1,6 @@
 const app = getApp();
 const { getDefaultPet } = require('../../utils/catalog');
+const { requirePetProfile } = require('../../utils/pet-profile-guard');
 const store = require('../../utils/store');
 const { explainGetPhoneNumberFail } = require('../../utils/phone-login-errors');
 const {
@@ -12,8 +13,29 @@ const {
   gradientStyleString,
   sampleImageColors,
 } = require('../../utils/image-palette');
-
+const amap = require('../../utils/amap');
 const TAB_KEYS = ['myEvents', 'joined', 'buddy', 'social'];
+
+function buildProfileStatCounts() {
+  const socialStats = store.getProfileSocialStats();
+  const collectCount = store.listCollects().length;
+  return {
+    following: store.listFollows().length,
+    followers: socialStats.followers,
+    heart: store.listHeartLikes().length,
+    receivedLikesCollects: socialStats.likesAndCollects,
+    collectCount,
+    likesCollects: socialStats.likesAndCollects + collectCount,
+  };
+}
+
+function formatPeerLines(list, max = 6) {
+  if (!list || !list.length) return '';
+  return list
+    .slice(0, max)
+    .map((f) => `· ${f.userName || '宠友'}${f.petName ? ` · ${f.petName}` : ''}`)
+    .join('\n');
+}
 
 function feedCoverFromPost(p) {
   const list = p.mediaList || [];
@@ -33,7 +55,7 @@ function buildSocialFeedItems() {
       kind: 'social',
       dateLabel: p.time || '刚刚',
       title: (p.content || '宠友动态').slice(0, 36),
-      place: p.topic || '宠友圈',
+      place: p.topic || '宠物社区',
       org: p.userName || '动态',
       cover,
       hasVideo: (p.mediaList || []).some((m) => m.type === 'video'),
@@ -60,6 +82,10 @@ function buildFeed(tabKey) {
       dateLabel: formatFeedDate(ev.createdAt || ev.eventDate),
       title: ev.title || '同城宠物活动',
       place: ev.place || ev.placeAddress || '待定地点',
+      placeNav: !!(ev.place || ev.placeAddress),
+      placeAddress: ev.placeAddress || ev.place || '',
+      placeLat: (ev.location && ev.location.latitude) || '',
+      placeLng: (ev.location && ev.location.longitude) || '',
       org: ev.publisherName || '我发起的活动',
       cover: ev.cover || (ev.images && ev.images[0]) || getDefaultPet().avatar,
       extra: '',
@@ -73,10 +99,14 @@ function buildFeed(tabKey) {
       dateLabel: formatFeedDate(ev.createdAt || ev.time),
       title: ev.title || '已报名活动',
       place: ev.place || '同城',
+      placeNav: !!(ev.place && ev.place !== '同城'),
+      placeAddress: ev.placeAddress || ev.place || '',
+      placeLat: ev.locationLat || '',
+      placeLng: ev.locationLng || '',
       org: ev.publisherName || '宠友活动',
       cover: ev.cover || ev.image || getDefaultPet().avatar,
       extra: '',
-      url: `/pages/my-events/my-events`,
+      url: ev.eventId ? `/pages/event-detail/event-detail?id=${ev.eventId}&ticket=1` : '/pages/my-events/my-events',
     }));
   }
   if (tabKey === 'buddy') {
@@ -89,6 +119,10 @@ function buildFeed(tabKey) {
         dateLabel: p.time || '刚刚',
         title: p.buddyType || '找搭子',
         place: p.expectPlace || '同城',
+        placeNav: !!(p.expectPlace && p.expectPlace !== '同城'),
+        placeAddress: p.expectPlaceAddress || (p.location && p.location.address) || p.expectPlace || '',
+        placeLat: (p.location && p.location.latitude) || '',
+        placeLng: (p.location && p.location.longitude) || '',
         org: p.petName ? `${p.petName} · 搭子` : '我的搭子',
         cover: (p.mediaList && p.mediaList[0] && (p.mediaList[0].url || p.mediaList[0].poster))
           || p.cover
@@ -105,8 +139,7 @@ Page({
     isLogin: false,
     userInfo: null,
     pet: {},
-    unreadCount: 0,
-    stats: { buddies: 0, posts: 0, events: 0, orders: 0, organized: 0 },
+    stats: { following: 0, followers: 0, heart: 0, likesCollects: 0, events: 0, orders: 0, organized: 0 },
     city: '北京',
     activeTab: 0,
     tabLabels: ['我的活动', '我参与的', '我的搭子', '宠友动态'],
@@ -175,14 +208,16 @@ Page({
     }
     const token = wx.getStorageSync('token');
     const myEvents = store.listMyEvents();
+    const statCounts = buildProfileStatCounts();
     this.setData({
       isLogin: !!token,
       userInfo: wx.getStorageSync('userInfo'),
       pet: getDefaultPet(),
-      unreadCount: store.countUnreadMessages(),
       stats: {
-        buddies: store.listFollows().length,
-        posts: store.listSocialPosts().length + store.listBuddyPosts().length,
+        following: statCounts.following,
+        followers: statCounts.followers,
+        heart: statCounts.heart,
+        likesCollects: statCounts.likesCollects,
         events: store.listEventSignups().length,
         orders: store.listServiceBooks().length,
         organized: myEvents.length,
@@ -190,10 +225,47 @@ Page({
       city: store.getCity(),
       clubTileSub: `${myEvents.filter((e) => e.auditStatus !== 'rejected').length} 场进行中`,
       profileBio: store.getUserProfile().bio || '和毛孩子一起，遇见同城宠友与好活动～',
+      pointsBalance: store.getUserPointsBalance(),
     });
     this.refreshFeed(this.data.activeTab);
     this.refreshProfileTags();
     wx.nextTick(() => this.updateHeroGradient());
+  },
+
+  onProfileStatTap(e) {
+    const stat = e.currentTarget.dataset.stat;
+    const counts = buildProfileStatCounts();
+    let title = '';
+    let content = '';
+    if (stat === 'follow') {
+      title = '关注';
+      content = `关注数：${counts.following}`;
+      const lines = formatPeerLines(store.listFollows());
+      if (lines) content += `\n\n${lines}`;
+    } else if (stat === 'fans') {
+      title = '粉丝';
+      content = `粉丝数：${counts.followers}`;
+      const lines = formatPeerLines(store.listFollowersOfMe());
+      if (lines) content += `\n\n${lines}`;
+    } else if (stat === 'heart') {
+      title = '喜欢';
+      content = `喜欢数：${counts.heart}`;
+      const lines = formatPeerLines(store.listHeartLikes());
+      if (lines) content += `\n\n${lines}`;
+    } else if (stat === 'likesCollects') {
+      title = '获赞和收藏';
+      content = `获赞和收藏数：${counts.likesCollects}\n内容获赞与收藏：${counts.receivedLikesCollects}\n收藏搭子：${counts.collectCount}`;
+      const lines = formatPeerLines(store.listCollects());
+      if (lines) content += `\n\n${lines}`;
+    } else {
+      return;
+    }
+    wx.showModal({
+      title,
+      content,
+      showCancel: false,
+      confirmText: '知道了',
+    });
   },
 
   onFeedTap(e) {
@@ -204,6 +276,10 @@ Page({
       return;
     }
     wx.navigateTo({ url });
+  },
+
+  onOpenPlace(e) {
+    amap.openPlaceFromTap(e);
   },
 
   onCityTap() {
@@ -259,8 +335,16 @@ Page({
       .finally(() => wx.hideLoading());
   },
 
-  onMessages() { wx.switchTab({ url: '/pages/messages/messages' }); },
   onPetCert() { wx.navigateTo({ url: '/pages/pet-cert/pet-cert' }); },
+
+  onPoints() {
+    wx.showModal({
+      title: `我的积分 · ${this.data.pointsBalance || 0}`,
+      content: '在友好地图完成有效标记，每次 +5 积分。礼品兑换即将上线，敬请期待。',
+      showCancel: false,
+      confirmText: '知道了',
+    });
+  },
   onEditProfile() {
     if (!this.data.isLogin) {
       wx.showToast({ title: '请先登录', icon: 'none' });
@@ -277,12 +361,44 @@ Page({
     wx.navigateTo({ url: '/pages/profile-edit/profile-edit' });
   },
 
+  onOpenPetActivityArea() {
+    const pet = this.data.pet || {};
+    const lat = Number(pet.activityAreaLatitude);
+    const lng = Number(pet.activityAreaLongitude);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      wx.navigateTo({ url: '/pages/pet-cert/pet-cert' });
+      return;
+    }
+    wx.openLocation({
+      latitude: lat,
+      longitude: lng,
+      name: pet.activityAreaName || '常活动区域',
+      address: pet.activityAreaAddress || '',
+      scale: 16,
+    });
+  },
+
   onEditPet() { wx.navigateTo({ url: '/pages/profile-edit/profile-edit' }); },
-  onMyBuddy() { wx.navigateTo({ url: '/pages/buddy/buddy' }); },
-  onMyPosts() { wx.switchTab({ url: '/pages/social/social' }); },
-  onMyEvents() { wx.navigateTo({ url: '/pages/my-events/my-events' }); },
-  onMyHelp() { wx.navigateTo({ url: '/pages/pet-rescue/pet-rescue' }); },
-  onClubApply() { wx.navigateTo({ url: '/pages/club-apply/club-apply' }); },
+  onMyBuddy() {
+    if (!requirePetProfile()) return;
+    wx.navigateTo({ url: '/pages/buddy/buddy' });
+  },
+  onMyPosts() {
+    if (!requirePetProfile()) return;
+    wx.switchTab({ url: '/pages/social/social' });
+  },
+  onMyEvents() {
+    if (!requirePetProfile()) return;
+    wx.navigateTo({ url: '/pages/my-events/my-events' });
+  },
+  onMyHelp() {
+    if (!requirePetProfile()) return;
+    wx.navigateTo({ url: '/pages/pet-rescue/pet-rescue' });
+  },
+  onClubApply() {
+    if (!requirePetProfile()) return;
+    wx.navigateTo({ url: '/pages/club-apply/club-apply' });
+  },
   onMyClubs() { wx.navigateTo({ url: '/pages/my-clubs/my-clubs?tab=mine' }); },
   onJoinedClubs() { wx.navigateTo({ url: '/pages/my-clubs/my-clubs?tab=joined' }); },
   onOrders() {

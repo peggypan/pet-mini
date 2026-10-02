@@ -403,12 +403,12 @@
   color: white;
   border-radius: 56rpx;
   padding: 24rpx 32rpx;
-  font-size: 28rpx;
-  font-weight: 600;
+  font-weight: 700;
   border: none;
   box-shadow: 0 6rpx 20rpx rgba(255, 139, 123, 0.3);
   line-height: 1;
   height: auto;
+  min-height: 96rpx;
 }
 
 .submit-btn::after {
@@ -416,14 +416,15 @@
 }
 
 .submit-icon {
-  font-size: 28rpx;
+  font-size: 32rpx;
   line-height: 1;
   display: flex;
   align-items: center;
 }
 
 .submit-text {
-  font-size: 30rpx;
+  font-size: 32rpx;
+  font-weight: 700;
   line-height: 1;
   display: flex;
   align-items: center;

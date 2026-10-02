@@ -1,4 +1,6 @@
-const { MOCK_EVENTS } = require('../../utils/mock');
+const { listAllEvents } = require('../../utils/catalog');
+const { mapEventsForPlaza } = require('../../utils/event-plaza');
+const { RISK_TIPS } = require('../../utils/mock');
 const { listAllMapPoints } = require('../../utils/catalog');
 const store = require('../../utils/store');
 const { openEventPublishEntry } = require('../../utils/event-publish-nav');
@@ -9,6 +11,7 @@ const {
   PET_FAB_ITEMS,
 } = require('../../utils/map-pet-filter');
 const { collectPetServicePOIs, mergeMapPoints } = require('../../utils/map-pet-poi-collector');
+const { syncPetProfileGate, requirePetProfile } = require('../../utils/pet-profile-guard');
 
 Page({
   data: {
@@ -17,7 +20,9 @@ Page({
       { id: 'event', name: '活动' },
       { id: 'map', name: '友好地图' },
     ],
-    events: MOCK_EVENTS,
+    events: [],
+    plazaFilter: 'all',
+    healingEventTip: RISK_TIPS.healingEvent,
     mapPoints: [],
     petFilter: '',
     petFilterLabel: '',
@@ -27,6 +32,7 @@ Page({
     mapLongitude: 116.4074,
     mapMarkers: [],
     amapReady: false,
+    petProfileBlocked: false,
   },
 
   onLoad(options) {
@@ -38,17 +44,27 @@ Page({
   },
 
   onShow() {
+    syncPetProfileGate(this);
     const pendingTab = wx.getStorageSync('local_tab');
     if (pendingTab) {
       wx.removeStorageSync('local_tab');
       this.setData({ tab: this.normalizeTab(pendingTab) });
     }
     const city = store.getCity();
-    this.setData({
-      city,
-      amapReady: amap.isAmapConfigured(),
+    this.setData({ city, amapReady: amap.isAmapConfigured() }, () => {
+      this.applyPlazaEvents();
     });
     this.loadMapPreview(city);
+  },
+
+  applyPlazaEvents() {
+    const events = mapEventsForPlaza(listAllEvents(), this.data.plazaFilter);
+    this.setData({ events });
+  },
+
+  onPlazaFilter(e) {
+    const plazaFilter = e.currentTarget.dataset.id;
+    this.setData({ plazaFilter }, () => this.applyPlazaEvents());
   },
 
   async loadMapPreview(city) {
@@ -97,7 +113,12 @@ Page({
   },
 
   onEventTap(e) {
+    if (!requirePetProfile()) return;
     wx.navigateTo({ url: `/pages/event-detail/event-detail?id=${e.currentTarget.dataset.id}` });
+  },
+
+  onOpenPlace(e) {
+    amap.openPlaceFromTap(e);
   },
 
   onPublishEvent() {
@@ -105,14 +126,17 @@ Page({
   },
 
   onMyEvents() {
+    if (!requirePetProfile()) return;
     wx.navigateTo({ url: '/pages/my-events/my-events' });
   },
 
   onMapSubmit() {
+    if (!requirePetProfile()) return;
     wx.navigateTo({ url: '/pages/map-submit/map-submit' });
   },
 
   onOpenFullMap() {
+    if (!requirePetProfile()) return;
     wx.navigateTo({ url: '/pages/friendly-map/friendly-map' });
   },
 
@@ -120,15 +144,6 @@ Page({
     const id = e.currentTarget.dataset.id;
     const point = this.data.mapPoints.find((p) => String(p.id) === String(id));
     if (!point) return;
-    if (point.latitude && point.longitude) {
-      amap.openNavigation({
-        lat: point.latitude,
-        lng: point.longitude,
-        name: point.name,
-        address: point.address,
-      });
-      return;
-    }
-    wx.showToast({ title: '该点位暂无坐标', icon: 'none' });
+    amap.openPlace(point);
   },
 });

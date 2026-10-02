@@ -1,18 +1,35 @@
-const { MOCK_EVENTS } = require('../../utils/mock');
+const { listAllEvents } = require('../../utils/catalog');
+const { mapEventsForPlaza } = require('../../utils/event-plaza');
+const { RISK_TIPS } = require('../../utils/mock');
 const store = require('../../utils/store');
 const { openEventPublishEntry } = require('../../utils/event-publish-nav');
+const amap = require('../../utils/amap');
+const { requirePetProfile } = require('../../utils/pet-profile-guard');
 
 Page({
   data: {
     city: '北京',
-    events: MOCK_EVENTS,
+    events: [],
+    plazaFilter: 'all',
+    eventSafetyTip: RISK_TIPS.event,
+    healingEventTip: RISK_TIPS.healingEvent,
+  },
+
+  applyPlazaEvents() {
+    const events = mapEventsForPlaza(listAllEvents(), this.data.plazaFilter);
+    this.setData({ events });
+  },
+
+  onPlazaFilter(e) {
+    const plazaFilter = e.currentTarget.dataset.id;
+    this.setData({ plazaFilter }, () => this.applyPlazaEvents());
   },
 
   onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 1 });
     }
-    this.setData({ city: store.getCity() });
+    this.setData({ city: store.getCity() }, () => this.applyPlazaEvents());
   },
 
   onCityTap() {
@@ -20,7 +37,12 @@ Page({
   },
 
   onEventTap(e) {
+    if (!requirePetProfile()) return;
     wx.navigateTo({ url: `/pages/event-detail/event-detail?id=${e.currentTarget.dataset.id}` });
+  },
+
+  onOpenPlace(e) {
+    amap.openPlaceFromTap(e);
   },
 
   onPublishEvent() {
@@ -28,6 +50,7 @@ Page({
   },
 
   onMyEvents() {
+    if (!requirePetProfile()) return;
     wx.navigateTo({ url: '/pages/my-events/my-events' });
   },
 });

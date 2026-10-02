@@ -19,7 +19,7 @@ page {
 
 .author-card {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   padding: 22rpx;
   margin-bottom: 16rpx;
   border-radius: 22rpx;
@@ -39,6 +39,53 @@ page {
 .author-info {
   flex: 1;
   min-width: 0;
+  padding-right: 8rpx;
+}
+
+.user-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 0;
+  align-self: flex-start;
+  padding-top: 4rpx;
+}
+
+.owner-delete {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #ff2442;
+  padding: 8rpx 16rpx;
+}
+
+.head-follow {
+  margin: 0;
+  padding: 0 16rpx !important;
+  width: auto !important;
+  min-width: 0 !important;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48rpx;
+  line-height: 1;
+  font-size: 24rpx;
+  font-weight: 600;
+  border-radius: 999rpx;
+  background: #ffffff;
+  color: #ff2442;
+  border: 2rpx solid #ff2442;
+  box-sizing: border-box;
+}
+
+.head-follow.followed {
+  color: #999999;
+  border-color: #e0e0e0;
+  background: #fafafa;
+}
+
+.head-follow::after {
+  border: none;
 }
 
 .name-row {
@@ -93,14 +140,6 @@ page {
   font-size: 24rpx;
   color: #666;
   line-height: 1.4;
-  margin-bottom: 8rpx;
-}
-
-.loc-card-tip {
-  display: block;
-  font-size: 22rpx;
-  color: #1E88E5;
-  font-weight: 600;
 }
 
 .meta {
@@ -125,36 +164,56 @@ page {
   word-break: break-word;
 }
 
+.content-tag {
+  font-weight: 700;
+}
+
+.content-tag-lost {
+  color: #E65100;
+}
+
+.content-tag-found {
+  color: #1565C0;
+}
+
+.content-tag-rescue {
+  color: #6A1B9A;
+}
+
+.content-tag-adopt {
+  color: #2E7D32;
+}
+
+.content-tag-highlight {
+  color: #1E88E5;
+}
+
+.content-tag-hashtag {
+  color: #1E88E5;
+  font-weight: 600;
+}
+
 .post-media {
   margin-top: 20rpx;
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: flex-start;
   gap: 12rpx;
 }
 
+.post-media-wrap {
+  border-radius: 16rpx;
+  background: #E8F4FF;
+  min-width: 0;
+  overflow: hidden;
+}
+
 .post-media-img {
-  width: 210rpx;
-  height: 210rpx;
-  border-radius: 12rpx;
   background: #E8F4FF;
 }
 
-.post-media-img.single {
-  width: 100%;
-  height: auto;
-  max-height: 640rpx;
-  border-radius: 16rpx;
-}
-
 .post-media-video {
-  width: 100%;
-  height: 400rpx;
-  border-radius: 16rpx;
   background: #000;
-}
-
-.post-media-video.single {
-  height: 420rpx;
 }
 
 .cover {
@@ -222,7 +281,27 @@ page {
   border-top: 1rpx solid #EEF2F0;
 }
 
-.comment-item:first-of-type {
+.comment-thread:first-of-type .comment-item {
+  border-top: none;
+}
+
+.comment-thread + .comment-thread {
+  border-top: 1rpx solid #EEF2F0;
+  padding-top: 4rpx;
+}
+
+.comment-replies {
+  margin-left: 78rpx;
+  padding-left: 16rpx;
+  border-left: 4rpx solid rgba(30, 136, 229, 0.15);
+}
+
+.comment-item-reply {
+  border-top: 1rpx solid #F3F6F4;
+  padding: 12rpx 0;
+}
+
+.comment-item-reply:first-of-type {
   border-top: none;
 }
 
@@ -268,6 +347,48 @@ page {
   margin-top: 8rpx;
   font-size: 24rpx;
   color: #777;
+}
+
+.c-reply-to {
+  color: #1E88E5;
+  font-weight: 600;
+}
+
+.c-actions {
+  margin-top: 8rpx;
+}
+
+.c-reply-btn {
+  color: #8A9A90;
+  padding: 8rpx 0;
+  min-height: 64rpx;
+  justify-content: flex-start;
+}
+
+.c-avatar-sm {
+  width: 48rpx;
+  height: 48rpx;
+}
+
+.reply-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 24rpx 8rpx;
+  padding: 12rpx 18rpx;
+  border-radius: 12rpx;
+  background: rgba(30, 136, 229, 0.08);
+}
+
+.reply-hint-text {
+  font-size: 24rpx;
+  color: #1E88E5;
+  font-weight: 600;
+}
+
+.reply-hint-cancel {
+  font-size: 24rpx;
+  color: #999;
 }
 
 .c-image {
@@ -444,6 +565,14 @@ page {
   background: #F9F9F9;
 }
 
+.feed-actions-stat {
+  margin: 0 28rpx 20rpx;
+  padding: 16rpx 8rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  border-top: none;
+}
+
 .comment-empty {
   padding: 40rpx 0;
   text-align: center;
@@ -460,25 +589,26 @@ page {
   justify-content: center;
   border-radius: 50%;
   background: #F5F8FC;
+  color: #8a96a3;
 }
 
-.bar-like-icon {
-  font-size: 36rpx;
-  line-height: 1;
+.bar-like.is-liked {
+  color: #e85d75;
 }
 
 .bar-share {
-  width: 88rpx !important;
-  min-width: 88rpx !important;
+  width: 64rpx !important;
+  min-width: 64rpx !important;
   height: 64rpx;
   margin-left: 8rpx;
   padding: 0 !important;
   flex-shrink: 0;
-  border-radius: 12rpx;
-  background: #F3F7F5;
-  color: #1E88E5;
-  font-size: 24rpx;
-  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #F5F8FC;
+  color: #8a96a3;
   border: none;
 }
 

@@ -11,7 +11,7 @@
     </view>
   </view>
 
-  <view class="tool-panel" wx:if="{{showTools}}">
+  <view class="tool-panel" wx:if="{{showPlus && showTools}}">
     <swiper class="tool-swiper">
       <swiper-item>
         <view class="tool-grid">
@@ -77,7 +77,7 @@
 
   <view class="input-bar {{fixed ? 'fixed' : ''}} {{disabled ? 'is-disabled' : ''}}">
     <slot name="prefix"></slot>
-    <view class="bar-circle-btn" bindtap="onToggleVoice">
+    <view class="bar-circle-btn" wx:if="{{showVoice}}" bindtap="onToggleVoice">
       <view class="wx-bar-icon {{voiceMode ? 'wx-keyboard' : 'wx-voice-ring'}}"></view>
     </view>
     <block wx:if="{{!voiceMode}}">
@@ -106,7 +106,7 @@
       <view class="wx-bar-icon wx-smile"></view>
     </view>
     <view
-      wx:if="{{!showSend || voiceMode}}"
+      wx:if="{{showPlus && (!showSend || voiceMode)}}"
       class="bar-circle-btn {{showTools ? 'plus-open' : ''}}"
       bindtap="onToggleTools"
     >

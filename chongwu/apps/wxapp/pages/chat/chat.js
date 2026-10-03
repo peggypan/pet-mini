@@ -16,11 +16,13 @@ const {
   startChatRealtime,
   stopChatRealtime,
   resolvePeerAvatarUrl,
+  resolveMyAvatarUrl,
+  lookupPeerAvatarRaw,
   DEFAULT_PEER_AVATAR,
 } = require('../../utils/chat-cloud-sync');
-const { resolveCloudFileUrl } = require('../../utils/cloud-media');
+const { resolveVoicePlayUrl } = require('../../utils/chat-voice');
+const { isCloudFileId, needsCloudUpload, resolveCloudFileUrl } = require('../../utils/cloud-media');
 const { decorateChatMessages } = require('../../utils/chat-time');
-const { getDefaultPet } = require('../../utils/catalog');
 
 Page({
   data: {
@@ -44,6 +46,41 @@ Page({
     peerAvatar: DEFAULT_PEER_AVATAR,
   },
 
+  decorateChatUiMessages(list) {
+    return decorateChatMessages(list, {
+      myAvatar: this.data.myAvatar,
+      peerAvatar: this.data.peerAvatar,
+    });
+  },
+
+  async refreshChatAvatars() {
+    const threadId = this.data.threadId;
+    const peer = this.data.peer;
+    const thread = threadId
+      ? store.listChatThreads().find((t) => String(t.id) === String(threadId))
+      : null;
+    const peerRaw = await lookupPeerAvatarRaw(
+      peer && peer.id,
+      [
+        (thread && thread.avatar) || '',
+        (peer && peer.avatar) || '',
+        (this.peerOptions && this.peerOptions.avatar) || '',
+      ],
+    );
+    const [myAvatar, peerAvatar] = await Promise.all([
+      resolveMyAvatarUrl(),
+      resolvePeerAvatarUrl(peerRaw),
+    ]);
+    const patch = { myAvatar, peerAvatar };
+    if (peer) patch.peer = { ...peer, avatar: peerAvatar };
+    this.setData(patch);
+    if (threadId && this.data.messages.length) {
+      this.setData({
+        messages: this.decorateChatUiMessages(this.data.messages),
+      });
+    }
+  },
+
   onLoad(options) {
     blockSubPageWithoutProfile(this);
     this.entryOptions = options || {};
@@ -58,20 +95,9 @@ Page({
     this.initThread(this.peerOptions);
   },
 
-  resolveMyAvatar() {
-    const userInfo = wx.getStorageSync('userInfo') || {};
-    const pet = getDefaultPet();
-    return (
-      userInfo.avatarUrl
-      || pet.avatarUrl
-      || pet.avatar
-      || '/assets/mock/real_avatar.jpg'
-    );
-  },
-
   async onShow() {
     syncPetProfileGate(this);
-    this.setData({ myAvatar: this.resolveMyAvatar() });
+    await this.refreshChatAvatars().catch(() => {});
     if (this.data.peer) this.syncPeerActions(this.data.peer);
     if (this.data.threadId) {
       let messages = store.getChatMessages(this.data.threadId);
@@ -82,7 +108,7 @@ Page({
           // keep cache
         }
       }
-      messages = decorateChatMessages(messages);
+      messages = this.decorateChatUiMessages(messages);
       this.setData({ messages });
       this.syncLimitState(messages);
       this.scrollBottom();
@@ -229,7 +255,14 @@ Page({
       thread = threads[0] || MOCK_CHATS[0];
     }
     if (!thread) return;
-    const peerAvatar = await resolvePeerAvatarUrl(thread.avatar);
+    const peerRaw = await lookupPeerAvatarRaw(thread.peerId, [
+      customPeer.avatar,
+      thread.avatar,
+    ]);
+    const [myAvatar, peerAvatar] = await Promise.all([
+      resolveMyAvatarUrl(),
+      resolvePeerAvatarUrl(peerRaw),
+    ]);
     const peer = {
       id: thread.peerId,
       userName: thread.peerName,
@@ -246,17 +279,17 @@ Page({
       }
     }
     this.syncPeerActions(peer);
-    messages = decorateChatMessages(messages);
     this.setData({
       threadId: thread.id,
       peer,
-      messages,
-      myAvatar: this.resolveMyAvatar(),
+      myAvatar,
       peerAvatar,
     });
+    messages = this.decorateChatUiMessages(messages);
+    this.setData({ messages });
     wx.setNavigationBarTitle({ title: `${peer.userName} · ${peer.petName}` });
     messages = await this.maybeApplyEntryShareComment(messages);
-    messages = decorateChatMessages(messages);
+    messages = this.decorateChatUiMessages(messages);
     this.setData({ messages });
     this.syncLimitState(messages);
     this.scrollBottom(messages.length);
@@ -279,15 +312,42 @@ Page({
       shareRef: o.shareRef || '',
     });
     if (!row) return messages;
-    const next = [...messages, row];
+    const next = this.decorateChatUiMessages([...messages, row]);
     this.setData({ messages: next });
     return next;
   },
 
   async sendMessage(message) {
+    const localPath = message && message.url && needsCloudUpload(message.url) ? message.url : '';
     const row = await sendChatMessageOnCloud(this.data.threadId, message);
     if (!row) return null;
+    if (row.type === 'voice' && localPath) {
+      row.playUrl = localPath;
+    } else if (row.type === 'voice' && row.url) {
+      row.playUrl = row.url;
+    }
+    if (localPath && (row.type === 'image' || row.type === 'video') && isCloudFileId(row.url)) {
+      row.url = localPath;
+      if (row.poster && isCloudFileId(row.poster) && message.poster) {
+        row.poster = message.poster;
+      }
+    }
     this.appendMessage(row);
+    const fileId = row.fileId || (isCloudFileId(row.url) ? row.url : '');
+    if (fileId && (row.type === 'image' || row.type === 'video' || row.type === 'voice')) {
+      resolveCloudFileUrl(fileId)
+        .then((url) => {
+          if (!url || isCloudFileId(url)) return;
+          const messages = this.data.messages.map((m) => {
+            if (String(m.id) !== String(row.id)) return m;
+            const patch = { ...m, url, fileId: fileId || m.fileId };
+            if (m.type === 'voice') patch.playUrl = url;
+            return patch;
+          });
+          this.setData({ messages: this.decorateChatUiMessages(messages) });
+        })
+        .catch(() => {});
+    }
     return row;
   },
 
@@ -301,7 +361,7 @@ Page({
     const nextRow = row && row.type === 'voice'
       ? { ...row, playUrl: row.playUrl || row.url }
       : row;
-    const messages = decorateChatMessages([...this.data.messages, nextRow]);
+    const messages = this.decorateChatUiMessages([...this.data.messages, nextRow]);
     this.setData({ messages });
     this.syncLimitState(messages);
     this.scrollBottom(messages.length - 1);
@@ -334,15 +394,21 @@ Page({
   },
 
   async onComposerVoice(e) {
+    if (!requirePetProfile()) return;
     if (!this.guardOutgoing('voice')) return;
     const { filePath, duration } = e.detail;
+    if (!filePath) {
+      wx.showToast({ title: '录音失败，请重试', icon: 'none' });
+      return;
+    }
     await this.sendMessage(
       {
         from: 'me',
         type: 'voice',
         url: filePath,
-        duration,
-        content: `[语音 ${duration}"]`,
+        audioFormat: 'mp3',
+        duration: Math.max(1, Number(duration) || 1),
+        content: `[语音 ${Math.max(1, Number(duration) || 1)}"]`,
       },
     );
   },
@@ -451,19 +517,57 @@ Page({
 
   async onPlayVoice(e) {
     const { url, id, index } = e.currentTarget.dataset;
-    let playSrc = url || '';
     const idx = Number(index);
     const row = Number.isFinite(idx) ? this.data.messages[idx] : null;
-    if (row && row.playUrl) playSrc = row.playUrl;
-    if (!playSrc) return;
-    if (playSrc.startsWith('cloud://')) {
-      try {
-        playSrc = await resolveCloudFileUrl(playSrc);
-      } catch (err) {
-        wx.showToast({ title: '语音加载失败', icon: 'none' });
-        return;
-      }
+    const fileId = (row && row.fileId) || '';
+    let playSrc = (row && row.playUrl) || url || (row && row.url) || fileId || '';
+    if (!playSrc) {
+      wx.showToast({ title: '语音地址无效', icon: 'none' });
+      return;
     }
+    try {
+      const resolveSrc = isCloudFileId(playSrc)
+        ? playSrc
+        : (/^https?:\/\//.test(playSrc) ? playSrc : (fileId || playSrc));
+      playSrc = await resolveVoicePlayUrl(resolveSrc);
+      if (Number.isFinite(idx) && playSrc && row && playSrc !== row.playUrl) {
+        this.setData({ [`messages[${idx}].playUrl`]: playSrc });
+      }
+    } catch (err) {
+      wx.showToast({ title: '语音加载失败', icon: 'none' });
+      return;
+    }
+    if (!playSrc) {
+      wx.showToast({ title: '语音加载失败', icon: 'none' });
+      return;
+    }
+    const audio = this.getVoiceAudio();
+    if (this.data.playingId === id) {
+      audio.stop();
+      this.setData({ playingId: '' });
+      return;
+    }
+    audio.stop();
+    this.setData({ playingId: id });
+    await new Promise((resolve, reject) => {
+      const onReady = () => {
+        audio.offCanplay(onReady);
+        audio.offError(onFail);
+        resolve();
+      };
+      const onFail = (err) => {
+        audio.offCanplay(onReady);
+        audio.offError(onFail);
+        reject(err);
+      };
+      audio.onCanplay(onReady);
+      audio.onError(onFail);
+      audio.src = playSrc;
+    });
+    audio.play();
+  },
+
+  getVoiceAudio() {
     if (!this.innerAudio) {
       this.innerAudio = wx.createInnerAudioContext();
       this.innerAudio.obeyMuteSwitch = false;
@@ -474,15 +578,7 @@ Page({
       });
       this.innerAudio.onStop(() => this.setData({ playingId: '' }));
     }
-    if (this.data.playingId === id) {
-      this.innerAudio.stop();
-      this.setData({ playingId: '' });
-      return;
-    }
-    this.innerAudio.stop();
-    this.innerAudio.src = playSrc;
-    this.setData({ playingId: id });
-    this.innerAudio.play();
+    return this.innerAudio;
   },
 
   onVoiceLongPress(e) {
@@ -571,9 +667,29 @@ Page({
       });
   },
 
+  async onChatImageError(e) {
+    const { index, fileId } = e.currentTarget.dataset;
+    const idx = Number(index);
+    const item = Number.isFinite(idx) ? this.data.messages[idx] : null;
+    const fid = fileId
+      || (item && item.fileId)
+      || (item && isCloudFileId(item.url) ? item.url : '');
+    if (!fid || !isCloudFileId(fid)) return;
+    try {
+      const url = await resolveCloudFileUrl(fid);
+      if (url && !isCloudFileId(url) && Number.isFinite(idx)) {
+        this.setData({ [`messages[${idx}].url`]: url });
+      }
+    } catch (err) {
+      // ignore
+    }
+  },
+
   onPreviewImage(e) {
     const url = e.currentTarget.dataset.url;
-    const images = this.data.messages.filter((m) => m.type === 'image').map((m) => m.url);
+    const images = this.data.messages
+      .filter((m) => m.type === 'image' && m.url && !isCloudFileId(m.url))
+      .map((m) => m.url);
     wx.previewImage({ urls: images.length ? images : [url], current: url });
   },
 

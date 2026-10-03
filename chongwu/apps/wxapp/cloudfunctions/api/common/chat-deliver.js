@@ -1,4 +1,4 @@
-const { getDb, chatThreads, chatMessages, users, buddyPosts, events } = require('./db');
+const { getDb, chatThreads, chatMessages, users, pets, buddyPosts, events } = require('./db');
 
 async function resolvePeerUserOpenid(threadDoc) {
   if (!threadDoc) return null;
@@ -106,12 +106,41 @@ async function ensurePeerInboxThread(recipientOpenid, senderOpenid, senderProfil
   return got.data;
 }
 
-function senderProfileFromAuth(auth) {
+async function senderProfileFromAuth(auth) {
   const user = (auth && auth.user) || {};
+  let avatar = user.avatarUrl || user.avatar || '';
+  let petName = user.petName || '';
+  const openid = auth && auth.openid;
+  if (openid && (!avatar || !petName)) {
+    try {
+      const _ = getDb().command;
+      let pet = null;
+      try {
+        const res = await pets()
+          .where(_.or([{ _openid: openid }, { openid }]))
+          .orderBy('updatedAt', 'desc')
+          .limit(1)
+          .get();
+        pet = (res.data && res.data[0]) || null;
+      } catch (e2) {
+        const res = await pets()
+          .where(_.or([{ _openid: openid }, { openid }]))
+          .limit(1)
+          .get();
+        pet = (res.data && res.data[0]) || null;
+      }
+      if (pet) {
+        if (!petName) petName = pet.name || pet.petName || '宠物';
+        if (!avatar) avatar = pet.avatarUrl || pet.avatar || '';
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
   return {
     peerName: user.nickname || '宠友',
-    petName: user.petName || '宠物',
-    avatar: user.avatarUrl || user.avatar || '',
+    petName: petName || '宠物',
+    avatar: avatar || '',
   };
 }
 
@@ -138,10 +167,11 @@ async function deliverChatMessageToPeer({
     }
   }
 
+  const senderProfile = await senderProfileFromAuth(auth);
   const inboxThread = await ensurePeerInboxThread(
     recipientOpenid,
     senderOpenid,
-    senderProfileFromAuth(auth),
+    senderProfile,
     ts,
   );
   if (!inboxThread || !inboxThread._id) return null;

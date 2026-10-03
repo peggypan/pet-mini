@@ -32,8 +32,11 @@ function startBuddyChat(buddy) {
         `${buddy.userName} · ${buddy.petName} · ${buddy.buddyType || '搭子'}`,
       );
       const shareText = encodeURIComponent((buddy.desc || '').slice(0, 160));
+      const avatar = encodeURIComponent(buddy.avatar || buddy.cover || '');
+      const peerName = encodeURIComponent(buddy.userName || '');
+      const petName = encodeURIComponent(buddy.petName || '');
       wx.navigateTo({
-        url: `/pages/chat/chat?peerId=${peerId}&shareComment=1&shareTitle=${shareTitle}&shareText=${shareText}&shareRef=${buddy.id}`,
+        url: `/pages/chat/chat?peerId=${peerId}&peerName=${peerName}&petName=${petName}&avatar=${avatar}&shareComment=1&shareTitle=${shareTitle}&shareText=${shareText}&shareRef=${buddy.id}`,
       });
     },
   });

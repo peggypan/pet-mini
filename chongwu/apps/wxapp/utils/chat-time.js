@@ -24,14 +24,31 @@ function formatChatMessageTime(iso) {
   return `${d.getMonth() + 1}/${d.getDate()} ${hm}`;
 }
 
-function decorateChatMessages(list) {
-  return (list || []).map((m) => ({
-    ...m,
-    timeLabel: formatChatMessageTime(m.createdAt) || m.time || '',
-  }));
+function normalizeMessageFrom(m) {
+  if (!m) return 'me';
+  if (m.from === 'peer' || m.sender === 'peer') return 'peer';
+  if (m.from === 'me' || m.sender === 'me') return 'me';
+  return 'me';
+}
+
+function decorateChatMessages(list, ctx) {
+  const myAvatar = (ctx && ctx.myAvatar) || '';
+  const peerAvatar = (ctx && ctx.peerAvatar) || '';
+  return (list || []).map((m) => {
+    const from = normalizeMessageFrom(m);
+    return {
+      ...m,
+      from,
+      isMe: from === 'me',
+      displayAvatar: from === 'me' ? myAvatar : peerAvatar,
+      timeLabel: formatChatMessageTime(m.createdAt) || m.time || '',
+      playUrl: m.playUrl || m.url || '',
+    };
+  });
 }
 
 module.exports = {
   formatChatMessageTime,
+  normalizeMessageFrom,
   decorateChatMessages,
 };

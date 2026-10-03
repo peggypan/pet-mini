@@ -9,6 +9,7 @@ const {
 } = require('../common/chat-fields');
 const { assertOwnThread } = require('./chat_threads');
 const { deliverChatMessageToPeer } = require('../common/chat-deliver');
+const { enrichMessagesWithMediaUrls } = require('../common/chat-media-resolve');
 
 async function listByThread(payload, wxContext) {
   const auth = await requireUser(wxContext);
@@ -45,7 +46,9 @@ async function listByThread(payload, wxContext) {
       });
   }
 
-  return ok({ list: rows.map((d) => publicMessage(d)).filter(Boolean) });
+  let list = rows.map((d) => publicMessage(d)).filter(Boolean);
+  list = await enrichMessagesWithMediaUrls(list);
+  return ok({ list });
 }
 
 async function send(payload, wxContext) {
@@ -113,8 +116,13 @@ async function send(payload, wxContext) {
   const gotMsg = await chatMessages().doc(addRes._id).get();
   const gotThread = await chatThreads().doc(body.threadId).get();
 
+  let message = publicMessage(gotMsg.data);
+  if (message) {
+    const enriched = await enrichMessagesWithMediaUrls([message]);
+    message = enriched[0] || message;
+  }
   return ok({
-    message: publicMessage(gotMsg.data),
+    message,
     thread: publicThread(gotThread.data),
   });
 }

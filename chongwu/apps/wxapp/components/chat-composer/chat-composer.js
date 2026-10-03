@@ -11,6 +11,10 @@ Component({
     placeholder: { type: String, value: '说点什么…' },
     fixed: { type: Boolean, value: true },
     showVideo: { type: Boolean, value: true },
+    /** 左侧按住说话 / 键盘切换 */
+    showVoice: { type: Boolean, value: true },
+    /** 右侧「+」扩展面板（相册、拍摄、视频等） */
+    showPlus: { type: Boolean, value: true },
     showActivity: { type: Boolean, value: true },
     showLocation: { type: Boolean, value: true },
     showAa: { type: Boolean, value: true },
@@ -131,6 +135,7 @@ Component({
     },
 
     onToggleVoice() {
+      if (!this.properties.showVoice) return;
       if (this.properties.disabled) {
         this.triggerEvent('blocked');
         return;
@@ -141,6 +146,7 @@ Component({
     },
 
     onToggleTools() {
+      if (!this.properties.showPlus) return;
       if (this.properties.disabled) {
         this.triggerEvent('blocked');
         return;
@@ -238,11 +244,13 @@ Component({
       this.setData({ recording: true, recordSeconds: 0 });
       this.startRecordTimer();
       try {
+        // 全平台 mp3，避免 iOS aac 临时路径无后缀却被当成 mp3 上传导致无声/对方无法播放
+        this._recordFormat = 'mp3';
         this.recorder.start({
           format: 'mp3',
           duration: 60000,
           sampleRate: 16000,
-          encodeBitRate: 48000,
+          encodeBitRate: 64000,
           numberOfChannels: 1,
         });
       } catch (e) {

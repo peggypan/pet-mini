@@ -25,15 +25,15 @@
       <text>{{chatLimitTip}}</text>
     </view>
     <view
-      class="msg-row {{item.from === 'me' ? 'me' : 'peer'}}"
+      class="msg-row {{item.isMe ? 'me' : 'peer'}}"
       wx:for="{{messages}}"
       wx:key="id"
       id="msg-{{index}}"
     >
-      <view class="msg-main">
       <image
+        wx:if="{{!item.isMe}}"
         class="msg-avatar"
-        src="{{item.from === 'me' ? myAvatar : (peerAvatar || peer.avatar || '/assets/mock/real_avatar.jpg')}}"
+        src="{{item.displayAvatar || peerAvatar}}"
         mode="aspectFill"
       ></image>
 
@@ -73,7 +73,10 @@
           src="{{item.url}}"
           mode="widthFix"
           data-url="{{item.url}}"
+          data-index="{{index}}"
+          data-file-id="{{item.fileId}}"
           bindtap="onPreviewImage"
+          binderror="onChatImageError"
         ></image>
       </view>
 
@@ -125,7 +128,13 @@
       </view>
       <text class="msg-time" wx:if="{{item.timeLabel}}">{{item.timeLabel}}</text>
       </view>
-      </view>
+
+      <image
+        wx:if="{{item.isMe}}"
+        class="msg-avatar"
+        src="{{item.displayAvatar || myAvatar}}"
+        mode="aspectFill"
+      ></image>
     </view>
 
     <view class="msg-empty" wx:if="{{messages.length === 0}}">
@@ -137,6 +146,8 @@
     value="{{inputText}}"
     placeholder="{{composerPlaceholder}}"
     disabled="{{composerDisabled}}"
+    show-voice="{{false}}"
+    show-plus="{{false}}"
     bind:input="onComposerInput"
     bind:send="onComposerSend"
     bind:tool="onComposerTool"

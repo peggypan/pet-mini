@@ -24,23 +24,92 @@ function needsCloudUpload(path) {
   return true;
 }
 
+function downloadCloudFileToTemp(fileID) {
+  return new Promise((resolve, reject) => {
+    if (!wx.cloud || !wx.cloud.downloadFile) {
+      reject(new Error('cloud unavailable'));
+      return;
+    }
+    wx.cloud.downloadFile({
+      fileID,
+      success: (res) => {
+        if (res.tempFilePath) resolve(res.tempFilePath);
+        else reject(new Error('empty tempFilePath'));
+      },
+      fail: reject,
+    });
+  });
+}
+
 async function resolveCloudFileUrl(url) {
   if (!url || typeof url !== 'string') return '';
   if (!isCloudFileId(url)) return url;
   if (urlCache[url]) return urlCache[url];
-  if (!wx.cloud || !wx.cloud.getTempFileURL) return url;
-  try {
-    const res = await wx.cloud.getTempFileURL({ fileList: [url] });
-    const item = (res.fileList && res.fileList[0]) || {};
-    const temp = item.tempFileURL || url;
-    if (item.status === 0 && temp) {
-      urlCache[url] = temp;
-      return temp;
+  if (wx.cloud && wx.cloud.getTempFileURL) {
+    try {
+      const res = await wx.cloud.getTempFileURL({ fileList: [url] });
+      const item = (res.fileList && res.fileList[0]) || {};
+      const temp = item.tempFileURL || '';
+      if (item.status === 0 && temp) {
+        urlCache[url] = temp;
+        return temp;
+      }
+      if (item.status !== 0) {
+        console.warn('[cloud-media] getTempFileURL status', item.status, item.errMsg || '');
+      }
+    } catch (e) {
+      console.warn('[cloud-media] getTempFileURL', url, e);
     }
+  }
+  try {
+    const local = await downloadCloudFileToTemp(url);
+    urlCache[url] = local;
+    return local;
   } catch (e) {
-    console.warn('[cloud-media] getTempFileURL', url, e);
+    console.warn('[cloud-media] downloadFile', url, e);
   }
   return url;
+}
+
+/** 批量换链，供聊天列表等场景 */
+async function batchResolveCloudFileUrls(fileIds) {
+  const map = {};
+  const ids = [...new Set((fileIds || []).filter(isCloudFileId))];
+  if (!ids.length) return map;
+  const pending = [];
+  ids.forEach((id) => {
+    if (urlCache[id]) map[id] = urlCache[id];
+    else pending.push(id);
+  });
+  if (pending.length && wx.cloud && wx.cloud.getTempFileURL) {
+    for (let i = 0; i < pending.length; i += 50) {
+      const chunk = pending.slice(i, i + 50);
+      try {
+        const res = await wx.cloud.getTempFileURL({ fileList: chunk });
+        (res.fileList || []).forEach((item) => {
+          if (item.fileID && item.status === 0 && item.tempFileURL) {
+            urlCache[item.fileID] = item.tempFileURL;
+            map[item.fileID] = item.tempFileURL;
+          }
+        });
+      } catch (e) {
+        console.warn('[cloud-media] batch getTempFileURL', e);
+      }
+    }
+  }
+  const needDownload = pending.filter((id) => !map[id]);
+  await Promise.all(
+    needDownload.map(async (id) => {
+      try {
+        const local = await downloadCloudFileToTemp(id);
+        urlCache[id] = local;
+        map[id] = local;
+      } catch (e) {
+        console.warn('[cloud-media] batch download', id, e);
+      }
+    }),
+  );
+  return map;
 }
 
 async function resolveCloudFileUrls(urls) {
@@ -114,7 +183,9 @@ module.exports = {
   isCloudFileId,
   isLocalDevPath,
   needsCloudUpload,
+  downloadCloudFileToTemp,
   resolveCloudFileUrl,
+  batchResolveCloudFileUrls,
   resolveCloudFileUrls,
   resolveBuddyPostMedia,
   resolveBuddyPosts,

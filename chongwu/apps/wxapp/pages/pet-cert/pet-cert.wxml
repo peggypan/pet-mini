@@ -37,8 +37,15 @@
     <text class="qr-title">线下查验二维码</text>
     <text class="qr-sub">档案完善后自动生成，扫码可查看宠证信息与免疫证明</text>
     <view class="qr-canvas-wrap">
-      <canvas type="2d" id="petCertQr" class="cert-qr-canvas"></canvas>
+      <image
+        wx:if="{{qrImageSrc}}"
+        class="cert-qr-image"
+        src="{{qrImageSrc}}"
+        mode="aspectFit"
+      ></image>
+      <view class="qr-loading" wx:elif="{{qrDrawing}}">二维码生成中…</view>
     </view>
+    <canvas type="2d" id="petCertQr" class="cert-qr-draw-canvas"></canvas>
     <text class="qr-tip">微信「扫一扫」或点击下方按钮查验其他宠物</text>
     <button class="btn-scan" bindtap="onScanVerify">扫码查验</button>
   </view>

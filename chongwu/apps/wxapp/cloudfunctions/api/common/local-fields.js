@@ -63,9 +63,13 @@ function pickLocalPayload(raw) {
   };
 }
 
+const { validateMediaPayload } = require('./media-urls');
+
 function validateLocal(body) {
   if (!trim(body.title)) return '请填写标题';
   if (!body.desc) return '请填写描述';
+  const mediaMsg = validateMediaPayload(body);
+  if (mediaMsg) return mediaMsg;
   if (body.contact && !/^1\d{10}$/.test(body.contact)) return '手机号格式不正确';
   return '';
 }

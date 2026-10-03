@@ -9,8 +9,19 @@ function isLocalDevPath(url) {
   return (
     url.startsWith('wxfile://')
     || url.startsWith('http://tmp/')
+    || url.startsWith('https://tmp/')
     || url.startsWith('http://127.0.0.1')
   );
+}
+
+/** 选图后的本地临时路径需 uploadFile，已是 cloud:// 或公网 https 则跳过 */
+function needsCloudUpload(path) {
+  if (!path || typeof path !== 'string') return false;
+  if (path.startsWith('cloud://')) return false;
+  if (path.startsWith('/assets/')) return false;
+  if (isLocalDevPath(path)) return true;
+  if (path.startsWith('https://') || path.startsWith('http://')) return false;
+  return true;
 }
 
 async function resolveCloudFileUrl(url) {
@@ -102,6 +113,7 @@ async function resolvePets(list) {
 module.exports = {
   isCloudFileId,
   isLocalDevPath,
+  needsCloudUpload,
   resolveCloudFileUrl,
   resolveCloudFileUrls,
   resolveBuddyPostMedia,

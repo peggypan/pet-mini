@@ -88,10 +88,14 @@ function pickEventPayload(raw) {
   };
 }
 
+const { validateMediaPayload } = require('./media-urls');
+
 function validateEvent(body) {
   if (!body.title) return '请填写活动名称';
   if (!body.place) return '请选择活动地点';
   if (!body.time) return '请填写活动时间';
+  const mediaMsg = validateMediaPayload(body);
+  if (mediaMsg) return mediaMsg;
   return '';
 }
 

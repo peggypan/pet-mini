@@ -1,4 +1,5 @@
 const ZONES = ['normal', 'match', 'healing'];
+const { validateMediaPayload } = require('./media-urls');
 
 function trim(s) {
   return typeof s === 'string' ? s.trim() : '';
@@ -80,6 +81,8 @@ function validateBuddy(body) {
   if (!trim(body.title)) {
     return '请填写标题';
   }
+  const mediaMsg = validateMediaPayload(body);
+  if (mediaMsg) return mediaMsg;
   const text = trim(body.desc);
   if (!text && !(body.mediaList && body.mediaList.length)) {
     return '请填写描述或上传媒体';

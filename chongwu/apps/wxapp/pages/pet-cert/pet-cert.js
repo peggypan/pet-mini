@@ -7,7 +7,7 @@ const {
   hasPetProfile,
   requirePetProfile,
 } = require('../../utils/pet-profile-guard');
-const { drawQrCanvas } = require('../../utils/qrcode');
+const { drawQrToTempFile } = require('../../utils/qrcode');
 const {
   buildPetCertQrContent,
   parsePetCertScanPayload,
@@ -21,6 +21,7 @@ Page({
     auditStatus: '',
     auditBannerText: '',
     qrDrawing: false,
+    qrImageSrc: '',
   },
 
   onShow() {
@@ -29,7 +30,11 @@ Page({
     const auditStatus = getPetAuditStatus(pet) || '';
     const auditBannerText = profileComplete ? (petProfileGateMessage(pet) || '') : '';
     const certReady = profileComplete && auditStatus !== 'rejected' && auditStatus !== 'hidden';
-    this.setData({ pet, profileComplete, auditStatus, auditBannerText }, () => {
+    const patch = { pet, profileComplete, auditStatus, auditBannerText };
+    if (!certReady) {
+      patch.qrImageSrc = '';
+    }
+    this.setData(patch, () => {
       if (certReady) this.refreshCertQr(pet);
     });
   },
@@ -45,7 +50,8 @@ Page({
     try {
       await wx.nextTick();
       const content = buildPetCertQrContent(row);
-      await drawQrCanvas(this, 'petCertQr', content);
+      const path = await drawQrToTempFile(this, 'petCertQr', content);
+      this.setData({ qrImageSrc: path });
     } catch (e) {
       console.warn('pet cert qr', e);
     } finally {

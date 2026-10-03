@@ -1,5 +1,6 @@
 const VACCINE = ['immune', 'vaccinating', 'none'];
 const AUDIT = ['pending', 'approved', 'rejected', 'hidden'];
+const { isBrokenMediaUrl } = require('./media-urls');
 
 function trim(s) {
   return typeof s === 'string' ? s.trim() : '';
@@ -61,6 +62,17 @@ function pickPetPayload(raw) {
   };
 }
 
+function validatePetMedia(body) {
+  const urls = [
+    body.avatarUrl,
+    body.vaccineProofUrl,
+    ...(Array.isArray(body.galleryPhotos) ? body.galleryPhotos : []),
+  ].filter(Boolean);
+  const bad = urls.find((u) => isBrokenMediaUrl(u));
+  if (bad) return '图片尚未上传到云存储，请重新选择后再保存';
+  return '';
+}
+
 function validatePet(body) {
   if (!body.name) return '请填写宠物名字';
   if (!body.breedName) return '请填写品种';
@@ -70,6 +82,8 @@ function validatePet(body) {
   const vs = body.vaccineStatus || 'none';
   if ((vs === 'immune' || vs === 'vaccinating') && !body.vaccineProofUrl) return '请上传免疫证明';
   if (!body.emergencyContactName || !body.emergencyContactPhone) return '请填写紧急联系人';
+  const mediaMsg = validatePetMedia(body);
+  if (mediaMsg) return mediaMsg;
   return '';
 }
 
@@ -85,6 +99,7 @@ function publicPet(doc) {
 module.exports = {
   pickPetPayload,
   validatePet,
+  validatePetMedia,
   publicPet,
   VACCINE,
   AUDIT,

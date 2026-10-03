@@ -1,5 +1,5 @@
 const { ok, fail } = require('../common/response');
-const { pets, now, getDb } = require('../common/db');
+const { pets, users, now, getDb } = require('../common/db');
 const { pickPetPayload, validatePet, publicPet } = require('../common/pet-fields');
 const { requireUser } = require('../common/auth-user');
 
@@ -56,7 +56,25 @@ async function save(payload, wxContext) {
   const auth = await requireUser(wxContext);
   if (auth.err) return auth.err;
 
-  const body = pickPetPayload(payload);
+  const petId = payload && payload.id;
+  let source = payload || {};
+  let prevDoc = null;
+
+  if (petId) {
+    try {
+      const got = await pets().doc(petId).get();
+      prevDoc = got.data;
+      if (!prevDoc || prevDoc.status === 0) return fail(404, '档案不存在');
+      if (prevDoc._openid !== auth.openid && prevDoc.openid !== auth.openid) {
+        return fail(403, '无权修改');
+      }
+      source = { ...publicPet(prevDoc), ...payload, id: petId };
+    } catch (e) {
+      return fail(404, '档案不存在');
+    }
+  }
+
+  const body = pickPetPayload(source);
   const msg = validatePet(body);
   if (msg) return fail(400, msg);
 
@@ -68,22 +86,16 @@ async function save(payload, wxContext) {
     userId: auth.user._id,
     userNickname: auth.user.nickname || '宠友',
     ownerPhone,
-    auditStatus: 'approved',
-    rejectReason: '',
-    certPublished: false,
     status: 1,
     updatedAt: now(),
   };
 
-  const petId = payload && payload.id;
-  if (petId) {
+  if (petId && prevDoc) {
+    base.auditStatus = prevDoc.auditStatus === 'hidden' ? 'hidden' : 'approved';
+    base.rejectReason = prevDoc.auditStatus === 'rejected' ? (prevDoc.rejectReason || '') : '';
+    base.certPublished = !!prevDoc.certPublished;
+    if (prevDoc.createdAt) base.createdAt = prevDoc.createdAt;
     try {
-      const got = await pets().doc(petId).get();
-      const prev = got.data;
-      if (!prev || prev.status === 0) return fail(404, '档案不存在');
-      if (prev._openid !== auth.openid && prev.openid !== auth.openid) {
-        return fail(403, '无权修改');
-      }
       await pets().doc(petId).update({ data: base });
       const after = await pets().doc(petId).get();
       return ok({ pet: publicPet(after.data) });
@@ -91,6 +103,10 @@ async function save(payload, wxContext) {
       return fail(404, '档案不存在');
     }
   }
+
+  base.auditStatus = 'approved';
+  base.rejectReason = '';
+  base.certPublished = false;
 
   const addRes = await pets().add({
     data: {

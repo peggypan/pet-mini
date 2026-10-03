@@ -1,13 +1,7 @@
 const cloudApi = require('./cloud-api');
 const store = require('./store');
 
-function needsCloudUpload(path) {
-  if (!path || typeof path !== 'string') return false;
-  if (path.startsWith('cloud://')) return false;
-  if (path.startsWith('https://') || path.startsWith('http://')) return false;
-  if (path.startsWith('/assets/')) return false;
-  return true;
-}
+const { needsCloudUpload } = require('./cloud-media');
 
 function uploadOne(localPath) {
   const m = localPath.match(/\.([a-zA-Z0-9]+)(?:\?|$)/);
@@ -34,16 +28,13 @@ async function uploadPetMedia(payload) {
 }
 
 const { hasLoginToken, ensureCloudSession } = require('./cloud-session');
-const { resolvePets } = require('./cloud-media');
-
 async function refreshPetsFromCloud() {
   if (!cloudApi.cloudEnabled()) return store.listPets();
   if (!hasLoginToken()) return store.listPets();
   await ensureCloudSession();
   try {
     const data = await cloudApi.listMyPets();
-    let list = (data && data.list) || [];
-    list = await resolvePets(list);
+    const list = (data && data.list) || [];
     return store.replaceAllPetsFromCloud(list);
   } catch (e) {
     console.warn('[pet-cloud-sync] listMine', e);
@@ -55,12 +46,25 @@ async function savePetToCloud(payload, petId) {
   if (!cloudApi.cloudEnabled()) {
     return petId ? store.updatePet(petId, payload) : store.addPet(payload);
   }
+  if (hasLoginToken()) {
+    await ensureCloudSession();
+  }
   wx.showLoading({ title: '保存中…', mask: true });
   try {
     const uploaded = await uploadPetMedia(payload);
     const body = { ...uploaded };
     if (petId) body.id = petId;
-    const data = await cloudApi.savePet(body);
+    let data;
+    try {
+      data = await cloudApi.savePet(body);
+    } catch (e) {
+      if (petId && e && e.code === 404) {
+        delete body.id;
+        data = await cloudApi.savePet(body);
+      } else {
+        throw e;
+      }
+    }
     const pet = (data && data.pet) || null;
     if (!pet) throw new Error('保存失败');
     const row = store.upsertPetFromCloud(pet);

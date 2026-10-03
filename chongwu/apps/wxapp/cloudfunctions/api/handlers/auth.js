@@ -1,6 +1,7 @@
 const cloud = require('wx-server-sdk');
 const { ok, fail } = require('../common/response');
 const { users, now } = require('../common/db');
+const { isBrokenMediaUrl } = require('../common/media-urls');
 
 function publicUser(doc) {
   if (!doc) return null;
@@ -98,7 +99,11 @@ async function updateProfile(payload, wxContext) {
     patch.bio = String(body.bio || '').trim().slice(0, 80);
   }
   if (body.avatarUrl !== undefined) {
-    patch.avatarUrl = String(body.avatarUrl || '').trim();
+    const avatarUrl = String(body.avatarUrl || '').trim();
+    if (avatarUrl && isBrokenMediaUrl(avatarUrl)) {
+      return fail(400, '头像尚未上传到云存储，请重新选择后再保存');
+    }
+    patch.avatarUrl = avatarUrl;
   }
   if (Object.keys(patch).length <= 1) {
     return fail(400, '缺少 nickname / bio / avatarUrl');

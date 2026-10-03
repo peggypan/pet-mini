@@ -15,6 +15,7 @@ const { syncPetProfileGate } = require('../../utils/pet-profile-guard');
 const SWIPE_THRESHOLD = 72;
 const FLY_MS = 420;
 const TAP_MOVE_PX = 10;
+const MOVE_SETDATA_MS = 32;
 
 function matchScore(id) {
   let h = 0;
@@ -101,6 +102,13 @@ Page({
     healingTypeOptions: ['全部', ...HEALING_BUDDY_TYPES],
   },
 
+  onUnload() {
+    if (this._moveFlushTimer) {
+      clearTimeout(this._moveFlushTimer);
+      this._moveFlushTimer = null;
+    }
+  },
+
   async onShow() {
     syncPetProfileGate(this);
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
@@ -181,16 +189,17 @@ Page({
     wx.showToast({ title: `+${res.added} 次`, icon: 'none' });
   },
 
-  async tryConsumeSwipe(asLike) {
-    const card = this.topCard();
-    if (!card) return false;
-    const res = await swipeOnCloud(card, asLike);
-    if (!res.ok && res.quota) {
-      this.openShareQuotaModal();
-      return false;
-    }
-    this.refreshQuota();
-    return true;
+  hasSwipeQuota() {
+    return store.petLikeQuota().left > 0;
+  },
+
+  commitSwipe(card, asLike) {
+    swipeOnCloud(card, asLike).then((res) => {
+      if (!res.ok && res.quota) {
+        this.openShareQuotaModal();
+      }
+      this.refreshQuota();
+    });
   },
 
   topCard() {
@@ -203,6 +212,26 @@ Page({
     this._sy = e.touches[0].clientY;
     this._cardMoved = false;
     this.setData({ dragging: true });
+  },
+
+  flushCardMove() {
+    if (!this._movePatch) return;
+    const patch = this._movePatch;
+    this._movePatch = null;
+    this.setData(patch);
+  },
+
+  scheduleCardMovePatch(patch) {
+    this._movePatch = patch;
+    if (this._moveFlushTimer) return;
+    this._moveFlushTimer = setTimeout(() => {
+      this._moveFlushTimer = null;
+      if (!this.data.dragging || this.data.fly) {
+        this._movePatch = null;
+        return;
+      }
+      this.flushCardMove();
+    }, MOVE_SETDATA_MS);
   },
 
   onCardMove(e) {
@@ -218,7 +247,8 @@ Page({
     const skipOp = Math.min(1, Math.max(0, -dx / SWIPE_THRESHOLD));
     const cardScale = 1 + Math.min(0.035, Math.abs(dx) / 2800);
     const underScale = 0.92 + (likeOp + skipOp) * 0.05;
-    this.setData({
+    this._lastDx = dx;
+    this.scheduleCardMovePatch({
       dx,
       dy,
       rot: dx / 10,
@@ -231,7 +261,13 @@ Page({
 
   onCardEnd() {
     if (!this.data.dragging || this.data.fly) return;
-    const { dx } = this.data;
+    if (this._moveFlushTimer) {
+      clearTimeout(this._moveFlushTimer);
+      this._moveFlushTimer = null;
+    }
+    this.flushCardMove();
+    const dx = this._lastDx != null ? this._lastDx : this.data.dx;
+    this._lastDx = null;
     const tap = !this._cardMoved && Math.abs(dx) <= TAP_MOVE_PX;
     this.setData({ dragging: false });
     if (dx > SWIPE_THRESHOLD) {
@@ -266,30 +302,37 @@ Page({
     });
   },
 
-  async handleLike(opts = {}) {
+  handleLike(opts = {}) {
     if (this.data.fly || !this.topCard()) return;
-    if (!(await this.tryConsumeSwipe(true))) {
+    if (!this.hasSwipeQuota()) {
+      this.openShareQuotaModal();
       if (opts.fromSwipe) this.resetCard();
       return;
     }
     const card = this.topCard();
     if (wx.vibrateShort) wx.vibrateShort({ type: 'medium' });
-    wx.showToast({ title: `已喜欢 ${card.petName} 🐾`, icon: 'none' });
     this.setData({ likeBurst: true, actPulse: 'like' });
     setTimeout(() => this.setData({ likeBurst: false, actPulse: '' }), 520);
     this.flyOut('right');
+    this.commitSwipe(card, true);
+    setTimeout(() => {
+      wx.showToast({ title: `已喜欢 ${card.petName} 🐾`, icon: 'none' });
+    }, 80);
   },
 
-  async handleDislike(opts = {}) {
+  handleDislike(opts = {}) {
     if (this.data.fly || !this.topCard()) return;
-    if (!(await this.tryConsumeSwipe(false))) {
+    if (!this.hasSwipeQuota()) {
+      this.openShareQuotaModal();
       if (opts.fromSwipe) this.resetCard();
       return;
     }
+    const card = this.topCard();
     if (wx.vibrateShort) wx.vibrateShort({ type: 'light' });
     this.setData({ actPulse: 'dislike' });
     setTimeout(() => this.setData({ actPulse: '' }), 320);
     this.flyOut('left');
+    this.commitSwipe(card, false);
   },
 
   onSkip() {

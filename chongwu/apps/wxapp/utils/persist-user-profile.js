@@ -1,5 +1,20 @@
 const cloudApi = require('./cloud-api');
 const store = require('./store');
+const { needsCloudUpload } = require('./cloud-media');
+const { ensureCloudSession, hasLoginToken } = require('./cloud-session');
+
+async function uploadProfileAvatar(localPath) {
+  if (!localPath || !needsCloudUpload(localPath)) return localPath || '';
+  if (!cloudApi.cloudEnabled() || !wx.cloud || !wx.cloud.uploadFile) {
+    return localPath;
+  }
+  await ensureCloudSession();
+  const m = String(localPath).match(/\.([a-zA-Z0-9]+)(?:\?|$)/);
+  const ext = (m && m[1]) || 'jpg';
+  const cloudPath = `users/${Date.now()}_${Math.random().toString(36).slice(2, 10)}.${ext}`;
+  const res = await wx.cloud.uploadFile({ cloudPath, filePath: localPath });
+  return (res && res.fileID) || localPath;
+}
 
 function mergeUserInfo(patch) {
   const prev = wx.getStorageSync('userInfo') || {};
@@ -41,22 +56,32 @@ async function persistUserProfileFields(fields = {}) {
     return { user: wx.getStorageSync('userInfo') };
   }
 
+  let cloudAvatar = avatarUrl;
+  if (avatarUrl !== undefined && cloudAvatar) {
+    cloudAvatar = await uploadProfileAvatar(cloudAvatar);
+  }
+
   const payload = {};
   if (nickname !== undefined) payload.nickname = nickname;
   if (bio !== undefined) payload.bio = bio;
-  if (avatarUrl !== undefined) payload.avatarUrl = avatarUrl;
+  if (avatarUrl !== undefined) payload.avatarUrl = cloudAvatar || '';
   if (!Object.keys(payload).length) return null;
+
+  if (!hasLoginToken()) {
+    throw new Error('请先登录后再保存头像');
+  }
 
   const data = await cloudApi.callApi('auth', 'updateProfile', payload);
   const user = data && data.user;
   if (user) {
     mergeUserInfo({
       ...user,
+      avatarUrl: user.avatarUrl || cloudAvatar || '',
       ...(nickname !== undefined ? { nickname } : {}),
       ...(bio !== undefined ? { bio } : {}),
     });
   }
-  return data;
+  return { ...(data || {}), uploadedAvatarUrl: cloudAvatar };
 }
 
 async function pullUserProfileFromCloud() {
@@ -85,6 +110,10 @@ async function pullUserProfileFromCloud() {
     bio: profilePatch.bio !== undefined ? profilePatch.bio : user.bio,
   });
 
+  if (user.avatarUrl) {
+    store.updateDefaultPetAvatar(user.avatarUrl);
+  }
+
   if (localBio && !cloudBio) {
     try {
       await persistUserProfileFields({ bio: localBio });
@@ -99,4 +128,5 @@ async function pullUserProfileFromCloud() {
 module.exports = {
   persistUserProfileFields,
   pullUserProfileFromCloud,
+  uploadProfileAvatar,
 };

@@ -1,4 +1,5 @@
 const LOST_TYPES = ['lost', 'found', 'adopt', 'rescue'];
+const { validateMediaPayload } = require('./media-urls');
 
 function trim(s) {
   return typeof s === 'string' ? s.trim() : '';
@@ -72,6 +73,8 @@ function validateSocial(body) {
   if (body.lostType && !trim(body.title)) {
     return '请填写标题';
   }
+  const mediaMsg = validateMediaPayload(body);
+  if (mediaMsg) return mediaMsg;
   const text = trim(body.content);
   if (!text && !(body.mediaList && body.mediaList.length)) {
     return '请填写内容或上传媒体';

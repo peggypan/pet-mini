@@ -31,7 +31,7 @@
       class="pet-card top {{fly === 'left' ? 'fly-left' : ''}} {{fly === 'right' ? 'fly-right' : ''}} {{!dragging && !fly ? 'spring' : ''}}"
       style="transform: translate3d({{dx}}px, {{dy}}px, 0) rotate({{rot}}deg) scale({{cardScale}});"
       bindtouchstart="onCardStart"
-      bindtouchmove="onCardMove"
+      catchtouchmove="onCardMove"
       bindtouchend="onCardEnd"
       bindtouchcancel="onCardEnd"
     >

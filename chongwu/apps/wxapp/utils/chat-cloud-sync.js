@@ -8,13 +8,7 @@ function chatApi(module, action, payload = {}) {
   return cloudApi.callApi(module, action, payload);
 }
 
-function needsCloudUpload(path) {
-  if (!path || typeof path !== 'string') return false;
-  if (path.startsWith('cloud://')) return false;
-  if (path.startsWith('https://') || path.startsWith('http://')) return false;
-  if (path.startsWith('/assets/')) return false;
-  return true;
-}
+const { needsCloudUpload } = require('./cloud-media');
 
 function uploadOne(localPath, folder) {
   const m = localPath.match(/\.([a-zA-Z0-9]+)(?:\?|$)/);

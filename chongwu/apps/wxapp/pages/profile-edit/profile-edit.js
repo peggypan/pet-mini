@@ -3,6 +3,8 @@ const { getDefaultPet } = require('../../utils/catalog');
 const { chooseMedia } = require('../../utils/choose-media');
 const { persistUserProfileFields } = require('../../utils/persist-user-profile');
 const { getDisplayNickname } = require('../../utils/user-profile-display');
+const { savePetToCloud } = require('../../utils/pet-cloud-sync');
+const cloudApi = require('../../utils/cloud-api');
 
 const DEFAULT_BIO = '和毛孩子一起，遇见同城宠友与好活动～';
 
@@ -22,8 +24,9 @@ Page({
     const pet = getDefaultPet();
     const profile = store.getUserProfile();
     const userInfo = wx.getStorageSync('userInfo') || {};
+    const cloudAvatar = (userInfo.avatarUrl || '').trim();
     this.setData({
-      avatarUrl: pet.avatar || pet.avatarUrl || '/assets/mock/real_avatar.jpg',
+      avatarUrl: pet.avatar || pet.avatarUrl || cloudAvatar || '/assets/mock/real_avatar.jpg',
       nickname: getDisplayNickname(),
       bio: profile.bio || DEFAULT_BIO,
     });
@@ -58,8 +61,21 @@ Page({
     this.setData({ saving: true });
     try {
       const bioText = bio.trim() || DEFAULT_BIO;
-      await persistUserProfileFields({ nickname: nickname.trim(), bio: bioText });
-      store.updateDefaultPetAvatar(avatarUrl);
+      const result = await persistUserProfileFields({
+        nickname: nickname.trim(),
+        bio: bioText,
+        avatarUrl,
+      });
+      const savedAvatar = (result && result.uploadedAvatarUrl) || avatarUrl;
+      store.updateDefaultPetAvatar(savedAvatar);
+      const pet = getDefaultPet();
+      if (cloudApi.cloudEnabled() && pet.id && pet.id !== 'demo') {
+        try {
+          await savePetToCloud({ avatarUrl: savedAvatar }, pet.id);
+        } catch (petErr) {
+          console.warn('[profile-edit] sync pet avatar', petErr);
+        }
+      }
       wx.showToast({ title: '已保存', icon: 'success' });
       setTimeout(() => wx.navigateBack(), 400);
     } catch (e) {

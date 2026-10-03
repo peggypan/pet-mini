@@ -330,9 +330,32 @@ page { background: #F5F8FC; }
   border-radius: 20rpx;
 }
 
-.cert-qr-canvas {
+.cert-qr-image {
   width: 360rpx;
   height: 360rpx;
+  display: block;
+}
+
+.qr-loading {
+  width: 360rpx;
+  height: 360rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26rpx;
+  color: #999999;
+}
+
+/* 仅用于离屏绘制，避免 canvas 原生层随页面滚动错位 */
+.cert-qr-draw-canvas {
+  position: fixed;
+  left: -9999px;
+  top: 0;
+  width: 360rpx;
+  height: 360rpx;
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
 }
 
 .qr-tip {

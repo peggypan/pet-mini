@@ -52,11 +52,7 @@
       bindtap="onCardTap"
       data-id="{{item.id}}"
     >
-      <view
-        class="buddy-plaza-cover aspect-34"
-        catchtap="onPreviewCover"
-        data-id="{{item.id}}"
-      >
+      <view class="buddy-plaza-cover aspect-34">
         <image
           class="aspect-34-fill"
           src="{{item.coverIsVideo ? (item.coverPoster || item.cover) : item.cover}}"
@@ -68,7 +64,7 @@
         <text class="buddy-plaza-dist">{{item.distanceLabel}}</text>
       </view>
       <view class="buddy-plaza-body">
-        <text class="buddy-plaza-name">{{item.titleLine}}</text>
+        <text class="buddy-plaza-name">{{item.cardTitle}}</text>
         <view class="buddy-plaza-score">
           <text class="buddy-plaza-star">★</text>
           <text class="buddy-plaza-score-text" wx:if="{{item.verified}}">已核验</text>
@@ -89,7 +85,7 @@
         <view class="buddy-plaza-tags" wx:if="{{item.tags.length}}">
           <text class="buddy-plaza-tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag">{{tag}}</text>
         </view>
-        <text class="buddy-plaza-intro" wx:if="{{item.intro}}">{{item.intro}}</text>
+        <text class="buddy-plaza-author">{{item.authorLine}}</text>
         <view class="feed-actions feed-actions-compact">
           <view
             class="feed-action {{item.liked ? 'is-liked' : ''}}"

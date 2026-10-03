@@ -14,6 +14,7 @@
     "avatar": { "type": "string" },
     "zone": { "type": "string", "description": "dog/cat/exotic/… · community-zones POST_ZONES" },
     "topic": { "type": "string" },
+    "title": { "type": "string", "description": "寻宠/招领/救助列表主标题" },
     "content": { "type": "string" },
     "lostType": { "type": "string", "enum": ["lost", "found", "adopt", "rescue", ""], "description": "寻宠/招领/救助/领养" },
     "mediaList": { "type": "array" },

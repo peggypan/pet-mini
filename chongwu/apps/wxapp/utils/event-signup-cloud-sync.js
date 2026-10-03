@@ -91,6 +91,8 @@ async function saveSignupToCloud(event, form) {
       id: event.id,
       remain: data.event.remain,
       signupCount: data.event.signupCount,
+      maxPeople: data.event.maxPeople,
+      seats: data.event.seats,
     });
   }
 

@@ -24,6 +24,13 @@ const SHARE_PAGE_TAG = {
   adopt: '领养救助',
 };
 
+const TITLE_PLACEHOLDERS = {
+  lost: '如：走失金毛，红花镇附近',
+  found: '如：捡到小型犬，待主人认领',
+  rescue: '如：流浪猫需医疗救助',
+  adopt: '如：温顺狸花猫寻找领养',
+};
+
 Page({
   data: {
     pageMode: 'lost-found',
@@ -36,6 +43,8 @@ Page({
     zone: 'dog',
     location: '',
     geoLocation: null,
+    headline: '',
+    titlePlaceholder: TITLE_PLACEHOLDERS.lost,
     phone: '',
     content: '',
     mediaList: [],
@@ -71,6 +80,7 @@ Page({
       pageMode,
       postType,
       placeholder: PLACEHOLDERS[postType],
+      titlePlaceholder: TITLE_PLACEHOLDERS[postType] || TITLE_PLACEHOLDERS.lost,
     });
   },
 
@@ -105,6 +115,7 @@ Page({
     this.setData({
       postType,
       placeholder: PLACEHOLDERS[postType],
+      titlePlaceholder: TITLE_PLACEHOLDERS[postType] || TITLE_PLACEHOLDERS.lost,
     });
   },
 
@@ -192,11 +203,20 @@ Page({
   async onSubmit() {
     if (!requirePetProfile()) return;
     const {
-      postType, zone, location, geoLocation, phone, content, mediaList,
+      postType, zone, location, geoLocation, phone, headline, content, mediaList,
     } = this.data;
+    const title = (headline || '').trim();
     const text = (content || '').trim();
+    if (!title) {
+      wx.showToast({ title: '请填写标题', icon: 'none' });
+      return;
+    }
     if (!text) {
       wx.showToast({ title: '请填写详细描述', icon: 'none' });
+      return;
+    }
+    if (sensitiveWords.textBlocked(title)) {
+      wx.showToast({ title: '标题含有违规内容', icon: 'none' });
       return;
     }
     if (!geoLocation && !(location || '').trim()) {
@@ -229,11 +249,13 @@ Page({
     ].filter(Boolean);
 
     const imageUrls = mediaList.filter((m) => m.type === 'image').map((m) => m.url);
+    const nick = (store.getUserProfile().nickname || '').trim() || '宠友';
     const payload = {
-      userName: '我',
+      userName: nick,
       petName: MOCK_PET.name,
       avatar: MOCK_PET.avatar,
       zone,
+      title,
       content: parts.join('\n'),
       image: imageUrls[0] || '',
       images: imageUrls,
@@ -249,7 +271,7 @@ Page({
       if (cloudApi.cloudEnabled() && postType === 'adopt') {
         row = await saveLocalToCloud({
           type: 'adopt',
-          title: `爱心领养 · ${locText || '同城'}`,
+          title,
           desc: text,
           contact: phone || '',
           location: locText,
@@ -257,7 +279,7 @@ Page({
           mediaList,
           image: imageUrls[0] || '',
           images: imageUrls,
-          userName: '我',
+          userName: nick,
         });
       } else if (cloudApi.cloudEnabled()) {
         row = await saveSocialToCloud(payload);
@@ -271,13 +293,13 @@ Page({
 
     let shareTitle;
     if (postType === 'lost') {
-      shareTitle = `急寻宠物！${locText ? locText + ' · ' : ''}${text.slice(0, 20)}`;
+      shareTitle = `急寻宠物！${title}`;
     } else if (postType === 'found') {
-      shareTitle = `招领宠物 · ${locText || '同城'} · ${text.slice(0, 20)}`;
+      shareTitle = `招领宠物 · ${title}`;
     } else if (postType === 'rescue') {
-      shareTitle = `宠物救助 · ${locText || '同城'} · ${text.slice(0, 20)}`;
+      shareTitle = `宠物救助 · ${title}`;
     } else {
-      shareTitle = `爱心领养 · ${locText || '同城'} · ${text.slice(0, 20)}`;
+      shareTitle = `爱心领养 · ${title}`;
     }
 
     this.setData({ lastPublishedId: row.id, shareTitle });

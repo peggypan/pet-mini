@@ -109,6 +109,15 @@ page { background: #F5F8FC; }
 .pet-line { display: block; font-size: 26rpx; color: #5A6F62; margin-bottom: 8rpx; }
 .verified { display: block; font-size: 24rpx; color: #4DA7F8; margin-bottom: 8rpx; }
 .link { font-size: 22rpx; color: #4DA7F8; }
+.post-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 800;
+  color: #1a1a1a;
+  line-height: 1.45;
+  margin-bottom: 12rpx;
+}
+
 .desc { display: block; font-size: 28rpx; color: #3A4F42; line-height: 1.6; margin-bottom: 12rpx; }
 .media-grid { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12rpx; margin-bottom: 16rpx; }
 .media-grid.single .media-item { width: 100%; flex: none; max-width: none; }

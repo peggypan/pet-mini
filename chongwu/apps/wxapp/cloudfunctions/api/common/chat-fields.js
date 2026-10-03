@@ -27,6 +27,7 @@ function pickEnsureThreadPayload(raw) {
   const p = raw || {};
   return {
     peerId: trim(p.peerId),
+    peerOpenid: trim(p.peerOpenid),
     peerName: trim(p.peerName) || '宠友',
     petName: trim(p.petName) || '宠物',
     avatar: trim(p.avatar),

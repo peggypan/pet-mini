@@ -3,6 +3,18 @@
     <view class="healing-publish-hint" wx:if="{{zone === 'healing' && !petHealingEnabled}}">
       尚未开启宠物疗愈，请先在「编辑档案」中开启并选择疗愈类型
     </view>
+
+    <text class="label">标题 *</text>
+    <input
+      class="field-input"
+      placeholder="一句话说明找搭子主题，如「周末公园遛狗」"
+      value="{{title}}"
+      data-field="title"
+      bindinput="onInput"
+      maxlength="30"
+    />
+    <text class="field-count">{{title.length}}/30</text>
+
     <text class="label">搭子类型</text>
     <picker range="{{buddyTypes}}" bindchange="onTypeChange">
       <view class="picker">{{buddyType}}</view>

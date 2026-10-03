@@ -20,6 +20,7 @@ Page({
     expectPlace: '',
     expectPlaceAddress: '',
     location: null,
+    title: '',
     desc: '',
     openSignup: true,
     mediaList: [],
@@ -165,8 +166,16 @@ Page({
 
   async onSubmit() {
     if (!requirePetProfile()) return;
-    const { buddyType, expectTime, expectPlace, expectPlaceAddress, location, desc, zone, openSignup, mediaList } = this.data;
+    const {
+      title, buddyType, expectTime, expectPlace, expectPlaceAddress, location,
+      desc, zone, openSignup, mediaList,
+    } = this.data;
+    const headline = (title || '').trim();
     const text = (desc || '').trim();
+    if (!headline) {
+      wx.showToast({ title: '请填写标题', icon: 'none' });
+      return;
+    }
     if (!text && !mediaList.length) {
       wx.showToast({ title: '请填写描述或上传媒体', icon: 'none' });
       return;
@@ -174,8 +183,9 @@ Page({
     const pet = getDefaultPet();
     const firstImage = mediaList.find((m) => m.type === 'image');
     const firstVideo = mediaList.find((m) => m.type === 'video');
+    const nick = (store.getUserProfile().nickname || '').trim();
     const payload = {
-      userName: '我',
+      userName: nick || '宠友',
       avatar: pet.avatarUrl || pet.avatar,
       petName: pet.name,
       breed: pet.breed,
@@ -187,6 +197,7 @@ Page({
       expectPlace: expectPlace || '同城',
       expectPlaceAddress,
       location,
+      title: headline,
       desc: text,
       distance: '0km',
       tags: pet.socialTags || [],

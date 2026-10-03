@@ -19,6 +19,22 @@ page { background: #F5F8FC; }
 
 .label:first-child { margin-top: 0; }
 
+.field-input {
+  height: 88rpx;
+  padding: 0 24rpx;
+  font-size: 28rpx;
+  color: #1A1A1A;
+  margin-bottom: 4rpx;
+}
+
+.field-count {
+  display: block;
+  text-align: right;
+  font-size: 22rpx;
+  color: #999999;
+  margin-bottom: 8rpx;
+}
+
 .healing-publish-hint {
   padding: 16rpx 20rpx;
   margin-bottom: 12rpx;

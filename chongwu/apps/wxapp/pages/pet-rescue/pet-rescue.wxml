@@ -57,8 +57,7 @@
             >删除</text>
           </view>
         </view>
-        <text class="title">{{item.title}}</text>
-        <text class="preview">{{item.preview}}</text>
+        <text class="preview preview-headline">{{item.preview}}</text>
         <text
           class="loc place-tap"
           wx:if="{{item.location}}"
@@ -69,6 +68,7 @@
           data-lat="{{item.locationLat}}"
           data-lng="{{item.locationLng}}"
         >🐾 {{item.location}}</text>
+        <text class="rescue-author" wx:if="{{item.authorLine}}">{{item.authorLine}}</text>
       </view>
     </view>
 

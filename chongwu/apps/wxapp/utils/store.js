@@ -722,6 +722,7 @@ function addEventSignup(event, form) {
   };
   list.unshift(row);
   write(KEYS.eventSignups, list);
+  bumpEventSignupQuota(event.id, 1);
   const notice = buildEventSignupNotice(row);
   pushMessage(notice.title, notice.content, 'event', {
     eventId: event.id,
@@ -1148,6 +1149,7 @@ function addBuddyPost(post) {
     id: uid('bd'),
     time: '刚刚',
     userName: '我',
+    isMine: true,
     verified: false,
     zone: 'normal',
     creditTags: [],
@@ -1490,8 +1492,10 @@ function addMapPoint(point) {
 }
 
 /** —— 活动发起 / 商家预约 —— */
+const { applyEventQuota } = require('./event-quota');
+
 function mapEventFromCloud(event) {
-  return {
+  return applyEventQuota({
     auditStatus: 'approved',
     status: event.status || 'approved',
     isMine: !!event.isMine,
@@ -1499,7 +1503,23 @@ function mapEventFromCloud(event) {
     id: String(event.id),
     createdAt: event.createdAt || new Date().toISOString(),
     publishedAt: event.publishedAt || event.createdAt || new Date().toISOString(),
-  };
+  });
+}
+
+function bumpEventSignupQuota(eventId, delta) {
+  const sid = String(eventId);
+  const cached = getEventFromCache(sid);
+  if (!cached) return null;
+  const { resolveEventQuota } = require('./event-quota');
+  const q = resolveEventQuota(cached);
+  const signupCount = Math.min(q.maxPeople, Math.max(0, q.signupCount + delta));
+  const remain = Math.max(0, q.maxPeople - signupCount);
+  return upsertEventFromCloud({
+    ...cached,
+    signupCount,
+    remain,
+    seats: `${signupCount}/${q.maxPeople}`,
+  });
 }
 
 function listCloudEvents() {

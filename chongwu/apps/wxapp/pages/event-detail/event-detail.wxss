@@ -120,6 +120,18 @@ page { background: #F5F8FC; }
   color: #E08A5A;
 }
 
+.info-quota {
+  flex: 1;
+  min-width: 0;
+}
+
+.info-quota-sub {
+  display: block;
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  color: #999;
+}
+
 .event-safety-tip {
   margin: 24rpx 28rpx 0;
   padding: 20rpx 24rpx;
@@ -156,42 +168,23 @@ page { background: #F5F8FC; }
   margin-bottom: 8rpx;
 }
 
-.detail-image-wrap {
-  position: relative;
+.detail-image-stack {
   margin-top: 20rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.detail-image-item {
+  position: relative;
+  width: 100%;
   border-radius: 16rpx;
   overflow: hidden;
-  background: #F5F8FC;
+  background: #f5f8fc;
 }
 
-.detail-image-swiper {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.detail-image-swiper swiper-item {
-  width: 100%;
-  height: 100%;
-}
-
-.detail-swiper-img {
-  background: #E8F4FF;
-}
-
-.detail-image-counter {
-  position: absolute;
-  right: 16rpx;
-  bottom: 16rpx;
-  z-index: 2;
-  padding: 4rpx 14rpx;
-  font-size: 22rpx;
-  font-weight: 600;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.35);
-  border-radius: 999rpx;
+.detail-stack-img {
+  background: #e8f4ff;
 }
 
 .detail-gallery {

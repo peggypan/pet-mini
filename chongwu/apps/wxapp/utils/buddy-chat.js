@@ -13,29 +13,27 @@ function startBuddyChat(buddy) {
     confirmText: '发起私聊',
     success: async (res) => {
       if (!res.confirm) return;
+      const peerOpenid = buddy.openid || buddy._openid || '';
+      const peerId = peerOpenid || buddy.id;
+      const threadPayload = {
+        id: `c_${peerId}`,
+        peerId,
+        peerOpenid,
+        peerName: buddy.userName,
+        petName: buddy.petName,
+        avatar: buddy.avatar || buddy.cover,
+      };
       if (cloudApi.cloudEnabled()) {
-        await ensureChatThreadOnCloud({
-          id: `c_${buddy.id}`,
-          peerId: buddy.id,
-          peerName: buddy.userName,
-          petName: buddy.petName,
-          avatar: buddy.avatar || buddy.cover,
-        });
+        await ensureChatThreadOnCloud(threadPayload);
       } else {
-        store.ensureChatThread({
-          id: `c_${buddy.id}`,
-          peerId: buddy.id,
-          peerName: buddy.userName,
-          petName: buddy.petName,
-          avatar: buddy.avatar || buddy.cover,
-        });
+        store.ensureChatThread(threadPayload);
       }
       const shareTitle = encodeURIComponent(
         `${buddy.userName} · ${buddy.petName} · ${buddy.buddyType || '搭子'}`,
       );
       const shareText = encodeURIComponent((buddy.desc || '').slice(0, 160));
       wx.navigateTo({
-        url: `/pages/chat/chat?peerId=${buddy.id}&shareComment=1&shareTitle=${shareTitle}&shareText=${shareText}&shareRef=${buddy.id}`,
+        url: `/pages/chat/chat?peerId=${peerId}&shareComment=1&shareTitle=${shareTitle}&shareText=${shareText}&shareRef=${buddy.id}`,
       });
     },
   });

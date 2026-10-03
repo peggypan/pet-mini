@@ -30,6 +30,7 @@
         "longitude": { "type": "number" }
       }
     },
+    "title": { "type": "string", "description": "列表/卡片主标题" },
     "desc": { "type": "string" },
     "tags": { "type": "array", "items": { "type": "string" } },
     "creditTags": { "type": "array", "items": { "type": "string" } },

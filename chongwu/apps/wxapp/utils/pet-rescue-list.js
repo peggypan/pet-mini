@@ -1,4 +1,5 @@
 const store = require('./store');
+const { displayUserNickName } = require('./display-user-nick');
 const cloudApi = require('./cloud-api');
 const { MOCK_SOCIAL, MOCK_RESCUE } = require('./mock');
 
@@ -53,8 +54,8 @@ function buildRescueList() {
       refId: p.id,
       kind: p.lostType,
       tag: KIND_LABEL[p.lostType] || '寻宠',
-      title: (p.userName || '宠友') + (p.petName ? ' · ' + p.petName : ''),
-      preview: (p.content || '').replace(/\n/g, ' ').slice(0, 72),
+      authorLine: displayUserNickName({ ...p, isMine: store.isMyUserContent(p) }),
+      preview: (p.title || (p.content || '').replace(/\n/g, ' ')).trim().slice(0, 72),
       time: p.time || '刚刚',
       ...pickGeo(p),
       cover: resolveCover(p.lostType, p),
@@ -80,8 +81,8 @@ function buildRescueList() {
         refId: p.id,
         kind,
         tag: KIND_LABEL[kind] || '同城',
-        title: p.title || (kind === 'adopt' ? '领养信息' : '同城信息'),
-        preview: (p.desc || '').slice(0, 72),
+        authorLine: displayUserNickName({ ...p, isMine: store.isMyUserContent(p) }),
+        preview: (p.title || p.desc || '').slice(0, 72),
         time: p.time || '刚刚',
         ...pickGeo(p),
         contact: p.contact || '',
@@ -102,8 +103,8 @@ function buildRescueList() {
         refId: p.refId || '',
         kind: p.kind || 'adopt',
         tag: p.tag || KIND_LABEL[p.kind] || '领养',
-        title: p.title || '',
-        preview: p.preview || '',
+        authorLine: displayUserNickName(p) || p.userName || '',
+        preview: p.preview || p.title || '',
         time: p.time || '刚刚',
         location: p.location || '',
         locationName: p.location || '',

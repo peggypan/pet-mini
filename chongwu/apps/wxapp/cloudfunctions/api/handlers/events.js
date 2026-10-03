@@ -1,5 +1,5 @@
 const { ok, fail } = require('../common/response');
-const { events, now, getDb } = require('../common/db');
+const { events, eventInterests, now, getDb } = require('../common/db');
 const { requireUser } = require('../common/auth-user');
 const { pickEventPayload, validateEvent, publicEvent } = require('../common/event-fields');
 
@@ -112,6 +112,7 @@ async function save(payload, wxContext) {
     userDeleted: false,
     status: 'published',
     signupCount: 0,
+    interestCount: 0,
     updatedAt: now(),
   };
 
@@ -130,6 +131,7 @@ async function save(payload, wxContext) {
           data: {
             ...base,
             signupCount: prev.signupCount || 0,
+            interestCount: prev.interestCount || 0,
             remain: prev.remain != null ? prev.remain : base.remain,
           },
         });
@@ -176,10 +178,74 @@ async function remove(payload, wxContext) {
   }
 }
 
+/** 用户打开活动详情计一次关注（同一用户同一活动仅计一次） */
+async function recordInterest(payload, wxContext) {
+  const auth = await requireUser(wxContext);
+  if (auth.err) return auth.err;
+  const eventId = payload && payload.eventId;
+  if (!eventId) return fail(400, '缺少 eventId');
+
+  try {
+    const got = await events().doc(String(eventId)).get();
+    const doc = got.data;
+    if (!doc || doc.userDeleted || doc.auditStatus !== 'approved') {
+      return fail(404, '活动不存在');
+    }
+    if (doc.openid === auth.openid || doc._openid === auth.openid) {
+      return ok({
+        interestCount: Number(doc.interestCount) || 0,
+        alreadyInterested: true,
+      });
+    }
+
+    const _ = getDb().command;
+    const dup = await eventInterests()
+      .where(
+        _.and([
+          { eventId: String(eventId) },
+          _.or([{ openid: auth.openid }, { _openid: auth.openid }]),
+        ]),
+      )
+      .limit(1)
+      .get();
+    if (dup.data && dup.data.length) {
+      return ok({
+        interestCount: Number(doc.interestCount) || 0,
+        alreadyInterested: true,
+      });
+    }
+
+    await eventInterests().add({
+      data: {
+        eventId: String(eventId),
+        openid: auth.openid,
+        _openid: auth.openid,
+        createdAt: now(),
+      },
+    });
+    await events()
+      .doc(String(eventId))
+      .update({
+        data: {
+          interestCount: _.inc(1),
+          updatedAt: now(),
+        },
+      });
+    const after = await events().doc(String(eventId)).get();
+    return ok({
+      interestCount: Number(after.data && after.data.interestCount) || 0,
+      alreadyInterested: false,
+    });
+  } catch (e) {
+    return fail(500, '记录关注失败');
+  }
+}
+
 module.exports = {
   listFeed,
   listMine,
   get,
   save,
   remove,
+  recordInterest,
 };

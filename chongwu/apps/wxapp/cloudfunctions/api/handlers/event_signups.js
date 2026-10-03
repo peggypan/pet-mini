@@ -13,6 +13,33 @@ const {
   expandSnapshot,
   isPetCertPublishable,
 } = require('../common/pet-cert-public-fields');
+function seatsLabelFromEventDoc(doc) {
+  if (!doc) return '0/20';
+  const maxPeople = Math.max(1, Number(doc.maxPeople) || 20);
+  const signupCount = Math.max(0, Number(doc.signupCount) || 0);
+  return `${Math.min(signupCount, maxPeople)}/${maxPeople}`;
+}
+
+async function syncEventSeatsAfterQuotaChange(eventId) {
+  try {
+    const ev = await events().doc(String(eventId)).get();
+    const doc = ev.data;
+    if (!doc) return null;
+    const seats = seatsLabelFromEventDoc(doc);
+    await events()
+      .doc(String(eventId))
+      .update({ data: { seats, updatedAt: now() } });
+    return {
+      remain: doc.remain,
+      signupCount: doc.signupCount,
+      maxPeople: doc.maxPeople,
+      seats,
+    };
+  } catch (e) {
+    return null;
+  }
+}
+
 async function loadParticipantPetPublic(openid, petIdHint) {
   const oid = String(openid || '').trim();
   if (!oid && !petIdHint) return null;
@@ -246,15 +273,7 @@ async function save(payload, wxContext) {
     });
 
   const created = await eventSignups().doc(addRes._id).get();
-  let eventPatch = null;
-  try {
-    const ev = await events().doc(body.eventId).get();
-    eventPatch = ev.data
-      ? { remain: ev.data.remain, signupCount: ev.data.signupCount }
-      : null;
-  } catch (e) {
-    // ignore
-  }
+  const eventPatch = await syncEventSeatsAfterQuotaChange(body.eventId);
 
   return ok({
     signup: publicSignup(created.data, auth.openid),
@@ -308,6 +327,7 @@ async function remove(payload, wxContext) {
         },
       })
       .catch(() => {});
+    await syncEventSeatsAfterQuotaChange(doc.eventId);
   }
 
   return ok({ id: doc._id });

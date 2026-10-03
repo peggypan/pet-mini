@@ -8,13 +8,14 @@ const { drawQrCanvas } = require('../../utils/qrcode');
 const { requirePetProfile } = require('../../utils/pet-profile-guard');
 const { deleteOwnedEvent, finishAfterDelete } = require('../../utils/user-content-delete');
 const cloudApi = require('../../utils/cloud-api');
-const { fetchEventFromCloud } = require('../../utils/event-cloud-sync');
+const { fetchEventFromCloud, recordEventInterest } = require('../../utils/event-cloud-sync');
 const {
   fetchMySignupByEvent,
   saveSignupToCloud,
 } = require('../../utils/event-signup-cloud-sync');
 const { ensureChatThreadOnCloud } = require('../../utils/chat-cloud-sync');
 const { buildEventDetailSection, buildEventCoverImages } = require('../../utils/event-detail-content');
+const { applyEventQuota } = require('../../utils/event-quota');
 const { petExtrasFromProfile } = require('../../utils/event-signup-host-detail');
 
 function readUserPhone() {
@@ -45,7 +46,6 @@ Page({
     coverImages: [],
     coverCurrent: 0,
     detailSection: { show: false, text: '', images: [], media: [] },
-    detailImageCurrent: 0,
     isOwner: false,
     signedUp: false,
     eventSafetyTip: RISK_TIPS.event,
@@ -73,6 +73,7 @@ Page({
       wx.showToast({ title: '活动不存在', icon: 'none' });
       return;
     }
+    event = applyEventQuota(event);
     this._eventId = event.id;
     let signedUp = store.listEventSignups().some((x) => String(x.eventId) === String(event.id));
     if (cloudApi.cloudEnabled()) {
@@ -85,7 +86,6 @@ Page({
       coverImages: buildEventCoverImages(event),
       coverCurrent: 0,
       detailSection: buildEventDetailSection(event),
-      detailImageCurrent: 0,
       signedUp: isOwner ? false : signedUp,
       isOwner,
     });
@@ -96,11 +96,25 @@ Page({
     if (options.ticket === '1' && signedUp && !isOwner) {
       this.openTicket();
     }
+    if (!isOwner && event.id) {
+      recordEventInterest(event.id).catch(() => {});
+    }
+  },
+
+  async refreshEventQuota() {
+    const id = this._eventId || (this.data.event && this.data.event.id);
+    if (!id) return;
+    if (cloudApi.cloudEnabled()) {
+      await fetchEventFromCloud(id);
+    }
+    const event = applyEventQuota(findEvent(id) || this.data.event);
+    if (event) this.setData({ event });
   },
 
   async onShow() {
     const event = this.data.event;
-    if (!event || this.data.isOwner) return;
+    if (!event) return;
+    await this.refreshEventQuota();
     let signedUp = store.listEventSignups().some((x) => String(x.eventId) === String(event.id));
     if (cloudApi.cloudEnabled()) {
       signedUp = !!(await fetchMySignupByEvent(event.id));
@@ -149,9 +163,9 @@ Page({
       ticketQrReady: false,
     };
     if (event) {
-      const cached = cloudApi.cloudEnabled() ? store.getEventFromCache(event.id) : null;
+      const cached = store.getEventFromCache(event.id);
       if (cached) {
-        patch.event = { ...event, remain: cached.remain, signupCount: cached.signupCount };
+        patch.event = applyEventQuota({ ...event, ...cached });
       }
     }
     return new Promise((resolve) => {
@@ -246,7 +260,8 @@ Page({
       wx.showToast({ title: '这是您发起的活动', icon: 'none' });
       return;
     }
-    const peerId = event.hostId || event.publisherId || `host_${event.id}`;
+    const peerOpenid = event.openid || event._openid || '';
+    const peerId = peerOpenid || event.hostId || event.publisherId || `host_${event.id}`;
     const peerNameRaw = event.host || '主理人';
     const petNameRaw = event.hostPetName || '活动主理';
     const avatarRaw = event.hostAvatar || '';
@@ -259,6 +274,7 @@ Page({
         await ensureChatThreadOnCloud({
           id: `c_${peerId}`,
           peerId,
+          peerOpenid,
           peerName: peerNameRaw,
           petName: petNameRaw,
           avatar: avatarRaw,
@@ -289,13 +305,6 @@ Page({
     const current = Number(e.detail.current);
     if (!Number.isNaN(current)) {
       this.setData({ coverCurrent: current });
-    }
-  },
-
-  onDetailImageSwiperChange(e) {
-    const current = Number(e.detail.current);
-    if (!Number.isNaN(current)) {
-      this.setData({ detailImageCurrent: current });
     }
   },
 

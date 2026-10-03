@@ -62,6 +62,7 @@ const ROUTES = {
   'events.get': (payload, ctx) => eventsHandler.get(payload, ctx),
   'events.save': (payload, ctx) => eventsHandler.save(payload, ctx),
   'events.remove': (payload, ctx) => eventsHandler.remove(payload, ctx),
+  'events.recordInterest': (payload, ctx) => eventsHandler.recordInterest(payload, ctx),
   'event_signups.listMine': (payload, ctx) => eventSignupsHandler.listMine(payload, ctx),
   'event_signups.getMyByEvent': (payload, ctx) => eventSignupsHandler.getMyByEvent(payload, ctx),
   'event_signups.get': (payload, ctx) => eventSignupsHandler.get(payload, ctx),

@@ -17,7 +17,7 @@ PHASE_ARG="${1:-all}"
 
 PHASE1=(users pets)
 PHASE2=(buddy_posts pet_discover_likes pet_discover_daily social_posts social_comments local_posts chat_threads chat_messages)
-PHASE3=(events event_signups event_qualify)
+PHASE3=(events event_signups event_interests event_qualify)
 PHASE4=(map_points)
 PHASE5=(merchants merchant_applies host_applies clubs club_members)
 PHASE6=(pet_certs_public banners splash_ads points_ledger sensitive_words admin_users)

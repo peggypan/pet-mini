@@ -64,6 +64,7 @@
         </view>
       </view>
     </view>
+    <text class="post-title" wx:if="{{buddy.title}}">{{buddy.title}}</text>
     <text class="desc">{{buddy.desc}}</text>
     <view class="expect expect-time">
       <text class="expect-label">期望时间：</text>

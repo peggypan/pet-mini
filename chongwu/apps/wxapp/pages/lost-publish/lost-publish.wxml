@@ -55,6 +55,18 @@
       >{{item.name}}</view>
     </view>
 
+    <text class="label">标题 *</text>
+    <input
+      class="input"
+      placeholder="{{titlePlaceholder}}"
+      placeholder-class="ph"
+      value="{{headline}}"
+      bindinput="onField"
+      data-field="headline"
+      maxlength="30"
+    />
+    <text class="count">{{headline.length}}/30</text>
+
     <text class="label">发生地点 *</text>
     <view class="loc-picker">
       <view class="loc-main" wx:if="{{geoLocation}}" bindtap="onOpenLocation">

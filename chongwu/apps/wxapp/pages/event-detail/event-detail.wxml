@@ -40,7 +40,10 @@
     </view>
     <view class="info-row">
       <text class="info-label">名额</text>
-      <text class="info-val">{{event.seats}}</text>
+      <view class="info-quota">
+        <text class="info-val">{{event.seats}}</text>
+        <text class="info-quota-sub">已报名 / 总人数 · 剩余 {{event.remain}} 人</text>
+      </view>
     </view>
     <view class="info-row">
       <text class="info-label">要求</text>
@@ -66,27 +69,19 @@
   <view class="detail-panel" wx:if="{{detailSection.show}}">
     <text class="detail-panel-title">活动详情</text>
     <text class="detail-panel-text" wx:if="{{detailSection.text}}">{{detailSection.text}}</text>
-    <view class="detail-image-wrap aspect-34" wx:if="{{detailSection.images.length}}">
-      <swiper
-        class="detail-image-swiper"
-        indicator-dots="{{detailSection.images.length > 1}}"
-        indicator-color="rgba(0,0,0,0.2)"
-        indicator-active-color="#4DA7F8"
-        circular="{{detailSection.images.length > 1}}"
-        bindchange="onDetailImageSwiperChange"
+    <view class="detail-image-stack" wx:if="{{detailSection.images.length}}">
+      <view
+        class="detail-image-item aspect-34"
+        wx:for="{{detailSection.images}}"
+        wx:key="*this"
       >
-        <swiper-item wx:for="{{detailSection.images}}" wx:key="*this">
-          <image
-            class="detail-swiper-img aspect-34-fill"
-            src="{{item}}"
-            mode="aspectFill"
-            bindtap="onPreviewDetailImage"
-            data-src="{{item}}"
-          ></image>
-        </swiper-item>
-      </swiper>
-      <view class="detail-image-counter" wx:if="{{detailSection.images.length > 1}}">
-        {{detailImageCurrent + 1}}/{{detailSection.images.length}}
+        <image
+          class="detail-stack-img aspect-34-fill"
+          src="{{item}}"
+          mode="aspectFill"
+          bindtap="onPreviewDetailImage"
+          data-src="{{item}}"
+        ></image>
       </view>
     </view>
     <view class="detail-gallery" wx:if="{{detailSection.media.length}}">

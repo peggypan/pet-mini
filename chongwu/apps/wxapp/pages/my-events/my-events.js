@@ -48,6 +48,12 @@ Page({
     amap.openPlaceFromTap(e);
   },
 
+  onOpenEventDetail(e) {
+    const id = e.currentTarget.dataset.id;
+    if (!id) return;
+    wx.navigateTo({ url: `/pages/event-detail/event-detail?id=${id}` });
+  },
+
   onOpenTicket(e) {
     const id = e.currentTarget.dataset.id;
     if (id) wx.navigateTo({ url: `/pages/event-detail/event-detail?id=${id}&ticket=1` });

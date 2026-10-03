@@ -29,7 +29,7 @@ Page({
       buddy,
       followed: store.isFollowed(buddy.id),
       collected: store.isCollected(buddy.id),
-      isOwner: !!store.getBuddyPost(buddy.id),
+      isOwner: store.isMyUserContent(raw),
     });
     if (buddy.zone === 'match') {
       wx.showModal({ title: '风险提示', content: RISK_TIPS.match, showCancel: false });

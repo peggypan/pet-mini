@@ -187,14 +187,6 @@ page {
   color: #999;
 }
 
-.title {
-  display: block;
-  font-size: 28rpx;
-  font-weight: 700;
-  color: #1A1A1A;
-  margin-bottom: 6rpx;
-}
-
 .preview {
   display: block;
   font-size: 24rpx;
@@ -203,9 +195,32 @@ page {
   margin-bottom: 6rpx;
 }
 
+.preview-headline {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #1a1a1a;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+
 .loc {
+  display: block;
   font-size: 22rpx;
   color: #999;
+  margin-bottom: 4rpx;
+}
+
+.rescue-author {
+  display: block;
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #1fb896;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .load-error {

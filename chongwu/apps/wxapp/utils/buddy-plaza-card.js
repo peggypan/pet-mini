@@ -1,3 +1,5 @@
+const { displayUserNickName } = require('./display-user-nick');
+
 function formatDistanceLabel(dist) {
   if (!dist) return '距您 —';
   const s = String(dist).trim();
@@ -22,7 +24,13 @@ function buildBuddyPlazaCard(buddy) {
     ? (coverPoster || buddy.avatar || '')
     : ((media && media.url) || buddy.cover || buddy.avatar);
   const tagList = [...(buddy.tags || []), ...(buddy.creditTags || [])].filter(Boolean).slice(0, 2);
-  const intro = (buddy.desc || buddy.personality || '').trim();
+  const titleText = (buddy.title || '').trim();
+  const descText = (buddy.desc || buddy.personality || '').trim();
+  const cardTitleSource = titleText || descText;
+  const cardTitle = cardTitleSource
+    ? (cardTitleSource.length > 36 ? `${cardTitleSource.slice(0, 36)}…` : cardTitleSource)
+    : (buddy.buddyType || '找搭子');
+  const authorLine = displayUserNickName(buddy);
   return {
     id: buddy.id,
     cover,
@@ -31,14 +39,16 @@ function buildBuddyPlazaCard(buddy) {
     coverIsVideo,
     userName: buddy.userName,
     petName: buddy.petName,
-    titleLine: `${buddy.userName} · ${buddy.petName}`,
+    cardTitle,
+    authorLine,
+    titleLine: authorLine,
     breed: buddy.breed,
     age: buddy.age,
     buddyType: buddy.buddyType,
     distanceLabel: formatDistanceLabel(buddy.distance),
     verified: buddy.verified,
     personality: buddy.personality,
-    intro,
+    intro: descText,
     tags: tagList,
     petLine: [buddy.breed, buddy.age, buddy.personality].filter(Boolean).join(' · '),
     expectPlace: buddy.expectPlace || '',

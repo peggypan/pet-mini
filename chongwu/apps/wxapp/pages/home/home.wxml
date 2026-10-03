@@ -92,12 +92,10 @@
         class="buddy-plaza-card"
         wx:for="{{buddyPlaza}}"
         wx:key="feedKey"
+        bindtap="onBuddyTap"
+        data-id="{{item.id}}"
       >
-        <view
-          class="buddy-plaza-cover aspect-34"
-          catchtap="onPreviewCover"
-          data-id="{{item.id}}"
-        >
+        <view class="buddy-plaza-cover aspect-34">
           <image
             class="aspect-34-fill"
             src="{{item.coverIsVideo ? (item.coverPoster || item.cover) : item.cover}}"
@@ -108,8 +106,8 @@
           </view>
           <text class="buddy-plaza-dist">{{item.distanceLabel}}</text>
         </view>
-        <view class="buddy-plaza-body" bindtap="onBuddyTap" data-id="{{item.id}}">
-          <text class="buddy-plaza-name">{{item.titleLine}}</text>
+        <view class="buddy-plaza-body">
+          <text class="buddy-plaza-name">{{item.cardTitle}}</text>
           <view class="buddy-plaza-score">
             <text class="buddy-plaza-star">★</text>
             <text class="buddy-plaza-score-text" wx:if="{{item.verified}}">已核验</text>
@@ -121,7 +119,7 @@
           <view class="buddy-plaza-tags" wx:if="{{item.tags.length}}">
             <text class="buddy-plaza-tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag">{{tag}}</text>
           </view>
-          <text class="buddy-plaza-intro" wx:if="{{item.intro}}">{{item.intro}}</text>
+          <text class="buddy-plaza-author">{{item.authorLine}}</text>
         </view>
       </view>
     </view>
@@ -150,7 +148,7 @@
               mode="aspectFill"
             ></image>
           </view>
-          <text class="event-card-stat">{{item.cardPlayed}}人关注 · {{item.cardJoined}}人已报名</text>
+          <text class="event-card-stat">{{item.cardInterest}}人关注 · {{item.cardJoined}}人已报名</text>
         </view>
       </view>
       <view class="event-card-main">

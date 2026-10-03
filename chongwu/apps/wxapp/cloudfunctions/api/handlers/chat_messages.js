@@ -8,6 +8,7 @@ const {
   messagePreview,
 } = require('../common/chat-fields');
 const { assertOwnThread } = require('./chat_threads');
+const { deliverChatMessageToPeer } = require('../common/chat-deliver');
 
 async function listByThread(payload, wxContext) {
   const auth = await requireUser(wxContext);
@@ -89,6 +90,20 @@ async function send(payload, wxContext) {
     threadPatch.unread = (Number(owned.doc.unread) || 0) + 1;
   }
   await chatThreads().doc(body.threadId).update({ data: threadPatch });
+
+  if (body.sender === 'me') {
+    try {
+      await deliverChatMessageToPeer({
+        auth,
+        senderThread: owned.doc,
+        body,
+        preview,
+        ts,
+      });
+    } catch (e) {
+      console.warn('[chat_messages.send] deliver', e);
+    }
+  }
 
   const gotMsg = await chatMessages().doc(addRes._id).get();
   const gotThread = await chatThreads().doc(body.threadId).get();

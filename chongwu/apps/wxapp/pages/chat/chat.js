@@ -153,6 +153,7 @@ Page({
         thread = await ensureChatThreadOnCloud({
           id: `c_${peerId}`,
           peerId: friend.id,
+          peerOpenid: friend.openid || '',
           peerName: friend.userName,
           petName: friend.petName,
           avatar: friend.avatar,
@@ -161,6 +162,7 @@ Page({
         thread = await ensureChatThreadOnCloud({
           id: `c_${peerId}`,
           peerId,
+          peerOpenid: customPeer.peerOpenid || '',
           peerName: customPeer.peerName,
           petName: customPeer.petName || '宠物',
           avatar: customPeer.avatar || '/assets/mock/real_avatar.jpg',
@@ -215,10 +217,10 @@ Page({
     return next;
   },
 
-  async sendMessage(message, autoReply) {
+  async sendMessage(message) {
     const row = await sendChatMessageOnCloud(this.data.threadId, message);
     if (!row) return null;
-    this.appendMessage(row, autoReply);
+    this.appendMessage(row);
     return row;
   },
 
@@ -228,37 +230,7 @@ Page({
     this.setData({ scrollInto: `msg-${idx}` });
   },
 
-  appendMessage(row, autoReply) {
-    const messages = [...this.data.messages, row];
-    this.setData({ messages });
-    const limit = this.syncLimitState(messages);
-    this.scrollBottom(messages.length - 1);
-    if (!autoReply) return;
-    const shouldReply = limit.unlocked || limit.extraSentCount >= 1;
-    if (shouldReply) {
-      setTimeout(() => this.mockPeerReply(row), 900);
-    }
-  },
-
-  async mockPeerReply(sent) {
-    let reply;
-    if (sent.type === 'voice') {
-      reply = { from: 'peer', type: 'text', content: '收到语音啦～' };
-    } else if (sent.type === 'image') {
-      reply = { from: 'peer', type: 'text', content: '好可爱的照片！🐾' };
-    } else if (sent.type === 'video') {
-      reply = { from: 'peer', type: 'text', content: '收到视频啦～' };
-    } else if (sent.type === 'event') {
-      reply = { from: 'peer', type: 'text', content: '这个活动看起来不错！' };
-    } else if (sent.type === 'location') {
-      reply = { from: 'peer', type: 'text', content: '收到位置，我们可以这里碰面！' };
-    } else if (sent.type === 'call') {
-      reply = { from: 'peer', type: 'text', content: '刚才通话很开心，下次再聊～' };
-    } else {
-      reply = { from: 'peer', type: 'text', content: '收到啦～我们也可以约个时间让毛孩子见见面 🐾' };
-    }
-    const row = await sendChatMessageOnCloud(this.data.threadId, reply);
-    if (!row) return;
+  appendMessage(row) {
     const messages = [...this.data.messages, row];
     this.setData({ messages });
     this.syncLimitState(messages);
@@ -288,7 +260,7 @@ Page({
     if (!text) return;
     if (!this.guardOutgoing('text')) return;
     this.setData({ inputText: '' });
-    await this.sendMessage({ from: 'me', type: 'text', content: text }, true);
+    await this.sendMessage({ from: 'me', type: 'text', content: text });
   },
 
   async onComposerVoice(e) {
@@ -302,7 +274,6 @@ Page({
         duration,
         content: `[语音 ${duration}"]`,
       },
-      true,
     );
   },
 
@@ -355,7 +326,6 @@ Page({
             aaPeople,
             aaPer,
           },
-          true,
         );
       })
       .catch(() => {});
@@ -377,7 +347,6 @@ Page({
             url: file.tempFilePath,
             content: '[图片]',
           },
-          true,
         );
       },
     });
@@ -405,7 +374,6 @@ Page({
             eventTitle: event.title,
             content: event.title,
           },
-          true,
         );
       },
     });
@@ -487,7 +455,6 @@ Page({
             poster: file.thumbTempFilePath || '',
             content: '[视频]',
           },
-          true,
         );
       },
     });
@@ -509,7 +476,6 @@ Page({
               longitude: loc.longitude,
             },
           },
-          true,
         );
       })
       .catch((err) => {

@@ -1,3 +1,5 @@
+const { resolveEventQuota } = require('./event-quota');
+
 const BASE = '/assets/mock';
 const AVATAR_POOL = [
   `${BASE}/real_avatar.jpg`,
@@ -11,16 +13,6 @@ const CARD_META = {
   e2: { dateMD: '9/17', timeHint: '后天 14:00', distance: '5.1km', category: '猫友聚会' },
   e3: { dateMD: '9/20', timeHint: '下周五 10:00', distance: '1.8km', category: '洗护体验' },
 };
-
-function parseJoined(seats) {
-  const raw = String(seats || '0/20');
-  if (raw.includes('/') && !raw.includes('人')) {
-    const [a, b] = raw.split('/');
-    return { joined: Number(a) || 0, cap: Number(b) || 20 };
-  }
-  const cap = Number(String(raw).replace(/\D/g, '')) || 20;
-  return { joined: 0, cap };
-}
 
 function formatDateMD(isoOrYmd) {
   if (!isoOrYmd) return '';
@@ -43,25 +35,29 @@ function buildTimeHint(event) {
 
 function buildEventHomeCard(event, index) {
   const meta = CARD_META[event.id] || {};
-  const { joined } = parseJoined(event.seats);
-  const played = joined * 42 + 680 + index * 120;
+  const quota = resolveEventQuota(event);
+  const cardJoined = quota.signupCount;
+  const cardInterest = Math.max(0, Number(event.interestCount) || 0);
   const dateSrc = event.eventDate || event.publishedAt || event.createdAt;
   const timeHint = meta.timeHint || buildTimeHint(event);
+  const signupAvatars = Array.isArray(event.signupAvatars)
+    ? event.signupAvatars.filter(Boolean)
+    : [];
+  const cardAvatars = (signupAvatars.length
+    ? signupAvatars
+    : [event.hostAvatar, AVATAR_POOL[index % AVATAR_POOL.length]]
+  ).slice(0, 4);
 
   return {
     ...event,
+    ...quota,
     cardDateMD: meta.dateMD || formatDateMD(dateSrc) || formatDateMD(new Date()) || '今日',
     cardTimeHint: timeHint,
     cardDistance: meta.distance || `${(2 + index * 1.3).toFixed(1)}km`,
     cardLocationLine: event.place || '',
-    cardAvatars: [
-      event.hostAvatar,
-      AVATAR_POOL[index % AVATAR_POOL.length],
-      AVATAR_POOL[(index + 1) % AVATAR_POOL.length],
-      AVATAR_POOL[(index + 2) % AVATAR_POOL.length],
-    ].filter(Boolean).slice(0, 4),
-    cardPlayed: played,
-    cardJoined: joined,
+    cardAvatars,
+    cardInterest,
+    cardJoined,
     cardCategory: meta.category || event.category || event.sourceText || '活动',
   };
 }

@@ -379,7 +379,7 @@ Page({
     const firstImage = mediaList.find((m) => m.type === 'image');
     const firstVideo = mediaList.find((m) => m.type === 'video');
     const pet = getDefaultPet();
-    const publisherName = role === 'merchant' ? '商家' : (pet.name ? `我 · ${pet.name}` : '我');
+    const publisherName = role === 'merchant' ? '商家' : (pet.name || '宠友');
 
     const savedEventDate = eventType === 'multi'
       ? (eventSessions[0] && eventSessions[0].date) || ''

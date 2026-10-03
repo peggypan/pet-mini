@@ -57,6 +57,7 @@ async function ensureChatThreadOnCloud(thread) {
   try {
     const data = await chatApi('chat_threads', 'ensure', {
       peerId: thread.peerId,
+      peerOpenid: thread.peerOpenid || '',
       peerName: thread.peerName,
       petName: thread.petName,
       avatar: thread.avatar,
@@ -156,7 +157,8 @@ async function sendChatMessageOnCloud(threadId, message) {
     return saved;
   } catch (e) {
     console.warn('[chat-cloud-sync] send', e);
-    return store.addChatMessage(threadId, message);
+    wx.showToast({ title: '消息发送失败，请检查网络或重新登录', icon: 'none' });
+    return null;
   }
 }
 

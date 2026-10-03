@@ -36,6 +36,10 @@ function eventSignups() {
   return getDb().collection('event_signups');
 }
 
+function eventInterests() {
+  return getDb().collection('event_interests');
+}
+
 function eventQualify() {
   return getDb().collection('event_qualify');
 }
@@ -118,6 +122,7 @@ module.exports = {
   localPosts,
   events,
   eventSignups,
+  eventInterests,
   eventQualify,
   mapPoints,
   merchants,

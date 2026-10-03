@@ -122,6 +122,27 @@ async function saveEventToCloud(payload, eventId) {
   }
 }
 
+async function recordEventInterest(eventId) {
+  if (!cloudApi.cloudEnabled() || !eventId) return null;
+  await ensureCloudLogin();
+  try {
+    const data = await eventApi('recordInterest', { eventId: String(eventId) });
+    const interestCount = data && data.interestCount;
+    if (interestCount != null) {
+      const cached = store.getEventFromCache(eventId) || { id: eventId };
+      store.upsertEventFromCloud({
+        ...cached,
+        id: String(eventId),
+        interestCount,
+      });
+    }
+    return data;
+  } catch (e) {
+    console.warn('[event-cloud-sync] recordInterest', e);
+    return null;
+  }
+}
+
 async function fetchEventFromCloud(id) {
   if (!cloudApi.cloudEnabled() || !id) return null;
   await ensureCloudLogin();
@@ -151,4 +172,5 @@ module.exports = {
   saveEventToCloud,
   fetchEventFromCloud,
   removeEventFromCloud,
+  recordEventInterest,
 };

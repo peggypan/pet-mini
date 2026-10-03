@@ -61,6 +61,7 @@ async function ensure(payload, wxContext) {
 
   if (doc) {
     const patch = { updatedAt: ts };
+    if (body.peerOpenid) patch.peerOpenid = body.peerOpenid;
     if (body.peerName) patch.peerName = body.peerName;
     if (body.petName) patch.petName = body.petName;
     if (body.avatar) patch.avatar = body.avatar;
@@ -74,6 +75,7 @@ async function ensure(payload, wxContext) {
         _openid: auth.openid,
         userId: auth.user._id,
         peerId: body.peerId,
+        peerOpenid: body.peerOpenid || '',
         peerName: body.peerName,
         petName: body.petName,
         avatar: body.avatar || '',

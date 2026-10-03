@@ -187,7 +187,7 @@
 
     <view class="form-block detail-form-block">
       <text class="row-label">详情页图文</text>
-      <text class="label-tip block-tip">下方内容展示在详情页下拉「活动详情」卡片；配图最多 6 张，可左滑浏览</text>
+      <text class="label-tip block-tip">下方内容展示在详情页「活动详情」卡片；配图最多 6 张，详情页上下排列展示</text>
       <textarea
         class="row-textarea"
         value="{{detailContent}}"

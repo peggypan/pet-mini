@@ -77,21 +77,26 @@ function applyFreeEventFee(event) {
   };
 }
 
+const { applyEventQuota } = require('./event-quota');
+
+function displayEventHostName(raw) {
+  const name = String((raw && (raw.publisherName || raw.host)) || '').trim();
+  const stripped = name.replace(/^我\s*[·•]\s*/, '').trim();
+  if (stripped) return stripped;
+  if (name === '我') return '宠友';
+  return name || '发起人';
+}
+
 function normalizeUserEvent(raw) {
   if (!raw) return null;
-  const maxPeople = Number(raw.maxPeople) || 20;
-  const remain = raw.remain != null ? Number(raw.remain) : maxPeople;
   const pet = getDefaultPet();
-  return applyFreeEventFee({
+  const base = applyFreeEventFee({
     ...raw,
     cover: raw.cover || DEFAULT_EVENT_COVER,
     fee: raw.fee || raw.feeText || '免费报名',
     place: raw.place || '',
     time: raw.time || '',
-    seats: raw.seats || `0/${maxPeople}`,
-    remain,
-    maxPeople,
-    host: raw.publisherName || raw.host || '发起人',
+    host: displayEventHostName(raw),
     hostAvatar: raw.hostAvatar || pet.avatar || pet.avatarUrl,
     desc: raw.desc || raw.category || '',
     category: raw.category || '',
@@ -99,6 +104,7 @@ function normalizeUserEvent(raw) {
     sourceText: raw.role === 'merchant' ? '商家合作' : '用户发起',
     publishedAt: raw.createdAt || raw.publishedAt || new Date().toISOString(),
   });
+  return applyEventQuota(base);
 }
 
 function normalizeMockEvent(raw, index) {

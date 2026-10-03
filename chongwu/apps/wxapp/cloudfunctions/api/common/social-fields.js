@@ -54,6 +54,7 @@ function pickSocialPayload(raw) {
     avatar: trim(p.avatar),
     zone: trim(p.zone) || 'dog',
     topic: trim(p.topic),
+    title: trim(p.title),
     content: trim(p.content),
     lostType,
     mediaList,
@@ -68,6 +69,9 @@ function pickSocialPayload(raw) {
 }
 
 function validateSocial(body) {
+  if (body.lostType && !trim(body.title)) {
+    return '请填写标题';
+  }
   const text = trim(body.content);
   if (!text && !(body.mediaList && body.mediaList.length)) {
     return '请填写内容或上传媒体';

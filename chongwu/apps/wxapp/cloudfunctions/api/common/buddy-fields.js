@@ -63,6 +63,7 @@ function pickBuddyPayload(raw) {
     expectPlace: trim(p.expectPlace) || '同城',
     expectPlaceAddress: trim(p.expectPlaceAddress),
     location,
+    title: trim(p.title),
     desc: trim(p.desc),
     tags: Array.isArray(p.tags) ? p.tags.filter(Boolean).slice(0, 8) : [],
     creditTags: Array.isArray(p.creditTags) ? p.creditTags.filter(Boolean).slice(0, 6) : [],
@@ -76,6 +77,9 @@ function pickBuddyPayload(raw) {
 }
 
 function validateBuddy(body) {
+  if (!trim(body.title)) {
+    return '请填写标题';
+  }
   const text = trim(body.desc);
   if (!text && !(body.mediaList && body.mediaList.length)) {
     return '请填写描述或上传媒体';

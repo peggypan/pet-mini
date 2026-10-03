@@ -53,9 +53,25 @@ page { background: #F5F8FC; }
 
 .item-head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 6rpx;
+  gap: 16rpx;
+}
+
+.item-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-main:active {
+  opacity: 0.85;
+}
+
+.item-hint {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 20rpx;
+  color: #b0bec5;
 }
 
 .item-head-right {

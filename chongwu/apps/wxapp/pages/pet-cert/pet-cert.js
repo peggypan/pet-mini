@@ -22,6 +22,7 @@ Page({
     auditBannerText: '',
     qrDrawing: false,
     qrImageSrc: '',
+    qrFailed: false,
   },
 
   onShow() {
@@ -33,29 +34,38 @@ Page({
     const patch = { pet, profileComplete, auditStatus, auditBannerText };
     if (!certReady) {
       patch.qrImageSrc = '';
+      patch.qrFailed = false;
     }
     this.setData(patch, () => {
       if (certReady) this.refreshCertQr(pet);
     });
   },
 
+  onRetryQr() {
+    this.refreshCertQr(this.data.pet || getDefaultPet());
+  },
+
   async refreshCertQr(pet) {
-    if (this.data.qrDrawing) return;
+    if (this._qrGenerating) return;
+    this._qrGenerating = true;
     const row = pet.id ? store.getPet(pet.id) || pet : store.listPets()[0] || pet;
     if (row && row.id) {
       store.registerPublicPetCert(row);
       await publishPetCertToCloud(row.id).catch(() => {});
     }
-    this.setData({ qrDrawing: true });
+    this.setData({ qrDrawing: true, qrImageSrc: '', qrFailed: false });
     try {
       await wx.nextTick();
+      await new Promise((r) => setTimeout(r, 48));
       const content = buildPetCertQrContent(row);
       const path = await drawQrToTempFile(this, 'petCertQr', content);
-      this.setData({ qrImageSrc: path });
+      this.setData({ qrImageSrc: path, qrFailed: false });
     } catch (e) {
       console.warn('pet cert qr', e);
+      this.setData({ qrFailed: true });
     } finally {
       this.setData({ qrDrawing: false });
+      this._qrGenerating = false;
     }
   },
 

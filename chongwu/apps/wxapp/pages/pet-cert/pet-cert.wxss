@@ -322,21 +322,28 @@ page { background: #F5F8FC; }
 }
 
 .qr-canvas-wrap {
+  position: relative;
   display: flex;
   justify-content: center;
   margin: 24rpx 0 16rpx;
   padding: 20rpx;
   background: #f5f8fc;
   border-radius: 20rpx;
+  min-height: 360rpx;
 }
 
-.cert-qr-image {
+.cert-qr-image,
+.cert-qr-canvas {
   width: 360rpx;
   height: 360rpx;
   display: block;
 }
 
-.qr-loading {
+.qr-loading-mask {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   width: 360rpx;
   height: 360rpx;
   display: flex;
@@ -344,18 +351,12 @@ page { background: #F5F8FC; }
   justify-content: center;
   font-size: 26rpx;
   color: #999999;
+  background: rgba(245, 248, 252, 0.92);
+  border-radius: 12rpx;
 }
 
-/* 仅用于离屏绘制，避免 canvas 原生层随页面滚动错位 */
-.cert-qr-draw-canvas {
-  position: fixed;
-  left: -9999px;
-  top: 0;
-  width: 360rpx;
-  height: 360rpx;
-  opacity: 0;
-  pointer-events: none;
-  z-index: -1;
+.qr-retry {
+  color: #1e88e5;
 }
 
 .qr-tip {

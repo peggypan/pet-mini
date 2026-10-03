@@ -1,6 +1,6 @@
 <view class="page {{panelTools ? 'tools-open' : ''}} {{panelEmoji ? 'emoji-open' : ''}}">
   <view class="peer-bar" wx:if="{{peer}}">
-    <image class="peer-avatar" src="{{peer.avatar}}" mode="aspectFill"></image>
+    <image class="peer-avatar" src="{{peerAvatar || peer.avatar}}" mode="aspectFill"></image>
     <view class="peer-info">
       <text class="peer-name">{{peer.userName}} · {{peer.petName}}</text>
       <text class="peer-tip">输入框右侧笑脸可发表情包</text>
@@ -30,12 +30,14 @@
       wx:key="id"
       id="msg-{{index}}"
     >
+      <view class="msg-main">
       <image
         class="msg-avatar"
-        src="{{item.from === 'me' ? '/assets/mock/real_avatar.jpg' : peer.avatar}}"
+        src="{{item.from === 'me' ? myAvatar : (peerAvatar || peer.avatar || '/assets/mock/real_avatar.jpg')}}"
         mode="aspectFill"
       ></image>
 
+      <view class="msg-body">
       <view class="bubble" wx:if="{{item.type === 'text' || !item.type}}">{{item.content}}</view>
 
       <view class="bubble share-comment-bubble" wx:if="{{item.type === 'shareComment'}}">
@@ -50,7 +52,7 @@
         </view>
         <view
           class="bubble voice-bubble {{playingId === item.id ? 'playing' : ''}}"
-          data-url="{{item.url}}"
+          data-url="{{item.playUrl || item.url}}"
           data-id="{{item.id}}"
           data-index="{{index}}"
           bindtap="onPlayVoice"
@@ -120,6 +122,9 @@
           <text class="call-meta" wx:elif="{{item.callStatus === 'missed'}}">未接通</text>
           <text class="call-meta" wx:else>已结束</text>
         </view>
+      </view>
+      <text class="msg-time" wx:if="{{item.timeLabel}}">{{item.timeLabel}}</text>
+      </view>
       </view>
     </view>
 

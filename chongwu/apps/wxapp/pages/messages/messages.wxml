@@ -17,6 +17,7 @@
       wx:key="id"
       bindtap="onChatTap"
       data-peerid="{{item.peerId}}"
+      data-threadid="{{item.id}}"
     >
       <image class="avatar" src="{{item.avatar}}" mode="aspectFill"></image>
       <view class="chat-body">

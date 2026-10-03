@@ -1,5 +1,5 @@
 const { ok, fail } = require('../common/response');
-const { chatMessages, chatThreads, now } = require('../common/db');
+const { chatMessages, chatThreads, now, getDb } = require('../common/db');
 const { requireUser } = require('../common/auth-user');
 const {
   pickMessagePayload,
@@ -21,10 +21,15 @@ async function listByThread(payload, wxContext) {
   if (owned.err) return owned.err;
 
   const limit = Math.min(200, Math.max(1, Number(payload && payload.limit) || 200));
+  const since = payload && payload.since ? String(payload.since).trim() : '';
   let rows = [];
   try {
+    const _ = getDb().command;
+    const where = since
+      ? { threadId, status: 1, createdAt: _.gt(since) }
+      : { threadId, status: 1 };
     const res = await chatMessages()
-      .where({ threadId, status: 1 })
+      .where(where)
       .orderBy('createdAt', 'asc')
       .limit(limit)
       .get();

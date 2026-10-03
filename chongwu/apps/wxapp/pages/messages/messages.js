@@ -1,6 +1,9 @@
 const store = require('../../utils/store');
 const cloudApi = require('../../utils/cloud-api');
-const { refreshChatThreadsFromCloud } = require('../../utils/chat-cloud-sync');
+const {
+  refreshChatThreadsFromCloud,
+  CHAT_THREAD_POLL_MS,
+} = require('../../utils/chat-cloud-sync');
 const { buildNotices, countUnreadNotices } = require('../../utils/notice-feed');
 const { syncPetProfileGate, requirePetProfile } = require('../../utils/pet-profile-guard');
 
@@ -29,8 +32,7 @@ Page({
     this.refreshTabBadge();
   },
 
-  async onShow() {
-    syncPetProfileGate(this);
+  async refreshChatTab(silent) {
     if (cloudApi.cloudEnabled()) {
       try {
         await refreshChatThreadsFromCloud();
@@ -38,17 +40,33 @@ Page({
         // keep cache
       }
     }
-    const notices = buildNotices();
-    const noticeUnread = countUnreadNotices();
-    this.setData({
+    const patch = {
       chats: store.listChatThreads(),
-      notices,
-      noticeUnread,
       chatUnread: store.countUnreadChats(),
-    }, () => {
-      if (this.data.tab === 'notice') this.consumeNoticeUnread();
+    };
+    if (!silent) {
+      patch.notices = buildNotices();
+      patch.noticeUnread = countUnreadNotices();
+    }
+    this.setData(patch, () => {
+      if (this.data.tab === 'notice' && !silent) this.consumeNoticeUnread();
       else this.refreshTabBadge();
     });
+  },
+
+  async onShow() {
+    syncPetProfileGate(this);
+    await this.refreshChatTab(false);
+    this._chatListPollTimer = setInterval(() => {
+      if (this.data.tab === 'chat') this.refreshChatTab(true);
+    }, CHAT_THREAD_POLL_MS);
+  },
+
+  onHide() {
+    if (this._chatListPollTimer) {
+      clearInterval(this._chatListPollTimer);
+      this._chatListPollTimer = null;
+    }
   },
 
   onTab(e) {
@@ -59,8 +77,11 @@ Page({
 
   onChatTap(e) {
     if (!requirePetProfile()) return;
-    const { peerid } = e.currentTarget.dataset;
-    wx.navigateTo({ url: `/pages/chat/chat?peerId=${peerid}` });
+    const { peerid, threadid } = e.currentTarget.dataset;
+    const q = [];
+    if (threadid) q.push(`threadId=${encodeURIComponent(threadid)}`);
+    if (peerid) q.push(`peerId=${encodeURIComponent(peerid)}`);
+    wx.navigateTo({ url: `/pages/chat/chat?${q.join('&')}` });
   },
 
   onDiscoverTap() {

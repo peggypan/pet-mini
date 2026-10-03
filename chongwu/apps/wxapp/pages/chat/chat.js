@@ -9,10 +9,18 @@ const { followResultToast } = require('../../utils/pet-follow');
 const cloudApi = require('../../utils/cloud-api');
 const {
   ensureChatThreadOnCloud,
+  refreshChatThreadsFromCloud,
   loadChatMessagesFromCloud,
   markChatThreadReadOnCloud,
   sendChatMessageOnCloud,
+  startChatRealtime,
+  stopChatRealtime,
+  resolvePeerAvatarUrl,
+  DEFAULT_PEER_AVATAR,
 } = require('../../utils/chat-cloud-sync');
+const { resolveCloudFileUrl } = require('../../utils/cloud-media');
+const { decorateChatMessages } = require('../../utils/chat-time');
+const { getDefaultPet } = require('../../utils/catalog');
 
 Page({
   data: {
@@ -32,22 +40,38 @@ Page({
     followed: false,
     peerLiked: false,
     centerHeartAnim: false,
+    myAvatar: '/assets/mock/real_avatar.jpg',
+    peerAvatar: DEFAULT_PEER_AVATAR,
   },
 
   onLoad(options) {
     blockSubPageWithoutProfile(this);
     this.entryOptions = options || {};
     this.peerOptions = {
+      threadId: options.threadId || '',
       peerId: options.peerId || '',
       peerName: options.peerName ? decodeURIComponent(options.peerName) : '',
       petName: options.petName ? decodeURIComponent(options.petName) : '',
       avatar: options.avatar ? decodeURIComponent(options.avatar) : '',
+      peerOpenid: options.peerOpenid ? decodeURIComponent(options.peerOpenid) : '',
     };
     this.initThread(this.peerOptions);
   },
 
+  resolveMyAvatar() {
+    const userInfo = wx.getStorageSync('userInfo') || {};
+    const pet = getDefaultPet();
+    return (
+      userInfo.avatarUrl
+      || pet.avatarUrl
+      || pet.avatar
+      || '/assets/mock/real_avatar.jpg'
+    );
+  },
+
   async onShow() {
     syncPetProfileGate(this);
+    this.setData({ myAvatar: this.resolveMyAvatar() });
     if (this.data.peer) this.syncPeerActions(this.data.peer);
     if (this.data.threadId) {
       let messages = store.getChatMessages(this.data.threadId);
@@ -58,9 +82,19 @@ Page({
           // keep cache
         }
       }
+      messages = decorateChatMessages(messages);
       this.setData({ messages });
       this.syncLimitState(messages);
       this.scrollBottom();
+      startChatRealtime(this, this.data.threadId);
+    }
+  },
+
+  onHide() {
+    stopChatRealtime(this);
+    if (this.innerAudio) {
+      this.innerAudio.stop();
+      this.setData({ playingId: '' });
     }
   },
 
@@ -145,8 +179,21 @@ Page({
   async initThread(options) {
     const peerId = typeof options === 'object' ? options.peerId : options;
     const customPeer = typeof options === 'object' ? options : {};
-    const threads = store.listChatThreads();
-    let thread = threads.find((t) => String(t.peerId) === String(peerId));
+    if (cloudApi.cloudEnabled()) {
+      try {
+        await refreshChatThreadsFromCloud();
+      } catch (e) {
+        // keep cache
+      }
+    }
+    let threads = store.listChatThreads();
+    let thread = null;
+    if (customPeer.threadId) {
+      thread = threads.find((t) => String(t.id) === String(customPeer.threadId));
+    }
+    if (!thread && peerId) {
+      thread = threads.find((t) => String(t.peerId) === String(peerId));
+    }
     if (!thread && peerId) {
       const friend = MOCK_BUDDY.find((f) => String(f.id) === String(peerId));
       if (friend) {
@@ -169,15 +216,25 @@ Page({
         });
       }
     }
+    if (!thread && customPeer.threadId) {
+      thread = {
+        id: customPeer.threadId,
+        peerId: peerId || customPeer.peerId || customPeer.threadId,
+        peerName: customPeer.peerName || '宠友',
+        petName: customPeer.petName || '宠物',
+        avatar: customPeer.avatar || '/assets/mock/real_avatar.jpg',
+      };
+    }
     if (!thread && !cloudApi.cloudEnabled()) {
       thread = threads[0] || MOCK_CHATS[0];
     }
     if (!thread) return;
+    const peerAvatar = await resolvePeerAvatarUrl(thread.avatar);
     const peer = {
       id: thread.peerId,
       userName: thread.peerName,
       petName: thread.petName,
-      avatar: thread.avatar,
+      avatar: peerAvatar,
     };
     await markChatThreadReadOnCloud(thread.id);
     let messages = store.getChatMessages(thread.id);
@@ -189,11 +246,21 @@ Page({
       }
     }
     this.syncPeerActions(peer);
-    this.setData({ threadId: thread.id, peer, messages });
+    messages = decorateChatMessages(messages);
+    this.setData({
+      threadId: thread.id,
+      peer,
+      messages,
+      myAvatar: this.resolveMyAvatar(),
+      peerAvatar,
+    });
     wx.setNavigationBarTitle({ title: `${peer.userName} · ${peer.petName}` });
     messages = await this.maybeApplyEntryShareComment(messages);
+    messages = decorateChatMessages(messages);
+    this.setData({ messages });
     this.syncLimitState(messages);
     this.scrollBottom(messages.length);
+    startChatRealtime(this, thread.id);
   },
 
   async maybeApplyEntryShareComment(messages) {
@@ -231,7 +298,10 @@ Page({
   },
 
   appendMessage(row) {
-    const messages = [...this.data.messages, row];
+    const nextRow = row && row.type === 'voice'
+      ? { ...row, playUrl: row.playUrl || row.url }
+      : row;
+    const messages = decorateChatMessages([...this.data.messages, nextRow]);
     this.setData({ messages });
     this.syncLimitState(messages);
     this.scrollBottom(messages.length - 1);
@@ -379,13 +449,29 @@ Page({
     });
   },
 
-  onPlayVoice(e) {
-    const { url, id } = e.currentTarget.dataset;
-    if (!url) return;
+  async onPlayVoice(e) {
+    const { url, id, index } = e.currentTarget.dataset;
+    let playSrc = url || '';
+    const idx = Number(index);
+    const row = Number.isFinite(idx) ? this.data.messages[idx] : null;
+    if (row && row.playUrl) playSrc = row.playUrl;
+    if (!playSrc) return;
+    if (playSrc.startsWith('cloud://')) {
+      try {
+        playSrc = await resolveCloudFileUrl(playSrc);
+      } catch (err) {
+        wx.showToast({ title: '语音加载失败', icon: 'none' });
+        return;
+      }
+    }
     if (!this.innerAudio) {
       this.innerAudio = wx.createInnerAudioContext();
+      this.innerAudio.obeyMuteSwitch = false;
       this.innerAudio.onEnded(() => this.setData({ playingId: '' }));
-      this.innerAudio.onError(() => this.setData({ playingId: '' }));
+      this.innerAudio.onError(() => {
+        this.setData({ playingId: '' });
+        wx.showToast({ title: '无法播放语音', icon: 'none' });
+      });
       this.innerAudio.onStop(() => this.setData({ playingId: '' }));
     }
     if (this.data.playingId === id) {
@@ -394,7 +480,7 @@ Page({
       return;
     }
     this.innerAudio.stop();
-    this.innerAudio.src = url;
+    this.innerAudio.src = playSrc;
     this.setData({ playingId: id });
     this.innerAudio.play();
   },
@@ -419,14 +505,8 @@ Page({
     });
   },
 
-  onHide() {
-    if (this.innerAudio) {
-      this.innerAudio.stop();
-      this.setData({ playingId: '' });
-    }
-  },
-
   onUnload() {
+    stopChatRealtime(this);
     if (this.innerAudio) {
       this.innerAudio.destroy();
       this.innerAudio = null;

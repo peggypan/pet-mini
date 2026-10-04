@@ -14,7 +14,7 @@ const { normalizePostMedia } = require('../../utils/social-post-media');
 const { withContentParts } = require('../../utils/social-content-parts');
 const { buildCommentThreads } = require('../../utils/social-post-comments');
 const { openSocialHashtagFilter } = require('../../utils/social-hashtag-nav');
-const { decoratePostFollow, followResultToast } = require('../../utils/pet-follow');
+const { decoratePostFollow, followResultToast, toggleFollowAuthor } = require('../../utils/pet-follow');
 const { requirePetProfile } = require('../../utils/pet-profile-guard');
 const {
   deleteOwnedSocialPost,
@@ -124,12 +124,7 @@ Page({
     if (!requirePetProfile()) return;
     const post = this.data.post;
     if (!post || post.isSelfAuthor || !post.authorId || post.authorId === 'me') return;
-    const result = store.toggleFollow({
-      id: post.authorId,
-      userName: post.userName,
-      petName: post.petName,
-      avatar: post.avatar,
-    });
+    const result = toggleFollowAuthor(post);
     wx.showToast({ title: followResultToast(result.followed), icon: 'none' });
     this.setData({
       post: { ...post, followed: result.followed },

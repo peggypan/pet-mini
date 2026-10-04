@@ -4,6 +4,7 @@ const { requirePetProfile } = require('../utils/pet-profile-guard');
 
 Component({
   data: {
+    hidden: false,
     selected: 0,
     showQuickNav: false,
     messagesUnread: 0,

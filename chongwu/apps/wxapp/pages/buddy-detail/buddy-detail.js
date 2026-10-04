@@ -3,7 +3,11 @@ const { RISK_TIPS } = require('../../utils/mock');
 const store = require('../../utils/store');
 const { startBuddyChat } = require('../../utils/buddy-chat');
 const amap = require('../../utils/amap');
-const { followResultToast } = require('../../utils/pet-follow');
+const {
+  followResultToast,
+  decorateBuddyFollow,
+  toggleFollowAuthor,
+} = require('../../utils/pet-follow');
 const { requirePetProfile } = require('../../utils/pet-profile-guard');
 const { deleteOwnedBuddyPost, finishAfterDelete } = require('../../utils/user-content-delete');
 
@@ -24,18 +28,28 @@ Page({
       if (videoAutoPlay) autoPlayAssigned = true;
       return { ...item, videoDemoOnly: demoOnly, videoAutoPlay };
     });
-    const buddy = { ...raw, mediaList };
-    this.setData({
-      buddy,
-      followed: store.isFollowed(buddy.id),
-      collected: store.isCollected(buddy.id),
-      isOwner: store.isMyUserContent(raw),
-    });
+    const buddy = decorateBuddyFollow({ ...raw, mediaList });
+    this.applyBuddyState(buddy);
     if (buddy.zone === 'match') {
       wx.showModal({ title: '风险提示', content: RISK_TIPS.match, showCancel: false });
     } else if (buddy.zone === 'healing') {
       wx.showModal({ title: '疗愈搭子说明', content: RISK_TIPS.healing, showCancel: false });
     }
+  },
+
+  onShow() {
+    const buddy = this.data.buddy;
+    if (buddy) this.applyBuddyState(buddy);
+  },
+
+  applyBuddyState(buddy) {
+    const enriched = decorateBuddyFollow(buddy);
+    this.setData({
+      buddy: enriched,
+      followed: enriched.followed,
+      collected: store.isCollected(enriched.id),
+      isOwner: enriched.isSelfAuthor,
+    });
   },
 
   onChat() {
@@ -44,8 +58,13 @@ Page({
 
   onFollow() {
     if (!requirePetProfile()) return;
-    const result = store.toggleFollow(this.data.buddy);
-    this.setData({ followed: result.followed });
+    const buddy = this.data.buddy;
+    if (!buddy || buddy.isSelfAuthor) return;
+    const result = toggleFollowAuthor(buddy);
+    this.setData({
+      followed: result.followed,
+      buddy: { ...buddy, followed: result.followed },
+    });
     wx.showToast({ title: followResultToast(result.followed), icon: 'none' });
   },
 

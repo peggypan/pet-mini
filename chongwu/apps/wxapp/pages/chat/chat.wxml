@@ -2,15 +2,15 @@
   <view class="peer-bar" wx:if="{{peer}}">
     <image class="peer-avatar" src="{{peerAvatar || peer.avatar}}" mode="aspectFill"></image>
     <view class="peer-info">
-      <text class="peer-name">{{peer.userName}} · {{peer.petName}}</text>
+      <text class="peer-name">{{peerDisplayTitle || peer.displayTitle || peer.userName}}</text>
       <text class="peer-tip">输入框右侧笑脸可发表情包</text>
     </view>
     <view class="peer-actions">
       <button
-        class="peer-follow {{followed ? 'followed' : ''}}"
+        class="peer-follow {{followed ? 'followed' : ''}} {{mutualFollow ? 'mutual' : ''}}"
         size="mini"
         bindtap="onToggleFollow"
-      >{{followed ? '已关注' : '关注'}}</button>
+      >{{followed ? (mutualFollow ? '互关好友' : '已关注') : '关注'}}</button>
       <view
         class="peer-like-btn {{peerLiked ? 'active' : ''}}"
         bindtap="onTogglePeerLike"

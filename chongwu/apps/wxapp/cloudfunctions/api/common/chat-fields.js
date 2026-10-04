@@ -63,6 +63,7 @@ function publicThread(doc) {
   return {
     id: doc._id,
     peerId: trim(doc.peerId),
+    peerOpenid: trim(doc.peerOpenid),
     peerName: trim(doc.peerName) || '宠友',
     petName: trim(doc.petName) || '宠物',
     avatar: trim(doc.avatar),

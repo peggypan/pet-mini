@@ -6,6 +6,7 @@ const {
 } = require('../../utils/chat-cloud-sync');
 const { buildNotices, countUnreadNotices } = require('../../utils/notice-feed');
 const { syncPetProfileGate, requirePetProfile } = require('../../utils/pet-profile-guard');
+const { decorateChatThreadsForList } = require('../../utils/chat-thread-display');
 
 Page({
   data: {
@@ -41,7 +42,7 @@ Page({
       }
     }
     const patch = {
-      chats: store.listChatThreads(),
+      chats: decorateChatThreadsForList(store.listChatThreads()),
       chatUnread: store.countUnreadChats(),
     };
     if (!silent) {

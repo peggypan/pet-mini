@@ -108,6 +108,10 @@ function chatMessages() {
   return getDb().collection('chat_messages');
 }
 
+function userFollows() {
+  return getDb().collection('user_follows');
+}
+
 function now() {
   return getDb().serverDate();
 }
@@ -140,5 +144,6 @@ module.exports = {
   petDiscoverDaily,
   chatThreads,
   chatMessages,
+  userFollows,
   now,
 };

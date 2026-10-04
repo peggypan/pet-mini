@@ -67,6 +67,12 @@ page { background: #F5F8FC; }
   background: #fafafa;
 }
 
+.peer-follow.mutual {
+  color: #1e88e5;
+  border-color: #90caf9;
+  background: #e8f4ff;
+}
+
 .peer-follow::after {
   border: none;
 }

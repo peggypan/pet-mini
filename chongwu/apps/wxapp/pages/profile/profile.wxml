@@ -1,3 +1,4 @@
+<view class="profile-root">
 <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
   <canvas type="2d" id="paletteCanvas" class="palette-canvas"></canvas>
   <view class="page">
@@ -21,19 +22,7 @@
         </view>
         <view class="profile-meta">
           <view class="name-row" wx:if="{{isLogin}}">
-            <input
-              class="name name-input"
-              type="nickname"
-              maxlength="16"
-              value="{{displayNickname}}"
-              placeholder="设置网名"
-              placeholder-class="name-placeholder"
-              confirm-type="done"
-              bindinput="onNicknameInput"
-              bindblur="onNicknameCommit"
-              bindconfirm="onNicknameCommit"
-            />
-            <text class="name-edit-hint">✎</text>
+            <text class="name">{{displayNickname || '宠友'}}</text>
           </view>
           <text class="name" wx:else>未登录</text>
           <view class="follow-row">
@@ -220,3 +209,37 @@
     </view>
   </view>
 </scroll-view>
+
+<view class="stat-sheet-mask" wx:if="{{statSheetVisible}}" catchtap="onCloseStatSheet"></view>
+<view class="stat-sheet {{statSheetVisible ? 'show' : ''}}" wx:if="{{statSheetVisible}}">
+  <view class="stat-sheet-head">
+    <text class="stat-sheet-title">{{statSheetTitle}}</text>
+    <view class="stat-sheet-close" bindtap="onCloseStatSheet">×</view>
+  </view>
+  <view class="stat-sheet-summary" wx:if="{{statSheetSummary}}">
+    <text>{{statSheetSummary}}</text>
+  </view>
+  <scroll-view scroll-y class="stat-sheet-scroll" enhanced show-scrollbar="{{false}}">
+    <view
+      class="stat-peer-row"
+      wx:for="{{statSheetList}}"
+      wx:key="id"
+      bindtap="onStatSheetItemTap"
+      data-id="{{item.id}}"
+      data-name="{{item.userName}}"
+      data-pet="{{item.petName}}"
+      data-avatar="{{item.avatar}}"
+    >
+      <image class="stat-peer-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+      <view class="stat-peer-body">
+        <text class="stat-peer-name">{{item.userName}}{{item.petName ? ' · ' + item.petName : ''}}</text>
+        <text class="stat-peer-sub" wx:if="{{item.sub}}">{{item.sub}}</text>
+      </view>
+      <text class="stat-peer-arrow">›</text>
+    </view>
+    <view class="stat-sheet-empty" wx:if="{{!statSheetList.length}}">
+      <text>{{statSheetEmpty}}</text>
+    </view>
+  </scroll-view>
+</view>
+</view>

@@ -5,7 +5,15 @@ const amap = require('../../utils/amap');
 const { chooseMedia } = require('../../utils/choose-media');
 const { evaluateChatSendLimit, canSendOutgoing } = require('../../utils/chat-send-limit');
 const { syncPetProfileGate, requirePetProfile, blockSubPageWithoutProfile } = require('../../utils/pet-profile-guard');
-const { followResultToast } = require('../../utils/pet-follow');
+const {
+  followResultToast,
+  toFollowFriend,
+  peerFollowIdCandidates,
+  isFollowedAny,
+  isFollowedByPeerAny,
+  resolveChatPeerFollowKey,
+} = require('../../utils/pet-follow');
+const { fetchFollowRelation, toggleFollowOnCloud } = require('../../utils/follow-cloud-sync');
 const cloudApi = require('../../utils/cloud-api');
 const {
   ensureChatThreadOnCloud,
@@ -23,6 +31,7 @@ const {
 const { resolveVoicePlayUrl } = require('../../utils/chat-voice');
 const { isCloudFileId, needsCloudUpload, resolveCloudFileUrl } = require('../../utils/cloud-media');
 const { decorateChatMessages } = require('../../utils/chat-time');
+const { formatChatThreadTitle } = require('../../utils/chat-thread-display');
 
 Page({
   data: {
@@ -40,10 +49,13 @@ Page({
     composerPlaceholder: '说点什么…',
     petProfileBlocked: false,
     followed: false,
+    mutualFollow: false,
+    peerFollowsMe: false,
     peerLiked: false,
     centerHeartAnim: false,
     myAvatar: '/assets/mock/real_avatar.jpg',
     peerAvatar: DEFAULT_PEER_AVATAR,
+    peerDisplayTitle: '',
   },
 
   decorateChatUiMessages(list) {
@@ -92,13 +104,16 @@ Page({
       avatar: options.avatar ? decodeURIComponent(options.avatar) : '',
       peerOpenid: options.peerOpenid ? decodeURIComponent(options.peerOpenid) : '',
     };
-    this.initThread(this.peerOptions);
+    this._initThreadPromise = this.initThread(this.peerOptions);
   },
 
   async onShow() {
     syncPetProfileGate(this);
+    if (this._initThreadPromise) {
+      await this._initThreadPromise.catch(() => {});
+    }
     await this.refreshChatAvatars().catch(() => {});
-    if (this.data.peer) this.syncPeerActions(this.data.peer);
+    if (this.data.peer) await this.syncPeerActions(this.data.peer);
     if (this.data.threadId) {
       let messages = store.getChatMessages(this.data.threadId);
       if (cloudApi.cloudEnabled()) {
@@ -124,24 +139,98 @@ Page({
     }
   },
 
-  syncPeerActions(peer) {
-    if (!peer || !peer.id) return;
-    this.setData({
-      followed: store.isFollowed(peer.id),
-      peerLiked: store.isHeartLiked(peer.id, 'chat'),
-    });
-  },
-
-  onToggleFollow() {
-    const peer = this.data.peer;
-    if (!peer || !peer.id) return;
-    const result = store.toggleFollow({
-      id: peer.id,
+  syncLocalFollowEntry(followKey, peer, following) {
+    if (!followKey || !peer) return;
+    const row = {
+      id: followKey,
       userName: peer.userName,
       petName: peer.petName,
       avatar: peer.avatar,
+    };
+    const has = store.isFollowed(followKey);
+    if (following && !has) store.toggleFollow(row);
+    else if (!following && has) store.toggleFollow(row);
+  },
+
+  async syncPeerActions(peer) {
+    if (!peer || !peer.id) return;
+    const threadMeta = this._threadMeta || {};
+    const targetOpenid = peer.peerOpenid || threadMeta.peerOpenid || '';
+    const candidates = peerFollowIdCandidates(peer, threadMeta);
+    let followed = isFollowedAny(candidates);
+    let peerFollowsMe = isFollowedByPeerAny(candidates);
+    let mutualFollow = followed && peerFollowsMe;
+
+    if (targetOpenid && cloudApi.cloudEnabled()) {
+      const rel = await fetchFollowRelation(targetOpenid);
+      if (rel) {
+        followed = !!rel.following;
+        peerFollowsMe = !!rel.follower;
+        mutualFollow = !!rel.mutual;
+        const followKey = `oid:${targetOpenid}`;
+        this.syncLocalFollowEntry(followKey, peer, followed);
+      }
+    }
+
+    this.setData({
+      followed,
+      mutualFollow,
+      peerFollowsMe,
+      peerLiked: store.isHeartLiked(peer.id, 'chat'),
     });
-    this.setData({ followed: result.followed });
+    this.syncLimitState(this.data.messages);
+  },
+
+  async onToggleFollow() {
+    if (!requirePetProfile()) return;
+    const peer = this.data.peer;
+    if (!peer || !peer.id) return;
+    const threadMeta = this._threadMeta || {};
+    const targetOpenid = peer.peerOpenid || threadMeta.peerOpenid || '';
+
+    if (targetOpenid && cloudApi.cloudEnabled()) {
+      try {
+        const rel = await toggleFollowOnCloud(targetOpenid, {
+          userName: peer.userName,
+          petName: peer.petName,
+          avatar: peer.avatar,
+        });
+        if (rel) {
+          const followKey = `oid:${targetOpenid}`;
+          this.syncLocalFollowEntry(followKey, peer, rel.following);
+          this.setData({
+            followed: !!rel.following,
+            peerFollowsMe: !!rel.follower,
+            mutualFollow: !!rel.mutual,
+          });
+          this.syncLimitState(this.data.messages);
+          wx.showToast({ title: followResultToast(rel.following), icon: 'none' });
+          return;
+        }
+      } catch (e) {
+        console.warn('[chat] cloud follow', e);
+      }
+    }
+
+    const friend = toFollowFriend({
+      ...peer,
+      openid: targetOpenid,
+      peerOpenid: targetOpenid,
+    }) || {
+      id: resolveChatPeerFollowKey(peer, threadMeta) || peer.id,
+      userName: peer.userName,
+      petName: peer.petName,
+      avatar: peer.avatar,
+    };
+    const result = store.toggleFollow(friend);
+    const candidates = peerFollowIdCandidates(peer, threadMeta);
+    const mutualFollow = result.followed && isFollowedByPeerAny(candidates);
+    this.setData({
+      followed: result.followed,
+      mutualFollow,
+      peerFollowsMe: isFollowedByPeerAny(candidates),
+    });
+    this.syncLimitState(this.data.messages);
     wx.showToast({ title: followResultToast(result.followed), icon: 'none' });
   },
 
@@ -178,7 +267,7 @@ Page({
     return evaluateChatSendLimit({
       peerId,
       messages: messages || this.data.messages,
-      peerFollowsMe: peerId ? store.isFollowedByPeer(peerId) : false,
+      peerFollowsMe: !!this.data.peerFollowsMe,
     });
   },
 
@@ -231,12 +320,15 @@ Page({
           petName: friend.petName,
           avatar: friend.avatar,
         });
-      } else if (customPeer.peerName) {
+      } else if (customPeer.peerName || customPeer.peerOpenid || peerId) {
+        const peerOpenid = customPeer.peerOpenid
+          || (String(peerId).startsWith('oid:') ? String(peerId).slice(4) : '')
+          || (String(peerId).length > 24 ? String(peerId) : '');
         thread = await ensureChatThreadOnCloud({
-          id: `c_${peerId}`,
-          peerId,
-          peerOpenid: customPeer.peerOpenid || '',
-          peerName: customPeer.peerName,
+          id: `c_${peerOpenid || peerId}`,
+          peerId: peerOpenid || peerId,
+          peerOpenid,
+          peerName: customPeer.peerName || '宠友',
           petName: customPeer.petName || '宠物',
           avatar: customPeer.avatar || '/assets/mock/real_avatar.jpg',
         });
@@ -254,7 +346,14 @@ Page({
     if (!thread && !cloudApi.cloudEnabled()) {
       thread = threads[0] || MOCK_CHATS[0];
     }
-    if (!thread) return;
+    if (!thread) {
+      wx.showToast({ title: '无法打开会话，请从消息列表进入', icon: 'none' });
+      return;
+    }
+    if (!thread.id) {
+      wx.showToast({ title: '会话未创建成功，请重试', icon: 'none' });
+      return;
+    }
     const peerRaw = await lookupPeerAvatarRaw(thread.peerId, [
       customPeer.avatar,
       thread.avatar,
@@ -263,11 +362,17 @@ Page({
       resolveMyAvatarUrl(),
       resolvePeerAvatarUrl(peerRaw),
     ]);
+    const peerDisplayTitle = formatChatThreadTitle(thread.peerName, thread.petName);
+    this._threadMeta = {
+      peerOpenid: thread.peerOpenid || customPeer.peerOpenid || '',
+    };
     const peer = {
       id: thread.peerId,
+      peerOpenid: this._threadMeta.peerOpenid,
       userName: thread.peerName,
       petName: thread.petName,
       avatar: peerAvatar,
+      displayTitle: peerDisplayTitle,
     };
     await markChatThreadReadOnCloud(thread.id);
     let messages = store.getChatMessages(thread.id);
@@ -278,16 +383,17 @@ Page({
         // keep cache
       }
     }
-    this.syncPeerActions(peer);
+    await this.syncPeerActions(peer);
     this.setData({
       threadId: thread.id,
       peer,
+      peerDisplayTitle,
       myAvatar,
       peerAvatar,
     });
     messages = this.decorateChatUiMessages(messages);
     this.setData({ messages });
-    wx.setNavigationBarTitle({ title: `${peer.userName} · ${peer.petName}` });
+    wx.setNavigationBarTitle({ title: '私信' });
     messages = await this.maybeApplyEntryShareComment(messages);
     messages = this.decorateChatUiMessages(messages);
     this.setData({ messages });
@@ -318,6 +424,13 @@ Page({
   },
 
   async sendMessage(message) {
+    if (!this.data.threadId) {
+      if (this._initThreadPromise) await this._initThreadPromise.catch(() => {});
+    }
+    if (!this.data.threadId) {
+      wx.showToast({ title: '会话未就绪，请返回消息列表重进', icon: 'none' });
+      return null;
+    }
     const localPath = message && message.url && needsCloudUpload(message.url) ? message.url : '';
     const row = await sendChatMessageOnCloud(this.data.threadId, message);
     if (!row) return null;

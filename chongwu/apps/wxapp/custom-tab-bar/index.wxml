@@ -1,4 +1,4 @@
-<view class="tab-bar-wrap">
+<view class="tab-bar-wrap" wx:if="{{!hidden}}">
   <!-- 快捷导航 · 参考卡片布局 -->
   <view class="quick-mask" wx:if="{{showQuickNav}}" bindtap="closeQuickNav"></view>
   <view class="quick-panel {{showQuickNav ? 'show' : ''}}" wx:if="{{showQuickNav}}">

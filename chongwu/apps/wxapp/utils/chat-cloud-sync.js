@@ -154,6 +154,7 @@ async function resolveMessageMediaList(list) {
 }
 
 async function loadChatMessagesFromCloud(threadId) {
+  if (!threadId) return [];
   if (!cloudApi.cloudEnabled()) {
     return store.getChatMessages(threadId);
   }
@@ -173,6 +174,7 @@ async function loadChatMessagesFromCloud(threadId) {
 
 /** 会话页同步最新消息（全量合并，避免 since 索引/时间精度丢消息） */
 async function syncChatMessagesForThread(threadId) {
+  if (!threadId) return [];
   if (!cloudApi.cloudEnabled() || !hasLoginToken()) {
     return store.getChatMessages(threadId);
   }
@@ -309,6 +311,7 @@ async function lookupPeerAvatarRaw(peerId, fallbacks = []) {
 }
 
 async function markChatThreadReadOnCloud(threadId) {
+  if (!threadId) return;
   if (!cloudApi.cloudEnabled()) {
     store.markThreadRead(threadId);
     return;
@@ -347,6 +350,10 @@ async function prepareMessageForCloud(message) {
 }
 
 async function sendChatMessageOnCloud(threadId, message) {
+  if (!threadId) {
+    wx.showToast({ title: '会话未就绪，请返回重进', icon: 'none' });
+    return null;
+  }
   if (!cloudApi.cloudEnabled()) {
     return store.addChatMessage(threadId, message);
   }

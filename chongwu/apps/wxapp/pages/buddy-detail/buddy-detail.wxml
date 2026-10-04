@@ -10,6 +10,7 @@
     </view>
     <view class="user-actions">
       <button
+        wx:if="{{!isOwner}}"
         size="mini"
         class="head-follow {{followed ? 'followed' : ''}}"
         bindtap="onFollow"

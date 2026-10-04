@@ -1061,12 +1061,14 @@ function mapCloudThread(thread) {
   return {
     id: thread.id,
     peerId: thread.peerId,
+    peerOpenid: thread.peerOpenid || '',
     peerName: thread.peerName || '宠友',
     petName: thread.petName || '宠物',
     avatar: thread.avatar || '',
     lastMessage: thread.lastMessage || '',
     lastTime: thread.lastTime || '刚刚',
     unread: thread.unread || 0,
+    updatedAt: thread.updatedAt,
   };
 }
 
@@ -1080,9 +1082,14 @@ function upsertChatThreadFromCloud(thread) {
   const row = mapCloudThread(thread);
   if (!row) return null;
   const threads = ensureChatThreads();
-  const idx = threads.findIndex(
-    (t) => String(t.id) === String(row.id) || String(t.peerId) === String(row.peerId),
-  );
+  const idx = threads.findIndex((t) => {
+    if (String(t.id) === String(row.id)) return true;
+    if (String(t.peerId) === String(row.peerId)) return true;
+    if (row.peerOpenid && t.peerOpenid && String(t.peerOpenid) === String(row.peerOpenid)) {
+      return true;
+    }
+    return false;
+  });
   if (idx >= 0) {
     threads[idx] = { ...threads[idx], ...row };
   } else {

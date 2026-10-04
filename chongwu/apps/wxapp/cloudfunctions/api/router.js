@@ -26,6 +26,7 @@ const adminUsersHandler = require('./handlers/admin_users');
 const petDiscoverLikesHandler = require('./handlers/pet_discover_likes');
 const chatThreadsHandler = require('./handlers/chat_threads');
 const chatMessagesHandler = require('./handlers/chat_messages');
+const userFollowsHandler = require('./handlers/user_follows');
 
 /** 已实现：… / social_comments.* / local_posts.* */
 const ROUTES = {
@@ -137,6 +138,8 @@ const ROUTES = {
   'chat_threads.markRead': (payload, ctx) => chatThreadsHandler.markRead(payload, ctx),
   'chat_messages.listByThread': (payload, ctx) => chatMessagesHandler.listByThread(payload, ctx),
   'chat_messages.send': (payload, ctx) => chatMessagesHandler.send(payload, ctx),
+  'user_follows.relation': (payload, ctx) => userFollowsHandler.relation(payload, ctx),
+  'user_follows.toggle': (payload, ctx) => userFollowsHandler.toggle(payload, ctx),
 };
 
 const PLANNED = [

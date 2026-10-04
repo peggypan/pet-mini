@@ -18,10 +18,8 @@ const {
 } = require('../../utils/image-palette');
 const amap = require('../../utils/amap');
 const { getDisplayNickname } = require('../../utils/user-profile-display');
-const {
-  persistUserProfileFields,
-  pullUserProfileFromCloud,
-} = require('../../utils/persist-user-profile');
+const { pullUserProfileFromCloud } = require('../../utils/persist-user-profile');
+const { buildProfileStatList } = require('../../utils/profile-stat-list');
 const TAB_KEYS = ['myEvents', 'joined', 'buddy', 'social'];
 
 function buildProfileStatCounts() {
@@ -35,14 +33,6 @@ function buildProfileStatCounts() {
     collectCount,
     likesCollects: socialStats.likesAndCollects + collectCount,
   };
-}
-
-function formatPeerLines(list, max = 6) {
-  if (!list || !list.length) return '';
-  return list
-    .slice(0, max)
-    .map((f) => `· ${f.userName || '宠友'}${f.petName ? ` · ${f.petName}` : ''}`)
-    .join('\n');
 }
 
 function feedCoverFromPost(p) {
@@ -158,7 +148,11 @@ Page({
     heroSourceImage: '',
     profileBio: '和毛孩子一起，遇见同城宠友与好活动～',
     displayNickname: '宠友',
-    nicknameSaving: false,
+    statSheetVisible: false,
+    statSheetTitle: '',
+    statSheetSummary: '',
+    statSheetList: [],
+    statSheetEmpty: '',
   },
 
   pickHeroImageSource() {
@@ -212,9 +206,19 @@ Page({
     });
   },
 
+  onHide() {
+    if (this.data.statSheetVisible) {
+      this.setTabBarHidden(false);
+      this.setData({ statSheetVisible: false });
+    }
+  },
+
   async onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 4 });
+    }
+    if (!this.data.statSheetVisible) {
+      this.setTabBarHidden(false);
     }
     const token = wx.getStorageSync('token');
     if (token && cloudApi.cloudEnabled()) {
@@ -264,40 +268,59 @@ Page({
     wx.nextTick(() => this.updateHeroGradient());
   },
 
+  setTabBarHidden(hidden) {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ hidden: !!hidden });
+    }
+  },
+
   onProfileStatTap(e) {
-    const stat = e.currentTarget.dataset.stat;
-    const counts = buildProfileStatCounts();
-    let title = '';
-    let content = '';
-    if (stat === 'follow') {
-      title = '关注';
-      content = `关注数：${counts.following}`;
-      const lines = formatPeerLines(store.listFollows());
-      if (lines) content += `\n\n${lines}`;
-    } else if (stat === 'fans') {
-      title = '粉丝';
-      content = `粉丝数：${counts.followers}`;
-      const lines = formatPeerLines(store.listFollowersOfMe());
-      if (lines) content += `\n\n${lines}`;
-    } else if (stat === 'heart') {
-      title = '喜欢';
-      content = `喜欢数：${counts.heart}`;
-      const lines = formatPeerLines(store.listHeartLikes());
-      if (lines) content += `\n\n${lines}`;
-    } else if (stat === 'likesCollects') {
-      title = '获赞和收藏';
-      content = `获赞和收藏数：${counts.likesCollects}\n内容获赞与收藏：${counts.receivedLikesCollects}\n收藏搭子：${counts.collectCount}`;
-      const lines = formatPeerLines(store.listCollects());
-      if (lines) content += `\n\n${lines}`;
-    } else {
+    if (!this.data.isLogin) {
+      wx.showToast({ title: '请先登录', icon: 'none' });
       return;
     }
-    wx.showModal({
-      title,
-      content,
-      showCancel: false,
-      confirmText: '知道了',
+    const stat = e.currentTarget.dataset.stat;
+    const typeMap = {
+      follow: 'follow',
+      fans: 'fans',
+      heart: 'heart',
+      likesCollects: 'likesCollects',
+    };
+    const type = typeMap[stat];
+    if (!type) return;
+    const sheet = buildProfileStatList(type);
+    this.setTabBarHidden(true);
+    this.setData({
+      statSheetVisible: true,
+      statSheetTitle: sheet.title,
+      statSheetSummary: sheet.summary,
+      statSheetList: sheet.list,
+      statSheetEmpty: sheet.emptyText,
     });
+  },
+
+  onCloseStatSheet() {
+    this.setTabBarHidden(false);
+    this.setData({ statSheetVisible: false });
+  },
+
+  onStatSheetItemTap(e) {
+    const { id, name, pet, avatar } = e.currentTarget.dataset;
+    if (!id) return;
+    this.setTabBarHidden(false);
+    this.setData({ statSheetVisible: false });
+    const idStr = String(id);
+    const peerOpenid = idStr.startsWith('oid:') ? idStr.slice(4) : '';
+    const peerId = peerOpenid || idStr;
+    const q = [
+      `peerId=${encodeURIComponent(peerId)}`,
+      `peerName=${encodeURIComponent(name || '宠友')}`,
+      `petName=${encodeURIComponent(pet || '')}`,
+      `avatar=${encodeURIComponent(avatar || '')}`,
+    ];
+    if (peerOpenid) q.push(`peerOpenid=${encodeURIComponent(peerOpenid)}`);
+    const query = q.join('&');
+    wx.navigateTo({ url: `/pages/chat/chat?${query}` });
   },
 
   onFeedTap(e) {
@@ -377,37 +400,6 @@ Page({
       confirmText: '知道了',
     });
   },
-  onNicknameInput(e) {
-    this.setData({ displayNickname: e.detail.value || '' });
-  },
-
-  async onNicknameCommit() {
-    if (!this.data.isLogin || this.data.nicknameSaving) return;
-    const next = String(this.data.displayNickname || '').trim();
-    if (!next) {
-      this.setData({ displayNickname: getDisplayNickname() });
-      wx.showToast({ title: '网名不能为空', icon: 'none' });
-      return;
-    }
-    const prev = getDisplayNickname();
-    if (next === prev) return;
-    this.setData({ nicknameSaving: true });
-    try {
-      await persistUserProfileFields({ nickname: next });
-      this.setData({
-        displayNickname: next,
-        userInfo: wx.getStorageSync('userInfo'),
-      });
-      wx.showToast({ title: '网名已更新', icon: 'success' });
-    } catch (e) {
-      this.setData({ displayNickname: prev });
-      const msg = (e && (e.message || e.errMsg)) || '保存失败';
-      wx.showToast({ title: String(msg).slice(0, 40), icon: 'none' });
-    } finally {
-      this.setData({ nicknameSaving: false });
-    }
-  },
-
   onEditProfile() {
     if (!this.data.isLogin) {
       wx.showToast({ title: '请先登录', icon: 'none' });

@@ -1,7 +1,7 @@
 <view class="page">
   <view class="head" wx:if="{{pet}}">
     <text class="head-title">{{pet.name}} 的分享海报</text>
-    <text class="head-sub">已生成 3 种风格：清新蓝天 / 杂志封面 / 萌宠气泡</text>
+    <text class="head-sub">已生成 3 种风格：证照蓝调 / 杂志封面 / 萌宠名片</text>
   </view>
 
   <view class="loading" wx:if="{{generating}}">
@@ -38,7 +38,7 @@
     </swiper>
 
     <view class="tips">
-      <text>· 海报含小程序码示意，好友可扫码进入宠头头</text>
+      <text>· 海报二维码与宠证页一致，扫码可查验档案</text>
       <text>· 左右滑动切换风格，保存后可发朋友圈</text>
     </view>
 

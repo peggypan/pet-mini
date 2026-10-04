@@ -1,6 +1,7 @@
 const store = require('../../utils/store');
 const { getDefaultPet } = require('../../utils/catalog');
 const { generatePetCertPosters } = require('../../utils/pet-cert-poster');
+const { publishPetCertToCloud } = require('../../utils/pet-cert-cloud-sync');
 const { requireInteract } = require('../../utils/pet-profile-guard');
 
 Page({
@@ -38,6 +39,9 @@ Page({
     if (!pet) return;
     this.setData({ generating: true, error: '' });
     try {
+      if (pet.id) {
+        await publishPetCertToCloud(pet.id).catch(() => {});
+      }
       const posters = await generatePetCertPosters(this, pet);
       this.setData({ posters, generating: false });
     } catch (err) {

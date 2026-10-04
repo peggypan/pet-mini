@@ -101,8 +101,47 @@ function drawQrToTempFile(page, canvasId, text) {
   }));
 }
 
+/**
+ * 在任意 2d canvas 上下文绘制可扫描 QR（用于分享海报等）
+ */
+function drawQrMatrixOnCtx(ctx, x, y, size, text, options = {}) {
+  let matrix;
+  try {
+    matrix = encodeQrMatrix(text, options.ecc || 'M');
+  } catch (e) {
+    try {
+      matrix = encodeQrMatrix(text, 'L');
+    } catch (e2) {
+      return false;
+    }
+  }
+  const n = matrix.length;
+  const quiet = options.quietModules != null ? options.quietModules : 2;
+  const cells = n + quiet * 2;
+  const cell = size / cells;
+  const bg = options.bg || '#FFFFFF';
+  const fg = options.fg || '#111111';
+  ctx.fillStyle = bg;
+  ctx.fillRect(x, y, size, size);
+  ctx.fillStyle = fg;
+  for (let row = 0; row < n; row += 1) {
+    for (let col = 0; col < n; col += 1) {
+      if (matrix[row][col]) {
+        ctx.fillRect(
+          x + (col + quiet) * cell,
+          y + (row + quiet) * cell,
+          cell + 0.35,
+          cell + 0.35,
+        );
+      }
+    }
+  }
+  return true;
+}
+
 module.exports = {
   encodeQrMatrix,
   drawQrCanvas,
   drawQrToTempFile,
+  drawQrMatrixOnCtx,
 };

@@ -5,7 +5,7 @@ const store = require('../../utils/store');
 const { isEventOrganizer } = require('../../utils/event-organizer');
 const amap = require('../../utils/amap');
 const { drawQrCanvas } = require('../../utils/qrcode');
-const { requirePetProfile } = require('../../utils/pet-profile-guard');
+const { requireInteract } = require('../../utils/pet-profile-guard');
 const { deleteOwnedEvent, finishAfterDelete } = require('../../utils/user-content-delete');
 const cloudApi = require('../../utils/cloud-api');
 const { fetchEventFromCloud, recordEventInterest } = require('../../utils/event-cloud-sync');
@@ -127,7 +127,7 @@ Page({
   },
 
   onSignupTap() {
-    if (!requirePetProfile()) return;
+    if (!requireInteract()) return;
     const { event, isOwner } = this.data;
     if (!event) return;
     if (isOwner) {
@@ -185,7 +185,7 @@ Page({
    * 参与者报名并弹出核销二维码（发起人不可走此流程）
    */
   async openTicket() {
-    if (!requirePetProfile()) return;
+    if (!requireInteract()) return;
     const { event, isOwner } = this.data;
     if (!event) return;
     if (isOwner) {
@@ -253,7 +253,7 @@ Page({
   },
 
   async onChatHost() {
-    if (!requirePetProfile()) return;
+    if (!requireInteract()) return;
     const { event, isOwner } = this.data;
     if (!event) return;
     if (isOwner) {

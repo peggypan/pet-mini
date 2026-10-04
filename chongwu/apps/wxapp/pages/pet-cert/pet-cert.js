@@ -5,7 +5,7 @@ const {
   getPetAuditStatus,
   petProfileGateMessage,
   hasPetProfile,
-  requirePetProfile,
+  requireInteract,
 } = require('../../utils/pet-profile-guard');
 const { drawQrToTempFile } = require('../../utils/qrcode');
 const {
@@ -90,6 +90,8 @@ Page({
   },
 
   onEdit() {
+    const { requireLogin } = require('../../utils/require-login');
+    if (!requireLogin()) return;
     const pet = this.data.pet || {};
     const q = pet.id ? `?petId=${pet.id}` : '';
     wx.navigateTo({ url: `/pages/pet-form/pet-form${q}` });
@@ -110,10 +112,7 @@ Page({
   },
 
   onShare() {
-    if (!hasPetProfile()) {
-      requirePetProfile();
-      return;
-    }
+    if (!requireInteract()) return;
     const pet = this.data.pet || {};
     const q = pet.id ? `?petId=${pet.id}` : '';
     wx.navigateTo({ url: `/pages/pet-cert-poster/pet-cert-poster${q}` });

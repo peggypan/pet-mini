@@ -62,10 +62,14 @@ Page({
   },
 
   onGoApply() {
+    const { requireInteract } = require('../../utils/pet-profile-guard');
+    if (!requireInteract()) return;
     wx.navigateTo({ url: '/pages/club-apply/club-apply' });
   },
 
   async onJoin(e) {
+    const { requireLogin } = require('../../utils/require-login');
+    if (!requireLogin()) return;
     const club = findClub(e.currentTarget.dataset.id);
     if (!club) return;
     wx.showLoading({ title: '加入中', mask: true });

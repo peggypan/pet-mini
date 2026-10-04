@@ -15,12 +15,26 @@ function applyCity(cityInfo, options = {}) {
   return payload;
 }
 
+function privacyAllowsLocation() {
+  if (!wx.getPrivacySetting) return true;
+  try {
+    const app = getApp();
+    return !!(app && app.globalData && app.globalData.privacyAccepted);
+  } catch (e) {
+    return false;
+  }
+}
+
 function autoLocateCity(options = {}) {
   const { silent = false, force = false } = options;
   const current = store.getCityLocation();
 
   if (!force && current.auto && current.city) {
     return Promise.resolve(current);
+  }
+
+  if (!privacyAllowsLocation()) {
+    return Promise.reject(new Error('privacy_not_accepted'));
   }
 
   return new Promise((resolve, reject) => {

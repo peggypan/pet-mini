@@ -1,5 +1,6 @@
 {
-  "note": "云开发控制台 → 集合 → 权限设置 → 自定义安全规则，按 name 粘贴对应 rule",
+  "note": "云开发控制台 → 数据库 → 集合 → 权限设置 → 自定义安全规则。将 templates[template] 的 read/write 粘贴进去。详见 permissions.md",
+  "policy": "launch_2026: 业务集合默认 C（仅云函数）；users 用 A；运营只读配置可用 D",
   "templates": {
     "A_user_private": {
       "read": "doc._openid == auth.openid",
@@ -7,7 +8,8 @@
     },
     "B_owner_write": {
       "read": true,
-      "write": "doc._openid == auth.openid"
+      "write": "doc._openid == auth.openid",
+      "_deprecated": "上线不推荐，见 permissions.md"
     },
     "C_cloud_only": {
       "read": false,
@@ -19,34 +21,37 @@
     },
     "E_comments": {
       "read": true,
-      "write": "doc._openid == auth.openid"
+      "write": "doc._openid == auth.openid",
+      "_deprecated": "请改用 C_cloud_only"
     }
   },
   "collections": [
-    { "name": "users", "template": "A_user_private" },
-    { "name": "pets", "template": "B_owner_write" },
-    { "name": "buddy_posts", "template": "B_owner_write" },
-    { "name": "pet_discover_likes", "template": "C_cloud_only" },
-    { "name": "pet_discover_daily", "template": "C_cloud_only" },
-    { "name": "social_posts", "template": "B_owner_write" },
-    { "name": "social_comments", "template": "E_comments" },
-    { "name": "local_posts", "template": "B_owner_write" },
-    { "name": "chat_threads", "template": "C_cloud_only" },
-    { "name": "chat_messages", "template": "C_cloud_only" },
-    { "name": "events", "template": "B_owner_write" },
-    { "name": "event_signups", "template": "C_cloud_only" },
-    { "name": "event_qualify", "template": "C_cloud_only" },
-    { "name": "map_points", "template": "C_cloud_only" },
-    { "name": "merchants", "template": "C_cloud_only" },
-    { "name": "merchant_applies", "template": "C_cloud_only" },
-    { "name": "host_applies", "template": "C_cloud_only" },
-    { "name": "clubs", "template": "C_cloud_only" },
-    { "name": "club_members", "template": "C_cloud_only" },
-    { "name": "pet_certs_public", "template": "D_public_read" },
-    { "name": "banners", "template": "D_public_read" },
-    { "name": "splash_ads", "template": "D_public_read" },
-    { "name": "points_ledger", "template": "C_cloud_only" },
-    { "name": "sensitive_words", "template": "C_cloud_only" },
-    { "name": "admin_users", "template": "C_cloud_only" }
+    { "name": "users", "template": "A_user_private", "phase": 1 },
+    { "name": "pets", "template": "C_cloud_only", "phase": 1 },
+    { "name": "buddy_posts", "template": "C_cloud_only", "phase": 2 },
+    { "name": "pet_discover_likes", "template": "C_cloud_only", "phase": 2 },
+    { "name": "pet_discover_daily", "template": "C_cloud_only", "phase": 2 },
+    { "name": "social_posts", "template": "C_cloud_only", "phase": 2 },
+    { "name": "social_comments", "template": "C_cloud_only", "phase": 2 },
+    { "name": "local_posts", "template": "C_cloud_only", "phase": 2 },
+    { "name": "chat_threads", "template": "C_cloud_only", "phase": 2 },
+    { "name": "chat_messages", "template": "C_cloud_only", "phase": 2 },
+    { "name": "user_follows", "template": "C_cloud_only", "phase": 2 },
+    { "name": "events", "template": "C_cloud_only", "phase": 3 },
+    { "name": "event_signups", "template": "C_cloud_only", "phase": 3 },
+    { "name": "event_interests", "template": "C_cloud_only", "phase": 3 },
+    { "name": "event_qualify", "template": "C_cloud_only", "phase": 3 },
+    { "name": "map_points", "template": "C_cloud_only", "phase": 4 },
+    { "name": "merchants", "template": "C_cloud_only", "phase": 5 },
+    { "name": "merchant_applies", "template": "C_cloud_only", "phase": 5 },
+    { "name": "host_applies", "template": "C_cloud_only", "phase": 5 },
+    { "name": "clubs", "template": "C_cloud_only", "phase": 5 },
+    { "name": "club_members", "template": "C_cloud_only", "phase": 5 },
+    { "name": "pet_certs_public", "template": "D_public_read", "phase": 6, "altTemplate": "C_cloud_only" },
+    { "name": "banners", "template": "D_public_read", "phase": 6, "altTemplate": "C_cloud_only" },
+    { "name": "splash_ads", "template": "D_public_read", "phase": 6, "altTemplate": "C_cloud_only" },
+    { "name": "points_ledger", "template": "C_cloud_only", "phase": 6 },
+    { "name": "sensitive_words", "template": "C_cloud_only", "phase": 6 },
+    { "name": "admin_users", "template": "C_cloud_only", "phase": 6 }
   ]
 }

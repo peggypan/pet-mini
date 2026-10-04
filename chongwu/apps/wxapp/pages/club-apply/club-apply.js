@@ -6,6 +6,8 @@ const {
   withdrawHostApplyFromCloud,
 } = require('../../utils/host-apply-cloud-sync');
 const { chooseMedia } = require('../../utils/choose-media');
+const { blockSubPageWithoutLogin } = require('../../utils/pet-profile-guard');
+const { requireLogin } = require('../../utils/require-login');
 
 Page({
   data: {
@@ -15,6 +17,10 @@ Page({
     intro: '',
     contact: '',
     cover: '',
+  },
+
+  onLoad() {
+    blockSubPageWithoutLogin(this);
   },
 
   async onShow() {
@@ -70,6 +76,7 @@ Page({
   },
 
   async onSubmit() {
+    if (!requireLogin()) return;
     const { name, city, intro, contact, cover, apply } = this.data;
     if (apply && apply.status === 'pending') {
       wx.showToast({ title: '审核中，请耐心等待', icon: 'none' });

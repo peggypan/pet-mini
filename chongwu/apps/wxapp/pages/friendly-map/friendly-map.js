@@ -297,6 +297,8 @@ Page({
   },
 
   onSubmitPoint() {
+    const { requireInteract } = require('../../utils/pet-profile-guard');
+    if (!requireInteract()) return;
     wx.navigateTo({ url: '/pages/map-submit/map-submit' });
   },
 

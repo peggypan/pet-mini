@@ -8,7 +8,7 @@ const {
   decorateBuddyFollow,
   toggleFollowAuthor,
 } = require('../../utils/pet-follow');
-const { requirePetProfile } = require('../../utils/pet-profile-guard');
+const { requireInteract } = require('../../utils/pet-profile-guard');
 const { deleteOwnedBuddyPost, finishAfterDelete } = require('../../utils/user-content-delete');
 
 Page({
@@ -57,7 +57,7 @@ Page({
   },
 
   onFollow() {
-    if (!requirePetProfile()) return;
+    if (!requireInteract()) return;
     const buddy = this.data.buddy;
     if (!buddy || buddy.isSelfAuthor) return;
     const result = toggleFollowAuthor(buddy);
@@ -69,7 +69,7 @@ Page({
   },
 
   onCollectBuddy() {
-    if (!requirePetProfile()) return;
+    if (!requireInteract()) return;
     const result = store.toggleCollect(this.data.buddy);
     this.setData({ collected: result.collected });
     wx.showToast({

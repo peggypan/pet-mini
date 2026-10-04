@@ -11,6 +11,7 @@ const {
 } = require('../../utils/pet-discover-likes-cloud-sync');
 const amap = require('../../utils/amap');
 const { syncPetProfileGate } = require('../../utils/pet-profile-guard');
+const { requireInteract } = require('../../utils/pet-profile-guard');
 
 const SWIPE_THRESHOLD = 72;
 const FLY_MS = 420;
@@ -144,6 +145,7 @@ Page({
   },
 
   onDiscoverFilter(e) {
+    if (!requireInteract()) return;
     const discoverFilter = e.currentTarget.dataset.id;
     const patch = { discoverFilter };
     if (discoverFilter !== 'healing') {
@@ -153,6 +155,7 @@ Page({
   },
 
   onHealingTypeFilter(e) {
+    if (!requireInteract()) return;
     const healingTypeFilter = e.currentTarget.dataset.type;
     this.setData({ healingTypeFilter }, () => this.reloadDeck());
   },
@@ -171,6 +174,7 @@ Page({
   },
 
   openShareQuotaModal() {
+    if (!requireInteract()) return;
     this.setData({ showShareQuota: true });
   },
 
@@ -179,6 +183,7 @@ Page({
   },
 
   async grantShareBonus() {
+    if (!requireInteract()) return;
     const res = await addShareBonusOnCloud();
     this.refreshQuota();
     if (!res.ok) {
@@ -285,6 +290,7 @@ Page({
   },
 
   openCardDetail() {
+    if (!requireInteract()) return;
     const card = this.topCard();
     if (!card) return;
     wx.navigateTo({ url: `/pages/pet-discover-detail/pet-discover-detail?id=${card.id}` });
@@ -303,6 +309,10 @@ Page({
   },
 
   handleLike(opts = {}) {
+    if (!requireLogin()) {
+      if (opts.fromSwipe) this.resetCard();
+      return;
+    }
     if (this.data.fly || !this.topCard()) return;
     if (!this.hasSwipeQuota()) {
       this.openShareQuotaModal();
@@ -321,6 +331,10 @@ Page({
   },
 
   handleDislike(opts = {}) {
+    if (!requireLogin()) {
+      if (opts.fromSwipe) this.resetCard();
+      return;
+    }
     if (this.data.fly || !this.topCard()) return;
     if (!this.hasSwipeQuota()) {
       this.openShareQuotaModal();
@@ -372,15 +386,18 @@ Page({
   },
 
   onOpenPlace(e) {
+    if (!requireInteract()) return;
     amap.openPlaceFromTap(e);
   },
 
   onReload() {
+    if (!requireInteract()) return;
     this._skipped = [];
     this.reloadDeck();
   },
 
   onOpenLikes() {
+    if (!requireInteract()) return;
     const row = store.getPetLikes();
     this.setData({ showLikes: true, likedList: row.items });
   },
@@ -390,6 +407,7 @@ Page({
   },
 
   onLikedTap(e) {
+    if (!requireInteract()) return;
     const id = e.currentTarget.dataset.id;
     this.setData({ showLikes: false });
     wx.navigateTo({ url: `/pages/buddy-detail/buddy-detail?id=${id}` });

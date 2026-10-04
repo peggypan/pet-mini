@@ -17,6 +17,13 @@ Page({
     wx.getPrivacySetting({
       success: (res) => {
         if (!res.needAuthorization) {
+          const app = getApp();
+          if (app) {
+            app.globalData.privacyAccepted = true;
+            if (typeof app.tryAutoLocateCity === 'function') {
+              app.tryAutoLocateCity();
+            }
+          }
           tryLaunchWithSplash();
           return;
         }
@@ -40,6 +47,9 @@ Page({
       app.handlePrivacyAgree('agree-privacy-btn');
     }
     app.globalData.privacyAccepted = true;
+    if (typeof app.tryAutoLocateCity === 'function') {
+      app.tryAutoLocateCity();
+    }
     tryLaunchWithSplash();
   },
 

@@ -1,6 +1,6 @@
 const { openLaunchTab } = require('../../utils/app-entry');
 const { consumePendingSplashAd, markSplashShown } = require('../../utils/splash-ad');
-const { requirePetProfile } = require('../../utils/pet-profile-guard');
+const { requireInteract } = require('../../utils/pet-profile-guard');
 
 Page({
   data: {
@@ -75,8 +75,8 @@ Page({
     if (ad) markSplashShown(ad);
     if (tapped && ad && ad.linkType === 'miniPage' && ad.linkTarget) {
       const url = ad.linkTarget;
-      if (url.includes('friendly-map') || url.includes('map-submit')) {
-        if (!requirePetProfile()) {
+      if (url.includes('map-submit')) {
+        if (!requireInteract()) {
           openLaunchTab();
           return;
         }

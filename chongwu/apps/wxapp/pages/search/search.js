@@ -3,7 +3,6 @@ const amap = require('../../utils/amap');
 const store = require('../../utils/store');
 const cloudApi = require('../../utils/cloud-api');
 const { refreshMerchantsFromCloud } = require('../../utils/merchant-cloud-sync');
-const { requirePetProfile } = require('../../utils/pet-profile-guard');
 
 const TAB_DEF = [
   { id: 'all', name: '全部' },
@@ -90,9 +89,6 @@ Page({
 
   onResultTap(e) {
     const { type, id } = e.currentTarget.dataset;
-    if (type === 'buddy' || type === 'event' || type === 'point') {
-      if (!requirePetProfile()) return;
-    }
     if (type === 'buddy') {
       wx.navigateTo({ url: `/pages/buddy-detail/buddy-detail?id=${id}` });
       return;

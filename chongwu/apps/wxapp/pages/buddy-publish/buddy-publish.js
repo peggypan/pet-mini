@@ -5,7 +5,12 @@ const cloudApi = require('../../utils/cloud-api');
 const { saveBuddyToCloud } = require('../../utils/buddy-cloud-sync');
 const { pickMixedMedia, MEDIA_LIMIT_HINT, mediaSlots } = require('../../utils/media-upload');
 const amap = require('../../utils/amap');
-const { blockSubPageWithoutProfile, syncPetProfileGate, requirePetProfile } = require('../../utils/pet-profile-guard');
+const {
+  blockSubPageWithoutLogin,
+  blockSubPageWithoutProfile,
+  syncPetProfileGate,
+  requireInteract,
+} = require('../../utils/pet-profile-guard');
 
 Page({
   data: {
@@ -32,6 +37,7 @@ Page({
   },
 
   onLoad(options) {
+    if (!blockSubPageWithoutLogin(this)) return;
     blockSubPageWithoutProfile(this);
     const zone = options.zone || 'normal';
     const buddyTypes = buddyTypesForZone(zone);
@@ -165,7 +171,7 @@ Page({
   },
 
   async onSubmit() {
-    if (!requirePetProfile()) return;
+    if (!requireInteract()) return;
     const {
       title, buddyType, expectTime, expectPlace, expectPlaceAddress, location,
       desc, zone, openSignup, mediaList,

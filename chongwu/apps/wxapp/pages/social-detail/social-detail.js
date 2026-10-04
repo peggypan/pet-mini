@@ -15,7 +15,7 @@ const { withContentParts } = require('../../utils/social-content-parts');
 const { buildCommentThreads } = require('../../utils/social-post-comments');
 const { openSocialHashtagFilter } = require('../../utils/social-hashtag-nav');
 const { decoratePostFollow, followResultToast, toggleFollowAuthor } = require('../../utils/pet-follow');
-const { requirePetProfile } = require('../../utils/pet-profile-guard');
+const { requireInteract } = require('../../utils/pet-profile-guard');
 const {
   deleteOwnedSocialPost,
   deleteOwnedLocalPost,
@@ -121,7 +121,7 @@ Page({
   },
 
   onFollowAuthor() {
-    if (!requirePetProfile()) return;
+    if (!requireInteract()) return;
     const post = this.data.post;
     if (!post || post.isSelfAuthor || !post.authorId || post.authorId === 'me') return;
     const result = toggleFollowAuthor(post);
@@ -157,7 +157,7 @@ Page({
   },
 
   onLike() {
-    if (!requirePetProfile()) return;
+    if (!requireInteract()) return;
     const { post, postId, postSource } = this.data;
     if (!post) return;
     const liked = !post.liked;
@@ -298,7 +298,7 @@ Page({
   },
 
   async onComposerSend(e) {
-    if (!requirePetProfile()) return;
+    if (!requireInteract()) return;
     const text = (e.detail.value || this.data.commentText || '').trim();
     const { pendingMedia, postId, post, replyTarget } = this.data;
     if (!text && !pendingMedia) {

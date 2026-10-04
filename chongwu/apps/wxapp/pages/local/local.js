@@ -11,7 +11,8 @@ const {
   PET_FAB_ITEMS,
 } = require('../../utils/map-pet-filter');
 const { collectPetServicePOIs, mergeMapPoints } = require('../../utils/map-pet-poi-collector');
-const { syncPetProfileGate, requirePetProfile } = require('../../utils/pet-profile-guard');
+const { syncPetProfileGate, requireInteract } = require('../../utils/pet-profile-guard');
+const { requireLogin } = require('../../utils/require-login');
 const cloudApi = require('../../utils/cloud-api');
 const { refreshEventsFeedFromCloud } = require('../../utils/event-cloud-sync');
 const { refreshMapPointsFromCloud } = require('../../utils/map-point-cloud-sync');
@@ -120,7 +121,6 @@ Page({
   },
 
   onEventTap(e) {
-    if (!requirePetProfile()) return;
     wx.navigateTo({ url: `/pages/event-detail/event-detail?id=${e.currentTarget.dataset.id}` });
   },
 
@@ -133,17 +133,16 @@ Page({
   },
 
   onMyEvents() {
-    if (!requirePetProfile()) return;
+    if (!requireLogin()) return;
     wx.navigateTo({ url: '/pages/my-events/my-events' });
   },
 
   onMapSubmit() {
-    if (!requirePetProfile()) return;
+    if (!requireInteract()) return;
     wx.navigateTo({ url: '/pages/map-submit/map-submit' });
   },
 
   onOpenFullMap() {
-    if (!requirePetProfile()) return;
     wx.navigateTo({ url: '/pages/friendly-map/friendly-map' });
   },
 

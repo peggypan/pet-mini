@@ -160,6 +160,13 @@ function syncPetProfileGate(pageCtx, dataKey = 'petProfileBlocked') {
   return !blocked;
 }
 
+/** 写操作/互动：先登录，再校验宠物档案 */
+function requireInteract(options = {}) {
+  const { requireLogin } = require('./require-login');
+  if (!requireLogin()) return false;
+  return requirePetProfile(options);
+}
+
 function requirePetProfile(options = {}) {
   if (hasPetProfile()) return true;
   const pet = getPrimaryPet();
@@ -195,6 +202,35 @@ function requirePetProfile(options = {}) {
       if (typeof onCancel === 'function') onCancel();
     },
   });
+  return false;
+}
+
+/** 发布/表单等二级页：未登录则提示并返回或去登录 */
+function blockSubPageWithoutLogin(pageCtx) {
+  const { isLoggedIn, goLoginPage } = require('./require-login');
+  if (isLoggedIn()) return true;
+  wx.showModal({
+    title: '请先登录',
+    content: '登录后可使用该功能',
+    confirmText: '去登录',
+    cancelText: '返回',
+    showCancel: true,
+    success: (res) => {
+      if (res.confirm) {
+        goLoginPage();
+        return;
+      }
+      const pages = getCurrentPages();
+      if (pages.length > 1) {
+        wx.navigateBack();
+      } else {
+        wx.switchTab({ url: '/pages/pet-discover/pet-discover' });
+      }
+    },
+  });
+  if (pageCtx && typeof pageCtx.setData === 'function') {
+    pageCtx.setData({ loginBlocked: true });
+  }
   return false;
 }
 
@@ -248,5 +284,7 @@ module.exports = {
   hasPetProfile,
   syncPetProfileGate,
   requirePetProfile,
+  requireInteract,
+  blockSubPageWithoutLogin,
   blockSubPageWithoutProfile,
 };

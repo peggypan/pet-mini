@@ -98,7 +98,10 @@ Page({
       success: (res) => {
         wx.setStorageSync('pet_bind_guided', 1);
         if (res.confirm) {
-          wx.navigateTo({ url: '/pages/pet-form/pet-form' });
+          const { requireLogin } = require('../../utils/require-login');
+          if (requireLogin()) {
+            wx.navigateTo({ url: '/pages/pet-form/pet-form' });
+          }
         }
       },
     });

@@ -4,7 +4,12 @@ const { openEventPublishEntry } = require('../../utils/event-publish-nav');
 const amap = require('../../utils/amap');
 const { chooseMedia } = require('../../utils/choose-media');
 const { evaluateChatSendLimit, canSendOutgoing } = require('../../utils/chat-send-limit');
-const { syncPetProfileGate, requirePetProfile, blockSubPageWithoutProfile } = require('../../utils/pet-profile-guard');
+const {
+  syncPetProfileGate,
+  requireInteract,
+  blockSubPageWithoutLogin,
+  blockSubPageWithoutProfile,
+} = require('../../utils/pet-profile-guard');
 const {
   followResultToast,
   toFollowFriend,
@@ -94,6 +99,7 @@ Page({
   },
 
   onLoad(options) {
+    if (!blockSubPageWithoutLogin(this)) return;
     blockSubPageWithoutProfile(this);
     this.entryOptions = options || {};
     this.peerOptions = {
@@ -182,7 +188,7 @@ Page({
   },
 
   async onToggleFollow() {
-    if (!requirePetProfile()) return;
+    if (!requireInteract()) return;
     const peer = this.data.peer;
     if (!peer || !peer.id) return;
     const threadMeta = this._threadMeta || {};
@@ -494,7 +500,7 @@ Page({
   },
 
   async onComposerSend(e) {
-    if (!requirePetProfile()) return;
+    if (!requireInteract()) return;
     if (this.data.composerDisabled) {
       this.guardOutgoing('text');
       return;
@@ -507,7 +513,7 @@ Page({
   },
 
   async onComposerVoice(e) {
-    if (!requirePetProfile()) return;
+    if (!requireInteract()) return;
     if (!this.guardOutgoing('voice')) return;
     const { filePath, duration } = e.detail;
     if (!filePath) {

@@ -8,7 +8,7 @@ const { refreshBuddyFeedFromCloud } = require('../../utils/buddy-cloud-sync');
 const { resolveBuddyPosts } = require('../../utils/cloud-media');
 const { loadPetMap } = require('../../utils/pet-buddy-map');
 const amap = require('../../utils/amap');
-const { syncPetProfileGate, requirePetProfile } = require('../../utils/pet-profile-guard');
+const { syncPetProfileGate, requireInteract } = require('../../utils/pet-profile-guard');
 const { deleteOwnedBuddyPost } = require('../../utils/user-content-delete');
 
 Page({
@@ -140,7 +140,6 @@ Page({
   },
 
   onCardTap(e) {
-    if (!requirePetProfile()) return;
     wx.navigateTo({ url: `/pages/buddy-detail/buddy-detail?id=${e.currentTarget.dataset.id}` });
   },
 
@@ -185,7 +184,7 @@ Page({
   },
 
   onLikeTap(e) {
-    if (!requirePetProfile()) return;
+    if (!requireInteract()) return;
     const { id, feedKey } = e.currentTarget.dataset;
     const list = this.data.list.map((p) => {
       if (feedKey ? p.feedKey !== feedKey : String(p.id) !== String(id)) return p;
@@ -209,7 +208,7 @@ Page({
   },
 
   onCommentTap(e) {
-    if (!requirePetProfile()) return;
+    if (!requireInteract()) return;
     const id = e.currentTarget.dataset.id;
     wx.navigateTo({ url: `/pages/buddy-detail/buddy-detail?id=${id}&focus=comment` });
   },
@@ -237,7 +236,7 @@ Page({
   },
 
   onPublish() {
-    if (!requirePetProfile()) return;
+    if (!requireInteract()) return;
     if (this.data.zoneTab === 'match') {
       wx.showModal({
         title: '风险提示',

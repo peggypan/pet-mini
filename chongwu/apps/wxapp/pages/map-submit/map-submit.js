@@ -2,7 +2,11 @@ const store = require('../../utils/store');
 const { saveMapPointToCloud } = require('../../utils/map-point-cloud-sync');
 const amap = require('../../utils/amap');
 const { chooseMedia } = require('../../utils/choose-media');
-const { blockSubPageWithoutProfile, requirePetProfile } = require('../../utils/pet-profile-guard');
+const {
+  blockSubPageWithoutLogin,
+  blockSubPageWithoutProfile,
+  requireInteract,
+} = require('../../utils/pet-profile-guard');
 
 const MAX_SCENE_IMAGES = 6;
 
@@ -42,6 +46,7 @@ Page({
   },
 
   onLoad() {
+    if (!blockSubPageWithoutLogin(this)) return;
     blockSubPageWithoutProfile(this);
   },
 
@@ -157,7 +162,7 @@ Page({
 
   async onSubmit() {
     if (this.data.submitting) return;
-    if (!requirePetProfile()) return;
+    if (!requireInteract()) return;
     const {
       name, type, address, allowPet, danger, dangerDesc, latitude, longitude, city, images,
     } = this.data;

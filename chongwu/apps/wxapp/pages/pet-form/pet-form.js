@@ -7,7 +7,8 @@ const { chooseMedia } = require('../../utils/choose-media');
 const amap = require('../../utils/amap');
 const { HEALING_BUDDY_TYPES } = require('../../utils/pet-healing');
 const { RISK_TIPS } = require('../../utils/mock');
-const { validatePetProfile } = require('../../utils/pet-profile-guard');
+const { validatePetProfile, blockSubPageWithoutLogin } = require('../../utils/pet-profile-guard');
+const { requireLogin } = require('../../utils/require-login');
 
 Page({
   data: {
@@ -44,6 +45,7 @@ Page({
   },
 
   onLoad(options) {
+    if (!blockSubPageWithoutLogin(this)) return;
     if (cloudApi.cloudEnabled()) {
       refreshPetsFromCloud().catch(() => {});
     }
@@ -250,6 +252,7 @@ Page({
   },
 
   async onSubmit() {
+    if (!requireLogin()) return;
     const {
       name, species, breedName, gender, birthday, weight, color,
       isSterilized, microchip, personality, socialTagsText, remark, mode, petId, submitting,

@@ -3,6 +3,8 @@ const cloudApi = require('../../utils/cloud-api');
 const { refreshQualifyFromCloud, submitQualifyToCloud } = require('../../utils/event-qualify-cloud-sync');
 const { STATUS_TEXT, maskIdCard, getStepHint } = require('../../utils/event-qualify');
 const { chooseMedia } = require('../../utils/choose-media');
+const { blockSubPageWithoutLogin } = require('../../utils/pet-profile-guard');
+const { requireLogin } = require('../../utils/require-login');
 
 function pickImage(field) {
   return new Promise((resolve) => {
@@ -53,6 +55,7 @@ Page({
   },
 
   onLoad(options) {
+    if (!blockSubPageWithoutLogin(this)) return;
     const role = options.role === 'merchant' ? 'merchant' : 'personal';
     this.setData({ role });
     this.loadForm(role);
@@ -125,6 +128,7 @@ Page({
   },
 
   async onSubmitPersonal() {
+    if (!requireLogin()) return;
     const { realName, idCard, personalPhone, idFrontImage, idBackImage, qualify } = this.data;
     if (qualify.verifyStatus === 'pending') {
       wx.showToast({ title: '审核中，请耐心等待', icon: 'none' });
@@ -166,6 +170,7 @@ Page({
   },
 
   async onSubmitMerchant() {
+    if (!requireLogin()) return;
     const {
       companyName, licenseNo, legalPerson, merchantPhone,
       licenseImage, merchantIdFront, merchantIdBack, shopFrontImage, qualify,

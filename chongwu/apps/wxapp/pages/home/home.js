@@ -7,7 +7,7 @@ const EVENT_INITIAL = 5;
 const EVENT_STEP = 5;
 const store = require('../../utils/store');
 const { autoLocateCity } = require('../../utils/city-location');
-const { requirePetProfile } = require('../../utils/pet-profile-guard');
+const { requireInteract } = require('../../utils/pet-profile-guard');
 const cloudApi = require('../../utils/cloud-api');
 const { refreshEventsFeedFromCloud } = require('../../utils/event-cloud-sync');
 const { refreshBannersFromCloud } = require('../../utils/banner-cloud-sync');
@@ -84,7 +84,6 @@ Page({
   },
 
   onMoreEvents() {
-    if (!requirePetProfile()) return;
     wx.setStorageSync('local_tab', 'event');
     wx.navigateTo({ url: '/pages/local/local' });
   },
@@ -97,12 +96,8 @@ Page({
       wx.showToast({ title: '暂无详情页', icon: 'none' });
       return;
     }
-    if (
-      banner.type === 'mapPointsCampaign'
-      || url.includes('map-submit')
-      || url.includes('friendly-map')
-    ) {
-      if (!requirePetProfile()) return;
+    if (banner.type === 'mapPointsCampaign' || url.includes('map-submit')) {
+      if (!requireInteract()) return;
     }
     if (url.includes('local/local')) {
       wx.setStorageSync('local_tab', 'map');
@@ -130,7 +125,6 @@ Page({
   },
 
   onFeatureTap(e) {
-    if (!requirePetProfile()) return;
     const id = e.currentTarget.dataset.id;
     const item = this.data.tiles[id];
     if (!item) return;
@@ -139,12 +133,10 @@ Page({
   },
 
   onEventTap(e) {
-    if (!requirePetProfile()) return;
     wx.navigateTo({ url: `/pages/event-detail/event-detail?id=${e.currentTarget.dataset.id}` });
   },
 
   onBuddyTap(e) {
-    if (!requirePetProfile()) return;
     wx.navigateTo({ url: `/pages/buddy-detail/buddy-detail?id=${e.currentTarget.dataset.id}` });
   },
 
@@ -168,7 +160,6 @@ Page({
   },
 
   onMoreBuddy() {
-    if (!requirePetProfile()) return;
     wx.navigateTo({ url: '/pages/buddy/buddy' });
   },
 

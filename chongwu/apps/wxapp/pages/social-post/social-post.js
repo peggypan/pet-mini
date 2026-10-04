@@ -4,7 +4,12 @@ const { getDefaultPet } = require('../../utils/catalog');
 const { EMOJI_TABS, getEmojiList } = require('../../utils/pet-emoji');
 const { HOT_TOPICS } = require('../../utils/circle-community');
 const { POST_ZONES } = require('../../utils/community-zones');
-const { blockSubPageWithoutProfile, syncPetProfileGate, requirePetProfile } = require('../../utils/pet-profile-guard');
+const {
+  blockSubPageWithoutLogin,
+  blockSubPageWithoutProfile,
+  syncPetProfileGate,
+  requireInteract,
+} = require('../../utils/pet-profile-guard');
 const { parseContentParts } = require('../../utils/social-content-parts');
 const cloudApi = require('../../utils/cloud-api');
 const { saveSocialToCloud } = require('../../utils/social-cloud-sync');
@@ -34,6 +39,7 @@ Page({
   },
 
   onLoad(options) {
+    if (!blockSubPageWithoutLogin(this)) return;
     blockSubPageWithoutProfile(this);
     const patch = {};
     if (options.topic) {
@@ -114,7 +120,7 @@ Page({
   },
 
   async onSubmit() {
-    if (!requirePetProfile()) return;
+    if (!requireInteract()) return;
     const { zone, content, mediaList, selectedTopic } = this.data;
     const text = (content || '').trim();
     if (!text && !mediaList.length) {

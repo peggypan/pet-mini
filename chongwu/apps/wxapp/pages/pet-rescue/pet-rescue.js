@@ -1,7 +1,7 @@
 const { RISK_TIPS } = require('../../utils/mock');
 const { buildRescueList, filterRescueList } = require('../../utils/pet-rescue-list');
 const amap = require('../../utils/amap');
-const { requirePetProfile } = require('../../utils/pet-profile-guard');
+const { requireInteract } = require('../../utils/pet-profile-guard');
 const { deleteRescueItem } = require('../../utils/user-content-delete');
 const cloudApi = require('../../utils/cloud-api');
 const { refreshLocalPostsFromCloud } = require('../../utils/local-cloud-sync');
@@ -69,12 +69,12 @@ Page({
   },
 
   onPublishLost() {
-    if (!requirePetProfile()) return;
+    if (!requireInteract()) return;
     wx.navigateTo({ url: '/pages/lost-publish/lost-publish' });
   },
 
   onPublishAdopt() {
-    if (!requirePetProfile()) return;
+    if (!requireInteract()) return;
     wx.navigateTo({ url: '/pages/lost-publish/lost-publish?mode=rescue-adopt&postType=adopt' });
   },
 

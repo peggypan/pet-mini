@@ -92,6 +92,8 @@ Page({
   },
 
   onAddPet() {
+    const { requireLogin } = require('../../utils/require-login');
+    if (!requireLogin()) return;
     wx.navigateTo({ url: '/pages/pet-form/pet-form' });
   },
 

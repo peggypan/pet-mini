@@ -2,11 +2,11 @@ const store = require('./store');
 const cloudApi = require('./cloud-api');
 const { ensureChatThreadOnCloud } = require('./chat-cloud-sync');
 const { RISK_TIPS } = require('./mock');
-const { requirePetProfile } = require('./pet-profile-guard');
+const { requireInteract } = require('./pet-profile-guard');
 
 function startBuddyChat(buddy) {
   if (!buddy) return;
-  if (!requirePetProfile()) return;
+  if (!requireInteract()) return;
   wx.showModal({
     title: '线下见面提示',
     content: RISK_TIPS.meet,

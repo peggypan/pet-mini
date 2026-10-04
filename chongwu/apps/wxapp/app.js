@@ -51,9 +51,16 @@ App({
     if (wx.getPrivacySetting) {
       wx.getPrivacySetting({
         success: (res) => {
-          this.globalData.privacyAccepted = !res.needAuthorization;
+          const accepted = !res.needAuthorization;
+          this.globalData.privacyAccepted = accepted;
+          if (accepted) {
+            this.tryAutoLocateCity();
+          }
         },
       });
+    } else {
+      this.globalData.privacyAccepted = true;
+      this.tryAutoLocateCity();
     }
     const token = wx.getStorageSync('token');
     const userInfo = wx.getStorageSync('userInfo');
@@ -63,7 +70,7 @@ App({
     if (userInfo) {
       this.globalData.userInfo = userInfo;
     }
-    this.tryAutoLocateCity();
+    // 定位须在用户同意隐私保护指引之后，不可在 privacy-gate 之前调 wx.getLocation
     this.syncCloudPets();
     this.syncSensitiveWords();
   },
@@ -90,6 +97,9 @@ App({
   },
 
   tryAutoLocateCity() {
+    if (wx.getPrivacySetting && !this.globalData.privacyAccepted) {
+      return;
+    }
     const loc = store.getCityLocation();
     if (loc.updatedAt) return;
     autoLocateCity({ silent: true, force: false }).catch(() => {});

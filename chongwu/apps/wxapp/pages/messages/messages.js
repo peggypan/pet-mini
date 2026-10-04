@@ -5,7 +5,7 @@ const {
   CHAT_THREAD_POLL_MS,
 } = require('../../utils/chat-cloud-sync');
 const { buildNotices, countUnreadNotices } = require('../../utils/notice-feed');
-const { syncPetProfileGate, requirePetProfile } = require('../../utils/pet-profile-guard');
+const { syncPetProfileGate, requireInteract } = require('../../utils/pet-profile-guard');
 const { decorateChatThreadsForList } = require('../../utils/chat-thread-display');
 
 Page({
@@ -77,7 +77,7 @@ Page({
   },
 
   onChatTap(e) {
-    if (!requirePetProfile()) return;
+    if (!requireInteract()) return;
     const { peerid, threadid } = e.currentTarget.dataset;
     const q = [];
     if (threadid) q.push(`threadId=${encodeURIComponent(threadid)}`);

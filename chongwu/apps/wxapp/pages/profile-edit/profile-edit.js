@@ -5,6 +5,8 @@ const { persistUserProfileFields } = require('../../utils/persist-user-profile')
 const { getDisplayNickname } = require('../../utils/user-profile-display');
 const { savePetToCloud } = require('../../utils/pet-cloud-sync');
 const cloudApi = require('../../utils/cloud-api');
+const { blockSubPageWithoutLogin } = require('../../utils/pet-profile-guard');
+const { requireLogin } = require('../../utils/require-login');
 
 const DEFAULT_BIO = '和毛孩子一起，遇见同城宠友与好活动～';
 
@@ -17,6 +19,7 @@ Page({
   },
 
   onLoad() {
+    if (!blockSubPageWithoutLogin(this)) return;
     this.loadForm();
   },
 
@@ -52,6 +55,7 @@ Page({
   },
 
   async onSave() {
+    if (!requireLogin()) return;
     if (this.data.saving) return;
     const { avatarUrl, nickname, bio } = this.data;
     if (!nickname.trim()) {
@@ -86,6 +90,7 @@ Page({
   },
 
   onOpenPetForm() {
+    if (!requireLogin()) return;
     const pet = getDefaultPet();
     const petId = pet.id && pet.id !== 'demo' ? pet.id : '';
     const url = petId ? `/pages/pet-form/pet-form?petId=${petId}` : '/pages/pet-form/pet-form';

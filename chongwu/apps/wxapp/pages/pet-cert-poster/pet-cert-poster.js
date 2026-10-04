@@ -1,7 +1,7 @@
 const store = require('../../utils/store');
 const { getDefaultPet } = require('../../utils/catalog');
 const { generatePetCertPosters } = require('../../utils/pet-cert-poster');
-const { hasPetProfile, requirePetProfile } = require('../../utils/pet-profile-guard');
+const { requireInteract } = require('../../utils/pet-profile-guard');
 
 Page({
   data: {
@@ -13,8 +13,9 @@ Page({
   },
 
   onLoad(options) {
-    if (!hasPetProfile()) {
-      requirePetProfile();
+    const { blockSubPageWithoutLogin } = require('../../utils/pet-profile-guard');
+    if (!blockSubPageWithoutLogin(this)) return;
+    if (!requireInteract()) {
       setTimeout(() => wx.navigateBack(), 300);
       return;
     }

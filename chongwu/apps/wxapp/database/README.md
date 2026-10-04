@@ -1,6 +1,6 @@
 # 云数据库集合创建指南
 
-微信云开发使用的是 **集合（Collection）**，不是 MySQL 那种「表」。本项目一共 **25 个集合**，名称见 `collections.json`。
+微信云开发使用的是 **集合（Collection）**，不是 MySQL 那种「表」。本项目一共 **27 个集合**，名称见 `collections.json`；权限见 **`permissions.md`** / **`permissions-map.json`**；全功能走测见 **`TEST-CASES.md`**；上线前 1 小时 P0 见 **`TEST-CASES-P0-1H.md`**。
 
 当前环境 ID：`cloud1-d8gnokqshc15dc3ae`
 
@@ -10,7 +10,7 @@
 
 | 统计 | 数量 |
 |------|------|
-| 集合总数 | **25** |
+| 集合总数 | **27** |
 | 你可能已有 | `users`（登录过则已有数据） |
 | 建议今天先建 | 阶段 **1** 共 2 个：`users` + `pets` |
 | 业务全量前 | 阶段 **1～6** 全部建齐 |
@@ -83,10 +83,7 @@ tcb db nosql execute --help
 ## 五、创建后必做：权限
 
 1. 打开每个新建集合 → **权限设置**。
-2. 对照 `permissions.md`：
-   - `users` → 模板 A  
-   - `pets` → 模板 B（或 write 先设 false，只走云函数）  
-   - 运营/审核类 → 模板 C  
+2. 对照 **`permissions.md` 第三节全表** 或 **`permissions-map.json`**（上线默认：**除 `users`=A、三个运营配置可选 D 外，其余均为 C**）。
 
 3. 保存后，在小程序 Console 再测一次 `require('./utils/cloud-api').login()`，确认 `users` 仍可写入。
 
@@ -122,7 +119,7 @@ tcb db nosql execute --help
 ```javascript
 const cloudApi = require('./utils/cloud-api.js');
 cloudApi.callApi('system', 'checkCollections', { phase: 1 }).then(console.log);
-// phase: 1 | 2 | 3 | 4 | 5 | 6，不传则检查全部 25 个
+// phase: 1 | 2 | 3 | 4 | 5 | 6，不传则检查全部 27 个
 ```
 
 返回 `missing` 为空即表示当前阶段集合已在云上创建。权限对照 **`permissions-map.json`**（与 `permissions.md` 模板 A～E 对应）。

@@ -1,6 +1,7 @@
 const app = getApp();
 const { getDefaultPet } = require('../../utils/catalog');
-const { requirePetProfile } = require('../../utils/pet-profile-guard');
+const { requireInteract } = require('../../utils/pet-profile-guard');
+const { requireLogin } = require('../../utils/require-login');
 const store = require('../../utils/store');
 const cloudApi = require('../../utils/cloud-api');
 const { refreshPointsFromCloud } = require('../../utils/points-ledger-cloud-sync');
@@ -20,6 +21,7 @@ const amap = require('../../utils/amap');
 const { getDisplayNickname } = require('../../utils/user-profile-display');
 const { pullUserProfileFromCloud } = require('../../utils/persist-user-profile');
 const { buildProfileStatList } = require('../../utils/profile-stat-list');
+const { consumeLoginPromptFlag } = require('../../utils/require-login');
 const TAB_KEYS = ['myEvents', 'joined', 'buddy', 'social'];
 
 function buildProfileStatCounts() {
@@ -266,6 +268,11 @@ Page({
     this.refreshFeed(this.data.activeTab);
     this.refreshProfileTags();
     wx.nextTick(() => this.updateHeroGradient());
+    if (!token && consumeLoginPromptFlag()) {
+      wx.nextTick(() => {
+        wx.showToast({ title: '请先登录', icon: 'none' });
+      });
+    }
   },
 
   setTabBarHidden(hidden) {
@@ -433,29 +440,38 @@ Page({
     });
   },
 
-  onEditPet() { wx.navigateTo({ url: '/pages/profile-edit/profile-edit' }); },
+  onEditPet() {
+    if (!requireLogin()) return;
+    wx.navigateTo({ url: '/pages/profile-edit/profile-edit' });
+  },
   onMyBuddy() {
-    if (!requirePetProfile()) return;
+    if (!requireLogin()) return;
     wx.navigateTo({ url: '/pages/buddy/buddy' });
   },
   onMyPosts() {
-    if (!requirePetProfile()) return;
+    if (!requireLogin()) return;
     wx.switchTab({ url: '/pages/social/social' });
   },
   onMyEvents() {
-    if (!requirePetProfile()) return;
+    if (!requireLogin()) return;
     wx.navigateTo({ url: '/pages/my-events/my-events' });
   },
   onMyHelp() {
-    if (!requirePetProfile()) return;
+    if (!requireLogin()) return;
     wx.navigateTo({ url: '/pages/pet-rescue/pet-rescue' });
   },
   onClubApply() {
-    if (!requirePetProfile()) return;
+    if (!requireInteract()) return;
     wx.navigateTo({ url: '/pages/club-apply/club-apply' });
   },
-  onMyClubs() { wx.navigateTo({ url: '/pages/my-clubs/my-clubs?tab=mine' }); },
-  onJoinedClubs() { wx.navigateTo({ url: '/pages/my-clubs/my-clubs?tab=joined' }); },
+  onMyClubs() {
+    if (!requireLogin()) return;
+    wx.navigateTo({ url: '/pages/my-clubs/my-clubs?tab=mine' });
+  },
+  onJoinedClubs() {
+    if (!requireLogin()) return;
+    wx.navigateTo({ url: '/pages/my-clubs/my-clubs?tab=joined' });
+  },
   onOrders() {
     const orders = store.listServiceBooks();
     wx.showModal({

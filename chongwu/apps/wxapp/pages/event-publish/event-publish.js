@@ -4,7 +4,12 @@ const { ROLE_LABEL } = require('../../utils/event-qualify');
 const { getDefaultPet } = require('../../utils/catalog');
 const { EVENT_CATEGORIES, RISK_TIPS } = require('../../utils/mock');
 const amap = require('../../utils/amap');
-const { blockSubPageWithoutProfile, syncPetProfileGate, requirePetProfile } = require('../../utils/pet-profile-guard');
+const {
+  blockSubPageWithoutLogin,
+  blockSubPageWithoutProfile,
+  syncPetProfileGate,
+  requireInteract,
+} = require('../../utils/pet-profile-guard');
 const cloudApi = require('../../utils/cloud-api');
 const { saveEventToCloud } = require('../../utils/event-cloud-sync');
 
@@ -67,6 +72,7 @@ Page({
   },
 
   onLoad(options) {
+    if (!blockSubPageWithoutLogin(this)) return;
     blockSubPageWithoutProfile(this);
     const role = options.role === 'merchant' ? 'merchant' : 'personal';
     const draft = store.getDraft('event_publish');
@@ -340,7 +346,7 @@ Page({
   },
 
   async onSubmit() {
-    if (!requirePetProfile()) return;
+    if (!requireInteract()) return;
     const {
       title, place, maxPeople, desc, detailContent, detailMediaList, role, mediaList, eventDate, category,
       eventType, eventSessions,

@@ -16,7 +16,7 @@ ENV_ID="${TCB_ENV_ID:-cloud1-d8gnokqshc15dc3ae}"
 PHASE_ARG="${1:-all}"
 
 PHASE1=(users pets)
-PHASE2=(buddy_posts pet_discover_likes pet_discover_daily social_posts social_comments local_posts chat_threads chat_messages)
+PHASE2=(buddy_posts pet_discover_likes pet_discover_daily social_posts social_comments local_posts chat_threads chat_messages user_follows)
 PHASE3=(events event_signups event_interests event_qualify)
 PHASE4=(map_points)
 PHASE5=(merchants merchant_applies host_applies clubs club_members)

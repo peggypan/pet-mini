@@ -11,7 +11,7 @@ const { withContentParts } = require('../../utils/social-content-parts');
 const { openSocialHashtagFilter } = require('../../utils/social-hashtag-nav');
 const amap = require('../../utils/amap');
 const { decoratePostFollow, followResultToast } = require('../../utils/pet-follow');
-const { syncPetProfileGate, requirePetProfile } = require('../../utils/pet-profile-guard');
+const { syncPetProfileGate, requireInteract } = require('../../utils/pet-profile-guard');
 const { deleteOwnedSocialPost } = require('../../utils/user-content-delete');
 const cloudApi = require('../../utils/cloud-api');
 const { refreshSocialFeedFromCloud } = require('../../utils/social-cloud-sync');
@@ -116,7 +116,7 @@ Page({
   },
 
   onTopicTap(e) {
-    if (!requirePetProfile()) return;
+    if (!requireInteract()) return;
     const topic = e.currentTarget.dataset.name;
     const zone = this.data.activeZone !== 'all' ? this.data.activeZone : '';
     let url = `/pages/social-post/social-post?topic=${encodeURIComponent(topic)}`;
@@ -125,7 +125,7 @@ Page({
   },
 
   onCreatePost() {
-    if (!requirePetProfile()) return;
+    if (!requireInteract()) return;
     const zone = this.data.activeZone !== 'all' ? this.data.activeZone : '';
     wx.navigateTo({
       url: zone ? `/pages/social-post/social-post?zone=${zone}` : '/pages/social-post/social-post',
@@ -133,7 +133,6 @@ Page({
   },
 
   onPostTap(e) {
-    if (!requirePetProfile()) return;
     wx.navigateTo({ url: `/pages/social-detail/social-detail?id=${e.currentTarget.dataset.id}` });
   },
 
@@ -148,7 +147,7 @@ Page({
   },
 
   onFollowAuthor(e) {
-    if (!requirePetProfile()) return;
+    if (!requireInteract()) return;
     const { id, name, pet, avatar } = e.currentTarget.dataset;
     if (!id || id === 'me') return;
     const result = store.toggleFollow({
@@ -162,6 +161,8 @@ Page({
   },
 
   async onDeletePost(e) {
+    const { requireLogin } = require('../../utils/require-login');
+    if (!requireLogin()) return;
     const { id } = e.currentTarget.dataset;
     const res = await deleteOwnedSocialPost(id);
     if (!res.ok) {
@@ -172,7 +173,7 @@ Page({
   },
 
   onLikeTap(e) {
-    if (!requirePetProfile()) return;
+    if (!requireInteract()) return;
     const { id } = e.currentTarget.dataset;
     const posts = this.data.posts.map((p) => {
       if (p.id !== id) return p;

@@ -2,7 +2,11 @@ const store = require('../../utils/store');
 const { MOCK_PET, RISK_TIPS } = require('../../utils/mock');
 const amap = require('../../utils/amap');
 const { pickMixedMedia, MEDIA_LIMIT_HINT, mediaSlots } = require('../../utils/media-upload');
-const { blockSubPageWithoutProfile, requirePetProfile } = require('../../utils/pet-profile-guard');
+const {
+  blockSubPageWithoutLogin,
+  blockSubPageWithoutProfile,
+  requireInteract,
+} = require('../../utils/pet-profile-guard');
 const cloudApi = require('../../utils/cloud-api');
 const { saveSocialToCloud } = require('../../utils/social-cloud-sync');
 const { saveLocalToCloud } = require('../../utils/local-cloud-sync');
@@ -57,6 +61,7 @@ Page({
   },
 
   onLoad(options) {
+    if (!blockSubPageWithoutLogin(this)) return;
     blockSubPageWithoutProfile(this);
     this.checkPermissions();
     const opts = options || {};
@@ -201,7 +206,7 @@ Page({
   },
 
   async onSubmit() {
-    if (!requirePetProfile()) return;
+    if (!requireInteract()) return;
     const {
       postType, zone, location, geoLocation, phone, headline, content, mediaList,
     } = this.data;

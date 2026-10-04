@@ -1,6 +1,6 @@
 const { openEventPublishEntry } = require('../utils/event-publish-nav');
 const store = require('../utils/store');
-const { requirePetProfile } = require('../utils/pet-profile-guard');
+const { requireInteract } = require('../utils/pet-profile-guard');
 
 Component({
   data: {
@@ -94,7 +94,7 @@ Component({
       const action = this.data.quickCards[id];
       if (!action) return;
       if (id === 'buddy' || id === 'event' || id === 'social') {
-        if (!requirePetProfile()) return;
+        if (!requireInteract()) return;
       }
       this.setData({ showQuickNav: false });
       if (action.type === 'tab') {

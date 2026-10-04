@@ -1,6 +1,6 @@
 {
   "envId": "cloud1-d8gnokqshc15dc3ae",
-  "total": 25,
+  "total": 27,
   "note": "微信云开发为「集合 collection」，无 SQL 表。名称必须与云函数/客户端约定一致。",
   "phases": [
     {
@@ -22,7 +22,8 @@
         { "name": "social_comments", "desc": "评论" },
         { "name": "local_posts", "desc": "同城寻宠/领养/救助" },
         { "name": "chat_threads", "desc": "私信会话列表" },
-        { "name": "chat_messages", "desc": "私信消息" }
+        { "name": "chat_messages", "desc": "私信消息" },
+        { "name": "user_follows", "desc": "用户关注/互关" }
       ]
     },
     {
@@ -31,6 +32,7 @@
       "collections": [
         { "name": "events", "desc": "活动主表" },
         { "name": "event_signups", "desc": "报名与核销码" },
+        { "name": "event_interests", "desc": "活动「感兴趣」" },
         { "name": "event_qualify", "desc": "活动发布资质" }
       ]
     },
@@ -74,8 +76,10 @@
     "local_posts",
     "chat_threads",
     "chat_messages",
+    "user_follows",
     "events",
     "event_signups",
+    "event_interests",
     "event_qualify",
     "map_points",
     "merchants",

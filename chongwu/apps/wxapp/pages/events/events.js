@@ -4,7 +4,7 @@ const { RISK_TIPS } = require('../../utils/mock');
 const store = require('../../utils/store');
 const { openEventPublishEntry } = require('../../utils/event-publish-nav');
 const amap = require('../../utils/amap');
-const { requirePetProfile } = require('../../utils/pet-profile-guard');
+const { requireLogin } = require('../../utils/require-login');
 const cloudApi = require('../../utils/cloud-api');
 const { refreshEventsFeedFromCloud } = require('../../utils/event-cloud-sync');
 
@@ -42,7 +42,6 @@ Page({
   },
 
   onEventTap(e) {
-    if (!requirePetProfile()) return;
     wx.navigateTo({ url: `/pages/event-detail/event-detail?id=${e.currentTarget.dataset.id}` });
   },
 
@@ -55,7 +54,7 @@ Page({
   },
 
   onMyEvents() {
-    if (!requirePetProfile()) return;
+    if (!requireLogin()) return;
     wx.navigateTo({ url: '/pages/my-events/my-events' });
   },
 });

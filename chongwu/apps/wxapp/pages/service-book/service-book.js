@@ -2,6 +2,7 @@ const { findMerchant } = require('../../utils/catalog');
 const store = require('../../utils/store');
 const cloudApi = require('../../utils/cloud-api');
 const { fetchMerchantFromCloud } = require('../../utils/merchant-cloud-sync');
+const { requireLogin } = require('../../utils/require-login');
 
 Page({
   data: { merchant: null, date: '', time: '', remark: '' },
@@ -20,6 +21,7 @@ Page({
   },
 
   onSubmit() {
+    if (!requireLogin()) return;
     const { merchant, date, time, remark } = this.data;
     if (!merchant) return;
     if (!date) {

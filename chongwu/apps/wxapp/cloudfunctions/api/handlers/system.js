@@ -17,8 +17,10 @@ const COLLECTION_NAMES = [
   'local_posts',
   'chat_threads',
   'chat_messages',
+  'user_follows',
   'events',
   'event_signups',
+  'event_interests',
   'event_qualify',
   'map_points',
   'merchants',
@@ -93,10 +95,10 @@ async function checkCollections(payload) {
   const phase = payload && payload.phase;
   let names = COLLECTION_NAMES;
   if (phase === 1) names = COLLECTION_NAMES.slice(0, 2);
-  else if (phase === 2) names = COLLECTION_NAMES.slice(0, 10);
-  else if (phase === 3) names = COLLECTION_NAMES.slice(0, 13);
-  else if (phase === 4) names = COLLECTION_NAMES.slice(0, 14);
-  else if (phase === 5) names = COLLECTION_NAMES.slice(0, 19);
+  else if (phase === 2) names = COLLECTION_NAMES.slice(0, 11);
+  else if (phase === 3) names = COLLECTION_NAMES.slice(0, 15);
+  else if (phase === 4) names = COLLECTION_NAMES.slice(0, 16);
+  else if (phase === 5) names = COLLECTION_NAMES.slice(0, 21);
   else if (phase === 6) names = COLLECTION_NAMES;
 
   const db = getDb();

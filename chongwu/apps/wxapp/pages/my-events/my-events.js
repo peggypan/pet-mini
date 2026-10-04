@@ -24,14 +24,32 @@ Page({
     roleText: ROLE_TEXT,
   },
 
-  async onShow() {
+  onShow() {
+    this.paintFromCache();
     if (cloudApi.cloudEnabled()) {
-      await Promise.all([refreshMyEventsFromCloud(), refreshMySignupsFromCloud()]);
+      this.refreshInBackground();
     }
+  },
+
+  paintFromCache() {
     this.setData({
       created: store.listMyEvents(),
       joined: store.listEventSignups(),
     });
+  },
+
+  refreshInBackground() {
+    if (this._myEventsRefreshPromise) return this._myEventsRefreshPromise;
+    this._myEventsRefreshPromise = Promise.all([
+      refreshMyEventsFromCloud(),
+      refreshMySignupsFromCloud(),
+    ])
+      .then(() => this.paintFromCache())
+      .catch(() => {})
+      .finally(() => {
+        this._myEventsRefreshPromise = null;
+      });
+    return this._myEventsRefreshPromise;
   },
 
   async onDeleteCreated(e) {

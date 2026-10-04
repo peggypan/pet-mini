@@ -56,14 +56,16 @@ Page({
   },
 
   async loadPetDetail(id) {
-    if (cloudApi.cloudEnabled()) {
-      const fromCloud = await loadPetFromCloud(id);
-      if (fromCloud) {
-        this.applyPet(fromCloud);
-        return;
-      }
-    }
     const local = store.getPet(id) || getDefaultPets().find((p) => String(p.id) === String(id));
+    if (local) this.applyPet(local);
+    if (cloudApi.cloudEnabled()) {
+      loadPetFromCloud(id)
+        .then((fromCloud) => {
+          if (fromCloud) this.applyPet(fromCloud);
+        })
+        .catch(() => {});
+      return;
+    }
     try {
       const res = await api.get(`/health/pets/${id}`);
       if (res.data) {

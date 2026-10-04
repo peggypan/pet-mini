@@ -117,6 +117,53 @@ async function resolveCloudFileUrls(urls) {
   return Promise.all(list.map((u) => resolveCloudFileUrl(u)));
 }
 
+function pickResolvedUrl(url, map) {
+  if (!url || typeof url !== 'string') return url || '';
+  if (isCloudFileId(url)) return map[url] || urlCache[url] || url;
+  return url;
+}
+
+function collectBuddyPostFileIds(post) {
+  if (!post) return [];
+  const ids = [];
+  const push = (u) => {
+    if (isCloudFileId(u)) ids.push(u);
+  };
+  push(post.cover);
+  push(post.avatar);
+  push(post.image);
+  (post.images || []).forEach(push);
+  (post.mediaList || []).forEach((m) => {
+    if (m && typeof m === 'object') {
+      push(m.url);
+      push(m.poster);
+    }
+  });
+  return ids;
+}
+
+function applyUrlMapToBuddyPost(post, map) {
+  if (!post) return post;
+  const next = { ...post };
+  next.cover = pickResolvedUrl(next.cover, map);
+  next.avatar = pickResolvedUrl(next.avatar, map);
+  next.image = pickResolvedUrl(next.image, map);
+  if (Array.isArray(next.images)) {
+    next.images = next.images.map((u) => pickResolvedUrl(u, map));
+  }
+  if (Array.isArray(next.mediaList)) {
+    next.mediaList = next.mediaList.map((m) => {
+      if (!m || typeof m !== 'object') return m;
+      return {
+        ...m,
+        url: pickResolvedUrl(m.url, map),
+        poster: pickResolvedUrl(m.poster, map),
+      };
+    });
+  }
+  return next;
+}
+
 async function resolveMediaItem(item) {
   if (!item || typeof item !== 'object') return item;
   const next = { ...item };
@@ -126,57 +173,155 @@ async function resolveMediaItem(item) {
 }
 
 async function resolveBuddyPostMedia(post) {
-  if (!post) return post;
-  const next = { ...post };
-  next.cover = await resolveCloudFileUrl(next.cover);
-  next.avatar = await resolveCloudFileUrl(next.avatar);
-  next.image = await resolveCloudFileUrl(next.image);
-  if (Array.isArray(next.images)) {
-    next.images = await resolveCloudFileUrls(next.images);
-  }
-  if (Array.isArray(next.mediaList)) {
-    next.mediaList = await Promise.all(next.mediaList.map((m) => resolveMediaItem(m)));
-  }
-  return next;
+  const [resolved] = await resolveBuddyPosts([post]);
+  return resolved;
 }
 
 async function resolveBuddyPosts(list) {
-  return Promise.all((list || []).map((p) => resolveBuddyPostMedia(p)));
+  const posts = (list || []).map((p) => ({ ...p }));
+  const fileIds = [...new Set(posts.flatMap(collectBuddyPostFileIds))];
+  if (!fileIds.length) return posts;
+  const map = await batchResolveCloudFileUrls(fileIds);
+  return posts.map((p) => applyUrlMapToBuddyPost(p, map));
+}
+
+function collectSocialPostFileIds(post) {
+  if (!post) return [];
+  const ids = [];
+  const push = (u) => {
+    if (isCloudFileId(u)) ids.push(u);
+  };
+  push(post.image);
+  push(post.avatar);
+  (post.images || []).forEach(push);
+  (post.mediaList || []).forEach((m) => {
+    if (m && typeof m === 'object') {
+      push(m.url);
+      push(m.poster);
+    }
+  });
+  return ids;
+}
+
+function applyUrlMapToSocialPost(post, map) {
+  if (!post) return post;
+  const next = { ...post };
+  next.image = pickResolvedUrl(next.image, map);
+  next.avatar = pickResolvedUrl(next.avatar, map);
+  if (Array.isArray(next.images)) {
+    next.images = next.images.map((u) => pickResolvedUrl(u, map));
+  }
+  if (Array.isArray(next.mediaList)) {
+    next.mediaList = next.mediaList.map((m) => {
+      if (!m || typeof m !== 'object') return m;
+      return {
+        ...m,
+        url: pickResolvedUrl(m.url, map),
+        poster: pickResolvedUrl(m.poster, map),
+      };
+    });
+  }
+  return next;
 }
 
 async function resolveSocialPostMedia(post) {
-  if (!post) return post;
-  const next = { ...post };
-  next.image = await resolveCloudFileUrl(next.image);
-  next.avatar = await resolveCloudFileUrl(next.avatar);
-  if (Array.isArray(next.images)) {
-    next.images = await resolveCloudFileUrls(next.images);
-  }
-  if (Array.isArray(next.mediaList)) {
-    next.mediaList = await Promise.all(next.mediaList.map((m) => resolveMediaItem(m)));
-  }
-  return next;
+  const [resolved] = await resolveSocialPosts([post]);
+  return resolved;
 }
 
 async function resolveSocialPosts(list) {
-  return Promise.all((list || []).map((p) => resolveSocialPostMedia(p)));
+  const posts = (list || []).map((p) => ({ ...p }));
+  const fileIds = [...new Set(posts.flatMap(collectSocialPostFileIds))];
+  if (!fileIds.length) return posts;
+  const map = await batchResolveCloudFileUrls(fileIds);
+  return posts.map((p) => applyUrlMapToSocialPost(p, map));
 }
 
-async function resolvePetMedia(pet) {
-  if (!pet) return pet;
-  const next = { ...pet };
-  next.avatar = await resolveCloudFileUrl(next.avatar || next.avatarUrl);
-  next.avatarUrl = await resolveCloudFileUrl(next.avatarUrl || next.avatar);
-  next.cover = await resolveCloudFileUrl(next.cover);
-  next.vaccineProofUrl = await resolveCloudFileUrl(next.vaccineProofUrl);
-  if (Array.isArray(next.galleryPhotos)) {
-    next.galleryPhotos = await resolveCloudFileUrls(next.galleryPhotos);
+function collectLocalPostFileIds(post) {
+  if (!post) return [];
+  const ids = [];
+  const push = (u) => {
+    if (isCloudFileId(u)) ids.push(u);
+  };
+  push(post.image);
+  push(post.cover);
+  (post.images || []).forEach(push);
+  (post.mediaList || []).forEach((m) => {
+    if (m && typeof m === 'object') {
+      push(m.url);
+      push(m.poster);
+    }
+  });
+  return ids;
+}
+
+function applyUrlMapToLocalPost(post, map) {
+  if (!post) return post;
+  const next = { ...post };
+  next.image = pickResolvedUrl(next.image, map);
+  next.cover = pickResolvedUrl(next.cover, map);
+  if (Array.isArray(next.images)) {
+    next.images = next.images.map((u) => pickResolvedUrl(u, map));
+  }
+  if (Array.isArray(next.mediaList)) {
+    next.mediaList = next.mediaList.map((m) => {
+      if (!m || typeof m !== 'object') return m;
+      return {
+        ...m,
+        url: pickResolvedUrl(m.url, map),
+        poster: pickResolvedUrl(m.poster, map),
+      };
+    });
   }
   return next;
 }
 
+async function resolveLocalPosts(list) {
+  const posts = (list || []).map((p) => ({ ...p }));
+  const fileIds = [...new Set(posts.flatMap(collectLocalPostFileIds))];
+  if (!fileIds.length) return posts;
+  const map = await batchResolveCloudFileUrls(fileIds);
+  return posts.map((p) => applyUrlMapToLocalPost(p, map));
+}
+
+function collectPetFileIds(pet) {
+  if (!pet) return [];
+  const ids = [];
+  const push = (u) => {
+    if (isCloudFileId(u)) ids.push(u);
+  };
+  push(pet.avatar);
+  push(pet.avatarUrl);
+  push(pet.cover);
+  push(pet.vaccineProofUrl);
+  (pet.galleryPhotos || []).forEach(push);
+  return ids;
+}
+
+function applyUrlMapToPet(pet, map) {
+  if (!pet) return pet;
+  const next = { ...pet };
+  next.avatar = pickResolvedUrl(next.avatar || next.avatarUrl, map);
+  next.avatarUrl = pickResolvedUrl(next.avatarUrl || next.avatar, map);
+  next.cover = pickResolvedUrl(next.cover, map);
+  next.vaccineProofUrl = pickResolvedUrl(next.vaccineProofUrl, map);
+  if (Array.isArray(next.galleryPhotos)) {
+    next.galleryPhotos = next.galleryPhotos.map((u) => pickResolvedUrl(u, map));
+  }
+  return next;
+}
+
+async function resolvePetMedia(pet) {
+  const [resolved] = await resolvePets([pet]);
+  return resolved;
+}
+
 async function resolvePets(list) {
-  return Promise.all((list || []).map((p) => resolvePetMedia(p)));
+  const pets = (list || []).map((p) => ({ ...p }));
+  const fileIds = [...new Set(pets.flatMap(collectPetFileIds))];
+  if (!fileIds.length) return pets;
+  const map = await batchResolveCloudFileUrls(fileIds);
+  return pets.map((p) => applyUrlMapToPet(p, map));
 }
 
 module.exports = {
@@ -191,6 +336,7 @@ module.exports = {
   resolveBuddyPosts,
   resolveSocialPostMedia,
   resolveSocialPosts,
+  resolveLocalPosts,
   resolvePetMedia,
   resolvePets,
 };

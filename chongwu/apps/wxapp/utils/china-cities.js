@@ -302,6 +302,112 @@ function findNearestCity(lat, lng) {
   return { ...best, distanceKm: Math.round(min) };
 }
 
+/** 国标 adcode 前四位 → 地级市（逆地理 adcode 兜底） */
+const ADCODE_CITY_PREFIX = {
+  3713: '临沂',
+  3213: '宿迁',
+  3701: '济南',
+  3702: '青岛',
+  3201: '南京',
+  3203: '徐州',
+  3208: '淮安',
+  3210: '扬州',
+};
+
+/** 区县级名称 → 地级市（腾讯返回 city 为空时） */
+const DISTRICT_CITY_ALIASES = {
+  兰山区: '临沂',
+  罗庄区: '临沂',
+  河东区: '临沂',
+  郯城县: '临沂',
+  兰陵县: '临沂',
+  沂南县: '临沂',
+  沂水县: '临沂',
+  费县: '临沂',
+  平邑县: '临沂',
+  莒南县: '临沂',
+  蒙阴县: '临沂',
+  临沭县: '临沂',
+  宿城区: '宿迁',
+  宿豫区: '宿迁',
+  沭阳县: '宿迁',
+  泗阳县: '宿迁',
+  泗洪县: '宿迁',
+};
+
+function cityNameFromAdcode(adcode) {
+  const s = String(adcode || '');
+  if (s.length < 4) return '';
+  const prefix = s.slice(0, 4);
+  return ADCODE_CITY_PREFIX[prefix] || ADCODE_CITY_PREFIX[Number(prefix)] || '';
+}
+
+/**
+ * 根据 GPS + 逆地理字段解析地级市名（解决鲁南临沂/宿迁邻近误判）
+ */
+function resolvePrefectureCity(input) {
+  const province = input.province || '';
+  let city = (input.city || '').replace(/市$/, '').trim();
+  const district = (input.district || '').trim();
+  const adcode = input.adcode || '';
+  const lat = Number(input.lat);
+  const lng = Number(input.lng);
+
+  if (!city && adcode) city = cityNameFromAdcode(adcode);
+  if (!city && district && DISTRICT_CITY_ALIASES[district]) {
+    city = DISTRICT_CITY_ALIASES[district];
+  }
+  if (!city && province.includes('山东') && lat >= 34.45 && lng >= 117.0 && lng <= 119.8) {
+    city = '临沂';
+  }
+
+  if (city) {
+    const found = findCityByName(city);
+    if (found) {
+      return {
+        name: found.name,
+        province: found.province || province,
+        lat: found.lat,
+        lng: found.lng,
+      };
+    }
+    return {
+      name: city,
+      province,
+      lat: Number.isFinite(lat) ? lat : 0,
+      lng: Number.isFinite(lng) ? lng : 0,
+    };
+  }
+
+  const nearest = findNearestCitySmart(lat, lng);
+  return {
+    name: nearest.name,
+    province: nearest.province || province,
+    lat: nearest.lat,
+    lng: nearest.lng,
+  };
+}
+
+/** 无腾讯 Key 时的最近城市：鲁南纬度带避免误判宿迁 */
+function findNearestCitySmart(lat, lng) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    return findNearestCity(39.9042, 116.4074);
+  }
+  if (lng >= 117.0 && lng <= 119.8) {
+    const linyi = findCityByName('临沂');
+    const suqian = findCityByName('宿迁');
+    if (linyi) {
+      const dLin = haversineKm(lat, lng, linyi.lat, linyi.lng);
+      const dSuq = suqian ? haversineKm(lat, lng, suqian.lat, suqian.lng) : Infinity;
+      // 鲁南/鲁苏交界：临沂以北或距临沂明显更近时用临沂，避免配额失败时误显示宿迁
+      if (lat >= 34.35 && (lat >= 34.55 || dLin <= dSuq + 35 || dLin < 130)) {
+        return { ...linyi, distanceKm: Math.round(dLin) };
+      }
+    }
+  }
+  return findNearestCity(lat, lng);
+}
+
 module.exports = {
   HOT_CITIES,
   PROVINCE_CITIES,
@@ -309,4 +415,7 @@ module.exports = {
   searchCities,
   findCityByName,
   findNearestCity,
+  findNearestCitySmart,
+  resolvePrefectureCity,
+  cityNameFromAdcode,
 };

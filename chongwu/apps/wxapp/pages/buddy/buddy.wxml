@@ -57,6 +57,7 @@
           class="aspect-34-fill"
           src="{{item.coverIsVideo ? (item.coverPoster || item.cover) : item.cover}}"
           mode="aspectFill"
+          lazy-load="{{true}}"
         ></image>
         <view class="cover-video-mask" wx:if="{{item.coverIsVideo}}">
           <text class="cover-video-tag">▶</text>

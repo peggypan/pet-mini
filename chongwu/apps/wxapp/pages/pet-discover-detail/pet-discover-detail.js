@@ -2,6 +2,7 @@ const { findBuddy } = require('../../utils/catalog');
 const { startBuddyChat } = require('../../utils/buddy-chat');
 const amap = require('../../utils/amap');
 const store = require('../../utils/store');
+const { buddyDistanceText } = require('../../utils/geo-distance');
 
 function matchScore(id) {
   let h = 0;
@@ -43,12 +44,14 @@ Page({
     if (cover && !previewUrls.includes(cover)) {
       previewUrls.unshift(cover);
     }
+    const distance = buddyDistanceText(raw, store.getCityLocation()) || '';
     this.setData({
       buddy: {
         ...raw,
         cover,
         isHealing: zone === 'healing',
         expectPlace: raw.expectPlace || '同城',
+        distance,
       },
       score: matchScore(raw.id),
       displayTags: displayTags(raw),

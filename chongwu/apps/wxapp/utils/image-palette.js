@@ -87,7 +87,14 @@ function sampleImageColors(page, canvasId, imageSrc) {
           img.onload = () => {
             try {
               ctx.clearRect(0, 0, size, size);
-              ctx.drawImage(img, 0, 0, size, size);
+              const iw = img.width || size;
+              const ih = img.height || size;
+              const scale = Math.min(size / iw, size / ih);
+              const dw = iw * scale;
+              const dh = ih * scale;
+              const dx = (size - dw) / 2;
+              const dy = (size - dh) / 2;
+              ctx.drawImage(img, dx, dy, dw, dh);
               const { data } = ctx.getImageData(0, 0, size, size);
               resolve(extractFromImageData(data));
             } catch (e) {

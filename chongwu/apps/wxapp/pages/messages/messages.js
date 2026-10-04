@@ -33,14 +33,7 @@ Page({
     this.refreshTabBadge();
   },
 
-  async refreshChatTab(silent) {
-    if (cloudApi.cloudEnabled()) {
-      try {
-        await refreshChatThreadsFromCloud();
-      } catch (e) {
-        // keep cache
-      }
-    }
+  applyChatTabFromCache(silent) {
     const patch = {
       chats: decorateChatThreadsForList(store.listChatThreads()),
       chatUnread: store.countUnreadChats(),
@@ -55,9 +48,21 @@ Page({
     });
   },
 
-  async onShow() {
+  async refreshChatTab(silent) {
+    this.applyChatTabFromCache(silent);
+    if (!cloudApi.cloudEnabled()) return;
+    try {
+      await refreshChatThreadsFromCloud();
+    } catch (e) {
+      // keep cache
+    }
+    this.applyChatTabFromCache(silent);
+  },
+
+  onShow() {
     syncPetProfileGate(this);
-    await this.refreshChatTab(false);
+    this.applyChatTabFromCache(false);
+    this.refreshChatTab(true);
     this._chatListPollTimer = setInterval(() => {
       if (this.data.tab === 'chat') this.refreshChatTab(true);
     }, CHAT_THREAD_POLL_MS);
@@ -78,10 +83,14 @@ Page({
 
   onChatTap(e) {
     if (!requireInteract()) return;
-    const { peerid, threadid } = e.currentTarget.dataset;
+    const { peerid, threadid, peername, petname, avatar, peeropenid } = e.currentTarget.dataset;
     const q = [];
     if (threadid) q.push(`threadId=${encodeURIComponent(threadid)}`);
     if (peerid) q.push(`peerId=${encodeURIComponent(peerid)}`);
+    if (peeropenid) q.push(`peerOpenid=${encodeURIComponent(peeropenid)}`);
+    if (peername) q.push(`peerName=${encodeURIComponent(peername)}`);
+    if (petname) q.push(`petName=${encodeURIComponent(petname)}`);
+    if (avatar) q.push(`avatar=${encodeURIComponent(avatar)}`);
     wx.navigateTo({ url: `/pages/chat/chat?${q.join('&')}` });
   },
 

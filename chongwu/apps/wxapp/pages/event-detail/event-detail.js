@@ -64,41 +64,63 @@ Page({
     await this.loadEventDetail(eventId, options);
   },
 
+  paintEventDetail(event, options = {}, signedUp) {
+    if (!event) return;
+    const isOwner = isEventOrganizer(event);
+    const applied = applyEventQuota(event);
+    this._eventId = applied.id;
+    this.setData({
+      event: applied,
+      coverImages: buildEventCoverImages(applied),
+      coverCurrent: 0,
+      detailSection: buildEventDetailSection(applied),
+      signedUp: isOwner ? false : !!signedUp,
+      isOwner,
+    });
+    wx.setNavigationBarTitle({ title: '约局详情' });
+    return { event: applied, isOwner, signedUp: !!signedUp };
+  },
+
   async loadEventDetail(id, options = {}) {
+    let cached = findEvent(id);
+    if (cached) {
+      const signedUpLocal = store.listEventSignups().some(
+        (x) => String(x.eventId) === String(cached.id),
+      );
+      this.paintEventDetail(cached, options, signedUpLocal);
+    }
     if (cloudApi.cloudEnabled() && id) {
       await fetchEventFromCloud(id);
     }
-    let event = findEvent(id);
+    const event = findEvent(id);
     if (!event) {
-      wx.showToast({ title: '活动不存在', icon: 'none' });
+      if (!cached) wx.showToast({ title: '活动不存在', icon: 'none' });
       return;
     }
-    event = applyEventQuota(event);
-    this._eventId = event.id;
     let signedUp = store.listEventSignups().some((x) => String(x.eventId) === String(event.id));
     if (cloudApi.cloudEnabled()) {
       const mine = await fetchMySignupByEvent(event.id);
       signedUp = !!mine;
     }
-    const isOwner = isEventOrganizer(event);
-    this.setData({
-      event,
-      coverImages: buildEventCoverImages(event),
-      coverCurrent: 0,
-      detailSection: buildEventDetailSection(event),
-      signedUp: isOwner ? false : signedUp,
-      isOwner,
-    });
-    wx.setNavigationBarTitle({ title: '约局详情' });
-    if (isHealingEvent(event)) {
+    const painted = this.paintEventDetail(event, options, signedUp);
+    if (isHealingEvent(painted.event)) {
       wx.showModal({ title: '疗愈活动说明', content: RISK_TIPS.healingEvent, showCancel: false });
     }
-    if (options.ticket === '1' && signedUp && !isOwner) {
+    if (options.ticket === '1' && painted.signedUp && !painted.isOwner) {
       this.openTicket();
     }
-    if (!isOwner && event.id) {
-      recordEventInterest(event.id).catch(() => {});
+    if (!painted.isOwner && painted.event.id) {
+      this.trackEventBrowse(painted.event.id);
     }
+  },
+
+  trackEventBrowse(eventId) {
+    recordEventInterest(eventId)
+      .then(() => {
+        const updated = applyEventQuota(findEvent(eventId) || this.data.event);
+        if (updated) this.setData({ event: updated });
+      })
+      .catch(() => {});
   },
 
   async refreshEventQuota() {
@@ -111,15 +133,37 @@ Page({
     if (event) this.setData({ event });
   },
 
-  async onShow() {
+  onShow() {
     const event = this.data.event;
     if (!event) return;
-    await this.refreshEventQuota();
-    let signedUp = store.listEventSignups().some((x) => String(x.eventId) === String(event.id));
-    if (cloudApi.cloudEnabled()) {
-      signedUp = !!(await fetchMySignupByEvent(event.id));
-    }
-    this.setData({ signedUp });
+    const signedUpLocal = store.listEventSignups().some(
+      (x) => String(x.eventId) === String(event.id),
+    );
+    this.setData({ signedUp: this.data.isOwner ? false : signedUpLocal });
+    this.refreshEventDetailOnShow();
+  },
+
+  refreshEventDetailOnShow() {
+    if (this._eventDetailShowRefresh) return;
+    this._eventDetailShowRefresh = (async () => {
+      const event = this.data.event;
+      if (!event) return;
+      try {
+        await this.refreshEventQuota();
+        let signedUp = store.listEventSignups().some(
+          (x) => String(x.eventId) === String(event.id),
+        );
+        if (cloudApi.cloudEnabled()) {
+          signedUp = !!(await fetchMySignupByEvent(event.id));
+        }
+        this.setData({ signedUp: this.data.isOwner ? false : signedUp });
+        if (!this.data.isOwner && event.id) {
+          this.trackEventBrowse(event.id);
+        }
+      } finally {
+        this._eventDetailShowRefresh = null;
+      }
+    })();
   },
 
   onOpenPlace() {
@@ -265,28 +309,35 @@ Page({
     const peerNameRaw = event.host || '主理人';
     const petNameRaw = event.hostPetName || '活动主理';
     const avatarRaw = event.hostAvatar || '';
-    wx.showModal({
-      title: '私聊',
-      content: `将向「${peerNameRaw}」发起私信。${RISK_TIPS.meet}`,
-      confirmText: '去聊天',
-      success: async (res) => {
-        if (!res.confirm) return;
-        await ensureChatThreadOnCloud({
-          id: `c_${peerId}`,
-          peerId,
-          peerOpenid,
-          peerName: peerNameRaw,
-          petName: petNameRaw,
-          avatar: avatarRaw,
-        });
-        const peerName = encodeURIComponent(peerNameRaw);
-        const petName = encodeURIComponent(petNameRaw);
-        const avatar = encodeURIComponent(avatarRaw);
-        wx.navigateTo({
-          url: `/pages/chat/chat?peerId=${peerId}&peerName=${peerName}&petName=${petName}&avatar=${avatar}`,
-        });
-      },
+    const localThread = store.ensureChatThread({
+      id: `c_${peerId}`,
+      peerId,
+      peerOpenid,
+      peerName: peerNameRaw,
+      petName: petNameRaw,
+      avatar: avatarRaw,
     });
+    const threadId = (localThread && localThread.id) || `c_${peerId}`;
+    const q = [
+      `threadId=${encodeURIComponent(threadId)}`,
+      `peerId=${encodeURIComponent(peerId)}`,
+      peerOpenid ? `peerOpenid=${encodeURIComponent(peerOpenid)}` : '',
+      `peerName=${encodeURIComponent(peerNameRaw)}`,
+      `petName=${encodeURIComponent(petNameRaw)}`,
+      `avatar=${encodeURIComponent(avatarRaw)}`,
+      `attachEventId=${encodeURIComponent(event.id)}`,
+    ].filter(Boolean);
+    wx.navigateTo({ url: `/pages/chat/chat?${q.join('&')}` });
+    if (cloudApi.cloudEnabled()) {
+      ensureChatThreadOnCloud({
+        id: threadId,
+        peerId,
+        peerOpenid,
+        peerName: peerNameRaw,
+        petName: petNameRaw,
+        avatar: avatarRaw,
+      }).catch(() => {});
+    }
   },
 
   onShareAppMessage() {

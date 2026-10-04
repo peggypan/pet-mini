@@ -5,6 +5,7 @@
 const { MOCK_CHATS } = require('./mock');
 const { getNextStep } = require('./event-qualify');
 const { seedCircleMessages } = require('./circle-community');
+const { formatPublishTime, displayPublishTime, pickPublishInstant } = require('./relative-time');
 
 const KEYS = {
   pets: 'social_pets',
@@ -29,6 +30,7 @@ const KEYS = {
   eventIdentityVerify: 'mvp_event_identity_verify',
   eventQualifyCloud: 'mvp_event_qualify_cloud',
   eventDeposits: 'mvp_event_deposits',
+  eventViewed: 'mvp_event_viewed',
   circleMessages: 'mvp_circle_messages',
   clubApply: 'mvp_club_apply',
   joinedClubs: 'mvp_joined_clubs',
@@ -448,8 +450,10 @@ function listSocialPosts() {
 }
 
 function mapSocialFromCloud(post) {
+  const instant = pickPublishInstant(post);
+  const createdAt = instant ? instant.toISOString() : (post.createdAt || post.updatedAt || '');
+  const time = displayPublishTime(post) || (post.time && post.time !== '刚刚' ? post.time : '');
   return {
-    time: '刚刚',
     likes: post.likes || 0,
     comments: post.comments || 0,
     shares: post.shares || 0,
@@ -457,7 +461,8 @@ function mapSocialFromCloud(post) {
     essence: !!post.essence,
     ...post,
     id: String(post.id),
-    createdAt: post.createdAt || new Date().toISOString(),
+    createdAt,
+    time,
   };
 }
 
@@ -483,9 +488,11 @@ function replaceAllSocialPostsFromCloud(posts) {
 
 function addSocialPost(post) {
   const list = listSocialPosts();
+  const createdAt = post.createdAt || new Date().toISOString();
   const row = {
     id: uid('post'),
-    time: '刚刚',
+    createdAt,
+    time: formatPublishTime(createdAt),
     likes: 0,
     comments: 0,
     shares: 0,
@@ -557,12 +564,14 @@ function listPostComments(postId) {
 }
 
 function mapCommentFromCloud(comment) {
+  const instant = pickPublishInstant(comment);
+  const createdAt = instant ? instant.toISOString() : (comment.createdAt || comment.updatedAt || '');
   return {
-    time: '刚刚',
     liked: false,
     ...comment,
     id: String(comment.id),
-    createdAt: comment.createdAt || new Date().toISOString(),
+    createdAt,
+    time: displayPublishTime(comment) || (comment.time && comment.time !== '刚刚' ? comment.time : ''),
   };
 }
 
@@ -614,8 +623,8 @@ function addPostComment(postId, comment) {
     poster: comment.poster || '',
     parentId: comment.parentId || '',
     replyToUserName: comment.replyToUserName || '',
-    time: '刚刚',
     createdAt: new Date().toISOString(),
+    time: formatPublishTime(new Date()),
   };
   list.unshift(row);
   all[postId] = list.slice(0, 100);
@@ -1011,6 +1020,7 @@ function chatMessagePreview(message) {
 function addChatMessage(threadId, message) {
   const all = read(KEYS.chatMessages, {});
   const list = all[threadId] || [];
+  const createdAt = new Date().toISOString();
   const row = {
     id: uid('chat'),
     from: message.from || 'me',
@@ -1028,8 +1038,8 @@ function addChatMessage(threadId, message) {
     aaPer: message.aaPer || 0,
     shareTitle: message.shareTitle || '',
     shareRef: message.shareRef || '',
-    time: '刚刚',
-    createdAt: new Date().toISOString(),
+    createdAt,
+    time: formatPublishTime(createdAt),
   };
   list.push(row);
   all[threadId] = list.slice(-200);
@@ -1041,7 +1051,8 @@ function addChatMessage(threadId, message) {
     return {
       ...t,
       lastMessage: preview,
-      lastTime: '刚刚',
+      lastTime: formatPublishTime(createdAt),
+      updatedAt: createdAt,
       unread: message.from === 'me' ? 0 : (t.unread || 0) + 1,
     };
   });
@@ -1058,7 +1069,7 @@ function markThreadRead(threadId) {
 
 function mapCloudThread(thread) {
   if (!thread) return null;
-  return {
+  const row = {
     id: thread.id,
     peerId: thread.peerId,
     peerOpenid: thread.peerOpenid || '',
@@ -1066,10 +1077,13 @@ function mapCloudThread(thread) {
     petName: thread.petName || '宠物',
     avatar: thread.avatar || '',
     lastMessage: thread.lastMessage || '',
-    lastTime: thread.lastTime || '刚刚',
     unread: thread.unread || 0,
     updatedAt: thread.updatedAt,
+    createdAt: thread.createdAt,
   };
+  const lastTime = displayPublishTime(row, ['updatedAt', 'createdAt'])
+    || (thread.lastTime && thread.lastTime !== '刚刚' ? thread.lastTime : '');
+  return { ...row, lastTime };
 }
 
 function replaceChatThreadsFromCloud(list) {
@@ -1152,16 +1166,17 @@ function listBuddyPosts() {
 
 function addBuddyPost(post) {
   const list = listBuddyPosts();
+  const createdAt = post.createdAt || new Date().toISOString();
   const row = {
     id: uid('bd'),
-    time: '刚刚',
     userName: '我',
     isMine: true,
     verified: false,
     zone: 'normal',
     creditTags: [],
     ...post,
-    createdAt: new Date().toISOString(),
+    createdAt,
+    time: formatPublishTime(createdAt),
   };
   list.unshift(row);
   write(KEYS.buddyPosts, list.slice(0, 50));
@@ -1181,15 +1196,17 @@ function deleteBuddyPost(id) {
 }
 
 function mapBuddyFromCloud(post) {
+  const instant = pickPublishInstant(post);
+  const createdAt = instant ? instant.toISOString() : (post.createdAt || post.updatedAt || '');
   return {
-    time: '刚刚',
     creditTags: post.creditTags || ['守约'],
     likes: post.likes || 0,
     comments: post.comments || 0,
     shares: post.shares || 0,
     ...post,
     id: String(post.id),
-    createdAt: post.createdAt || new Date().toISOString(),
+    createdAt,
+    time: displayPublishTime(post) || (post.time && post.time !== '刚刚' ? post.time : ''),
   };
 }
 
@@ -1272,8 +1289,10 @@ function updateLocalPost(id, patch) {
 
 function mapLocalFromCloud(post) {
   const overrides = read('mvp_local_overrides', {})[post.id] || {};
+  const merged = { ...post, ...overrides };
+  const instant = pickPublishInstant(merged);
+  const createdAt = instant ? instant.toISOString() : (merged.createdAt || merged.updatedAt || '');
   return {
-    time: '刚刚',
     isMine: !!post.isMine,
     userName: post.userName || '宠友',
     likes: post.likes || 0,
@@ -1284,7 +1303,8 @@ function mapLocalFromCloud(post) {
     ...overrides,
     id: String(post.id),
     type: post.type || 'adopt',
-    createdAt: post.createdAt || new Date().toISOString(),
+    createdAt,
+    time: displayPublishTime(merged) || (merged.time && merged.time !== '刚刚' ? merged.time : ''),
   };
 }
 
@@ -1310,13 +1330,14 @@ function replaceAllLocalPostsFromCloud(posts) {
 
 function addLocalPost(post) {
   const all = read(KEYS.localPosts, []);
+  const createdAt = post.createdAt || new Date().toISOString();
   const row = {
     id: uid('lp'),
-    time: '刚刚',
     isMine: true,
     userName: '我',
     ...post,
-    createdAt: new Date().toISOString(),
+    createdAt,
+    time: formatPublishTime(createdAt),
   };
   all.unshift(row);
   write(KEYS.localPosts, all.slice(0, 50));
@@ -1502,14 +1523,17 @@ function addMapPoint(point) {
 const { applyEventQuota } = require('./event-quota');
 
 function mapEventFromCloud(event) {
+  const instant = pickPublishInstant(event);
+  const createdAt = instant ? instant.toISOString() : (event.createdAt || event.updatedAt || '');
   return applyEventQuota({
     auditStatus: 'approved',
     status: event.status || 'approved',
     isMine: !!event.isMine,
     ...event,
     id: String(event.id),
-    createdAt: event.createdAt || new Date().toISOString(),
-    publishedAt: event.publishedAt || event.createdAt || new Date().toISOString(),
+    createdAt,
+    publishedAt: event.publishedAt || createdAt,
+    publishTime: displayPublishTime(event) || event.publishTime || '',
   });
 }
 
@@ -1599,6 +1623,43 @@ function deleteMyEvent(id) {
 function getEventFromCache(id) {
   const sid = String(id);
   return listCloudEvents().find((e) => String(e.id) === sid) || getMyEvent(sid);
+}
+
+function readEventViewedMap() {
+  return read(KEYS.eventViewed, {});
+}
+
+function markEventBrowseRecorded(eventId) {
+  const sid = String(eventId);
+  if (!sid) return;
+  const viewed = readEventViewedMap();
+  if (viewed[sid]) return;
+  viewed[sid] = true;
+  write(KEYS.eventViewed, viewed);
+}
+
+/** 本地浏览去重 + 关注数 +1（云失败或未启用时的兜底） */
+function recordEventBrowseInterest(eventId) {
+  const sid = String(eventId);
+  if (!sid) return 0;
+  const viewed = readEventViewedMap();
+  const cached = getEventFromCache(sid);
+  if (viewed[sid]) {
+    return Math.max(0, Number(cached && cached.interestCount) || 0);
+  }
+  viewed[sid] = true;
+  write(KEYS.eventViewed, viewed);
+  if (!cached) return 0;
+  const interestCount = Math.max(0, Number(cached.interestCount) || 0) + 1;
+  upsertEventFromCloud({ ...cached, id: sid, interestCount });
+  const mine = getMyEvent(sid);
+  if (mine) {
+    const list = listMyEvents().map((e) =>
+      String(e.id) === sid ? { ...e, interestCount } : e,
+    );
+    write(KEYS.myEvents, list);
+  }
+  return interestCount;
 }
 
 function addMyEvent(event) {
@@ -1879,6 +1940,7 @@ function setCityLocation(location) {
     lat: location.lat || 0,
     lng: location.lng || 0,
     auto: !!location.auto,
+    locateSource: location.locateSource || '',
     updatedAt: location.updatedAt || new Date().toISOString(),
   };
   write(KEYS.cityLocation, row);
@@ -2306,6 +2368,8 @@ module.exports = {
   replaceAllEventsFromCloud,
   deleteCloudEvent,
   getEventFromCache,
+  markEventBrowseRecorded,
+  recordEventBrowseInterest,
   listMyEvents,
   getMyEvent,
   deleteMyEvent,

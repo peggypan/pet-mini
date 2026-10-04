@@ -178,10 +178,10 @@ async function remove(payload, wxContext) {
   }
 }
 
-/** 用户打开活动详情计一次关注（同一用户同一活动仅计一次） */
+/** 用户打开活动详情计一次关注（同一微信用户同一活动仅计一次，无需业务登录） */
 async function recordInterest(payload, wxContext) {
-  const auth = await requireUser(wxContext);
-  if (auth.err) return auth.err;
+  const openid = viewerOpenid(wxContext);
+  if (!openid) return fail(401, '无法识别用户');
   const eventId = payload && payload.eventId;
   if (!eventId) return fail(400, '缺少 eventId');
 
@@ -191,7 +191,7 @@ async function recordInterest(payload, wxContext) {
     if (!doc || doc.userDeleted || doc.auditStatus !== 'approved') {
       return fail(404, '活动不存在');
     }
-    if (doc.openid === auth.openid || doc._openid === auth.openid) {
+    if (doc.openid === openid || doc._openid === openid) {
       return ok({
         interestCount: Number(doc.interestCount) || 0,
         alreadyInterested: true,
@@ -203,7 +203,7 @@ async function recordInterest(payload, wxContext) {
       .where(
         _.and([
           { eventId: String(eventId) },
-          _.or([{ openid: auth.openid }, { _openid: auth.openid }]),
+          _.or([{ openid }, { _openid: openid }]),
         ]),
       )
       .limit(1)
@@ -218,8 +218,8 @@ async function recordInterest(payload, wxContext) {
     await eventInterests().add({
       data: {
         eventId: String(eventId),
-        openid: auth.openid,
-        _openid: auth.openid,
+        openid,
+        _openid: openid,
         createdAt: now(),
       },
     });

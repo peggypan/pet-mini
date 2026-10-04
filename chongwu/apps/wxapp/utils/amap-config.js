@@ -8,10 +8,14 @@
  * 小程序内 <map>、wx.chooseLocation、wx.openLocation 均为腾讯地图能力。
  */
 
-const TENCENT_MAP_KEY = 'YOUR_TENCENT_MAP_KEY';
+const PLACEHOLDER_KEY = 'YOUR_TENCENT_MAP_KEY';
+
+/** 只改这一行的值为控制台复制的 Key；不要改 isTencentMapConfigured 的判断逻辑 */
+const TENCENT_MAP_KEY = '32YBZ-3MSEQ-6OA55-26ZZZ-NOUGJ-WEFNQ';
 
 function isTencentMapConfigured() {
-  return TENCENT_MAP_KEY && TENCENT_MAP_KEY !== 'YOUR_TENCENT_MAP_KEY';
+  const key = (TENCENT_MAP_KEY || '').trim();
+  return key.length >= 10 && key !== PLACEHOLDER_KEY && !key.startsWith('YOUR_');
 }
 
 /** @deprecated 请使用 isTencentMapConfigured */

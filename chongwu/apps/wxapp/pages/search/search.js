@@ -23,14 +23,14 @@ Page({
     hotWords: ['遛狗', '朝阳公园', '猫咖', '洗护', '露营', '友好餐厅'],
   },
 
-  async onLoad(options) {
-    if (cloudApi.cloudEnabled()) {
-      await refreshMerchantsFromCloud({ city: store.getCity(), limit: 80 });
-    }
+  onLoad(options) {
     const keyword = decodeURIComponent(options.keyword || '');
     if (keyword) {
       this.setData({ keyword, focusInput: false });
       this.runSearch(keyword);
+    }
+    if (cloudApi.cloudEnabled()) {
+      refreshMerchantsFromCloud({ city: store.getCity(), limit: 80 }).catch(() => {});
     }
   },
 

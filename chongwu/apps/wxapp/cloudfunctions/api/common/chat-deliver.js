@@ -202,10 +202,11 @@ async function deliverChatMessageToPeer({
     },
   });
 
+  const { formatPublishTime } = require('./relative-time');
   await chatThreads().doc(inboxThread._id).update({
     data: {
       lastMessage: preview,
-      lastTime: '刚刚',
+      lastTime: formatPublishTime(ts),
       unread: (Number(inboxThread.unread) || 0) + 1,
       updatedAt: ts,
     },

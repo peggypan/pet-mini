@@ -1,3 +1,5 @@
+const { formatPublishTime } = require('./relative-time');
+
 const ZONES = ['normal', 'match', 'healing'];
 const { validateMediaPayload } = require('./media-urls');
 
@@ -94,11 +96,15 @@ function publicBuddy(doc, viewerOpenid) {
   if (!doc) return null;
   const { _id, _openid, ...rest } = doc;
   const isMine = viewerOpenid && (doc.openid === viewerOpenid || doc._openid === viewerOpenid);
+  const time = formatPublishTime(rest.createdAt || rest.updatedAt);
   return {
     id: _id,
     ...rest,
     isMine: !!isMine,
     userName: isMine ? '我' : rest.userName,
+    createdAt: rest.createdAt,
+    updatedAt: rest.updatedAt,
+    time,
   };
 }
 

@@ -25,18 +25,34 @@ Page({
     riskTip: RISK_TIPS.meet,
   },
 
-  async onShow() {
+  onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0 });
     }
-    const loc = store.getCityLocation();
+    this.paintHomeFromCache();
+    const app = getApp();
+    const forceLocate = !(app && app.globalData && app.globalData._homeAutoLocateDone);
+    if (app && app.globalData) app.globalData._homeAutoLocateDone = true;
+    autoLocateCity({ silent: true, force: forceLocate })
+      .then((loc) => {
+        if (!loc || !loc.city) return;
+        const patch = { city: loc.city, cityAuto: !!loc.auto };
+        if (patch.city !== this.data.city || patch.cityAuto !== this.data.cityAuto) {
+          this.setData(patch, () => this.paintHomeFromCache());
+        }
+      })
+      .catch(() => {});
     if (cloudApi.cloudEnabled()) {
-      await refreshEventsFeedFromCloud({ limit: 80 });
-      await refreshBannersFromCloud({ city: loc.city, limit: 10 });
+      this.refreshHomeInBackground();
     }
+  },
+
+  paintHomeFromCache() {
+    const loc = store.getCityLocation();
     this._allEventCards = buildEventHomeCards(listAllEvents());
     this._buddySource = listAllBuddies().filter((b) => b.zone !== 'match');
-    const buddyFeed = resetFeed(this._buddySource, buildBuddyPlazaCard);
+    const viewer = store.getCityLocation();
+    const buddyFeed = resetFeed(this._buddySource, (row) => buildBuddyPlazaCard(row, viewer));
     this.setData({
       city: loc.city || '北京',
       cityAuto: !!loc.auto,
@@ -47,9 +63,33 @@ Page({
     this.applyEventSlice(EVENT_INITIAL);
   },
 
+  refreshHomeInBackground() {
+    if (this._homeRefreshPromise) return this._homeRefreshPromise;
+    this._homeRefreshPromise = (async () => {
+      try {
+        const loc = store.getCityLocation();
+        await Promise.all([
+          refreshEventsFeedFromCloud({ limit: 80 }),
+          refreshBannersFromCloud({ city: loc.city, limit: 10 }),
+        ]);
+        this.paintHomeFromCache();
+      } catch (e) {
+        // keep cache
+      } finally {
+        this._homeRefreshPromise = null;
+      }
+    })();
+    return this._homeRefreshPromise;
+  },
+
   onLoadMoreBuddy() {
     if (!this.data.buddyHasMore) return;
-    const next = appendFeedItems(this._buddySource, this.data.buddyPlaza, buildBuddyPlazaCard);
+    const viewer = store.getCityLocation();
+    const next = appendFeedItems(
+      this._buddySource,
+      this.data.buddyPlaza,
+      (row) => buildBuddyPlazaCard(row, viewer),
+    );
     this.setData({
       buddyPlaza: next.list,
       buddyHasMore: next.hasMore,

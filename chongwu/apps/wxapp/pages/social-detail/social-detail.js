@@ -59,49 +59,77 @@ Page({
     if (this.data.postId) this.loadPost(this.data.postId);
   },
 
-  async loadPost(postId) {
+  findPostViewSync(postId) {
     const { postSource } = this.data;
-    const isLocal = postSource === 'local';
-    let view = null;
-
-    if (isLocal) {
-      let local = findLocalPostForDetail(postId);
-      if (!local && cloudApi.cloudEnabled() && postId) {
-        const row = await fetchLocalPostFromCloud(postId);
-        local = row ? localPostToDetailView(row) : null;
-      }
-      view = local;
-    } else {
-      let found = findSocialPost(postId);
-      if (!found && cloudApi.cloudEnabled() && postId) {
-        found = await fetchSocialPostFromCloud(postId);
-      }
-      view = found ? normalizePostMedia(found) : null;
+    if (postSource === 'local') {
+      return findLocalPostForDetail(postId);
     }
+    const found = findSocialPost(postId);
+    return found ? normalizePostMedia(found) : null;
+  },
 
+  paintPostDetail(postId, view, flatComments) {
     if (!view) {
-      this.setData({ post: null });
+      this.setData({ post: null, commentList: [] });
       return;
     }
-
-    let flatComments = store.listPostComments(postId);
-    if (cloudApi.cloudEnabled() && postId) {
-      flatComments = await refreshPostCommentsFromCloud(postId, {
-        postRef: isLocal ? REF_LOCAL : 'social_posts',
-      });
-    }
+    const { postSource } = this.data;
+    const isLocal = postSource === 'local';
+    const comments = flatComments || store.listPostComments(postId);
     const zoneLabel = isLocal
       ? (view.lostType === 'adopt' ? '领养救助' : '同城互助')
       : (getZoneLabel(view.zone) || ZONE_LABEL_MAP[view.zone] || '宠物社区');
     const enriched = decoratePostFollow(withContentParts({
       ...view,
-      comments: Math.max(view.comments || 0, flatComments.length),
+      comments: Math.max(view.comments || 0, comments.length),
     }));
     this.setData({
       post: enriched,
       zoneLabel,
-      commentList: buildCommentThreads(flatComments),
+      commentList: buildCommentThreads(comments),
     });
+  },
+
+  loadPost(postId) {
+    const cached = this.findPostViewSync(postId);
+    this.paintPostDetail(postId, cached, store.listPostComments(postId));
+    if (this._postLoadPromise) return this._postLoadPromise;
+    this._postLoadPromise = this.fetchPostFromCloud(postId).finally(() => {
+      this._postLoadPromise = null;
+    });
+    return this._postLoadPromise;
+  },
+
+  async fetchPostFromCloud(postId) {
+    const { postSource } = this.data;
+    const isLocal = postSource === 'local';
+    if (!cloudApi.cloudEnabled() || !postId) return;
+
+    let view = this.findPostViewSync(postId);
+    if (isLocal) {
+      if (!view) {
+        const row = await fetchLocalPostFromCloud(postId);
+        view = row ? localPostToDetailView(row) : null;
+      }
+    } else if (!view) {
+      const found = await fetchSocialPostFromCloud(postId);
+      view = found ? normalizePostMedia(found) : null;
+    }
+
+    if (!view) {
+      if (!this.data.post) this.setData({ post: null });
+      return;
+    }
+
+    let flatComments = store.listPostComments(postId);
+    try {
+      flatComments = await refreshPostCommentsFromCloud(postId, {
+        postRef: isLocal ? REF_LOCAL : 'social_posts',
+      });
+    } catch (e) {
+      // keep cache
+    }
+    this.paintPostDetail(postId, view, flatComments);
   },
 
   async onDeletePost() {

@@ -1,3 +1,5 @@
+const { formatPublishTime } = require('./relative-time');
+
 function trim(s) {
   return typeof s === 'string' ? s.trim() : '';
 }
@@ -68,9 +70,10 @@ function publicThread(doc) {
     petName: trim(doc.petName) || '宠物',
     avatar: trim(doc.avatar),
     lastMessage: trim(doc.lastMessage),
-    lastTime: trim(doc.lastTime) || '刚刚',
     unread: Number(doc.unread) || 0,
     updatedAt: doc.updatedAt,
+    createdAt: doc.createdAt,
+    lastTime: formatPublishTime(doc.updatedAt || doc.createdAt) || trim(doc.lastTime) || '',
   };
 }
 
@@ -93,8 +96,8 @@ function publicMessage(doc) {
     aaPer: doc.aaPer || 0,
     shareTitle: doc.shareTitle || '',
     shareRef: doc.shareRef || '',
-    time: '刚刚',
     createdAt: doc.createdAt,
+    time: formatPublishTime(doc.createdAt),
   };
 }
 

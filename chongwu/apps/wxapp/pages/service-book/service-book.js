@@ -7,13 +7,17 @@ const { requireLogin } = require('../../utils/require-login');
 Page({
   data: { merchant: null, date: '', time: '', remark: '' },
 
-  async onLoad(options) {
+  onLoad(options) {
     const id = options.id;
-    let merchant = findMerchant(id);
+    const merchant = findMerchant(id);
+    this.setData({ merchant: merchant || null });
     if (cloudApi.cloudEnabled() && id) {
-      merchant = (await fetchMerchantFromCloud(id)) || merchant;
+      fetchMerchantFromCloud(id)
+        .then((row) => {
+          if (row) this.setData({ merchant: row });
+        })
+        .catch(() => {});
     }
-    this.setData({ merchant });
   },
 
   onInput(e) {

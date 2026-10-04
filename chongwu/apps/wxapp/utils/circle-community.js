@@ -1,4 +1,5 @@
 const { MOCK_SOCIAL } = require('./mock');
+const { formatPublishTime } = require('./relative-time');
 
 function findCircle(circleId) {
   return MOCK_SOCIAL.circles.find((c) => String(c.id) === String(circleId)) || null;
@@ -46,8 +47,8 @@ function seedCircleMessages(circleId) {
     mediaList: p.image
       ? [{ type: 'image', url: p.image }]
       : (p.mediaList || []),
-    time: p.time || '刚刚',
     createdAt: new Date(Date.now() - idx * 3600000).toISOString(),
+    time: formatPublishTime(new Date(Date.now() - idx * 3600000)),
   }));
 }
 

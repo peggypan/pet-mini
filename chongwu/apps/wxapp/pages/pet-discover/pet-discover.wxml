@@ -64,7 +64,7 @@
               data-lat="{{deck[0].placeLat}}"
               data-lng="{{deck[0].placeLng}}"
             >{{deck[0].expectPlace}}</text>
-            <text> · {{deck[0].distance}}</text>
+            <text wx:if="{{deck[0].distance}}"> · {{deck[0].distance}}</text>
           </view>
           <view class="tag-row">
             <text
@@ -145,5 +145,4 @@
     </view>
   </view>
 
-  <pet-profile-gate show="{{petProfileBlocked}}" />
 </view>

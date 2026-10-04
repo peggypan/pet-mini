@@ -1,4 +1,4 @@
-const { listAllBuddies } = require('../../utils/catalog');
+const { listAllBuddies, findBuddy } = require('../../utils/catalog');
 const { HEALING_BUDDY_TYPES } = require('../../utils/mock');
 const store = require('../../utils/store');
 const cloudApi = require('../../utils/cloud-api');
@@ -10,8 +10,10 @@ const {
   addShareBonusOnCloud,
 } = require('../../utils/pet-discover-likes-cloud-sync');
 const amap = require('../../utils/amap');
-const { syncPetProfileGate } = require('../../utils/pet-profile-guard');
 const { requireInteract } = require('../../utils/pet-profile-guard');
+const { requireLogin } = require('../../utils/require-login');
+const { buddyDistanceText } = require('../../utils/geo-distance');
+const { autoLocateCity } = require('../../utils/city-location');
 
 const SWIPE_THRESHOLD = 72;
 const FLY_MS = 420;
@@ -25,7 +27,7 @@ function matchScore(id) {
   return 60 + (h % 40);
 }
 
-function mapDeckCard(b) {
+function mapDeckCard(b, viewerLocation) {
   const zone = b.zone || 'normal';
   const isHealing = zone === 'healing';
   const buddyType = b.buddyType || '宠友';
@@ -33,13 +35,14 @@ function mapDeckCard(b) {
   const tags = isHealing
     ? [...new Set([buddyType, ...personalityTags])].slice(0, 5)
     : personalityTags.slice(0, 4);
+  const distance = buddyDistanceText(b, viewerLocation) || '';
   return {
     id: b.id,
     cover: b.cover || b.avatar,
     userName: b.userName,
     petName: b.petName,
     breed: b.breed,
-    distance: b.distance,
+    distance,
     expectPlace: b.expectPlace || '同城',
     expectPlaceAddress: b.expectPlaceAddress || (b.location && b.location.address) || '',
     placeLat: (b.location && b.location.latitude) || '',
@@ -69,8 +72,9 @@ function filterBuddyRows(discoverFilter, healingTypeFilter) {
   return list;
 }
 
-function buildDeck(discoverFilter = 'all', healingTypeFilter = '全部') {
-  return filterBuddyRows(discoverFilter, healingTypeFilter).map(mapDeckCard);
+function buildDeck(discoverFilter = 'all', healingTypeFilter = '全部', viewerLocation) {
+  const viewer = viewerLocation || store.getCityLocation();
+  return filterBuddyRows(discoverFilter, healingTypeFilter).map((b) => mapDeckCard(b, viewer));
 }
 
 Page({
@@ -97,7 +101,6 @@ Page({
     shareLeft: 3,
     shareMax: 3,
     shareBonusTotal: 30,
-    petProfileBlocked: false,
     discoverFilter: 'all',
     healingTypeFilter: '全部',
     healingTypeOptions: ['全部', ...HEALING_BUDDY_TYPES],
@@ -110,29 +113,47 @@ Page({
     }
   },
 
-  async onShow() {
-    syncPetProfileGate(this);
+  onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 1 });
     }
-    if (cloudApi.cloudEnabled()) {
-      try {
-        await refreshBuddyFeedFromCloud({ limit: 80 });
-        const cached = store.listBuddyPosts();
-        if (cached.some((p) => (p.cover || '').startsWith('cloud://'))) {
-          store.replaceAllBuddyPostsFromCloud(await resolveBuddyPosts(cached));
-        }
-      } catch (e) {
-        // keep cache
-      }
-      try {
-        await refreshPetDiscoverFromCloud();
-      } catch (e) {
-        // keep cache
-      }
-    }
     this.reloadDeck();
     this.refreshQuota();
+    this.refreshDiscoverInBackground();
+  },
+
+  refreshDiscoverInBackground() {
+    if (this._discoverRefreshPromise) return this._discoverRefreshPromise;
+    this._discoverRefreshPromise = (async () => {
+      try {
+        try {
+          await autoLocateCity({ silent: true, force: false });
+        } catch (e) {
+          /* 使用已选城市中心估算距离 */
+        }
+        this.reloadDeck();
+        if (!cloudApi.cloudEnabled()) return;
+        await Promise.all([
+          refreshBuddyFeedFromCloud({ limit: 80 }),
+          refreshPetDiscoverFromCloud(),
+        ]);
+        const cached = store.listBuddyPosts();
+        if (cached.some(
+          (p) => (p.cover || '').startsWith('cloud://')
+            || (p.avatar || '').startsWith('cloud://')
+            || (p.mediaList || []).some((m) => (m.url || '').startsWith('cloud://')),
+        )) {
+          store.replaceAllBuddyPostsFromCloud(await resolveBuddyPosts(cached));
+        }
+        this.reloadDeck();
+        this.refreshQuota();
+      } catch (e) {
+        // keep cache
+      } finally {
+        this._discoverRefreshPromise = null;
+      }
+    })();
+    return this._discoverRefreshPromise;
   },
 
   reloadDeck() {
@@ -399,7 +420,13 @@ Page({
   onOpenLikes() {
     if (!requireInteract()) return;
     const row = store.getPetLikes();
-    this.setData({ showLikes: true, likedList: row.items });
+    const viewer = store.getCityLocation();
+    const items = (row.items || []).map((item) => {
+      const buddy = findBuddy(item.id);
+      const distance = buddy ? buddyDistanceText(buddy, viewer) : '';
+      return { ...item, distance: distance || item.distance || '' };
+    });
+    this.setData({ showLikes: true, likedList: items });
   },
 
   onCloseLikes() {

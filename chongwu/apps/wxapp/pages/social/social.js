@@ -15,6 +15,7 @@ const { syncPetProfileGate, requireInteract } = require('../../utils/pet-profile
 const { deleteOwnedSocialPost } = require('../../utils/user-content-delete');
 const cloudApi = require('../../utils/cloud-api');
 const { refreshSocialFeedFromCloud } = require('../../utils/social-cloud-sync');
+const { withPublishTime } = require('../../utils/relative-time');
 
 Page({
   data: {
@@ -65,20 +66,37 @@ Page({
     wx.navigateTo({ url: '/pages/city-picker/city-picker' });
   },
 
-  async reloadPosts() {
-    if (cloudApi.cloudEnabled()) {
-      await refreshSocialFeedFromCloud({ zone: 'all', limit: 80 });
-    }
+  buildPostsFromStore() {
     const local = store.listSocialPosts().map((p) => normalizePostMedia(p));
-    let posts = local;
     if (!cloudApi.cloudEnabled()) {
       const mock = MOCK_SOCIAL.posts.map((p) => normalizePostMedia({
         ...p,
         ...(store.getSocialOverride(p.id) || {}),
       }));
-      posts = [...local, ...mock];
+      return [...local, ...mock];
     }
-    this.setData({ posts }, () => this.applyDisplayPosts());
+    return local;
+  },
+
+  applyPostsFromCache() {
+    this.setData({ posts: this.buildPostsFromStore() }, () => this.applyDisplayPosts());
+  },
+
+  reloadPosts() {
+    this.applyPostsFromCache();
+    if (!cloudApi.cloudEnabled()) return;
+    if (this._socialFeedRefreshPromise) return this._socialFeedRefreshPromise;
+    this._socialFeedRefreshPromise = (async () => {
+      try {
+        await refreshSocialFeedFromCloud({ zone: 'all', limit: 80 });
+        this.applyPostsFromCache();
+      } catch (e) {
+        // keep cache
+      } finally {
+        this._socialFeedRefreshPromise = null;
+      }
+    })();
+    return this._socialFeedRefreshPromise;
   },
 
   applyDisplayPosts() {
@@ -91,6 +109,7 @@ Page({
       );
     }
     filtered = filtered
+      .map(withPublishTime)
       .map(decoratePostZone)
       .map(withContentParts)
       .map(decoratePostFollow);

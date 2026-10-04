@@ -3,7 +3,8 @@
  * 小程序地图组件与选点均走腾讯地图。
  */
 const { TENCENT_MAP_KEY, isTencentMapConfigured, isAmapConfigured } = require('./amap-config');
-const { findNearestCity, findCityByName } = require('./china-cities');
+const { findNearestCity, findCityByName, findNearestCitySmart, resolvePrefectureCity } = require('./china-cities');
+const reverseGeocodeCache = require('./reverse-geocode-cache');
 
 const BASE = 'https://apis.map.qq.com/ws';
 
@@ -38,37 +39,80 @@ function parseTencentAddressComponent(comp) {
   };
 }
 
+function packReverseResult(lng, lat, payload) {
+  return {
+    lng,
+    lat,
+    province: payload.province || '',
+    city: payload.city,
+    district: payload.district || '',
+    adcode: payload.adcode || '',
+    address: payload.address || payload.formattedAddress || '',
+    formattedAddress: payload.formattedAddress || payload.address || '',
+    source: payload.source || 'fallback',
+  };
+}
+
+function fallbackReverseGeocode(lng, lat, err) {
+  const msg = (err && err.message) || '';
+  if (msg.includes('上限') || msg.includes('quota') || msg.includes('配额')) {
+    console.warn('[amap] 腾讯逆地理当日配额已用尽，已改用本地推断；可在 lbs.qq.com 查看用量或次日重置');
+  } else {
+    console.warn('[amap] reverseGeocode tencent failed, fallback', msg);
+  }
+  const cached = reverseGeocodeCache.get(lat, lng);
+  if (cached && cached.city) {
+    return packReverseResult(lng, lat, { ...cached, source: 'cache' });
+  }
+  const nearest = findNearestCitySmart(lat, lng);
+  return packReverseResult(lng, lat, {
+    province: nearest.province || '',
+    city: nearest.name,
+    district: '',
+    adcode: '',
+    address: `${nearest.province || ''}${nearest.name}`,
+    formattedAddress: `${nearest.province || ''}${nearest.name}`,
+    source: 'fallback',
+  });
+}
+
 /** 逆地理编码：坐标 → 地址与城市（location 为 lat,lng） */
 function reverseGeocode(lng, lat) {
+  const cached = reverseGeocodeCache.get(lat, lng);
+  if (cached && cached.city) {
+    return Promise.resolve(packReverseResult(lng, lat, { ...cached, source: 'cache' }));
+  }
   if (!isTencentMapConfigured()) {
-    const nearest = findNearestCity(lat, lng);
-    return Promise.resolve({
-      lng,
-      lat,
-      province: nearest.province || '',
-      city: nearest.name,
-      district: '',
-      address: `${nearest.province || ''}${nearest.name}`,
-      adcode: '',
-      formattedAddress: `${nearest.province || ''}${nearest.name}`,
-      source: 'fallback',
-    });
+    return Promise.resolve(fallbackReverseGeocode(lng, lat, new Error('no_key')));
   }
   return request('/geocoder/v1/', {
     location: `${lat},${lng}`,
   }).then((data) => {
     const result = data.result || {};
     const comp = parseTencentAddressComponent(result.address_component);
-    const formatted = result.address || result.formatted_addresses?.recommend || '';
-    return {
-      lng,
+    const adInfo = result.ad_info || {};
+    const adcode = adInfo.adcode || comp.adcode || '';
+    const resolved = resolvePrefectureCity({
+      province: comp.province || adInfo.province || '',
+      city: comp.city,
+      district: comp.district || adInfo.district || '',
+      adcode,
       lat,
-      ...comp,
+      lng,
+    });
+    const formatted = result.address || result.formatted_addresses?.recommend || '';
+    const packed = packReverseResult(lng, lat, {
+      province: resolved.province || comp.province || '',
+      city: resolved.name,
+      district: comp.district,
+      adcode,
       address: formatted,
       formattedAddress: formatted,
       source: 'tencent',
-    };
-  });
+    });
+    reverseGeocodeCache.set(lat, lng, packed);
+    return packed;
+  }).catch((err) => fallbackReverseGeocode(lng, lat, err));
 }
 
 /** 地理编码：地址 → 坐标 */

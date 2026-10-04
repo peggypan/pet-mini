@@ -188,14 +188,39 @@ Page({
     this.initMap();
   },
 
-  async initMap() {
-    this.setData({ loading: true });
+  initMap() {
     const city = store.getCity();
+    const saved = store.getCityLocation();
+    let latitude = saved.lat || 39.9042;
+    let longitude = saved.lng || 116.4074;
+    const raw = listAllMapPoints();
+    this._allPoints = raw;
+    this._buddyMarkers = buildBuddyMarkers(listAllBuddies(), latitude, longitude);
+    this.setData({
+      latitude,
+      longitude,
+      scale: this.data.scale || 14,
+      points: raw,
+      loading: false,
+    }, () => {
+      this.setData({ markers: this.rebuildMarkers() });
+    });
+    if (this._mapInitPromise) return;
+    this._mapInitPromise = this.initMapFull(city).finally(() => {
+      this._mapInitPromise = null;
+    });
+  },
+
+  async initMapFull(city) {
     if (cloudApi.cloudEnabled()) {
-      await refreshMapPointsFromCloud({ limit: 120, city });
+      try {
+        await refreshMapPointsFromCloud({ limit: 120, city });
+      } catch (e) {
+        // keep cache
+      }
     }
-    let latitude = 39.9042;
-    let longitude = 116.4074;
+    let latitude = this.data.latitude || 39.9042;
+    let longitude = this.data.longitude || 116.4074;
 
     try {
       const loc = await new Promise((resolve, reject) => {
@@ -216,14 +241,11 @@ Page({
     const collected = await collectPetServicePOIs({ city, latitude, longitude });
     points = mergeMapPoints(points, collected);
     this._allPoints = points;
-    const pointMarkers = amap.buildMapMarkers(points);
-    const buddyMarkers = buildBuddyMarkers(listAllBuddies(), latitude, longitude);
-    this._buddyMarkers = buddyMarkers;
+    this._buddyMarkers = buildBuddyMarkers(listAllBuddies(), latitude, longitude);
 
     this.setData({
       latitude,
       longitude,
-      scale: this.data.scale || 14,
       points,
       loading: false,
     }, () => {

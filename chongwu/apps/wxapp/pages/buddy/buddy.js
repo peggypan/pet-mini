@@ -10,6 +10,7 @@ const { loadPetMap } = require('../../utils/pet-buddy-map');
 const amap = require('../../utils/amap');
 const { syncPetProfileGate, requireInteract } = require('../../utils/pet-profile-guard');
 const { deleteOwnedBuddyPost } = require('../../utils/user-content-delete');
+const { autoLocateCity } = require('../../utils/city-location');
 
 Page({
   data: {
@@ -37,7 +38,7 @@ Page({
     const likes = o.likes != null ? o.likes : (row.likes != null ? row.likes : 8);
     const comments = o.comments != null ? o.comments : (row.comments != null ? row.comments : 2);
     const shares = o.shares != null ? o.shares : (row.shares != null ? row.shares : 0);
-    const plaza = buildBuddyPlazaCard(row);
+    const plaza = buildBuddyPlazaCard(row, store.getCityLocation());
     return {
       ...row,
       ...plaza,
@@ -60,26 +61,53 @@ Page({
     return list;
   },
 
-  async onShow() {
+  onLoad() {
+    this.setData({ city: store.getCity() });
+    this.reload();
+  },
+
+  onShow() {
     syncPetProfileGate(this);
     this.setData({ city: store.getCity() });
-    if (cloudApi.cloudEnabled()) {
+    this.reload();
+    loadPetMap(this);
+    this.refreshBuddyFeedInBackground();
+  },
+
+  refreshBuddyFeedInBackground() {
+    if (this._buddyFeedRefreshPromise) return this._buddyFeedRefreshPromise;
+    this._buddyFeedRefreshPromise = (async () => {
       try {
+        try {
+          await autoLocateCity({ silent: true, force: false });
+        } catch (e) {
+          /* 无定位权限时用已选城市中心估算 */
+        }
+        this.setData({ city: store.getCity() });
+        this.reload();
+        if (!cloudApi.cloudEnabled()) return;
         await refreshBuddyFeedFromCloud({ limit: 80 });
         const cached = store.listBuddyPosts();
         const needResolve = cached.some(
           (p) => (p.cover && p.cover.startsWith('cloud://'))
-            || (p.avatar && p.avatar.startsWith('cloud://')),
+            || (p.avatar && p.avatar.startsWith('cloud://'))
+            || (p.mediaList || []).some(
+              (m) => (m.url && m.url.startsWith('cloud://'))
+                || (m.poster && m.poster.startsWith('cloud://')),
+            ),
         );
         if (needResolve) {
           store.replaceAllBuddyPostsFromCloud(await resolveBuddyPosts(cached));
         }
+        this.reload();
+        loadPetMap(this);
       } catch (e) {
         // keep cache
+      } finally {
+        this._buddyFeedRefreshPromise = null;
       }
-    }
-    this.reload();
-    loadPetMap(this);
+    })();
+    return this._buddyFeedRefreshPromise;
   },
 
   onCityTap() {

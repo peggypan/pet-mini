@@ -1,4 +1,5 @@
 const store = require('./store');
+const { displayPublishTime } = require('./relative-time');
 const { displayUserNickName } = require('./display-user-nick');
 const cloudApi = require('./cloud-api');
 const { MOCK_SOCIAL, MOCK_RESCUE } = require('./mock');
@@ -12,10 +13,26 @@ const KIND_DEFAULT_COVER = {
   adopt: '/assets/mock/real_cat.jpg',
 };
 
+function isDisplayableCoverUrl(url) {
+  if (!url || typeof url !== 'string') return false;
+  if (url.startsWith('cloud://')) return false;
+  return true;
+}
+
 function pickCover(post) {
-  if (post.image) return post.image;
+  if (isDisplayableCoverUrl(post.image)) return post.image;
   const media = post.mediaList;
-  if (Array.isArray(media) && media[0] && media[0].url) return media[0].url;
+  if (Array.isArray(media)) {
+    for (let i = 0; i < media.length; i += 1) {
+      const m = media[i];
+      if (m && isDisplayableCoverUrl(m.poster)) return m.poster;
+      if (m && isDisplayableCoverUrl(m.url)) return m.url;
+    }
+  }
+  if (Array.isArray(post.images)) {
+    const hit = post.images.find(isDisplayableCoverUrl);
+    if (hit) return hit;
+  }
   return '';
 }
 
@@ -56,7 +73,7 @@ function buildRescueList() {
       tag: KIND_LABEL[p.lostType] || '寻宠',
       authorLine: displayUserNickName({ ...p, isMine: store.isMyUserContent(p) }),
       preview: (p.title || (p.content || '').replace(/\n/g, ' ')).trim().slice(0, 72),
-      time: p.time || '刚刚',
+      time: displayPublishTime(p) || p.time || '',
       ...pickGeo(p),
       cover: resolveCover(p.lostType, p),
     });
@@ -83,7 +100,7 @@ function buildRescueList() {
         tag: KIND_LABEL[kind] || '同城',
         authorLine: displayUserNickName({ ...p, isMine: store.isMyUserContent(p) }),
         preview: (p.title || p.desc || '').slice(0, 72),
-        time: p.time || '刚刚',
+        time: displayPublishTime(p) || p.time || '',
         ...pickGeo(p),
         contact: p.contact || '',
         desc: p.desc || '',
@@ -105,7 +122,7 @@ function buildRescueList() {
         tag: p.tag || KIND_LABEL[p.kind] || '领养',
         authorLine: displayUserNickName(p) || p.userName || '',
         preview: p.preview || p.title || '',
-        time: p.time || '刚刚',
+        time: displayPublishTime(p) || p.time || '',
         location: p.location || '',
         locationName: p.location || '',
         locationAddress: p.locationAddress || '',

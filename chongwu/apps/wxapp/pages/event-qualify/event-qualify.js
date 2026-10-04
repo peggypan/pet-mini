@@ -93,14 +93,19 @@ Page({
     });
   },
 
-  async refreshQualify(fromCloud) {
+  refreshQualify(fromCloud) {
     const { role } = this.data;
-    let qualify;
+    const qualify = store.getEventPublishQualify(role);
+    this.paintQualify(qualify);
     if (fromCloud && cloudApi.cloudEnabled()) {
-      qualify = await refreshQualifyFromCloud(role);
-    } else {
-      qualify = store.getEventPublishQualify(role);
+      refreshQualifyFromCloud(role)
+        .then((row) => this.paintQualify(row || store.getEventPublishQualify(role)))
+        .catch(() => {});
     }
+  },
+
+  paintQualify(qualify) {
+    const { role } = this.data;
     const maskedId = qualify.verify?.idCard ? maskIdCard(qualify.verify.idCard) : '';
     this.setData({
       qualify: { ...qualify, maskedId },

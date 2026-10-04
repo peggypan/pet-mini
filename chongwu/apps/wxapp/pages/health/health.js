@@ -23,19 +23,47 @@ Page({
     this.refresh();
   },
 
-  async refresh() {
-    await this.loadPets();
+  refresh() {
+    this.applyPetsFromStore();
     this.loadReminders();
+    this.syncPetsInBackground();
+  },
+
+  applyPetsFromStore() {
+    this.setData({ pets: store.listPets() });
+  },
+
+  syncPetsInBackground() {
+    if (this._petsSyncPromise) return this._petsSyncPromise;
+    this._petsSyncPromise = this.loadPetsFromCloud()
+      .finally(() => {
+        this._petsSyncPromise = null;
+      });
+    return this._petsSyncPromise;
+  },
+
+  async loadPetsFromCloud() {
+    if (cloudApi.cloudEnabled()) {
+      try {
+        const pets = await refreshPetsFromCloud();
+        this.setData({ pets });
+        return;
+      } catch (e) {
+        this.applyPetsFromStore();
+        return;
+      }
+    }
+    await this.loadPetsFromApi();
   },
 
   async loadPets() {
+    await this.loadPetsFromCloud();
+  },
+
+  async loadPetsFromApi() {
     let pets = store.listPets();
     if (cloudApi.cloudEnabled()) {
-      try {
-        pets = await refreshPetsFromCloud();
-      } catch (e) {
-        pets = store.listPets();
-      }
+      return;
     } else {
       try {
         const res = await api.get('/health/pets');

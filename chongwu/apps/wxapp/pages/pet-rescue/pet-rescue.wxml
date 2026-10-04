@@ -37,7 +37,7 @@
       data-id="{{item.id}}"
     >
       <view class="cover-wrap aspect-34 aspect-34-sm">
-        <image class="cover" src="{{item.cover}}" mode="aspectFill"></image>
+        <image class="cover" src="{{item.cover}}" mode="aspectFill" lazy-load="{{true}}"></image>
       </view>
       <view class="body">
         <view class="item-head">

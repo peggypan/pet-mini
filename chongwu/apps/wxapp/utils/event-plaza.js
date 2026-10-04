@@ -1,4 +1,5 @@
 const { HEALING_EVENT_CATEGORY } = require('./mock');
+const { displayPublishTime } = require('./relative-time');
 
 function isHealingEvent(event) {
   return (event && event.category) === HEALING_EVENT_CATEGORY;
@@ -15,10 +16,12 @@ function filterEventsForPlaza(events, plazaFilter) {
 
 function decorateEventPlazaRow(event) {
   const isHealing = isHealingEvent(event);
+  const publishTime = displayPublishTime(event) || event.publishTime || '';
   return {
     ...event,
     isHealing,
     categoryLabel: event.category || (isHealing ? HEALING_EVENT_CATEGORY : ''),
+    publishTime,
   };
 }
 

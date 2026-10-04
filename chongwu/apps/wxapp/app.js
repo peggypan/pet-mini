@@ -100,8 +100,6 @@ App({
     if (wx.getPrivacySetting && !this.globalData.privacyAccepted) {
       return;
     }
-    const loc = store.getCityLocation();
-    if (loc.updatedAt) return;
     autoLocateCity({ silent: true, force: false }).catch(() => {});
   },
 

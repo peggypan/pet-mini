@@ -1,7 +1,4 @@
 {
-  "usingComponents": {
-    "pet-profile-gate": "/components/pet-profile-gate/pet-profile-gate"
-  },
   "navigationBarTitleText": "搭搭",
   "navigationBarBackgroundColor": "#E8F4FF",
   "navigationBarTextStyle": "black",

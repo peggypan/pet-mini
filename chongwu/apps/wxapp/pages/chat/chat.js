@@ -1,5 +1,7 @@
 const { MOCK_CHATS, MOCK_BUDDY, MOCK_EVENTS } = require('../../utils/mock');
+const { findEvent } = require('../../utils/catalog');
 const store = require('../../utils/store');
+const { fetchEventFromCloud } = require('../../utils/event-cloud-sync');
 const { openEventPublishEntry } = require('../../utils/event-publish-nav');
 const amap = require('../../utils/amap');
 const { chooseMedia } = require('../../utils/choose-media');
@@ -23,7 +25,10 @@ const cloudApi = require('../../utils/cloud-api');
 const {
   ensureChatThreadOnCloud,
   refreshChatThreadsFromCloud,
-  loadChatMessagesFromCloud,
+  loadLatestChatMessagesFromCloud,
+  loadOlderChatMessagesFromCloud,
+  mergeChatMessages,
+  CHAT_PAGE_SIZE,
   markChatThreadReadOnCloud,
   sendChatMessageOnCloud,
   startChatRealtime,
@@ -46,7 +51,8 @@ Page({
     inputText: '',
     panelTools: false,
     panelEmoji: false,
-    scrollInto: '',
+    scrollTop: 0,
+    scrollWithAnimation: false,
     playingId: '',
     showChatLimitTip: false,
     chatLimitTip: '',
@@ -61,6 +67,10 @@ Page({
     myAvatar: '/assets/mock/real_avatar.jpg',
     peerAvatar: DEFAULT_PEER_AVATAR,
     peerDisplayTitle: '',
+    pendingEvent: null,
+    chatHasMore: false,
+    chatLoadingHistory: false,
+    chatListReady: false,
   },
 
   decorateChatUiMessages(list) {
@@ -94,6 +104,7 @@ Page({
     if (threadId && this.data.messages.length) {
       this.setData({
         messages: this.decorateChatUiMessages(this.data.messages),
+        scrollTop: this._lastScrollTop != null ? this._lastScrollTop : this.data.scrollTop,
       });
     }
   },
@@ -109,8 +120,134 @@ Page({
       petName: options.petName ? decodeURIComponent(options.petName) : '',
       avatar: options.avatar ? decodeURIComponent(options.avatar) : '',
       peerOpenid: options.peerOpenid ? decodeURIComponent(options.peerOpenid) : '',
+      attachEventId: options.attachEventId || '',
     };
+    this.applyPeerPreviewFromOptions(this.peerOptions, this.peerOptions.peerId);
+    this._allowHistoryLoad = false;
     this._initThreadPromise = this.initThread(this.peerOptions);
+  },
+
+  onReady() {
+    this._scrollNodePromise = null;
+    if (this.data.messages && this.data.messages.length) {
+      wx.nextTick(() => this.scrollToLatest(false));
+    }
+  },
+
+  messagesSetPatch(messages, animated) {
+    return {
+      messages,
+      scrollWithAnimation: animated === true,
+    };
+  },
+
+  getScrollNode(retry) {
+    const n = typeof retry === 'number' ? retry : 0;
+    if (n === 0 && this._scrollNodePromise) return this._scrollNodePromise;
+    const attempt = () => new Promise((resolve) => {
+      wx.createSelectorQuery()
+        .in(this)
+        .select('#msg-scroll')
+        .node()
+        .exec((res) => {
+          const node = res && res[0] && res[0].node;
+          if (node || n >= 12) {
+            resolve(node || null);
+            return;
+          }
+          setTimeout(() => {
+            this.getScrollNode(n + 1).then(resolve);
+          }, 40);
+        });
+    });
+    if (n === 0) {
+      this._scrollNodePromise = attempt();
+      return this._scrollNodePromise;
+    }
+    return attempt();
+  },
+
+  scrollNodeTo(top, animated) {
+    const finalTop = Math.max(0, top);
+    return this.getScrollNode().then((node) => {
+      if (node && typeof node.scrollTo === 'function') {
+        node.scrollTo({ top: finalTop, animated: animated === true });
+      }
+    }).catch(() => {});
+  },
+
+  applyScrollTop(top, animated) {
+    const useAnim = animated === true;
+    this._scrollSeq = (this._scrollSeq || 0) + 1;
+    const next = Math.max(0, Number(top) || 0) + (this._scrollSeq % 3) * 0.5;
+    this._lastScrollTop = next;
+    this.setData({
+      scrollTop: next,
+      scrollWithAnimation: useAnim,
+    });
+    this.scrollNodeTo(next, useAnim);
+  },
+
+  measureScrollMax() {
+    return new Promise((resolve) => {
+      const q = wx.createSelectorQuery().in(this);
+      q.select('#msg-scroll').boundingClientRect();
+      q.select('#chat-scroll-inner').boundingClientRect();
+      q.select('#chat-scroll-bottom').boundingClientRect();
+      q.exec((res) => {
+        const viewport = res && res[0];
+        const inner = res && res[1];
+        const bottom = res && res[2];
+        if (!viewport || !viewport.height) {
+          resolve(0);
+          return;
+        }
+        let max = 0;
+        if (inner && inner.height) {
+          max = Math.max(max, inner.height - viewport.height + 12);
+        }
+        if (bottom && bottom.bottom && viewport.top != null) {
+          max = Math.max(max, bottom.bottom - viewport.top - viewport.height + 12);
+        }
+        resolve(Math.max(0, max));
+      });
+    });
+  },
+
+  finishInitialScrollPin(max) {
+    if (max > 30 || (this.data.messages && this.data.messages.length <= 2)) {
+      this._allowHistoryLoad = true;
+      this._pinScrollBottomUntil = Date.now() + 2500;
+    }
+  },
+
+  patchChatData(patch, options = {}) {
+    const pinBottom = !!options.pinBottom;
+    const next = { ...patch };
+    if (!pinBottom && next.scrollTop === undefined) {
+      next.scrollTop = this.data.scrollTop;
+    }
+    if (pinBottom && typeof this.setMessagesAndScroll === 'function' && next.messages) {
+      this.setMessagesAndScroll(next.messages, false, {
+        chatHasMore: next.chatHasMore,
+        chatLoadingHistory: next.chatLoadingHistory,
+      });
+      return;
+    }
+    this.setData(next, () => {
+      if (pinBottom && typeof this.scrollToLatest === 'function') {
+        this.scrollToLatest(false);
+      }
+    });
+  },
+
+  setMessagesAndScroll(messages, animated, extraPatch) {
+    this.setData({
+      ...this.messagesSetPatch(messages, animated),
+      ...(extraPatch || {}),
+    }, () => {
+      wx.nextTick(() => this.scrollToLatest(animated));
+    });
   },
 
   async onShow() {
@@ -118,23 +255,16 @@ Page({
     if (this._initThreadPromise) {
       await this._initThreadPromise.catch(() => {});
     }
-    await this.refreshChatAvatars().catch(() => {});
-    if (this.data.peer) await this.syncPeerActions(this.data.peer);
-    if (this.data.threadId) {
-      let messages = store.getChatMessages(this.data.threadId);
-      if (cloudApi.cloudEnabled()) {
-        try {
-          messages = await loadChatMessagesFromCloud(this.data.threadId);
-        } catch (e) {
-          // keep cache
-        }
-      }
-      messages = this.decorateChatUiMessages(messages);
-      this.setData({ messages });
-      this.syncLimitState(messages);
-      this.scrollBottom();
-      startChatRealtime(this, this.data.threadId);
+    if (this._skipOnShowRefresh) {
+      this._skipOnShowRefresh = false;
+      if (this.data.threadId) startChatRealtime(this, this.data.threadId);
+      wx.nextTick(() => this.scrollToLatest(false));
+      return;
     }
+    if (!this.data.threadId) return;
+    startChatRealtime(this, this.data.threadId);
+    this.refreshChatAvatars().catch(() => {});
+    if (this.data.peer) this.syncPeerActions(this.data.peer).catch(() => {});
   },
 
   onHide() {
@@ -265,7 +395,7 @@ Page({
     if (this._likeAnimTimer) clearTimeout(this._likeAnimTimer);
     this._likeAnimTimer = setTimeout(() => {
       this.setData({ centerHeartAnim: false });
-    }, 920);
+    }, 960);
   },
 
   getLimitState(messages) {
@@ -297,28 +427,116 @@ Page({
     return false;
   },
 
-  async initThread(options) {
-    const peerId = typeof options === 'object' ? options.peerId : options;
-    const customPeer = typeof options === 'object' ? options : {};
+  findLocalThread(customPeer, peerId) {
+    const threads = store.listChatThreads();
+    if (customPeer.threadId) {
+      const hit = threads.find((t) => String(t.id) === String(customPeer.threadId));
+      if (hit) return hit;
+    }
+    if (peerId) {
+      const hit = threads.find((t) => String(t.peerId) === String(peerId));
+      if (hit) return hit;
+    }
+    return null;
+  },
+
+  buildShellThread(customPeer, peerId) {
+    const local = this.findLocalThread(customPeer, peerId);
+    if (local && local.id) return local;
+    const routeThreadId = customPeer.threadId || '';
+    const effectivePeerId = peerId
+      || customPeer.peerId
+      || customPeer.peerOpenid
+      || (routeThreadId && String(routeThreadId).replace(/^c_/, ''))
+      || '';
+    if (routeThreadId || effectivePeerId || customPeer.peerName || customPeer.peerOpenid) {
+      return store.ensureChatThread({
+        id: routeThreadId || `c_${effectivePeerId || 'peer'}`,
+        peerId: effectivePeerId || routeThreadId,
+        peerOpenid: customPeer.peerOpenid || '',
+        peerName: customPeer.peerName || '宠友',
+        petName: customPeer.petName || '宠物',
+        avatar: customPeer.avatar || DEFAULT_PEER_AVATAR,
+      });
+    }
+    return local;
+  },
+
+  applyPeerPreviewFromOptions(customPeer, peerId) {
+    if (this.data.peer && this.data.threadId) return;
+    const name = (customPeer && customPeer.peerName) || '宠友';
+    const pet = (customPeer && customPeer.petName) || '宠物';
+    const peerDisplayTitle = formatChatThreadTitle(name, pet);
+    const avatar = (customPeer && customPeer.avatar) || DEFAULT_PEER_AVATAR;
+    const id = peerId
+      || (customPeer && customPeer.peerId)
+      || (customPeer && customPeer.peerOpenid)
+      || '';
+    const peer = {
+      id,
+      peerOpenid: (customPeer && customPeer.peerOpenid) || '',
+      userName: name,
+      petName: pet,
+      avatar,
+      displayTitle: peerDisplayTitle,
+    };
+    const patch = { peer, peerDisplayTitle, peerAvatar: avatar };
+    if (customPeer && customPeer.threadId && !this.data.threadId) {
+      patch.threadId = customPeer.threadId;
+    }
+    this.setData(patch);
+    if (peerDisplayTitle) {
+      wx.setNavigationBarTitle({ title: peerDisplayTitle });
+    }
+  },
+
+  applyThreadShell(thread, customPeer) {
+    if (!thread || !thread.id) return null;
+    const peerDisplayTitle = formatChatThreadTitle(thread.peerName, thread.petName);
+    this._threadMeta = {
+      peerOpenid: thread.peerOpenid || (customPeer && customPeer.peerOpenid) || '',
+    };
+    const avatar = (customPeer && customPeer.avatar) || thread.avatar || DEFAULT_PEER_AVATAR;
+    const peer = {
+      id: thread.peerId,
+      peerOpenid: this._threadMeta.peerOpenid,
+      userName: thread.peerName || '宠友',
+      petName: thread.petName || '宠物',
+      avatar,
+      displayTitle: peerDisplayTitle,
+    };
+    this.setData({
+      threadId: thread.id,
+      peer,
+      peerDisplayTitle,
+      peerAvatar: avatar,
+      messages: [],
+      chatHasMore: true,
+    });
+    wx.setNavigationBarTitle({ title: peerDisplayTitle || '私信' });
+    return peer;
+  },
+
+  async resolveThreadRecord(customPeer, peerId) {
+    let thread = this.findLocalThread(customPeer, peerId);
+    if (thread && thread.id) return thread;
+    if (cloudApi.cloudEnabled() && (peerId || customPeer.peerOpenid || customPeer.peerName)) {
+      const ensured = await this.ensureThreadFromRoutePeer(customPeer, peerId);
+      if (ensured && ensured.id) return ensured;
+    }
     if (cloudApi.cloudEnabled()) {
       try {
         await refreshChatThreadsFromCloud();
       } catch (e) {
-        // keep cache
+        /* keep cache */
       }
+      thread = this.findLocalThread(customPeer, peerId);
+      if (thread && thread.id) return thread;
     }
-    let threads = store.listChatThreads();
-    let thread = null;
-    if (customPeer.threadId) {
-      thread = threads.find((t) => String(t.id) === String(customPeer.threadId));
-    }
-    if (!thread && peerId) {
-      thread = threads.find((t) => String(t.peerId) === String(peerId));
-    }
-    if (!thread && peerId) {
+    if (peerId) {
       const friend = MOCK_BUDDY.find((f) => String(f.id) === String(peerId));
       if (friend) {
-        thread = await ensureChatThreadOnCloud({
+        return ensureChatThreadOnCloud({
           id: `c_${peerId}`,
           peerId: friend.id,
           peerOpenid: friend.openid || '',
@@ -326,40 +544,190 @@ Page({
           petName: friend.petName,
           avatar: friend.avatar,
         });
-      } else if (customPeer.peerName || customPeer.peerOpenid || peerId) {
+      }
+      if (customPeer.peerName || customPeer.peerOpenid || peerId) {
         const peerOpenid = customPeer.peerOpenid
           || (String(peerId).startsWith('oid:') ? String(peerId).slice(4) : '')
           || (String(peerId).length > 24 ? String(peerId) : '');
-        thread = await ensureChatThreadOnCloud({
+        return ensureChatThreadOnCloud({
           id: `c_${peerOpenid || peerId}`,
           peerId: peerOpenid || peerId,
           peerOpenid,
           peerName: customPeer.peerName || '宠友',
           petName: customPeer.petName || '宠物',
-          avatar: customPeer.avatar || '/assets/mock/real_avatar.jpg',
+          avatar: customPeer.avatar || DEFAULT_PEER_AVATAR,
         });
       }
     }
-    if (!thread && customPeer.threadId) {
-      thread = {
+    if (customPeer.threadId) {
+      return {
         id: customPeer.threadId,
         peerId: peerId || customPeer.peerId || customPeer.threadId,
         peerName: customPeer.peerName || '宠友',
         petName: customPeer.petName || '宠物',
-        avatar: customPeer.avatar || '/assets/mock/real_avatar.jpg',
+        avatar: customPeer.avatar || DEFAULT_PEER_AVATAR,
+        peerOpenid: customPeer.peerOpenid || '',
       };
     }
-    if (!thread && !cloudApi.cloudEnabled()) {
-      thread = threads[0] || MOCK_CHATS[0];
+    if (!cloudApi.cloudEnabled()) {
+      const threads = store.listChatThreads();
+      return threads[0] || MOCK_CHATS[0];
     }
-    if (!thread) {
-      wx.showToast({ title: '无法打开会话，请从消息列表进入', icon: 'none' });
-      return;
+    return null;
+  },
+
+  async ensureThreadFromRoutePeer(customPeer, peerId) {
+    const friend = peerId ? MOCK_BUDDY.find((f) => String(f.id) === String(peerId)) : null;
+    if (friend) {
+      return ensureChatThreadOnCloud({
+        id: `c_${peerId}`,
+        peerId: friend.id,
+        peerOpenid: friend.openid || '',
+        peerName: friend.userName,
+        petName: friend.petName,
+        avatar: friend.avatar,
+      });
     }
-    if (!thread.id) {
-      wx.showToast({ title: '会话未创建成功，请重试', icon: 'none' });
-      return;
+    const peerOpenid = customPeer.peerOpenid
+      || (peerId && String(peerId).startsWith('oid:') ? String(peerId).slice(4) : '')
+      || (peerId && String(peerId).length > 24 ? String(peerId) : '');
+    const effectivePeerId = peerOpenid || peerId || customPeer.threadId;
+    if (!effectivePeerId && !customPeer.peerName) return null;
+    return ensureChatThreadOnCloud({
+      id: customPeer.threadId || `c_${effectivePeerId}`,
+      peerId: effectivePeerId,
+      peerOpenid,
+      peerName: customPeer.peerName || '宠友',
+      petName: customPeer.petName || '宠物',
+      avatar: customPeer.avatar || DEFAULT_PEER_AVATAR,
+    });
+  },
+
+  measureChatScroll() {
+    return new Promise((resolve) => {
+      const q = wx.createSelectorQuery().in(this);
+      q.select('#msg-scroll').scrollOffset();
+      q.select('#chat-scroll-inner').boundingClientRect();
+      q.exec((res) => {
+        resolve({
+          scrollTop: (res && res[0] && res[0].scrollTop) || 0,
+          innerHeight: (res && res[1] && res[1].height) || 0,
+        });
+      });
+    });
+  },
+
+  pinToBottomThenShow(retryLeft) {
+    const left = typeof retryLeft === 'number' ? retryLeft : 12;
+    this.measureScrollMax().then((max) => {
+      this.applyScrollTop(max, false);
+      if (left <= 0) this.finishInitialScrollPin(max);
+    });
+    if (left <= 0) return;
+    setTimeout(() => this.pinToBottomThenShow(left - 1), left > 6 ? 50 : 120);
+  },
+
+  async loadInitialChatPage(threadId) {
+    const page = await loadLatestChatMessagesFromCloud(threadId, CHAT_PAGE_SIZE);
+    let messages = this.decorateChatUiMessages(page.list || []);
+    messages = await this.maybeApplyEntryShareComment(messages);
+    messages = this.decorateChatUiMessages(messages);
+    this._chatInitialLoaded = true;
+    console.warn('[chat] initial render', messages.length, 'hasMore', !!page.hasMore);
+    this._allowHistoryLoad = false;
+    this.setData({
+      messages,
+      chatHasMore: !!page.hasMore,
+      chatLoadingHistory: false,
+      scrollTop: 0,
+      scrollWithAnimation: false,
+    }, () => {
+      wx.nextTick(() => {
+        this.pinToBottomThenShow();
+      });
+    });
+    this.syncLimitState(messages);
+    return messages;
+  },
+
+  onTapLoadOlderHistory() {
+    if (this._allowHistoryLoad) this.loadOlderChatHistory();
+  },
+
+  onChatScroll(e) {
+    if (!this._allowHistoryLoad || !this.data.chatHasMore || this.data.chatLoadingHistory) return;
+    const top = (e && e.detail && e.detail.scrollTop) || 0;
+    if (top > 90) return;
+    this.tryLoadOlderHistory();
+  },
+
+  async onChatScrollToUpper() {
+    this.tryLoadOlderHistory();
+  },
+
+  tryLoadOlderHistory() {
+    if (!this._allowHistoryLoad || !this.data.chatHasMore || this.data.chatLoadingHistory) return;
+    if (this._loadOlderLock) return;
+    this._loadOlderLock = true;
+    this.loadOlderChatHistory().finally(() => {
+      setTimeout(() => {
+        this._loadOlderLock = false;
+      }, 800);
+    });
+  },
+
+  async loadOlderChatHistory() {
+    const { threadId, messages, chatHasMore, chatLoadingHistory } = this.data;
+    if (!threadId || !chatHasMore || chatLoadingHistory) return;
+    const oldest = messages[0];
+    if (!oldest || !oldest.createdAt) return;
+    const metricsBefore = await this.measureChatScroll();
+    this.setData({ chatLoadingHistory: true });
+    try {
+      const page = await loadOlderChatMessagesFromCloud(
+        threadId,
+        oldest.createdAt,
+        CHAT_PAGE_SIZE,
+      );
+      const older = page.list || [];
+      console.warn('[chat] loadOlder', older.length, 'hasMore', !!page.hasMore);
+      if (!older.length) {
+        this.setData({
+          chatHasMore: !!page.hasMore,
+          chatLoadingHistory: false,
+        });
+        return;
+      }
+      const merged = mergeChatMessages(older, messages);
+      const targetTop = metricsBefore.scrollTop;
+      const innerBefore = metricsBefore.innerHeight;
+      this.setData({
+        messages: this.decorateChatUiMessages(merged),
+        chatHasMore: !!page.hasMore,
+        chatLoadingHistory: false,
+        scrollWithAnimation: false,
+        scrollTop: this._lastScrollTop != null ? this._lastScrollTop : this.data.scrollTop,
+      }, () => {
+        const fixScroll = () => {
+          this.measureChatScroll().then((metricsAfter) => {
+            const delta = metricsAfter.innerHeight - innerBefore;
+            this.applyScrollTop(targetTop + delta, false);
+          });
+        };
+        wx.nextTick(() => {
+          wx.nextTick(fixScroll);
+          setTimeout(fixScroll, 120);
+          setTimeout(fixScroll, 320);
+        });
+      });
+      this.syncLimitState(merged);
+    } catch (e) {
+      this.setData({ chatLoadingHistory: false });
     }
+  },
+
+  async hydrateThread(thread, customPeer) {
+    markChatThreadReadOnCloud(thread.id).catch(() => {});
     const peerRaw = await lookupPeerAvatarRaw(thread.peerId, [
       customPeer.avatar,
       thread.avatar,
@@ -369,27 +737,15 @@ Page({
       resolvePeerAvatarUrl(peerRaw),
     ]);
     const peerDisplayTitle = formatChatThreadTitle(thread.peerName, thread.petName);
-    this._threadMeta = {
-      peerOpenid: thread.peerOpenid || customPeer.peerOpenid || '',
-    };
     const peer = {
       id: thread.peerId,
-      peerOpenid: this._threadMeta.peerOpenid,
+      peerOpenid: thread.peerOpenid || customPeer.peerOpenid || '',
       userName: thread.peerName,
       petName: thread.petName,
       avatar: peerAvatar,
       displayTitle: peerDisplayTitle,
     };
-    await markChatThreadReadOnCloud(thread.id);
-    let messages = store.getChatMessages(thread.id);
-    if (cloudApi.cloudEnabled()) {
-      try {
-        messages = await loadChatMessagesFromCloud(thread.id);
-      } catch (e) {
-        // keep cache
-      }
-    }
-    await this.syncPeerActions(peer);
+    this._threadMeta = { peerOpenid: peer.peerOpenid };
     this.setData({
       threadId: thread.id,
       peer,
@@ -397,15 +753,103 @@ Page({
       myAvatar,
       peerAvatar,
     });
-    messages = this.decorateChatUiMessages(messages);
-    this.setData({ messages });
-    wx.setNavigationBarTitle({ title: '私信' });
-    messages = await this.maybeApplyEntryShareComment(messages);
-    messages = this.decorateChatUiMessages(messages);
-    this.setData({ messages });
-    this.syncLimitState(messages);
-    this.scrollBottom(messages.length);
+    await this.loadInitialChatPage(thread.id);
     startChatRealtime(this, thread.id);
+    this.syncPeerActions(peer).catch(() => {});
+    this.setupAttachEvent(
+      customPeer.attachEventId || (this.entryOptions && this.entryOptions.attachEventId),
+    ).catch(() => {});
+  },
+
+  async initThread(options) {
+    const peerId = typeof options === 'object' ? options.peerId : options;
+    const customPeer = typeof options === 'object' ? options : {};
+    const attachEventId = customPeer.attachEventId
+      || (this.entryOptions && this.entryOptions.attachEventId);
+    const shell = this.buildShellThread(customPeer, peerId);
+    if (shell && shell.id) {
+      this.applyThreadShell(shell, customPeer);
+      this.applyPendingEventFromCache(attachEventId);
+    }
+    const thread = await this.resolveThreadRecord(customPeer, peerId);
+    if (!thread || !thread.id) {
+      if (!this.data.threadId) {
+        wx.showToast({ title: '无法打开会话，请从消息列表进入', icon: 'none' });
+      }
+      return;
+    }
+    if (!this.data.threadId) {
+      this.applyThreadShell(thread, customPeer);
+    }
+    await this.hydrateThread(thread, customPeer);
+    this._skipOnShowRefresh = true;
+  },
+
+  applyPendingEventFromCache(eventId) {
+    const id = eventId ? String(eventId) : '';
+    if (!id) return;
+    const event = findEvent(id);
+    if (!event) return;
+    const cover = event.cover
+      || (event.images && event.images[0])
+      || (event.mediaList && event.mediaList[0] && event.mediaList[0].url)
+      || '';
+    this.setData({
+      pendingEvent: {
+        id: event.id,
+        title: event.title || '同城活动',
+        cover,
+        time: event.time || '',
+        place: event.place || event.placeAddress || '',
+      },
+    });
+  },
+
+  async setupAttachEvent(eventId) {
+    const id = eventId ? String(eventId) : '';
+    if (!id) return;
+    this.applyPendingEventFromCache(id);
+    if (cloudApi.cloudEnabled()) {
+      try {
+        await fetchEventFromCloud(id);
+      } catch (e) {
+        /* keep cache */
+      }
+    }
+    this.applyPendingEventFromCache(id);
+  },
+
+  onPreviewAttachEvent() {
+    const ev = this.data.pendingEvent;
+    if (!ev || !ev.id) return;
+    wx.navigateTo({ url: `/pages/event-detail/event-detail?id=${ev.id}` });
+  },
+
+  onDismissAttachEvent() {
+    this.setData({ pendingEvent: null });
+  },
+
+  async onSendAttachEvent() {
+    const ev = this.data.pendingEvent;
+    if (!ev || !ev.id) return;
+    if (!this.guardOutgoing('event')) return;
+    const row = await this.sendMessage({
+      from: 'me',
+      type: 'event',
+      eventId: ev.id,
+      eventTitle: ev.title,
+      content: ev.title,
+    });
+    if (row) {
+      this.setData({ pendingEvent: null });
+      wx.showToast({ title: '活动已发送', icon: 'success' });
+    }
+  },
+
+  onOpenEventMessage(e) {
+    const id = e.currentTarget.dataset.id;
+    if (!id) return;
+    wx.navigateTo({ url: `/pages/event-detail/event-detail?id=${id}` });
   },
 
   async maybeApplyEntryShareComment(messages) {
@@ -425,7 +869,7 @@ Page({
     });
     if (!row) return messages;
     const next = this.decorateChatUiMessages([...messages, row]);
-    this.setData({ messages: next });
+    this.setMessagesAndScroll(next, false);
     return next;
   },
 
@@ -463,17 +907,42 @@ Page({
             if (m.type === 'voice') patch.playUrl = url;
             return patch;
           });
-          this.setData({ messages: this.decorateChatUiMessages(messages) });
+          this.setData({
+            messages: this.decorateChatUiMessages(messages),
+            scrollTop: this._lastScrollTop != null ? this._lastScrollTop : this.data.scrollTop,
+          });
         })
         .catch(() => {});
     }
     return row;
   },
 
-  scrollBottom(index) {
-    const idx = index !== undefined ? index : this.data.messages.length - 1;
-    if (idx < 0) return;
-    this.setData({ scrollInto: `msg-${idx}` });
+  scrollToLatest(animated) {
+    const useAnim = animated === true;
+    const pin = () => {
+      this.measureScrollMax().then((max) => {
+        this.applyScrollTop(max, useAnim);
+      });
+    };
+    pin();
+    clearTimeout(this._scrollLatestTimer);
+    clearTimeout(this._scrollLatestTimer2);
+    clearTimeout(this._scrollLatestTimer3);
+    clearTimeout(this._scrollLatestTimer4);
+    clearTimeout(this._scrollLatestTimer5);
+    clearTimeout(this._scrollLatestTimer6);
+    this._scrollLatestTimer = setTimeout(pin, 50);
+    this._scrollLatestTimer2 = setTimeout(pin, 150);
+    this._scrollLatestTimer3 = setTimeout(pin, 350);
+    this._scrollLatestTimer4 = setTimeout(pin, 700);
+    this._scrollLatestTimer5 = setTimeout(pin, 1200);
+    this._scrollLatestTimer6 = setTimeout(pin, 2000);
+  },
+
+  onChatImageLayout() {
+    if (Date.now() < (this._pinScrollBottomUntil || 0)) {
+      this.scrollToLatest(false);
+    }
   },
 
   appendMessage(row) {
@@ -481,9 +950,8 @@ Page({
       ? { ...row, playUrl: row.playUrl || row.url }
       : row;
     const messages = this.decorateChatUiMessages([...this.data.messages, nextRow]);
-    this.setData({ messages });
+    this.setMessagesAndScroll(messages, true);
     this.syncLimitState(messages);
-    this.scrollBottom(messages.length - 1);
   },
 
   onComposerInput(e) {
@@ -721,6 +1189,15 @@ Page({
   },
 
   onUnload() {
+    this._chatInitialLoaded = false;
+    this._allowHistoryLoad = false;
+    this._scrollNodePromise = null;
+    clearTimeout(this._scrollLatestTimer);
+    clearTimeout(this._scrollLatestTimer2);
+    clearTimeout(this._scrollLatestTimer3);
+    clearTimeout(this._scrollLatestTimer4);
+    clearTimeout(this._scrollLatestTimer5);
+    clearTimeout(this._scrollLatestTimer6);
     stopChatRealtime(this);
     if (this.innerAudio) {
       this.innerAudio.destroy();

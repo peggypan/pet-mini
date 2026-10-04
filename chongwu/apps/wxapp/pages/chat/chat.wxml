@@ -20,15 +20,39 @@
     </view>
   </view>
 
-  <scroll-view scroll-y class="msg-scroll" scroll-into-view="{{scrollInto}}" scroll-with-animation>
+  <scroll-view
+    id="msg-scroll"
+    scroll-y
+    enhanced
+    class="msg-scroll"
+    scroll-top="{{scrollTop}}"
+    scroll-with-animation="{{scrollWithAnimation}}"
+    upper-threshold="80"
+    lower-threshold="80"
+    bindscroll="onChatScroll"
+    bindscrolltoupper="onChatScrollToUpper"
+    show-scrollbar="{{true}}"
+  >
+    <view class="msg-scroll-inner" id="chat-scroll-inner">
+    <view class="chat-history-bar" wx:if="{{chatLoadingHistory}}">
+      <text>正在加载更早消息…</text>
+    </view>
+    <view
+      class="chat-history-bar muted tap"
+      wx:elif="{{chatHasMore && messages.length}}"
+      bindtap="onTapLoadOlderHistory"
+    >
+      <text>上滑或点击加载更早消息</text>
+    </view>
     <view class="chat-limit-tip" wx:if="{{showChatLimitTip}}">
       <text>{{chatLimitTip}}</text>
     </view>
+    <view class="msg-list-stack">
     <view
       class="msg-row {{item.isMe ? 'me' : 'peer'}}"
       wx:for="{{messages}}"
       wx:key="id"
-      id="msg-{{index}}"
+      id="msg-idx-{{index}}"
     >
       <image
         wx:if="{{!item.isMe}}"
@@ -76,6 +100,7 @@
           data-index="{{index}}"
           data-file-id="{{item.fileId}}"
           bindtap="onPreviewImage"
+          bindload="onChatImageLayout"
           binderror="onChatImageError"
         ></image>
       </view>
@@ -105,10 +130,15 @@
         <text class="loc-addr">{{item.location.address}}</text>
       </view>
 
-      <view class="bubble event-bubble" wx:if="{{item.type === 'event'}}">
+      <view
+        class="bubble event-bubble"
+        wx:if="{{item.type === 'event'}}"
+        data-id="{{item.eventId}}"
+        bindtap="onOpenEventMessage"
+      >
         <text class="event-tag">活动邀请</text>
         <text class="event-title">{{item.eventTitle || item.content}}</text>
-        <text class="event-tip">点击查看同城活动</text>
+        <text class="event-tip">点击查看活动详情</text>
       </view>
 
       <view class="bubble aa-bubble" wx:if="{{item.type === 'aa'}}">
@@ -140,14 +170,39 @@
     <view class="msg-empty" wx:if="{{messages.length === 0}}">
       <text>打个招呼，开始聊吧～</text>
     </view>
+    </view>
+    <view id="chat-scroll-bottom" class="chat-scroll-bottom"></view>
+    </view>
   </scroll-view>
+
+  <view class="attach-event-bar" wx:if="{{pendingEvent}}">
+    <view class="attach-event-card" bindtap="onPreviewAttachEvent">
+      <image
+        class="attach-event-cover"
+        wx:if="{{pendingEvent.cover}}"
+        src="{{pendingEvent.cover}}"
+        mode="aspectFill"
+      ></image>
+      <view class="attach-event-body">
+        <text class="attach-event-tag">活动卡片</text>
+        <text class="attach-event-title">{{pendingEvent.title}}</text>
+        <text class="attach-event-meta" wx:if="{{pendingEvent.time || pendingEvent.place}}">{{pendingEvent.time}}{{pendingEvent.place ? ' · ' + pendingEvent.place : ''}}</text>
+        <text class="attach-event-hint">点击预览 · 发送后主理人可点开详情</text>
+      </view>
+    </view>
+    <view class="attach-event-actions">
+      <button class="attach-event-send" bindtap="onSendAttachEvent">发送给主理人</button>
+      <text class="attach-event-close" bindtap="onDismissAttachEvent">×</text>
+    </view>
+  </view>
 
   <chat-composer
     value="{{inputText}}"
     placeholder="{{composerPlaceholder}}"
     disabled="{{composerDisabled}}"
-    show-voice="{{false}}"
-    show-plus="{{false}}"
+    fixed="{{true}}"
+    show-voice="{{true}}"
+    show-plus="{{true}}"
     bind:input="onComposerInput"
     bind:send="onComposerSend"
     bind:tool="onComposerTool"
@@ -160,12 +215,34 @@
 
   <view class="heart-center-layer" wx:if="{{centerHeartAnim}}">
     <view class="heart-center-stage">
-      <text class="heart-center-main">♥</text>
-      <text class="heart-center-spark hs1">✦</text>
-      <text class="heart-center-spark hs2">♥</text>
-      <text class="heart-center-spark hs3">✦</text>
-      <text class="heart-center-spark hs4">✦</text>
-      <text class="heart-center-spark hs5">♥</text>
+      <view class="heart-center-main">
+        <view class="heart-lobe heart-lobe-left"></view>
+        <view class="heart-lobe heart-lobe-right"></view>
+      </view>
+      <view class="heart-center-spark hs1">
+        <view class="heart-lobe heart-lobe-left"></view>
+        <view class="heart-lobe heart-lobe-right"></view>
+      </view>
+      <view class="heart-center-spark hs2">
+        <view class="heart-lobe heart-lobe-left"></view>
+        <view class="heart-lobe heart-lobe-right"></view>
+      </view>
+      <view class="heart-center-spark hs3">
+        <view class="heart-lobe heart-lobe-left"></view>
+        <view class="heart-lobe heart-lobe-right"></view>
+      </view>
+      <view class="heart-center-spark hs4">
+        <view class="heart-lobe heart-lobe-left"></view>
+        <view class="heart-lobe heart-lobe-right"></view>
+      </view>
+      <view class="heart-center-spark hs5">
+        <view class="heart-lobe heart-lobe-left"></view>
+        <view class="heart-lobe heart-lobe-right"></view>
+      </view>
+      <view class="heart-center-spark hs6">
+        <view class="heart-lobe heart-lobe-left"></view>
+        <view class="heart-lobe heart-lobe-right"></view>
+      </view>
     </view>
   </view>
 </view>

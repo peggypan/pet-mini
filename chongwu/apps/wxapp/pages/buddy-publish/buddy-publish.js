@@ -205,7 +205,6 @@ Page({
       location,
       title: headline,
       desc: text,
-      distance: '0km',
       tags: pet.socialTags || [],
       zone,
       openSignup,

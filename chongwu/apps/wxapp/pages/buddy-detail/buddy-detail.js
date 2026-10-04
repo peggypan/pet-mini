@@ -10,6 +10,7 @@ const {
 } = require('../../utils/pet-follow');
 const { requireInteract } = require('../../utils/pet-profile-guard');
 const { deleteOwnedBuddyPost, finishAfterDelete } = require('../../utils/user-content-delete');
+const { buddyDistanceText } = require('../../utils/geo-distance');
 
 Page({
   data: { buddy: null, followed: false, collected: false, isOwner: false },
@@ -44,8 +45,9 @@ Page({
 
   applyBuddyState(buddy) {
     const enriched = decorateBuddyFollow(buddy);
+    const dist = buddyDistanceText(enriched, store.getCityLocation());
     this.setData({
-      buddy: enriched,
+      buddy: { ...enriched, distance: dist || '同城' },
       followed: enriched.followed,
       collected: store.isCollected(enriched.id),
       isOwner: enriched.isSelfAuthor,

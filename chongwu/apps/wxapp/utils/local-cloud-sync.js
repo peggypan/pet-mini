@@ -60,7 +60,10 @@ async function ensureCloudLogin() {
 
 async function refreshLocalPostsFromCloud(options = {}) {
   if (!cloudApi.cloudEnabled()) return store.listLocalPosts();
-  await ensureCloudLogin();
+  const { hasLoginToken, ensureCloudSession } = require('./cloud-session');
+  if (hasLoginToken()) {
+    await ensureCloudSession().catch(() => null);
+  }
   try {
     const payload = {
       type: options.type || 'all',

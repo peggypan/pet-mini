@@ -21,7 +21,7 @@ Page({
     checkInDetail: null,
   },
 
-  async onLoad(options) {
+  onLoad(options) {
     const eventId = options.eventId || options.id || '';
     if (!eventId) {
       wx.showToast({ title: '缺少活动', icon: 'none' });
@@ -29,27 +29,49 @@ Page({
       return;
     }
     let event = findEvent(eventId);
+    if (event) {
+      const isOwner = isEventOrganizer(event);
+      if (!isOwner) {
+        wx.showToast({ title: '仅发起人可查看', icon: 'none' });
+        setTimeout(() => wx.navigateBack(), 400);
+        return;
+      }
+      this.setData({ eventId, event, loading: true });
+      this.loadList();
+    }
     if (!event && cloudApi.cloudEnabled()) {
-      await fetchEventFromCloud(eventId);
-      event = findEvent(eventId);
+      fetchEventFromCloud(eventId).then(() => {
+        const loaded = findEvent(eventId);
+        if (!loaded) {
+          wx.showToast({ title: '活动不存在', icon: 'none' });
+          setTimeout(() => wx.navigateBack(), 400);
+          return;
+        }
+        const isOwner = isEventOrganizer(loaded);
+        if (!isOwner) {
+          wx.showToast({ title: '仅发起人可查看', icon: 'none' });
+          setTimeout(() => wx.navigateBack(), 400);
+          return;
+        }
+        this.setData({ eventId, event: loaded });
+        this.loadList();
+      }).catch(() => {
+        if (!this.data.event) {
+          wx.showToast({ title: '活动不存在', icon: 'none' });
+          setTimeout(() => wx.navigateBack(), 400);
+        }
+      });
+      return;
     }
     if (!event) {
       wx.showToast({ title: '活动不存在', icon: 'none' });
       setTimeout(() => wx.navigateBack(), 400);
       return;
     }
-    const isOwner = isEventOrganizer(event);
-    if (!isOwner) {
-      wx.showToast({ title: '仅发起人可查看', icon: 'none' });
-      setTimeout(() => wx.navigateBack(), 400);
-      return;
-    }
-    this.setData({ eventId, event });
-    await this.loadList();
   },
 
-  async onShow() {
-    if (this.data.eventId) await this.loadList();
+  onShow() {
+    if (this.data.eventId) this.loadList();
   },
 
   async loadList() {

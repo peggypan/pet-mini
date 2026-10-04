@@ -1,5 +1,16 @@
+const { displayPublishTime } = require('./relative-time');
+
 function trim(s) {
   return typeof s === 'string' ? s.trim() : '';
+}
+
+function formatThreadLastTime(thread) {
+  if (!thread) return '';
+  const fromInstant = displayPublishTime(thread, ['updatedAt', 'createdAt', 'lastMessageAt']);
+  if (fromInstant) return fromInstant;
+  const raw = trim(thread.lastTime);
+  if (raw && raw !== '刚刚') return raw;
+  return '';
 }
 
 /** 列表/顶栏展示：避免 peerName 已含「· 宠物名」再拼一次 */
@@ -27,9 +38,13 @@ function threadDedupeKey(thread) {
 }
 
 function threadSortTime(thread) {
-  const u = thread && thread.updatedAt ? Date.parse(thread.updatedAt) : 0;
-  if (u) return u;
-  return thread && thread.lastTime === '刚刚' ? Date.now() : 0;
+  if (!thread) return 0;
+  const keys = ['updatedAt', 'createdAt', 'lastMessageAt'];
+  for (let i = 0; i < keys.length; i += 1) {
+    const t = Date.parse(thread[keys[i]]);
+    if (!Number.isNaN(t) && t > 0) return t;
+  }
+  return 0;
 }
 
 function pickRicherThread(a, b) {
@@ -59,6 +74,7 @@ function decorateChatThreadRow(thread) {
   return {
     ...thread,
     displayTitle: title,
+    lastTime: formatThreadLastTime(thread),
   };
 }
 
@@ -68,6 +84,7 @@ function decorateChatThreadsForList(threads) {
 
 module.exports = {
   formatChatThreadTitle,
+  formatThreadLastTime,
   dedupeChatThreads,
   decorateChatThreadRow,
   decorateChatThreadsForList,

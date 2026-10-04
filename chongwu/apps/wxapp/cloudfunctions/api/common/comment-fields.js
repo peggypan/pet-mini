@@ -1,3 +1,5 @@
+const { formatPublishTime } = require('./relative-time');
+
 const TYPES = ['text', 'image', 'video'];
 
 function trim(s) {
@@ -46,12 +48,13 @@ function publicComment(doc, viewerOpenid) {
   if (!doc) return null;
   const { _id, _openid, ...rest } = doc;
   const isMine = viewerOpenid && (doc.openid === viewerOpenid || doc._openid === viewerOpenid);
+  const time = formatPublishTime(rest.createdAt || rest.updatedAt);
   return {
     id: _id,
     ...rest,
     isMine: !!isMine,
     userName: isMine ? '我' : rest.userName,
-    time: '刚刚',
+    time,
   };
 }
 

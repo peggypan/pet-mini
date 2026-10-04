@@ -8,6 +8,7 @@ const {
 } = require('../../utils/mock');
 const store = require('../../utils/store');
 const cloudApi = require('../../utils/cloud-api');
+const { withPublishTime } = require('../../utils/relative-time');
 
 function getInviteCode() {
   let code = wx.getStorageSync('my_invite_code');
@@ -46,11 +47,7 @@ Page({
     }
   },
 
-  async reloadSocialPreview() {
-    if (cloudApi.cloudEnabled()) {
-      const { refreshSocialFeedFromCloud } = require('../../utils/social-cloud-sync');
-      await refreshSocialFeedFromCloud({ limit: 40 }).catch(() => {});
-    }
+  applySocialPreviewFromCache() {
     const local = store.listSocialPosts();
     let merged = local;
     if (!cloudApi.cloudEnabled()) {
@@ -60,7 +57,16 @@ Page({
       });
       merged = [...local, ...mock];
     }
-    this.setData({ previewPosts: merged.slice(0, 2) });
+    this.setData({ previewPosts: merged.slice(0, 2).map(withPublishTime) });
+  },
+
+  reloadSocialPreview() {
+    this.applySocialPreviewFromCache();
+    if (!cloudApi.cloudEnabled()) return;
+    const { refreshSocialFeedFromCloud } = require('../../utils/social-cloud-sync');
+    refreshSocialFeedFromCloud({ limit: 40 })
+      .then(() => this.applySocialPreviewFromCache())
+      .catch(() => {});
   },
 
   goSocial() {

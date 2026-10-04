@@ -1,3 +1,5 @@
+const { formatPublishTime } = require('./relative-time');
+
 const ROLES = ['personal', 'merchant'];
 
 function trim(s) {
@@ -103,6 +105,7 @@ function publicEvent(doc, viewerOpenid) {
   if (!doc) return null;
   const { _id, _openid, ...rest } = doc;
   const isMine = viewerOpenid && (doc.openid === viewerOpenid || doc._openid === viewerOpenid);
+  const publishTime = formatPublishTime(rest.createdAt || rest.updatedAt);
   return {
     id: _id,
     ...rest,
@@ -112,6 +115,7 @@ function publicEvent(doc, viewerOpenid) {
     publishedAt: rest.createdAt,
     source: rest.role === 'merchant' ? 'merchant' : 'user',
     sourceText: rest.role === 'merchant' ? '商家合作' : '用户发起',
+    publishTime,
   };
 }
 

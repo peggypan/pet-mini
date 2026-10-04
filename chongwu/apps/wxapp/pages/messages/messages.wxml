@@ -18,6 +18,10 @@
       bindtap="onChatTap"
       data-peerid="{{item.peerId}}"
       data-threadid="{{item.id}}"
+      data-peeropenid="{{item.peerOpenid}}"
+      data-peername="{{item.peerName}}"
+      data-petname="{{item.petName}}"
+      data-avatar="{{item.avatar}}"
     >
       <image class="avatar" src="{{item.avatar}}" mode="aspectFill"></image>
       <view class="chat-body">

@@ -45,6 +45,7 @@ function loadPetMap(page, options) {
     });
   };
 
+  apply();
   wx.getLocation({
     type: 'gcj02',
     success: (res) => {
@@ -52,7 +53,7 @@ function loadPetMap(page, options) {
       longitude = res.longitude;
       apply();
     },
-    fail: () => apply(),
+    fail: () => {},
   });
 }
 
@@ -68,14 +69,14 @@ async function openPeerChat(peer) {
     petName: peer.petName || '',
     avatar: peer.avatar || '',
   };
-  if (cloudApi.cloudEnabled()) {
-    await ensureChatThreadOnCloud(threadPayload);
-  } else {
-    store.ensureChatThread(threadPayload);
-  }
+  const localThread = store.ensureChatThread(threadPayload);
+  const threadId = (localThread && localThread.id) || threadPayload.id;
   wx.navigateTo({
-    url: `/pages/chat/chat?peerId=${peer.peerId}&peerName=${peerName}&petName=${petName}&avatar=${avatar}`,
+    url: `/pages/chat/chat?threadId=${encodeURIComponent(threadId)}&peerId=${peer.peerId}&peerName=${peerName}&petName=${petName}&avatar=${avatar}`,
   });
+  if (cloudApi.cloudEnabled()) {
+    ensureChatThreadOnCloud(threadPayload).catch(() => {});
+  }
 }
 
 function onMapMarkerTap(page, e) {

@@ -117,8 +117,11 @@ async function saveEventToCloud(payload, eventId) {
 }
 
 async function recordEventInterest(eventId) {
-  if (!cloudApi.cloudEnabled() || !eventId) return null;
-  await ensureCloudLogin();
+  if (!eventId) return null;
+  if (!cloudApi.cloudEnabled()) {
+    const interestCount = store.recordEventBrowseInterest(eventId);
+    return { interestCount, localOnly: true };
+  }
   try {
     const data = await eventApi('recordInterest', { eventId: String(eventId) });
     const interestCount = data && data.interestCount;
@@ -129,11 +132,13 @@ async function recordEventInterest(eventId) {
         id: String(eventId),
         interestCount,
       });
+      store.markEventBrowseRecorded(eventId);
     }
     return data;
   } catch (e) {
     console.warn('[event-cloud-sync] recordInterest', e);
-    return null;
+    const interestCount = store.recordEventBrowseInterest(eventId);
+    return { interestCount, localOnly: true };
   }
 }
 

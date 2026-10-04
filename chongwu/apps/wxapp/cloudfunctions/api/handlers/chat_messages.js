@@ -11,6 +11,33 @@ const { assertOwnThread } = require('./chat_threads');
 const { deliverChatMessageToPeer } = require('../common/chat-deliver');
 const { enrichMessagesWithMediaUrls } = require('../common/chat-media-resolve');
 
+function sortAsc(docs) {
+  return (docs || [])
+    .filter((d) => d && d.status !== 0)
+    .sort((a, b) => {
+      const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      if (ta !== tb) return ta - tb;
+      return String(a._id || '').localeCompare(String(b._id || ''));
+    });
+}
+
+const THREAD_FETCH_CAP = 500;
+
+async function fetchThreadSortedAsc(where) {
+  try {
+    const res = await chatMessages()
+      .where(where)
+      .orderBy('createdAt', 'asc')
+      .limit(THREAD_FETCH_CAP)
+      .get();
+    return sortAsc(res.data || []);
+  } catch (e) {
+    const res = await chatMessages().where(where).limit(THREAD_FETCH_CAP).get();
+    return sortAsc(res.data || []);
+  }
+}
+
 async function listByThread(payload, wxContext) {
   const auth = await requireUser(wxContext);
   if (auth.err) return auth.err;
@@ -21,34 +48,56 @@ async function listByThread(payload, wxContext) {
   const owned = await assertOwnThread(auth, threadId);
   if (owned.err) return owned.err;
 
-  const limit = Math.min(200, Math.max(1, Number(payload && payload.limit) || 200));
+  const pageSize = Math.min(50, Math.max(1, Number(payload && payload.pageSize) || Number(payload && payload.limit) || 10));
+  const pageMode = (payload && payload.pageMode) || 'latest';
   const since = payload && payload.since ? String(payload.since).trim() : '';
-  let rows = [];
-  try {
+  const beforeCreatedAt = payload && payload.beforeCreatedAt
+    ? String(payload.beforeCreatedAt).trim()
+    : '';
+
+  if (since) {
     const _ = getDb().command;
-    const where = since
-      ? { threadId, status: 1, createdAt: _.gt(since) }
-      : { threadId, status: 1 };
-    const res = await chatMessages()
-      .where(where)
-      .orderBy('createdAt', 'asc')
-      .limit(limit)
-      .get();
-    rows = res.data || [];
-  } catch (e) {
-    const res = await chatMessages().where({ threadId }).limit(limit).get();
-    rows = (res.data || [])
-      .filter((d) => d.status !== 0)
-      .sort((a, b) => {
-        const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-        const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-        return ta - tb;
-      });
+    let rows = [];
+    try {
+      const res = await chatMessages()
+        .where({ threadId, status: 1, createdAt: _.gt(since) })
+        .orderBy('createdAt', 'asc')
+        .limit(50)
+        .get();
+      rows = res.data || [];
+    } catch (e) {
+      const sorted = await fetchThreadSortedAsc({ threadId, status: 1 });
+      const sinceTs = new Date(since).getTime();
+      rows = sorted.filter((d) => {
+        const ts = d.createdAt ? new Date(d.createdAt).getTime() : 0;
+        return ts > sinceTs;
+      }).slice(0, 50);
+    }
+    let list = rows.map((d) => publicMessage(d)).filter(Boolean);
+    list = await enrichMessagesWithMediaUrls(list);
+    return ok({ list, hasMore: false });
   }
 
+  if (beforeCreatedAt) {
+    const beforeTs = new Date(beforeCreatedAt).getTime();
+    const sorted = await fetchThreadSortedAsc({ threadId, status: 1 });
+    const pool = sorted.filter((d) => {
+      const ts = d.createdAt ? new Date(d.createdAt).getTime() : 0;
+      return !Number.isNaN(beforeTs) ? ts < beforeTs : false;
+    });
+    const hasMore = pool.length > pageSize;
+    const rows = pool.slice(-pageSize);
+    let list = rows.map((d) => publicMessage(d)).filter(Boolean);
+    list = await enrichMessagesWithMediaUrls(list);
+    return ok({ list, hasMore, totalBefore: pool.length, pageMode: 'before' });
+  }
+
+  const sorted = await fetchThreadSortedAsc({ threadId, status: 1 });
+  const hasMore = sorted.length > pageSize;
+  const rows = sorted.slice(-pageSize);
   let list = rows.map((d) => publicMessage(d)).filter(Boolean);
   list = await enrichMessagesWithMediaUrls(list);
-  return ok({ list });
+  return ok({ list, hasMore, total: sorted.length, pageMode: 'latest' });
 }
 
 async function send(payload, wxContext) {
@@ -89,9 +138,10 @@ async function send(payload, wxContext) {
   });
 
   const preview = messagePreview(body);
+  const { formatPublishTime } = require('../common/relative-time');
   const threadPatch = {
     lastMessage: preview,
-    lastTime: '刚刚',
+    lastTime: formatPublishTime(ts),
     updatedAt: ts,
   };
   if (body.sender === 'peer') {

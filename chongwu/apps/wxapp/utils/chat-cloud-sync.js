@@ -153,42 +153,167 @@ async function resolveMessageMediaList(list) {
   });
 }
 
-async function loadChatMessagesFromCloud(threadId) {
-  if (!threadId) return [];
-  if (!cloudApi.cloudEnabled()) {
-    return store.getChatMessages(threadId);
+const CHAT_PAGE_SIZE = 10;
+const CHAT_LATEST_FETCH_LIMIT = 200;
+
+/** 仅合并本机刚发出、云端尚未回显的消息，避免旧缓存污染首屏 */
+function mergeOutboxOnly(remote, localAll) {
+  const remoteList = remote || [];
+  const ids = new Set(remoteList.map((m) => String(m && m.id)));
+  const pending = (localAll || []).filter((m) => {
+    if (!m || m.id == null || ids.has(String(m.id))) return false;
+    return !!m._localPending || String(m.id).startsWith('local_');
+  });
+  if (!pending.length) return remoteList;
+  return sortMessagesAsc(mergeChatMessages(remoteList, pending));
+}
+
+function sortMessagesAsc(list) {
+  return [...(list || [])].sort((a, b) => {
+    const ta = a && a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const tb = b && b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    if (ta !== tb) return ta - tb;
+    return String((a && a.id) || '').localeCompare(String((b && b.id) || ''));
+  });
+}
+
+function localLatestPage(threadId, limit = CHAT_PAGE_SIZE) {
+  const all = store.getChatMessages(threadId) || [];
+  return {
+    list: all.slice(-limit),
+    hasMore: all.length > limit,
+  };
+}
+
+function localOlderPage(threadId, beforeCreatedAt, limit = CHAT_PAGE_SIZE) {
+  const all = store.getChatMessages(threadId) || [];
+  const beforeTs = beforeCreatedAt ? new Date(beforeCreatedAt).getTime() : NaN;
+  let older = all;
+  if (beforeCreatedAt && !Number.isNaN(beforeTs)) {
+    older = all.filter((m) => {
+      const ts = m.createdAt ? new Date(m.createdAt).getTime() : 0;
+      return ts < beforeTs;
+    });
   }
-  if (!hasLoginToken()) return store.getChatMessages(threadId);
+  const list = older.slice(-limit);
+  const hasMore = older.length > limit;
+  return { list, hasMore };
+}
+
+function pickLatestPage(pool, limit) {
+  const sorted = sortMessagesAsc(pool);
+  return {
+    list: sorted.slice(-limit),
+    hasMore: sorted.length > limit,
+  };
+}
+
+function pickOlderPage(pool, beforeCreatedAt, limit) {
+  const beforeTs = beforeCreatedAt ? new Date(beforeCreatedAt).getTime() : NaN;
+  let older = sortMessagesAsc(pool);
+  if (beforeCreatedAt && !Number.isNaN(beforeTs)) {
+    older = older.filter((m) => {
+      const ts = m.createdAt ? new Date(m.createdAt).getTime() : 0;
+      return ts < beforeTs;
+    });
+  }
+  return {
+    list: older.slice(-limit),
+    hasMore: older.length > limit,
+  };
+}
+
+async function fetchChatMessagePage(threadId, options = {}) {
+  const limit = Math.min(50, Math.max(1, Number(options.limit) || CHAT_PAGE_SIZE));
+  if (!threadId) return { list: [], hasMore: false };
+  const localAll = store.getChatMessages(threadId) || [];
+
+  if (!cloudApi.cloudEnabled() || !hasLoginToken()) {
+    if (options.since) {
+      const sinceTs = new Date(options.since).getTime();
+      const list = sortMessagesAsc(localAll).filter((m) => {
+        const ts = m.createdAt ? new Date(m.createdAt).getTime() : 0;
+        return ts > sinceTs;
+      });
+      return { list, hasMore: false };
+    }
+    if (options.beforeCreatedAt) {
+      return pickOlderPage(localAll, options.beforeCreatedAt, limit);
+    }
+    return pickLatestPage(localAll, limit);
+  }
   await ensureCloudSession();
+  const payload = { threadId, pageSize: limit, pageMode: 'latest' };
+  if (options.since) {
+    payload.since = options.since;
+    payload.limit = 50;
+    delete payload.pageMode;
+    delete payload.pageSize;
+  } else if (options.beforeCreatedAt) {
+    payload.beforeCreatedAt = options.beforeCreatedAt;
+    payload.pageMode = 'before';
+    payload.limit = limit;
+  } else {
+    payload.limit = CHAT_LATEST_FETCH_LIMIT;
+  }
   try {
-    const data = await chatApi('chat_messages', 'listByThread', { threadId });
-    let list = (data && data.list) || [];
-    list = await resolveMessageMediaList(list);
-    store.setChatMessagesForThread(threadId, list);
-    return list;
+    const data = await chatApi('chat_messages', 'listByThread', payload);
+    let remote = (data && data.list) || [];
+    remote = await resolveMessageMediaList(remote);
+
+    if (options.since) {
+      const list = sortMessagesAsc(remote);
+      return { list, hasMore: false };
+    }
+    if (options.beforeCreatedAt) {
+      return {
+        list: sortMessagesAsc(remote),
+        hasMore: !!(data && data.hasMore),
+      };
+    }
+    const sorted = sortMessagesAsc(remote);
+    const total = typeof data.total === 'number' ? data.total : sorted.length;
+    const list = mergeOutboxOnly(sorted.slice(-limit), localAll);
+    const hasMore = total > limit || sorted.length > limit;
+    console.warn('[chat] fetchLatest sorted=', sorted.length, 'total=', total, 'pick=', list.length, 'hasMore=', hasMore);
+    return { list, hasMore };
   } catch (e) {
     console.warn('[chat-cloud-sync] listByThread', e);
-    return store.getChatMessages(threadId);
+    if (options.beforeCreatedAt) {
+      return pickOlderPage(localAll, options.beforeCreatedAt, limit);
+    }
+    if (options.since) return { list: [], hasMore: false };
+    return pickLatestPage(localAll, limit);
   }
 }
 
-/** 会话页同步最新消息（全量合并，避免 since 索引/时间精度丢消息） */
-async function syncChatMessagesForThread(threadId) {
-  if (!threadId) return [];
-  if (!cloudApi.cloudEnabled() || !hasLoginToken()) {
-    return store.getChatMessages(threadId);
-  }
-  await ensureCloudSession();
-  try {
-    const data = await chatApi('chat_messages', 'listByThread', { threadId, limit: 200 });
-    let list = (data && data.list) || [];
-    list = await resolveMessageMediaList(list);
+async function loadLatestChatMessagesFromCloud(threadId, limit = CHAT_PAGE_SIZE) {
+  const page = await fetchChatMessagePage(threadId, { limit });
+  const list = sortMessagesAsc(page.list || []).slice(-limit);
+  if (list.length) {
     store.setChatMessagesForThread(threadId, list);
-    return list;
-  } catch (e) {
-    console.warn('[chat-cloud-sync] syncThread', e);
-    return store.getChatMessages(threadId);
   }
+  const firstTs = list[0] && list[0].createdAt;
+  const lastTs = list[list.length - 1] && list[list.length - 1].createdAt;
+  console.warn('[chat] loadLatest', threadId, 'count=', list.length, 'hasMore=', !!page.hasMore, 'range=', firstTs, '->', lastTs);
+  return { list, hasMore: !!page.hasMore };
+}
+
+async function loadOlderChatMessagesFromCloud(threadId, beforeCreatedAt, limit = CHAT_PAGE_SIZE) {
+  const page = await fetchChatMessagePage(threadId, { limit, beforeCreatedAt });
+  console.warn('[chat] loadOlder api', page.list && page.list.length, 'hasMore', page.hasMore);
+  return page;
+}
+
+async function loadChatMessagesFromCloud(threadId, limit = CHAT_PAGE_SIZE) {
+  const page = await loadLatestChatMessagesFromCloud(threadId, limit);
+  return page.list || [];
+}
+
+/** @deprecated 会话页请用分页 + since 增量 */
+async function syncChatMessagesForThread(threadId) {
+  const page = await loadLatestChatMessagesFromCloud(threadId, CHAT_PAGE_SIZE);
+  return page.list || [];
 }
 
 const CHAT_MESSAGE_POLL_MS = 2000;
@@ -213,13 +338,58 @@ function decorateMessagesForPage(page, list) {
 async function applyChatMessagesToPage(page, threadId, options = {}) {
   if (!page || String(page.data.threadId) !== String(threadId)) return;
   const prev = page.data.messages || [];
-  const list = decorateMessagesForPage(page, await syncChatMessagesForThread(threadId));
-  const changed = chatMessagesFingerprint(prev) !== chatMessagesFingerprint(list);
-  if (!changed && !options.force) return;
-  page.setData({ messages: list });
-  if (typeof page.syncLimitState === 'function') page.syncLimitState(list);
-  if (list.length > prev.length || options.forceScroll) {
-    if (typeof page.scrollBottom === 'function') page.scrollBottom(list.length - 1);
+  let next = prev;
+  let hasMore = page.data.chatHasMore;
+  let newCount = 0;
+
+  if (!prev.length) {
+    if (page._chatInitialLoaded) return;
+    const pageData = await loadLatestChatMessagesFromCloud(threadId, CHAT_PAGE_SIZE);
+    next = sortMessagesAsc(pageData.list || []);
+    hasMore = !!pageData.hasMore;
+    newCount = next.length;
+  } else {
+    const sortedPrev = sortMessagesAsc(prev);
+    const last = sortedPrev[sortedPrev.length - 1];
+    const since = last && last.createdAt ? last.createdAt : '';
+    const { list: incoming } = since
+      ? await fetchChatMessagePage(threadId, { since, limit: 50 })
+      : { list: [] };
+    if (incoming.length) {
+      next = sortMessagesAsc(mergeChatMessages(sortedPrev, incoming));
+      newCount = next.length - sortedPrev.length;
+      store.setChatMessagesForThread(threadId, next);
+    } else {
+      next = sortedPrev;
+    }
+  }
+
+  const decorated = decorateMessagesForPage(page, next);
+  const changed = chatMessagesFingerprint(prev) !== chatMessagesFingerprint(decorated);
+  if (!changed && !options.force && newCount === 0) return;
+
+  const pinBottom = newCount > 0
+    || !!options.forceScroll
+    || (page._pinScrollBottomUntil && Date.now() < page._pinScrollBottomUntil);
+
+  const patch = {
+    messages: decorated,
+    chatHasMore: hasMore,
+  };
+
+  if (typeof page.patchChatData === 'function') {
+    page.patchChatData(patch, { pinBottom });
+  } else if (pinBottom && typeof page.setMessagesAndScroll === 'function') {
+    page.setMessagesAndScroll(decorated, false, { chatHasMore: hasMore });
+  } else if (pinBottom) {
+    page.setData({ ...patch });
+    if (typeof page.scrollToLatest === 'function') page.scrollToLatest(false);
+  } else {
+    patch.scrollTop = page._lastScrollTop != null ? page._lastScrollTop : page.data.scrollTop;
+    page.setData(patch);
+  }
+  if (typeof page.syncLimitState === 'function') page.syncLimitState(decorated);
+  if (newCount > 0 || options.forceScroll) {
     markChatThreadReadOnCloud(threadId).catch(() => {});
   }
 }
@@ -404,8 +574,12 @@ module.exports = {
   refreshChatThreadsFromCloud,
   ensureChatThreadOnCloud,
   loadChatMessagesFromCloud,
+  loadLatestChatMessagesFromCloud,
+  loadOlderChatMessagesFromCloud,
+  fetchChatMessagePage,
   syncChatMessagesForThread,
   mergeChatMessages,
+  CHAT_PAGE_SIZE,
   startChatMessagePolling,
   stopChatMessagePolling,
   startChatRealtime,

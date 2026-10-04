@@ -47,7 +47,7 @@ Page({
     return tab === 'map' ? 'map' : 'event';
   },
 
-  async onShow() {
+  onShow() {
     syncPetProfileGate(this);
     const pendingTab = wx.getStorageSync('local_tab');
     if (pendingTab) {
@@ -55,14 +55,32 @@ Page({
       this.setData({ tab: this.normalizeTab(pendingTab) });
     }
     const city = store.getCity();
-    if (cloudApi.cloudEnabled()) {
-      await refreshEventsFeedFromCloud({ limit: 80 });
-      await refreshMapPointsFromCloud({ limit: 120, city });
-    }
     this.setData({ city, amapReady: amap.isAmapConfigured() }, () => {
       this.applyPlazaEvents();
     });
-    await this.loadMapPreview(city);
+    this.loadMapPreview(city).catch(() => {});
+    if (cloudApi.cloudEnabled()) {
+      this.refreshLocalInBackground(city);
+    }
+  },
+
+  refreshLocalInBackground(city) {
+    if (this._localRefreshPromise) return this._localRefreshPromise;
+    this._localRefreshPromise = (async () => {
+      try {
+        await Promise.all([
+          refreshEventsFeedFromCloud({ limit: 80 }),
+          refreshMapPointsFromCloud({ limit: 120, city }),
+        ]);
+        this.applyPlazaEvents();
+        await this.loadMapPreview(city);
+      } catch (e) {
+        // keep cache
+      } finally {
+        this._localRefreshPromise = null;
+      }
+    })();
+    return this._localRefreshPromise;
   },
 
   applyPlazaEvents() {

@@ -104,7 +104,7 @@
     <button
       class="{{isOwner ? 'btn-primary' : (signedUp ? 'btn-secondary btn-signed' : 'btn-primary')}}"
       bindtap="onSignupTap"
-    >{{isOwner ? '报名管理' : (signedUp ? '已报名' : '报名')}}</button>
+    >{{isOwner ? '报名管理' : (signedUp ? '已报名' : '携宠赴约')}}</button>
   </view>
 </view>
 

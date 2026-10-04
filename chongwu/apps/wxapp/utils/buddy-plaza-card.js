@@ -1,4 +1,5 @@
 const { displayUserNickName } = require('./display-user-nick');
+const { buddyDistanceText } = require('./geo-distance');
 
 function formatDistanceLabel(dist) {
   if (!dist) return '距您 —';
@@ -12,7 +13,7 @@ function isVideoSrc(src) {
   return /\.(mp4|mov|m4v|webm|avi)(\?|$)/.test(s);
 }
 
-function buildBuddyPlazaCard(buddy) {
+function buildBuddyPlazaCard(buddy, viewerLocation) {
   const media = buddy.mediaList && buddy.mediaList[0];
   const coverIsVideo = !!(media && media.type === 'video');
   const coverVideoUrl = coverIsVideo ? (media.url || '') : '';
@@ -20,9 +21,10 @@ function buildBuddyPlazaCard(buddy) {
   const coverPoster = rawPoster && !isVideoSrc(rawPoster) && rawPoster !== coverVideoUrl
     ? rawPoster
     : '';
+  const coverFallback = '/assets/mock/real_hero.jpg';
   const cover = coverIsVideo
-    ? (coverPoster || buddy.avatar || '')
-    : ((media && media.url) || buddy.cover || buddy.avatar);
+    ? (coverPoster || buddy.avatar || coverFallback)
+    : ((media && media.url) || buddy.cover || buddy.avatar || coverFallback);
   const tagList = [...(buddy.tags || []), ...(buddy.creditTags || [])].filter(Boolean).slice(0, 2);
   const titleText = (buddy.title || '').trim();
   const descText = (buddy.desc || buddy.personality || '').trim();
@@ -45,7 +47,7 @@ function buildBuddyPlazaCard(buddy) {
     breed: buddy.breed,
     age: buddy.age,
     buddyType: buddy.buddyType,
-    distanceLabel: formatDistanceLabel(buddy.distance),
+    distanceLabel: formatDistanceLabel(buddyDistanceText(buddy, viewerLocation)),
     verified: buddy.verified,
     personality: buddy.personality,
     intro: descText,

@@ -21,15 +21,13 @@ Page({
   },
 
   onShow() {
-    this.refresh();
+    this.applyClubsFromCache();
+    if (cloudApi.cloudEnabled()) {
+      this.refreshClubsInBackground();
+    }
   },
 
-  async refresh() {
-    if (cloudApi.cloudEnabled()) {
-      await refreshClubsFromCloud({ city: store.getCity(), limit: 50 });
-      await refreshJoinedClubsFromCloud();
-    }
-
+  applyClubsFromCache() {
     let myClubs = store.listMyOwnedClubs();
     if (!myClubs.length) {
       const apply = store.getClubApply();
@@ -55,6 +53,29 @@ Page({
       joinedClubs: joined,
       recommendClubs,
     });
+  },
+
+  refreshClubsInBackground() {
+    if (this._clubsRefreshPromise) return this._clubsRefreshPromise;
+    this._clubsRefreshPromise = (async () => {
+      try {
+        await refreshClubsFromCloud({ city: store.getCity(), limit: 50 });
+        await refreshJoinedClubsFromCloud();
+        this.applyClubsFromCache();
+      } catch (e) {
+        // keep cache
+      } finally {
+        this._clubsRefreshPromise = null;
+      }
+    })();
+    return this._clubsRefreshPromise;
+  },
+
+  async refresh() {
+    this.applyClubsFromCache();
+    if (cloudApi.cloudEnabled()) {
+      await this.refreshClubsInBackground();
+    }
   },
 
   onTab(e) {

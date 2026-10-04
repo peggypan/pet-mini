@@ -6,6 +6,21 @@ const { deleteRescueItem } = require('../../utils/user-content-delete');
 const cloudApi = require('../../utils/cloud-api');
 const { refreshLocalPostsFromCloud } = require('../../utils/local-cloud-sync');
 const { refreshSocialFeedFromCloud } = require('../../utils/social-cloud-sync');
+const { resolveLocalPosts, resolveSocialPosts } = require('../../utils/cloud-media');
+const store = require('../../utils/store');
+
+function postsNeedCloudResolve(list, extraKeys) {
+  return (list || []).some((p) => {
+    const urls = [
+      p.image,
+      p.cover,
+      ...(p.images || []),
+      ...((p.mediaList || []).flatMap((m) => [m && m.url, m && m.poster])),
+    ];
+    if (urls.some((u) => u && String(u).startsWith('cloud://'))) return true;
+    return (extraKeys || []).some((k) => p[k] && String(p[k]).startsWith('cloud://'));
+  });
+}
 
 Page({
   data: {
@@ -24,37 +39,70 @@ Page({
   },
 
   onLoad() {
-    this.reload();
+    this.paintFromCache();
   },
 
   onShow() {
-    this.reload();
+    this.paintFromCache();
+    if (cloudApi.cloudEnabled()) {
+      this.refreshRescueInBackground();
+    }
   },
 
   onPullDownRefresh() {
-    this.reload();
-    wx.stopPullDownRefresh();
+    if (cloudApi.cloudEnabled()) {
+      this.refreshRescueInBackground(true).finally(() => wx.stopPullDownRefresh());
+    } else {
+      this.paintFromCache();
+      wx.stopPullDownRefresh();
+    }
   },
 
-  async reload() {
+  paintFromCache() {
     try {
-      if (cloudApi.cloudEnabled()) {
-        await Promise.all([
-          refreshSocialFeedFromCloud({ zone: 'all', limit: 80 }),
-          refreshLocalPostsFromCloud({ type: 'all', limit: 80 }),
-        ]);
-      }
       const list = buildRescueList();
       this.applyFilter(list, this.data.filter);
       this.setData({ loadError: '' });
     } catch (err) {
-      console.error('pet-rescue reload', err);
+      console.error('pet-rescue paintFromCache', err);
       this.setData({
         loadError: '加载失败，请下拉刷新或重新进入',
         list: [],
         displayList: [],
       });
     }
+  },
+
+  refreshRescueInBackground(force) {
+    if (this._rescueRefreshPromise && !force) return this._rescueRefreshPromise;
+    this._rescueRefreshPromise = (async () => {
+      try {
+        await Promise.all([
+          refreshLocalPostsFromCloud({ type: 'all', limit: 80 }),
+          refreshSocialFeedFromCloud({ zone: 'all', limit: 80 }),
+        ]);
+        let localPosts = store.listLocalPosts();
+        if (postsNeedCloudResolve(localPosts)) {
+          localPosts = await resolveLocalPosts(localPosts);
+          store.replaceAllLocalPostsFromCloud(localPosts);
+        }
+        let socialPosts = store.listSocialPosts();
+        if (postsNeedCloudResolve(socialPosts, ['avatar'])) {
+          socialPosts = await resolveSocialPosts(socialPosts);
+          store.replaceAllSocialPostsFromCloud(socialPosts);
+        }
+        this.paintFromCache();
+        this.setData({ loadError: '' });
+      } catch (err) {
+        console.error('pet-rescue refresh', err);
+        if (!this.data.displayList.length) {
+          this.setData({ loadError: '加载失败，请下拉刷新或重新进入' });
+        }
+      } finally {
+        this._rescueRefreshPromise = null;
+      }
+    })();
+    return this._rescueRefreshPromise;
   },
 
   applyFilter(list, filter) {
@@ -87,7 +135,10 @@ Page({
       if (res.reason && !res.cancelled) wx.showToast({ title: res.reason, icon: 'none' });
       return;
     }
-    this.reload();
+    this.paintFromCache();
+    if (cloudApi.cloudEnabled()) {
+      this.refreshRescueInBackground(true);
+    }
   },
 
   onOpenPlace(e) {

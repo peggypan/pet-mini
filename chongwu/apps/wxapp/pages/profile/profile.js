@@ -22,6 +22,7 @@ const { getDisplayNickname } = require('../../utils/user-profile-display');
 const { pullUserProfileFromCloud } = require('../../utils/persist-user-profile');
 const { buildProfileStatList } = require('../../utils/profile-stat-list');
 const { consumeLoginPromptFlag } = require('../../utils/require-login');
+const { displayPublishTime } = require('../../utils/relative-time');
 const TAB_KEYS = ['myEvents', 'joined', 'buddy', 'social'];
 
 function buildProfileStatCounts() {
@@ -53,7 +54,7 @@ function buildSocialFeedItems() {
     return {
       id: p.id,
       kind: 'social',
-      dateLabel: p.time || '刚刚',
+      dateLabel: displayPublishTime(p) || p.time || '',
       title: (p.content || '宠友动态').slice(0, 36),
       place: p.topic || '宠物社区',
       org: p.userName || '动态',
@@ -116,7 +117,7 @@ function buildFeed(tabKey) {
       .map((p) => ({
         id: p.id,
         kind: 'buddy',
-        dateLabel: p.time || '刚刚',
+        dateLabel: displayPublishTime(p) || p.time || '',
         title: p.buddyType || '找搭子',
         place: p.expectPlace || '同城',
         placeNav: !!(p.expectPlace && p.expectPlace !== '同城'),
@@ -158,26 +159,36 @@ Page({
   },
 
   pickHeroImageSource() {
+    const list = this.data.feedList || [];
+    for (let i = 0; i < list.length; i += 1) {
+      const cover = list[i] && list[i].cover;
+      if (cover) return cover;
+    }
     const pet = this.data.pet || getDefaultPet();
-    const avatar = pet.avatar || pet.avatarUrl || '';
-    const feedCover = (this.data.feedList && this.data.feedList[0] && this.data.feedList[0].cover) || '';
-    return feedCover || avatar;
+    return pet.avatar || pet.avatarUrl || '';
   },
 
-  updateHeroGradient() {
-    const src = this.pickHeroImageSource();
-    if (!src) return;
-    this.setData({ heroSourceImage: src });
-    sampleImageColors(this, 'paletteCanvas', src).then((palette) => {
-      const heroGradient = gradientStyleString(palette);
-      this.setData({ heroGradient });
-      if (palette.c2) {
-        wx.setNavigationBarColor({
-          frontColor: '#ffffff',
-          backgroundColor: palette.c2,
-        });
-      }
-    });
+  applyHeroImage(src) {
+    const image = src || this.pickHeroImageSource();
+    if (!image) return;
+    const patch = image !== this.data.heroSourceImage ? { heroSourceImage: image } : {};
+    const applyPalette = () => {
+      sampleImageColors(this, 'paletteCanvas', image).then((palette) => {
+        const heroGradient = gradientStyleString(palette);
+        this.setData({ heroGradient });
+        if (palette.c2) {
+          wx.setNavigationBarColor({
+            frontColor: '#ffffff',
+            backgroundColor: palette.c2,
+          });
+        }
+      });
+    };
+    if (Object.keys(patch).length) {
+      this.setData(patch, applyPalette);
+    } else {
+      applyPalette();
+    }
   },
 
   buildProfileTagOptions() {
@@ -201,10 +212,10 @@ Page({
     this.refreshFeed(tab, true);
   },
 
-  refreshFeed(tabIndex, refreshGradient) {
+  refreshFeed(tabIndex, refreshGradient = true) {
     const key = TAB_KEYS[tabIndex] || TAB_KEYS[0];
     this.setData({ feedList: buildFeed(key) }, () => {
-      if (refreshGradient) this.updateHeroGradient();
+      if (refreshGradient) this.applyHeroImage();
     });
   },
 
@@ -215,35 +226,8 @@ Page({
     }
   },
 
-  async onShow() {
-    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({ selected: 4 });
-    }
-    if (!this.data.statSheetVisible) {
-      this.setTabBarHidden(false);
-    }
+  paintProfileFromCache() {
     const token = wx.getStorageSync('token');
-    if (token && cloudApi.cloudEnabled()) {
-      try {
-        await refreshPetsFromCloud();
-      } catch (e) {
-        // keep local cache
-      }
-    }
-    if (token && cloudApi.cloudEnabled()) {
-      try {
-        await refreshPointsFromCloud();
-      } catch (e) {
-        // keep local cache
-      }
-    }
-    if (token && cloudApi.cloudEnabled()) {
-      try {
-        await pullUserProfileFromCloud();
-      } catch (e) {
-        // keep local cache
-      }
-    }
     const myEvents = store.listMyEvents();
     const statCounts = buildProfileStatCounts();
     this.setData({
@@ -265,9 +249,41 @@ Page({
       profileBio: store.getUserProfile().bio || '和毛孩子一起，遇见同城宠友与好活动～',
       pointsBalance: store.getUserPointsBalance(),
     });
-    this.refreshFeed(this.data.activeTab);
+    this.refreshFeed(this.data.activeTab, true);
     this.refreshProfileTags();
-    wx.nextTick(() => this.updateHeroGradient());
+    return token;
+  },
+
+  refreshProfileInBackground() {
+    if (this._profileRefreshPromise) return this._profileRefreshPromise;
+    this._profileRefreshPromise = (async () => {
+      const token = wx.getStorageSync('token');
+      if (!token || !cloudApi.cloudEnabled()) return;
+      try {
+        await Promise.all([
+          refreshPetsFromCloud(),
+          refreshPointsFromCloud(),
+          pullUserProfileFromCloud(),
+        ]);
+        this.paintProfileFromCache();
+      } catch (e) {
+        // keep local cache
+      } finally {
+        this._profileRefreshPromise = null;
+      }
+    })();
+    return this._profileRefreshPromise;
+  },
+
+  onShow() {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ selected: 4 });
+    }
+    if (!this.data.statSheetVisible) {
+      this.setTabBarHidden(false);
+    }
+    const token = this.paintProfileFromCache();
+    this.refreshProfileInBackground();
     if (!token && consumeLoginPromptFlag()) {
       wx.nextTick(() => {
         wx.showToast({ title: '请先登录', icon: 'none' });
@@ -331,6 +347,8 @@ Page({
   },
 
   onFeedTap(e) {
+    const cover = e.currentTarget.dataset.cover;
+    if (cover) this.applyHeroImage(cover);
     const url = e.currentTarget.dataset.url;
     if (!url) return;
     if (url.includes('switchTab')) {

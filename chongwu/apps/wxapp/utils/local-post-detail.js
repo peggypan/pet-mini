@@ -1,4 +1,5 @@
 const store = require('./store');
+const { displayPublishTime } = require('./relative-time');
 const { normalizePostMedia } = require('./social-post-media');
 const { MOCK_PET } = require('./mock');
 
@@ -35,7 +36,7 @@ function localPostToDetailView(local) {
     comments: local.comments || 0,
     shares: local.shares || 0,
     liked: !!local.liked,
-    time: local.time || '刚刚',
+    time: displayPublishTime(local) || local.time || '',
     isMine: local.isMine,
     openid: local.openid,
     _openid: local._openid,

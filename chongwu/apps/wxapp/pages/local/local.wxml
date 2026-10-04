@@ -31,7 +31,7 @@
         <view class="event-healing-badge" wx:if="{{item.isHealing}}">疗愈活动</view>
       </view>
       <view class="body">
-        <text class="source">{{item.sourceText}}{{item.category ? ' · ' + item.category : ''}}</text>
+        <text class="source">{{item.sourceText}}{{item.category ? ' · ' + item.category : ''}}{{item.publishTime ? ' · ' + item.publishTime + '发布' : ''}}</text>
         <text class="title">{{item.title}}</text>
         <view class="meta">
           <text>{{item.time}} · </text>

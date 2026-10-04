@@ -27,14 +27,29 @@ Page({
     this.setData({ plazaFilter }, () => this.applyPlazaEvents());
   },
 
-  async onShow() {
+  onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 1 });
     }
-    if (cloudApi.cloudEnabled()) {
-      await refreshEventsFeedFromCloud({ limit: 80 });
-    }
     this.setData({ city: store.getCity() }, () => this.applyPlazaEvents());
+    if (cloudApi.cloudEnabled()) {
+      this.refreshEventsInBackground();
+    }
+  },
+
+  refreshEventsInBackground() {
+    if (this._eventsRefreshPromise) return this._eventsRefreshPromise;
+    this._eventsRefreshPromise = (async () => {
+      try {
+        await refreshEventsFeedFromCloud({ limit: 80 });
+        this.applyPlazaEvents();
+      } catch (e) {
+        // keep cache
+      } finally {
+        this._eventsRefreshPromise = null;
+      }
+    })();
+    return this._eventsRefreshPromise;
   },
 
   onCityTap() {

@@ -11,7 +11,7 @@ function startBuddyChat(buddy) {
     title: '线下见面提示',
     content: RISK_TIPS.meet,
     confirmText: '发起私聊',
-    success: async (res) => {
+    success: (res) => {
       if (!res.confirm) return;
       const peerOpenid = buddy.openid || buddy._openid || '';
       const peerId = peerOpenid || buddy.id;
@@ -23,11 +23,8 @@ function startBuddyChat(buddy) {
         petName: buddy.petName,
         avatar: buddy.avatar || buddy.cover,
       };
-      if (cloudApi.cloudEnabled()) {
-        await ensureChatThreadOnCloud(threadPayload);
-      } else {
-        store.ensureChatThread(threadPayload);
-      }
+      const localThread = store.ensureChatThread(threadPayload);
+      const threadId = (localThread && localThread.id) || threadPayload.id;
       const shareTitle = encodeURIComponent(
         `${buddy.userName} · ${buddy.petName} · ${buddy.buddyType || '搭子'}`,
       );
@@ -36,8 +33,11 @@ function startBuddyChat(buddy) {
       const peerName = encodeURIComponent(buddy.userName || '');
       const petName = encodeURIComponent(buddy.petName || '');
       wx.navigateTo({
-        url: `/pages/chat/chat?peerId=${peerId}&peerName=${peerName}&petName=${petName}&avatar=${avatar}&shareComment=1&shareTitle=${shareTitle}&shareText=${shareText}&shareRef=${buddy.id}`,
+        url: `/pages/chat/chat?threadId=${encodeURIComponent(threadId)}&peerId=${peerId}&peerName=${peerName}&petName=${petName}&avatar=${avatar}&shareComment=1&shareTitle=${shareTitle}&shareText=${shareText}&shareRef=${buddy.id}`,
       });
+      if (cloudApi.cloudEnabled()) {
+        ensureChatThreadOnCloud(threadPayload).catch(() => {});
+      }
     },
   });
 }

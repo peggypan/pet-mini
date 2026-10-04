@@ -1,3 +1,5 @@
+const { formatPublishTime } = require('./relative-time');
+
 const TYPES = ['lost', 'found', 'adopt', 'rescue'];
 
 function trim(s) {
@@ -78,16 +80,19 @@ function publicLocal(doc, viewerOpenid) {
   if (!doc) return null;
   const { _id, _openid, ...rest } = doc;
   const isMine = viewerOpenid && (doc.openid === viewerOpenid || doc._openid === viewerOpenid);
+  const time = formatPublishTime(rest.createdAt || rest.updatedAt);
   return {
     id: _id,
     ...rest,
     isMine: !!isMine,
     userName: isMine ? '我' : rest.userName,
-    time: '刚刚',
+    createdAt: rest.createdAt,
+    updatedAt: rest.updatedAt,
     likes: rest.likes || 0,
     comments: rest.comments || 0,
     shares: rest.shares || 0,
     liked: !!rest.liked && isMine,
+    time,
   };
 }
 

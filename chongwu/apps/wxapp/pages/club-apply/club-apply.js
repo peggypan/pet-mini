@@ -23,16 +23,16 @@ Page({
     blockSubPageWithoutLogin(this);
   },
 
-  async onShow() {
+  onShow() {
     const storeCity = store.getCity();
-    // 首次进入用当前城市；从城市选择器返回时同步用户选中的城市
     const city = this.data.city && this._lastStoreCity === storeCity ? this.data.city : storeCity;
     this._lastStoreCity = storeCity;
-    let apply = store.getClubApply();
+    this.setData({ city, apply: store.getClubApply() });
     if (cloudApi.cloudEnabled()) {
-      apply = await refreshHostApplyFromCloud();
+      refreshHostApplyFromCloud()
+        .then((apply) => this.setData({ apply: apply || store.getClubApply() }))
+        .catch(() => {});
     }
-    this.setData({ city, apply });
   },
 
   onInput(e) {

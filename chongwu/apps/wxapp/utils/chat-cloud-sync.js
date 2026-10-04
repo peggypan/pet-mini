@@ -368,9 +368,7 @@ async function applyChatMessagesToPage(page, threadId, options = {}) {
   const changed = chatMessagesFingerprint(prev) !== chatMessagesFingerprint(decorated);
   if (!changed && !options.force && newCount === 0) return;
 
-  const pinBottom = newCount > 0
-    || !!options.forceScroll
-    || (page._pinScrollBottomUntil && Date.now() < page._pinScrollBottomUntil);
+  const pinBottom = newCount > 0 || !!options.forceScroll;
 
   const patch = {
     messages: decorated,

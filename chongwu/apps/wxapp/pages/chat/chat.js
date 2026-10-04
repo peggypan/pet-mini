@@ -129,9 +129,6 @@ Page({
 
   onReady() {
     this._scrollNodePromise = null;
-    if (this.data.messages && this.data.messages.length) {
-      wx.nextTick(() => this.scrollToLatest(false));
-    }
   },
 
   messagesSetPatch(messages, animated) {
@@ -176,16 +173,26 @@ Page({
     }).catch(() => {});
   },
 
-  applyScrollTop(top, animated) {
+  applyScrollTop(top, animated, opts) {
+    const options = opts || {};
     const useAnim = animated === true;
-    this._scrollSeq = (this._scrollSeq || 0) + 1;
-    const next = Math.max(0, Number(top) || 0) + (this._scrollSeq % 3) * 0.5;
-    this._lastScrollTop = next;
+    let target = Math.max(0, Number(top) || 0);
+    if (options.bumpSeq) {
+      this._scrollSeq = (this._scrollSeq || 0) + 1;
+      target += (this._scrollSeq % 3) * 0.5;
+    }
+    const prev = this._lastScrollTop != null
+      ? this._lastScrollTop
+      : (this.data.scrollTop || 0);
+    if (!options.force && Math.abs(target - prev) < 2) {
+      return Promise.resolve();
+    }
+    this._lastScrollTop = target;
     this.setData({
-      scrollTop: next,
+      scrollTop: target,
       scrollWithAnimation: useAnim,
     });
-    this.scrollNodeTo(next, useAnim);
+    return this.scrollNodeTo(target, useAnim);
   },
 
   measureScrollMax() {
@@ -214,11 +221,9 @@ Page({
     });
   },
 
-  finishInitialScrollPin(max) {
-    if (max > 30 || (this.data.messages && this.data.messages.length <= 2)) {
-      this._allowHistoryLoad = true;
-      this._pinScrollBottomUntil = Date.now() + 2500;
-    }
+  finishInitialScrollPin() {
+    this._allowHistoryLoad = true;
+    this._initialScrollPinned = true;
   },
 
   patchChatData(patch, options = {}) {
@@ -246,7 +251,7 @@ Page({
       ...this.messagesSetPatch(messages, animated),
       ...(extraPatch || {}),
     }, () => {
-      wx.nextTick(() => this.scrollToLatest(animated));
+      wx.nextTick(() => this.scrollToLatest(animated, { aggressive: animated === true }));
     });
   },
 
@@ -617,14 +622,20 @@ Page({
     });
   },
 
-  pinToBottomThenShow(retryLeft) {
-    const left = typeof retryLeft === 'number' ? retryLeft : 12;
+  pinToBottomStable(retryLeft) {
+    const left = typeof retryLeft === 'number' ? retryLeft : 3;
     this.measureScrollMax().then((max) => {
-      this.applyScrollTop(max, false);
-      if (left <= 0) this.finishInitialScrollPin(max);
+      const prevMax = this._lastMeasuredScrollMax;
+      this._lastMeasuredScrollMax = max;
+      const force = left <= 1;
+      this.applyScrollTop(max, false, { force });
+      const stable = prevMax != null && Math.abs(prevMax - max) < 2;
+      if (left <= 1 || stable) {
+        this.finishInitialScrollPin();
+        return;
+      }
+      setTimeout(() => this.pinToBottomStable(left - 1), left === 3 ? 80 : 160);
     });
-    if (left <= 0) return;
-    setTimeout(() => this.pinToBottomThenShow(left - 1), left > 6 ? 50 : 120);
   },
 
   async loadInitialChatPage(threadId) {
@@ -635,6 +646,8 @@ Page({
     this._chatInitialLoaded = true;
     console.warn('[chat] initial render', messages.length, 'hasMore', !!page.hasMore);
     this._allowHistoryLoad = false;
+    this._initialScrollPinned = false;
+    this._lastMeasuredScrollMax = null;
     this.setData({
       messages,
       chatHasMore: !!page.hasMore,
@@ -643,7 +656,7 @@ Page({
       scrollWithAnimation: false,
     }, () => {
       wx.nextTick(() => {
-        this.pinToBottomThenShow();
+        this.pinToBottomStable();
       });
     });
     this.syncLimitState(messages);
@@ -711,7 +724,7 @@ Page({
         const fixScroll = () => {
           this.measureChatScroll().then((metricsAfter) => {
             const delta = metricsAfter.innerHeight - innerBefore;
-            this.applyScrollTop(targetTop + delta, false);
+            this.applyScrollTop(targetTop + delta, false, { bumpSeq: true, force: true });
           });
         };
         wx.nextTick(() => {
@@ -917,7 +930,9 @@ Page({
     return row;
   },
 
-  scrollToLatest(animated) {
+  scrollToLatest(animated, options) {
+    const opts = options || {};
+    const aggressive = opts.aggressive === true;
     const useAnim = animated === true;
     const pin = () => {
       this.measureScrollMax().then((max) => {
@@ -928,21 +943,25 @@ Page({
     clearTimeout(this._scrollLatestTimer);
     clearTimeout(this._scrollLatestTimer2);
     clearTimeout(this._scrollLatestTimer3);
-    clearTimeout(this._scrollLatestTimer4);
-    clearTimeout(this._scrollLatestTimer5);
-    clearTimeout(this._scrollLatestTimer6);
-    this._scrollLatestTimer = setTimeout(pin, 50);
-    this._scrollLatestTimer2 = setTimeout(pin, 150);
-    this._scrollLatestTimer3 = setTimeout(pin, 350);
-    this._scrollLatestTimer4 = setTimeout(pin, 700);
-    this._scrollLatestTimer5 = setTimeout(pin, 1200);
-    this._scrollLatestTimer6 = setTimeout(pin, 2000);
+    if (aggressive) {
+      this._scrollLatestTimer = setTimeout(pin, 80);
+      this._scrollLatestTimer2 = setTimeout(pin, 220);
+      return;
+    }
+    this._scrollLatestTimer = setTimeout(pin, 150);
   },
 
   onChatImageLayout() {
-    if (Date.now() < (this._pinScrollBottomUntil || 0)) {
-      this.scrollToLatest(false);
-    }
+    if (!this._initialScrollPinned) return;
+    clearTimeout(this._imagePinTimer);
+    this._imagePinTimer = setTimeout(() => {
+      this.measureScrollMax().then((max) => {
+        const cur = this._lastScrollTop != null ? this._lastScrollTop : (this.data.scrollTop || 0);
+        if (max - cur > 48) {
+          this.applyScrollTop(max, false);
+        }
+      });
+    }, 100);
   },
 
   appendMessage(row) {
@@ -1195,9 +1214,7 @@ Page({
     clearTimeout(this._scrollLatestTimer);
     clearTimeout(this._scrollLatestTimer2);
     clearTimeout(this._scrollLatestTimer3);
-    clearTimeout(this._scrollLatestTimer4);
-    clearTimeout(this._scrollLatestTimer5);
-    clearTimeout(this._scrollLatestTimer6);
+    clearTimeout(this._imagePinTimer);
     stopChatRealtime(this);
     if (this.innerAudio) {
       this.innerAudio.destroy();

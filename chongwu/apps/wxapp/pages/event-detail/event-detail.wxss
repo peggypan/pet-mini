@@ -414,11 +414,36 @@ page { background: #F5F8FC; }
   line-height: 1.5;
 }
 
+.ticket-foot {
+  margin-top: 24rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.ticket-cancel {
+  margin: 0;
+  width: 100%;
+  height: 80rpx;
+  line-height: 80rpx;
+  border-radius: 999rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #ff2442;
+  background: rgba(255, 36, 66, 0.08);
+  border: 2rpx solid rgba(255, 36, 66, 0.35);
+}
+
+.ticket-cancel::after {
+  border: none;
+}
+
 .ticket-close {
   display: block;
-  margin-top: 24rpx;
   text-align: center;
   font-size: 28rpx;
   color: #1E88E5;
   font-weight: 700;
+  padding: 8rpx 24rpx;
 }

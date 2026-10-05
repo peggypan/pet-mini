@@ -1,5 +1,5 @@
 const store = require('./store');
-const { displayPublishTime } = require('./relative-time');
+const { displayPublishTime, pickPublishInstant } = require('./relative-time');
 const { displayUserNickName } = require('./display-user-nick');
 const cloudApi = require('./cloud-api');
 const { MOCK_SOCIAL, MOCK_RESCUE } = require('./mock');
@@ -57,6 +57,11 @@ function pickGeo(post) {
   };
 }
 
+function postSortTime(post) {
+  const d = pickPublishInstant(post);
+  return d ? d.getTime() : 0;
+}
+
 function buildRescueList() {
   const seenSocial = new Set();
   const items = [];
@@ -74,6 +79,7 @@ function buildRescueList() {
       authorLine: displayUserNickName({ ...p, isMine: store.isMyUserContent(p) }),
       preview: (p.title || (p.content || '').replace(/\n/g, ' ')).trim().slice(0, 72),
       time: displayPublishTime(p) || p.time || '',
+      sortAt: postSortTime(p),
       ...pickGeo(p),
       cover: resolveCover(p.lostType, p),
     });
@@ -101,6 +107,7 @@ function buildRescueList() {
         authorLine: displayUserNickName({ ...p, isMine: store.isMyUserContent(p) }),
         preview: (p.title || p.desc || '').slice(0, 72),
         time: displayPublishTime(p) || p.time || '',
+        sortAt: postSortTime(p),
         ...pickGeo(p),
         contact: p.contact || '',
         desc: p.desc || '',
@@ -123,6 +130,7 @@ function buildRescueList() {
         authorLine: displayUserNickName(p) || p.userName || '',
         preview: p.preview || p.title || '',
         time: displayPublishTime(p) || p.time || '',
+        sortAt: postSortTime(p),
         location: p.location || '',
         locationName: p.location || '',
         locationAddress: p.locationAddress || '',
@@ -135,6 +143,8 @@ function buildRescueList() {
     });
   }
 
+  items.sort((a, b) => (b.sortAt || 0) - (a.sortAt || 0));
+
   return items.map((item) => {
     let canDelete = false;
     if (item.source === 'social' && item.refId) {
@@ -144,7 +154,8 @@ function buildRescueList() {
       const p = store.getLocalPost(item.refId);
       canDelete = store.isMyUserContent(p);
     }
-    return { ...item, canDelete };
+    const { sortAt, ...rest } = item;
+    return { ...rest, canDelete };
   });
 }
 

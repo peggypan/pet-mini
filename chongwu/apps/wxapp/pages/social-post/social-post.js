@@ -19,6 +19,7 @@ Page({
   data: {
     zones: POST_ZONES,
     zone: 'dog',
+    title: '',
     content: '',
     contentParts: [],
     mediaList: [],
@@ -71,6 +72,10 @@ Page({
     });
   },
 
+  onTitleInput(e) {
+    this.setData({ title: (e.detail.value || '').slice(0, 40) });
+  },
+
   onInput(e) {
     this.syncContentParts(e.detail.value);
   },
@@ -121,10 +126,15 @@ Page({
 
   async onSubmit() {
     if (!requireInteract()) return;
-    const { zone, content, mediaList, selectedTopic } = this.data;
+    const { zone, title, content, mediaList, selectedTopic } = this.data;
+    const headline = (title || '').trim();
     const text = (content || '').trim();
     if (!text && !mediaList.length) {
       wx.showToast({ title: '请填写内容或上传媒体', icon: 'none' });
+      return;
+    }
+    if (headline && sensitiveWords.textBlocked(headline)) {
+      wx.showToast({ title: '标题含违规词，请修改', icon: 'none' });
       return;
     }
     if (sensitiveWords.textBlocked(text)) {
@@ -140,6 +150,7 @@ Page({
       avatar: pet.avatar,
       zone,
       topic: selectedTopic,
+      title: headline,
       content: text,
       image: imageUrls[0] || '',
       images: imageUrls,

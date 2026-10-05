@@ -30,6 +30,7 @@
     "pages/pet-rescue/pet-rescue",
     "pages/club-apply/club-apply",
     "pages/my-clubs/my-clubs",
+    "pages/club-detail/club-detail",
     "pages/lost-publish/lost-publish",
     "pages/adopt-publish/adopt-publish",
     "pages/map-submit/map-submit",

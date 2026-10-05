@@ -341,6 +341,15 @@ page {
   margin-bottom: 10rpx;
 }
 
+.post-headline {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.45;
+  margin-bottom: 10rpx;
+}
+
 .content {
   display: block;
   font-size: 28rpx;

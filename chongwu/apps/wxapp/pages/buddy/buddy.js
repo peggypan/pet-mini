@@ -29,7 +29,6 @@ Page({
     mapScale: 13,
     mapMarkers: [],
     mapPeerCount: 0,
-    shareBuddy: null,
     petProfileBlocked: false,
   },
 
@@ -211,52 +210,7 @@ Page({
     this.reload();
   },
 
-  onLikeTap(e) {
-    if (!requireInteract()) return;
-    const { id, feedKey } = e.currentTarget.dataset;
-    const list = this.data.list.map((p) => {
-      if (feedKey ? p.feedKey !== feedKey : String(p.id) !== String(id)) return p;
-      const liked = !p.liked;
-      const likes = liked ? (p.likes || 0) + 1 : Math.max(0, (p.likes || 0) - 1);
-      store.updateBuddyEngagement(id, { liked, likes });
-      store.recordPostThumbLike({
-        channel: 'buddy',
-        postId: id,
-        liked,
-        title: p.buddyType || p.desc || '搭子帖',
-        cover: (p.mediaList && p.mediaList[0] && (p.mediaList[0].url || p.mediaList[0].poster))
-          || p.cover
-          || p.avatar,
-        userName: p.userName,
-        petName: p.petName,
-      });
-      return { ...p, liked, likes };
-    });
-    this.setData({ list });
-  },
-
-  onCommentTap(e) {
-    if (!requireInteract()) return;
-    const id = e.currentTarget.dataset.id;
-    wx.navigateTo({ url: `/pages/buddy-detail/buddy-detail?id=${id}&focus=comment` });
-  },
-
-  onShareTap(e) {
-    const id = e.currentTarget.dataset.id;
-    const buddy = this.data.list.find((b) => String(b.id) === String(id));
-    if (buddy) this.setData({ shareBuddy: buddy });
-  },
-
   onShareAppMessage() {
-    const { shareBuddy } = this.data;
-    if (shareBuddy) {
-      const shares = (shareBuddy.shares || 0) + 1;
-      store.updateBuddyEngagement(shareBuddy.id, { shares });
-      return {
-        title: `${shareBuddy.userName} · ${shareBuddy.petName} 找${shareBuddy.buddyType}`,
-        path: `/pages/buddy-detail/buddy-detail?id=${shareBuddy.id}`,
-      };
-    }
     return {
       title: '宠头头 · 搭子广场',
       path: '/pages/buddy/buddy',

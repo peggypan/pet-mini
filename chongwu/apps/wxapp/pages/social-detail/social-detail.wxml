@@ -31,6 +31,7 @@
   </view>
 
   <view class="content-card">
+    <text class="post-headline" wx:if="{{post.title}}">{{post.title}}</text>
     <view class="content" wx:if="{{post.contentParts && post.contentParts.length}}">
       <block wx:for="{{post.contentParts}}" wx:key="index" wx:for-item="part">
         <text

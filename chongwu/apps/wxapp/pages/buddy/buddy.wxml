@@ -8,7 +8,7 @@
     <view class="pet-map-head">
       <view class="pet-map-head-text">
         <text class="pet-map-title">宠友搭子</text>
-        <text class="pet-map-sub">点击地图进入全景 · 点头像私聊</text>
+        <text class="pet-map-sub">点击地图进入宠物友好地图 · 点头像私聊</text>
       </view>
       <view class="pet-map-count">{{mapPeerCount}} 位在附近</view>
     </view>
@@ -24,7 +24,7 @@
         enable-scroll="{{false}}"
       >
         <cover-view class="pet-map-tap-layer" catchtap="onOpenBuddyMap">
-          <cover-view class="pet-map-tap-hint">点击进入全景地图</cover-view>
+          <cover-view class="pet-map-tap-hint">点击进入宠物友好地图</cover-view>
         </cover-view>
       </map>
     </view>
@@ -87,32 +87,9 @@
           <text class="buddy-plaza-tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag">{{tag}}</text>
         </view>
         <text class="buddy-plaza-author">{{item.authorLine}}</text>
-        <view class="feed-actions feed-actions-compact">
-          <view
-            class="feed-action {{item.liked ? 'is-liked' : ''}}"
-            catchtap="onLikeTap"
-            data-id="{{item.id}}"
-            data-feed-key="{{item.feedKey}}"
-          >
-            <view class="feed-icon feed-icon-like"></view>
-            <text>{{item.likes || 0}}</text>
-          </view>
-          <view class="feed-action" catchtap="onCommentTap" data-id="{{item.id}}">
-            <view class="feed-icon feed-icon-comment"></view>
-            <text>{{item.comments || 0}}</text>
-          </view>
-          <button
-            class="feed-action-share-btn"
-            open-type="share"
-            catchtap="onShareTap"
-            data-id="{{item.id}}"
-          >
-            <view class="feed-icon feed-icon-share"></view>
-            <text>分享</text>
-          </button>
+        <view class="feed-actions feed-actions-compact" wx:if="{{item.canDelete}}">
           <view
             class="feed-action feed-action-delete"
-            wx:if="{{item.canDelete}}"
             catchtap="onDeleteBuddy"
             data-id="{{item.id}}"
           >

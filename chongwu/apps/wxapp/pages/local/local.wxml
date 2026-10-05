@@ -71,7 +71,6 @@
     </view>
     <pet-map-fab
       class="map-fab {{fabOpen ? 'map-fab-open' : ''}}"
-      expand="down"
       value="{{petFilter}}"
       expanded="{{fabOpen}}"
       bind:toggle="onFabToggle"

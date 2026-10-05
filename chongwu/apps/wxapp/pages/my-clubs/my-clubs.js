@@ -7,6 +7,7 @@ const {
   leaveClubFromCloud,
 } = require('../../utils/club-member-cloud-sync');
 const { listRecommendClubs, findClub } = require('../../utils/catalog');
+const { showClubJoinResult } = require('../../utils/club-join-feedback');
 
 Page({
   data: {
@@ -43,9 +44,10 @@ Page({
     }
 
     const joined = store.listJoinedClubs();
-    const allRecommend = listRecommendClubs();
-    const recommendClubs = allRecommend.filter(
-      (c) => !joined.some((j) => String(j.id) === String(c.id)),
+    const joinedIds = new Set(joined.map((j) => String(j.id)));
+    const mineIds = new Set(myClubs.map((c) => String(c.id)));
+    const recommendClubs = listRecommendClubs().filter(
+      (c) => !joinedIds.has(String(c.id)) && !mineIds.has(String(c.id)),
     );
 
     this.setData({
@@ -88,18 +90,27 @@ Page({
     wx.navigateTo({ url: '/pages/club-apply/club-apply' });
   },
 
+  onOpenClub(e) {
+    const id = e.currentTarget.dataset.id;
+    if (!id) return;
+    wx.navigateTo({ url: `/pages/club-detail/club-detail?id=${id}` });
+  },
+
   async onJoin(e) {
     const { requireLogin } = require('../../utils/require-login');
     if (!requireLogin()) return;
     const club = findClub(e.currentTarget.dataset.id);
-    if (!club) return;
-    wx.showLoading({ title: '加入中', mask: true });
+    if (!club) {
+      wx.showToast({ title: '俱乐部信息无效', icon: 'none', duration: 2800 });
+      return;
+    }
+    wx.showLoading({ title: '加入中…', mask: true });
     try {
       await joinClubToCloud(club);
       await this.refresh();
-      wx.showToast({ title: '已加入', icon: 'success' });
+      showClubJoinResult(club, { ok: true });
     } catch (err) {
-      wx.showToast({ title: err.message || '加入失败', icon: 'none' });
+      showClubJoinResult(club, { ok: false, message: err.message });
     } finally {
       wx.hideLoading();
     }

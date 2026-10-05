@@ -25,6 +25,22 @@ const { consumeLoginPromptFlag } = require('../../utils/require-login');
 const { displayPublishTime } = require('../../utils/relative-time');
 const TAB_KEYS = ['myEvents', 'joined', 'buddy', 'social'];
 
+function buildClubTileSub() {
+  const mine = store.listMyOwnedClubs();
+  const joined = store.listJoinedClubs();
+  const total = mine.length + joined.length;
+  if (total > 0) {
+    const parts = [];
+    if (mine.length) parts.push(`${mine.length} 个主理`);
+    if (joined.length) parts.push(`${joined.length} 个已加入`);
+    return parts.join(' · ');
+  }
+  const apply = store.getClubApply();
+  if (apply && apply.status === 'pending') return '入驻审核中';
+  if (apply && apply.status === 'approved') return '主理已通过';
+  return '暂无俱乐部';
+}
+
 function buildProfileStatCounts() {
   const socialStats = store.getProfileSocialStats();
   const collectCount = store.listCollects().length;
@@ -145,7 +161,7 @@ Page({
     activeTab: 0,
     tabLabels: ['我的活动', '我参与的', '我的搭子', '宠友动态'],
     feedList: [],
-    clubTileSub: '0 场进行中',
+    clubTileSub: '暂无俱乐部',
     profileTagOptions: [],
     heroGradient: gradientStyleString(DEFAULT),
     heroSourceImage: '',
@@ -245,7 +261,7 @@ Page({
         organized: myEvents.length,
       },
       city: store.getCity(),
-      clubTileSub: `${myEvents.filter((e) => e.auditStatus !== 'rejected').length} 场进行中`,
+      clubTileSub: buildClubTileSub(),
       profileBio: store.getUserProfile().bio || '和毛孩子一起，遇见同城宠友与好活动～',
       pointsBalance: store.getUserPointsBalance(),
     });
@@ -260,10 +276,14 @@ Page({
       const token = wx.getStorageSync('token');
       if (!token || !cloudApi.cloudEnabled()) return;
       try {
+        const { refreshClubsFromCloud } = require('../../utils/club-cloud-sync');
+        const { refreshJoinedClubsFromCloud } = require('../../utils/club-member-cloud-sync');
         await Promise.all([
           refreshPetsFromCloud(),
           refreshPointsFromCloud(),
           pullUserProfileFromCloud(),
+          refreshClubsFromCloud({ city: store.getCity(), limit: 50 }).catch(() => {}),
+          refreshJoinedClubsFromCloud().catch(() => {}),
         ]);
         this.paintProfileFromCache();
       } catch (e) {

@@ -4,7 +4,6 @@ const {
   MOCK_EVENTS,
   MOCK_MAP_POINTS,
   MOCK_MERCHANTS,
-  MOCK_CLUBS,
   MOCK_PET,
 } = require('./mock');
 const store = require('./store');
@@ -162,17 +161,16 @@ function findEvent(id) {
 }
 
 function listRecommendClubs() {
-  const cloud = store.listClubsFeed();
-  const cloudIds = new Set(cloud.map((c) => String(c.id)));
-  const mockOnly = MOCK_CLUBS.filter((c) => !cloudIds.has(String(c.id)));
-  return [...cloud, ...mockOnly];
+  return store.listClubsFeed();
 }
 
 function findClub(id) {
   const sid = String(id);
-  return store.getClubFromCache(sid)
-    || MOCK_CLUBS.find((c) => String(c.id) === sid)
-    || null;
+  const fromCache = store.getClubFromCache(sid);
+  if (fromCache) return fromCache;
+  const joined = store.listJoinedClubs().find((c) => String(c.id) === sid);
+  if (joined) return joined;
+  return null;
 }
 
 function listAllMerchants() {

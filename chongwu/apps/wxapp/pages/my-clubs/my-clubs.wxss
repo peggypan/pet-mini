@@ -35,6 +35,18 @@ page { background: #F5F8FC; }
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
 }
 
+.club-card.tap:active {
+  opacity: 0.92;
+}
+
+.recommend-empty {
+  padding: 32rpx 16rpx 48rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: #999999;
+  line-height: 1.5;
+}
+
 .club-cover-wrap {
   width: 176rpx;
   margin-right: 20rpx;

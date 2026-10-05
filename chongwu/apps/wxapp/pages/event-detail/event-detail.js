@@ -12,6 +12,7 @@ const { fetchEventFromCloud, recordEventInterest } = require('../../utils/event-
 const {
   fetchMySignupByEvent,
   saveSignupToCloud,
+  removeSignupFromCloud,
 } = require('../../utils/event-signup-cloud-sync');
 const { ensureChatThreadOnCloud } = require('../../utils/chat-cloud-sync');
 const { buildEventDetailSection, buildEventCoverImages } = require('../../utils/event-detail-content');
@@ -275,15 +276,52 @@ Page({
       signup = normalizeSignupRow(signup, event, defaults);
       if (!signup) throw new Error('报名失败');
 
-      await this.presentTicket(signup, event);
+      wx.hideLoading();
       if (justSignedUp) {
-        wx.showToast({ title: '报名成功', icon: 'success', duration: 1200 });
+        wx.showToast({ title: '报名成功', icon: 'success', duration: 1500, mask: true });
+        await new Promise((resolve) => setTimeout(resolve, 1500));
       }
+      await this.presentTicket(signup, event);
     } catch (e) {
       wx.showToast({ title: (e && e.message) || '报名失败', icon: 'none' });
     } finally {
       wx.hideLoading();
     }
+  },
+
+  async onCancelSignup() {
+    const { event, signup } = this.data;
+    if (!event || !signup || signup.checkedIn) return;
+    wx.showModal({
+      title: '取消报名',
+      content: '取消后名额将释放，如需参加请重新报名。',
+      confirmText: '确认取消',
+      confirmColor: '#ff2442',
+      success: async (res) => {
+        if (!res.confirm) return;
+        wx.showLoading({ title: '处理中…', mask: true });
+        try {
+          const id = signup.id || signup._id;
+          if (id) {
+            await removeSignupFromCloud(id, false);
+          } else {
+            await removeSignupFromCloud(event.id, true);
+          }
+          this.setData({
+            showTicket: false,
+            signedUp: false,
+            signup: null,
+            ticketQrReady: false,
+          });
+          await this.refreshEventQuota();
+          wx.showToast({ title: '已取消报名', icon: 'success' });
+        } catch (e) {
+          wx.showToast({ title: (e && e.message) || '取消失败', icon: 'none' });
+        } finally {
+          wx.hideLoading();
+        }
+      },
+    });
   },
 
   onCloseTicket() {

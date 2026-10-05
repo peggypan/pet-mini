@@ -128,6 +128,13 @@
       <text class="ticket-line">宠物：{{signup.petName || '我家毛孩'}}{{signup.petBreed ? ' · ' + signup.petBreed : ''}}</text>
     </view>
     <text class="ticket-tip">请向发起人出示此码；也可直接报下方 6 位核销码。若一直显示「生成中」，请关闭后重新点「已报名」。</text>
-    <text class="ticket-close" bindtap="onCloseTicket">关闭</text>
+    <view class="ticket-foot">
+      <button
+        class="ticket-cancel"
+        wx:if="{{!signup.checkedIn}}"
+        bindtap="onCancelSignup"
+      >取消报名</button>
+      <text class="ticket-close" bindtap="onCloseTicket">关闭</text>
+    </view>
   </view>
 </view>

@@ -46,15 +46,120 @@
     </view>
 
     <view class="form-row">
-      <text class="row-label">联系方式</text>
+      <text class="row-label">*联系方式</text>
       <input
         class="row-input"
         value="{{contact}}"
         bindinput="onInput"
         data-field="contact"
-        placeholder="微信号或手机号"
+        placeholder="手机号或微信号"
         placeholder-class="row-ph"
       />
+    </view>
+
+    <view class="identity-head">
+      <text class="section-title">身份信息</text>
+      <text class="section-tip">平台审核主理人资质，信息仅用于入驻审核</text>
+    </view>
+
+    <view class="entity-row">
+      <view
+        class="entity-pill {{entityType === 'personal' ? 'on' : ''}}"
+        data-type="personal"
+        bindtap="onSwitchEntity"
+      >对私（个人）</view>
+      <view
+        class="entity-pill {{entityType === 'corporate' ? 'on' : ''}}"
+        data-type="corporate"
+        bindtap="onSwitchEntity"
+      >对公（企业/组织）</view>
+    </view>
+
+    <view class="identity-block" wx:if="{{entityType === 'personal'}}">
+      <text class="block-label">对私身份信息</text>
+      <view class="form-row">
+        <text class="row-label">*真实姓名</text>
+        <input
+          class="row-input"
+          value="{{realName}}"
+          bindinput="onInput"
+          data-field="realName"
+          placeholder="与身份证一致"
+          placeholder-class="row-ph"
+          maxlength="20"
+        />
+      </view>
+      <view class="form-row">
+        <text class="row-label">*身份证号</text>
+        <input
+          class="row-input"
+          value="{{idCard}}"
+          bindinput="onInput"
+          data-field="idCard"
+          placeholder="18位身份证号"
+          placeholder-class="row-ph"
+          maxlength="18"
+        />
+      </view>
+      <text class="upload-label">*身份证人像面</text>
+      <view class="id-upload-row">
+        <view class="id-upload" bindtap="onPickIdImage" data-field="idFrontImage" wx:if="{{!idFrontImage}}">
+          <text class="id-upload-icon">📷</text>
+          <text class="id-upload-text">上传正面</text>
+        </view>
+        <image class="id-preview" wx:if="{{idFrontImage}}" src="{{idFrontImage}}" mode="aspectFill" bindtap="onPreviewImage" data-url="{{idFrontImage}}"></image>
+        <view class="id-upload" bindtap="onPickIdImage" data-field="idBackImage" wx:if="{{!idBackImage}}">
+          <text class="id-upload-icon">📷</text>
+          <text class="id-upload-text">上传反面</text>
+        </view>
+        <image class="id-preview" wx:if="{{idBackImage}}" src="{{idBackImage}}" mode="aspectFill" bindtap="onPreviewImage" data-url="{{idBackImage}}"></image>
+      </view>
+    </view>
+
+    <view class="identity-block" wx:if="{{entityType === 'corporate'}}">
+      <text class="block-label">对公营业执照</text>
+      <view class="form-row">
+        <text class="row-label">*企业名称</text>
+        <input
+          class="row-input"
+          value="{{companyName}}"
+          bindinput="onInput"
+          data-field="companyName"
+          placeholder="营业执照上的名称"
+          placeholder-class="row-ph"
+          maxlength="40"
+        />
+      </view>
+      <view class="form-row">
+        <text class="row-label">*信用代码</text>
+        <input
+          class="row-input"
+          value="{{licenseNo}}"
+          bindinput="onInput"
+          data-field="licenseNo"
+          placeholder="18位统一社会信用代码"
+          placeholder-class="row-ph"
+          maxlength="18"
+        />
+      </view>
+      <view class="form-row">
+        <text class="row-label">*法人姓名</text>
+        <input
+          class="row-input"
+          value="{{legalPerson}}"
+          bindinput="onInput"
+          data-field="legalPerson"
+          placeholder="法定代表人"
+          placeholder-class="row-ph"
+          maxlength="20"
+        />
+      </view>
+      <text class="upload-label">*营业执照照片</text>
+      <view class="license-upload" bindtap="onPickIdImage" data-field="licenseImage" wx:if="{{!licenseImage}}">
+        <text class="id-upload-icon">📄</text>
+        <text class="id-upload-text">上传营业执照</text>
+      </view>
+      <image class="license-preview" wx:if="{{licenseImage}}" src="{{licenseImage}}" mode="aspectFill" bindtap="onPreviewImage" data-url="{{licenseImage}}"></image>
     </view>
 
     <view class="cover-block">

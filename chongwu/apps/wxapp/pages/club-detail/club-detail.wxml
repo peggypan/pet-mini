@@ -1,0 +1,28 @@
+<view class="page" wx:if="{{club}}">
+  <view class="cover-wrap aspect-34">
+    <image class="cover" src="{{club.cover}}" mode="aspectFill"></image>
+  </view>
+  <view class="card">
+    <text class="name">{{club.name}}</text>
+    <text class="meta">{{club.city}} · {{club.owner || '主理人'}} · {{club.members || club.memberCount || 0}} 成员</text>
+    <text class="meta" wx:if="{{club.eventCount}}">已举办 {{club.eventCount}} 场活动</text>
+    <view class="section">
+      <text class="label">俱乐部介绍</text>
+      <text class="intro">{{club.intro || '暂无介绍'}}</text>
+    </view>
+  </view>
+
+  <view class="bottom" wx:if="{{!isOwner}}">
+    <button
+      class="btn-primary"
+      wx:if="{{!joined}}"
+      bindtap="onJoin"
+    >加入俱乐部</button>
+    <block wx:else>
+      <button class="btn-secondary" bindtap="onGoMyClubs">我的俱乐部</button>
+      <button class="btn-primary" bindtap="onChat">俱乐部动态</button>
+    </block>
+  </view>
+</view>
+
+<view class="loading" wx:else>加载中…</view>

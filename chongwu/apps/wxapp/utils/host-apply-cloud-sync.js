@@ -25,7 +25,13 @@ async function resolveUrl(url) {
 
 async function uploadHostApplyMedia(body) {
   const next = { ...body };
-  next.cover = await resolveUrl(next.cover);
+  if (next.name && !next.clubName) next.clubName = next.name;
+  const imageFields = ['cover', 'idFrontImage', 'idBackImage', 'licenseImage'];
+  await Promise.all(
+    imageFields.map(async (key) => {
+      if (next[key]) next[key] = await resolveUrl(next[key]);
+    }),
+  );
   return next;
 }
 

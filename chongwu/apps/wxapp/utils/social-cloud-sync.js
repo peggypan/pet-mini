@@ -39,7 +39,8 @@ async function uploadSocialMedia(payload) {
     }),
   );
   next.images = next.mediaList.filter((m) => m.type === 'image').map((m) => m.url);
-  if (!next.image && next.images[0]) next.image = next.images[0];
+  const firstImage = next.mediaList.find((m) => m && m.type === 'image' && m.url);
+  next.image = (firstImage && firstImage.url) || next.images[0] || '';
   return next;
 }
 

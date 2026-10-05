@@ -26,6 +26,17 @@
       <text class="clear-topic" bindtap="onClearTopic">清除</text>
     </view>
 
+    <text class="label">标题</text>
+    <input
+      class="title-input"
+      placeholder="给动态起个标题（选填）"
+      placeholder-class="title-ph"
+      value="{{title}}"
+      bindinput="onTitleInput"
+      maxlength="40"
+    />
+    <text class="title-count">{{title.length}}/40</text>
+
     <text class="label">内容</text>
     <view class="textarea-wrap">
       <view class="textarea-mirror" wx:if="{{content}}">

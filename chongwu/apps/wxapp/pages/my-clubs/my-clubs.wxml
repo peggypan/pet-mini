@@ -30,7 +30,7 @@
 
   <!-- 加入的俱乐部 -->
   <block wx:if="{{tab === 'joined'}}">
-    <view class="club-card" wx:for="{{joinedClubs}}" wx:key="id">
+    <view class="club-card tap" wx:for="{{joinedClubs}}" wx:key="id" data-id="{{item.id}}" bindtap="onOpenClub">
       <view class="club-cover-wrap aspect-34">
         <image class="club-cover" src="{{item.cover}}" mode="aspectFill"></image>
       </view>
@@ -41,8 +41,8 @@
         </view>
         <text class="club-meta">{{item.city}} · {{item.owner || '主理人'}} · {{item.members || 0}} 成员</text>
         <view class="club-actions">
-          <text class="link-btn" data-id="{{item.id}}" bindtap="onChat">发消息</text>
-          <text class="link-btn warn" data-id="{{item.id}}" bindtap="onLeave">退出</text>
+          <text class="link-btn" data-id="{{item.id}}" catchtap="onChat">发消息</text>
+          <text class="link-btn warn" data-id="{{item.id}}" catchtap="onLeave">退出</text>
         </view>
       </view>
     </view>
@@ -54,18 +54,21 @@
     <view class="section-head">
       <text class="section-title">同城俱乐部 · 推荐加入</text>
     </view>
-    <view class="club-card" wx:for="{{recommendClubs}}" wx:key="id">
+    <view class="club-card tap" wx:for="{{recommendClubs}}" wx:key="id" data-id="{{item.id}}" bindtap="onOpenClub">
       <view class="club-cover-wrap aspect-34">
         <image class="club-cover" src="{{item.cover}}" mode="aspectFill"></image>
       </view>
       <view class="club-body">
         <view class="club-head">
           <text class="club-name">{{item.name}}</text>
-          <text class="club-join" data-id="{{item.id}}" bindtap="onJoin">＋ 加入</text>
+          <text class="club-join" data-id="{{item.id}}" catchtap="onJoin">＋ 加入</text>
         </view>
         <text class="club-meta">{{item.city}} · {{item.owner}} · {{item.members}} 成员</text>
         <text class="club-intro">{{item.intro}}</text>
       </view>
+    </view>
+    <view class="recommend-empty" wx:if="{{!recommendClubs.length}}">
+      <text>暂无推荐俱乐部，请确认当前城市或稍后再来</text>
     </view>
   </block>
 </view>

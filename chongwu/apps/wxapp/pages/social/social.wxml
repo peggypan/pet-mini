@@ -97,6 +97,7 @@
         </view>
       </view>
       <text class="topic" wx:if="{{item.topic}}">{{item.topic}}</text>
+      <text class="post-headline" wx:if="{{item.title}}">{{item.title}}</text>
       <view class="content" wx:if="{{item.contentParts && item.contentParts.length}}">
         <block wx:for="{{item.contentParts}}" wx:key="index" wx:for-item="part">
           <text

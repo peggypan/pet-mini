@@ -17,6 +17,15 @@ Page({
     intro: '',
     contact: '',
     cover: '',
+    entityType: 'personal',
+    realName: '',
+    idCard: '',
+    idFrontImage: '',
+    idBackImage: '',
+    companyName: '',
+    licenseNo: '',
+    legalPerson: '',
+    licenseImage: '',
   },
 
   onLoad() {
@@ -43,6 +52,12 @@ Page({
     wx.navigateTo({ url: '/pages/city-picker/city-picker' });
   },
 
+  onSwitchEntity(e) {
+    const entityType = e.currentTarget.dataset.type;
+    if (!entityType || entityType === this.data.entityType) return;
+    this.setData({ entityType });
+  },
+
   onChooseCover() {
     chooseMedia({
       count: 1,
@@ -53,6 +68,25 @@ Page({
         if (file) this.setData({ cover: file.tempFilePath });
       },
     });
+  },
+
+  onPickIdImage(e) {
+    const field = e.currentTarget.dataset.field;
+    if (!field) return;
+    chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      success: (res) => {
+        const file = (res.tempFiles || [])[0];
+        if (file) this.setData({ [field]: file.tempFilePath });
+      },
+    });
+  },
+
+  onPreviewImage(e) {
+    const url = e.currentTarget.dataset.url;
+    if (url) wx.previewImage({ urls: [url], current: url });
   },
 
   onReset() {
@@ -90,10 +124,62 @@ Page({
     if (!city) return wx.showToast({ title: '请选择所在城市', icon: 'none' });
     if (!intro) return wx.showToast({ title: '请填写俱乐部介绍', icon: 'none' });
     if (!cover) return wx.showToast({ title: '请上传俱乐部封面', icon: 'none' });
+    if (!contact) return wx.showToast({ title: '请填写联系方式', icon: 'none' });
+
+    const {
+      entityType,
+      realName,
+      idCard,
+      idFrontImage,
+      idBackImage,
+      companyName,
+      licenseNo,
+      legalPerson,
+      licenseImage,
+    } = this.data;
+
+    if (entityType === 'personal') {
+      if (!realName || !idCard) {
+        wx.showToast({ title: '请填写对私身份信息', icon: 'none' });
+        return;
+      }
+      if (!/^\d{17}[\dXx]$/.test(idCard)) {
+        wx.showToast({ title: '身份证号格式不正确', icon: 'none' });
+        return;
+      }
+      if (!idFrontImage || !idBackImage) {
+        wx.showToast({ title: '请上传身份证正反面', icon: 'none' });
+        return;
+      }
+    } else {
+      if (!companyName || !licenseNo || !legalPerson) {
+        wx.showToast({ title: '请填写对公营业执照信息', icon: 'none' });
+        return;
+      }
+      if (!licenseImage) {
+        wx.showToast({ title: '请上传营业执照', icon: 'none' });
+        return;
+      }
+    }
 
     wx.showLoading({ title: '提交中', mask: true });
     try {
-      const row = await submitHostApplyToCloud({ name, city, intro, contact, cover });
+      const row = await submitHostApplyToCloud({
+        name,
+        city,
+        intro,
+        contact,
+        cover,
+        entityType,
+        realName,
+        idCard,
+        idFrontImage,
+        idBackImage,
+        companyName,
+        licenseNo,
+        legalPerson,
+        licenseImage,
+      });
       this.setData({ apply: row });
       wx.showToast({ title: '已提交审核', icon: 'success' });
     } catch (e) {

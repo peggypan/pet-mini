@@ -168,17 +168,18 @@ page {
 
 .map-section {
   position: relative;
+  padding-bottom: 24rpx;
 }
 
 .map-fab {
-  position: absolute;
-  right: 8rpx;
-  top: 248rpx;
-  z-index: 6;
+  position: fixed;
+  right: 28rpx;
+  bottom: calc(152rpx + env(safe-area-inset-bottom));
+  z-index: 120;
 }
 
 .map-fab-open {
-  z-index: 30;
+  z-index: 200;
 }
 
 .map-filter-tip {

@@ -4,7 +4,7 @@ page {
 
 .page {
   min-height: 100vh;
-  padding: 24rpx 28rpx calc(40rpx + env(safe-area-inset-bottom));
+  padding: 24rpx 28rpx calc(160rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 
@@ -256,4 +256,38 @@ page {
   display: block;
   font-size: 24rpx;
   color: #999;
+}
+
+.publish-fab {
+  position: fixed;
+  right: 32rpx;
+  bottom: calc(48rpx + env(safe-area-inset-bottom));
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6rpx;
+  padding: 0 36rpx;
+  height: 96rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #5BB8FF 0%, #4DA7F8 100%);
+  box-shadow: 0 8rpx 28rpx rgba(77, 167, 248, 0.42);
+}
+
+.publish-fab:active {
+  opacity: 0.92;
+  transform: scale(0.98);
+}
+
+.publish-fab-icon {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1;
+}
+
+.publish-fab-text {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #1a1a1a;
 }

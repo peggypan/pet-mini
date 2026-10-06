@@ -3,6 +3,9 @@
     <image class="cover" src="{{club.cover}}" mode="aspectFill"></image>
   </view>
   <view class="card">
+    <view class="audit-banner" wx:if="{{auditPending}}">
+      <text>入驻审核中，通过后将出现在同城推荐</text>
+    </view>
     <text class="name">{{club.name}}</text>
     <text class="meta">{{club.city}} · {{club.owner || '主理人'}} · {{club.members || club.memberCount || 0}} 成员</text>
     <text class="meta" wx:if="{{club.eventCount}}">已举办 {{club.eventCount}} 场活动</text>
@@ -12,7 +15,12 @@
     </view>
   </view>
 
-  <view class="bottom" wx:if="{{!isOwner}}">
+  <view class="bottom" wx:if="{{isOwner}}">
+    <button class="btn-secondary" bindtap="onViewApply">查看</button>
+    <button class="btn-primary" bindtap="onEditApply">编辑</button>
+  </view>
+
+  <view class="bottom" wx:elif="{{!isOwner}}">
     <button
       class="btn-primary"
       wx:if="{{!joined}}"

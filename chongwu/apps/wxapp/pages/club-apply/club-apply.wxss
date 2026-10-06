@@ -101,10 +101,13 @@ page { background: #F5F8FC; }
 
 .row-textarea {
   width: 100%;
-  min-height: 160rpx;
+  height: 120rpx;
+  min-height: 120rpx;
+  max-height: 120rpx;
   margin-top: 16rpx;
-  padding: 20rpx;
+  padding: 16rpx 20rpx;
   font-size: 26rpx;
+  line-height: 1.45;
   color: #1A1A1A;
   background: #F8F8F8;
   border-radius: 16rpx;

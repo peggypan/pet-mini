@@ -233,7 +233,9 @@ cloudApi.callApi('auth', 'me').then(r => console.log(r));
 
 | ID | 页面 | 步骤 | 预期 |
 |----|------|------|------|
-| CLB-01 | **`club-apply`** | 提交主理人申请 | `host_applies` pending |
+| CLB-01 | **`club-apply`** | 提交主理人申请 | `host_applies` pending，并同步 `clubs`（`onlineStatus: pending`） |
+| CLB-01b | **`my-clubs` 进入 / 刷新** | 已有申请无 club | `host_applies.ensureClub`（仅同步 `clubs` 为 pending，不上线） |
+| CLB-01c | **后台** | `admin.reviewHostApply` decision=approve | 申请 approved，`clubs.onlineStatus: online` |
 | CLB-02 | **`my-clubs`** | 我创建的俱乐部 tab | `clubs.listMine` |
 | CLB-03 | **`my-clubs`** | 我加入的 tab | `club_members.listMine` |
 | CLB-04 | 俱乐部详情 | 加入俱乐部 | `club_members.join` |

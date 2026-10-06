@@ -91,6 +91,7 @@ const ROUTES = {
   'host_applies.getMine': (payload, ctx) => hostAppliesHandler.getMine(payload, ctx),
   'host_applies.submit': (payload, ctx) => hostAppliesHandler.submit(payload, ctx),
   'host_applies.remove': (payload, ctx) => hostAppliesHandler.remove(payload, ctx),
+  'host_applies.ensureClub': (payload, ctx) => hostAppliesHandler.ensureClub(payload, ctx),
   'clubs.listFeed': (payload, ctx) => clubsHandler.listFeed(payload, ctx),
   'clubs.listMine': (payload, ctx) => clubsHandler.listMine(payload, ctx),
   'clubs.get': (payload, ctx) => clubsHandler.get(payload, ctx),
@@ -123,6 +124,7 @@ const ROUTES = {
   'sensitive_words.remove': (payload, ctx) => sensitiveWordsHandler.remove(payload, ctx),
   'admin.login': (payload, ctx) => adminHandler.login(payload, ctx),
   'admin.me': (payload, ctx) => adminHandler.me(payload, ctx),
+  'admin.reviewHostApply': (payload, ctx) => adminHandler.reviewHostApply(payload, ctx),
   'admin_users.listFeed': (payload, ctx) => adminUsersHandler.listFeed(payload, ctx),
   'admin_users.get': (payload, ctx) => adminUsersHandler.get(payload, ctx),
   'admin_users.save': (payload, ctx) => adminUsersHandler.save(payload, ctx),
@@ -146,7 +148,6 @@ const PLANNED = [
   'pets.*',
   'admin.reviewMapPoint',
   'admin.reviewMerchantApply',
-  'admin.reviewHostApply',
   'admin.moderatePost',
 ];
 

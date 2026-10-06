@@ -24,6 +24,10 @@ Page({
   onShow() {
     this.applyClubsFromCache();
     if (cloudApi.cloudEnabled()) {
+      const { refreshHostApplyFromCloud } = require('../../utils/host-apply-cloud-sync');
+      refreshHostApplyFromCloud()
+        .then(() => this.applyClubsFromCache())
+        .catch(() => {});
       this.refreshClubsInBackground();
     }
   },
@@ -34,7 +38,13 @@ Page({
       const apply = store.getClubApply();
       if (apply) {
         const approved = apply.status === 'approved';
-        myClubs = [{ ...apply, name: apply.name || apply.clubName, status: approved ? 'approved' : 'pending' }];
+        const clubId = apply.clubId || apply.id;
+        myClubs = [{
+          ...apply,
+          id: clubId,
+          name: apply.name || apply.clubName,
+          status: approved ? 'approved' : 'pending',
+        }];
       }
     } else {
       myClubs = myClubs.map((c) => ({
@@ -94,6 +104,25 @@ Page({
     const id = e.currentTarget.dataset.id;
     if (!id) return;
     wx.navigateTo({ url: `/pages/club-detail/club-detail?id=${id}` });
+  },
+
+  onOpenMyClub(e) {
+    const id = e.currentTarget.dataset.id;
+    const pending = e.currentTarget.dataset.pending;
+    const fromCache = id && store.getClubFromCache(id);
+    if (fromCache && fromCache.id) {
+      wx.navigateTo({ url: `/pages/club-detail/club-detail?id=${fromCache.id}` });
+      return;
+    }
+    if (id && pending !== '1') {
+      wx.navigateTo({ url: `/pages/club-detail/club-detail?id=${id}` });
+      return;
+    }
+    wx.navigateTo({
+      url: id
+        ? `/pages/club-detail/club-detail?id=${id}&fromApply=1`
+        : '/pages/club-apply/club-apply',
+    });
   },
 
   async onJoin(e) {

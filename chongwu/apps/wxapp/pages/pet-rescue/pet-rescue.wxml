@@ -7,7 +7,7 @@
     </view>
     <view class="action-card adopt" bindtap="onPublishAdopt">
       <text class="action-icon">🐱</text>
-      <text class="action-name">领养救助</text>
+      <text class="action-name">领养 / 救助</text>
       <text class="action-tip">选点 · 图片 · 视频 · 分享</text>
     </view>
   </view>
@@ -75,7 +75,12 @@
     <view class="empty" wx:if="{{!loadError && displayList.length === 0}}">
       <text class="empty-icon">🐾</text>
       <text class="empty-title">暂无同城信息</text>
-      <text class="empty-desc">点击上方按钮发布寻宠、招领或领养</text>
+      <text class="empty-desc">点击右下角「发布」或上方入口</text>
     </view>
+  </view>
+
+  <view class="publish-fab" bindtap="onPublishTap">
+    <text class="publish-fab-icon">＋</text>
+    <text class="publish-fab-text">发布</text>
   </view>
 </view>

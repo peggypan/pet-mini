@@ -1,15 +1,18 @@
 <view class="page">
-  <view class="banner {{apply ? 'ok' : ''}}" wx:if="{{apply}}">
+  <view
+    class="banner {{apply.status === 'approved' ? 'ok' : ''}}"
+    wx:if="{{apply && (apply.status === 'pending' || apply.status === 'approved' || apply.status === 'rejected')}}"
+  >
     <view class="banner-left">
       <text class="banner-title">{{apply.status === 'approved' ? '✓ 已成为主理人' : '⏳ 入驻申请审核中'}}</text>
       <text class="banner-desc">{{apply.status === 'approved' ? '你的俱乐部已上线，可在「我的俱乐部」管理' : '提交后 1-3 个工作日内完成审核'}}</text>
     </view>
-    <text class="banner-action" bindtap="onReset">撤回</text>
+    <text class="banner-action" wx:if="{{!readonly && apply.status === 'pending'}}" bindtap="onReset">撤回</text>
   </view>
 
   <view class="card">
-    <text class="card-title">填写入驻信息</text>
-    <text class="card-sub">成为俱乐部主理人，组织同城宠友活动</text>
+    <text class="card-title">{{readonly ? '入驻信息' : '填写入驻信息'}}</text>
+    <text class="card-sub">{{readonly ? '以下为已提交的入驻资料' : '成为俱乐部主理人，组织同城宠友活动'}}</text>
 
     <view class="form-row">
       <text class="row-label">*俱乐部名称</text>
@@ -21,6 +24,7 @@
         placeholder="如：周末遛狗俱乐部"
         placeholder-class="row-ph"
         maxlength="20"
+        disabled="{{readonly}}"
       />
     </view>
 
@@ -42,6 +46,10 @@
         placeholder="俱乐部所在区域、活动频率、适合的宠物类型等"
         placeholder-class="row-ph"
         maxlength="300"
+        auto-height="{{false}}"
+        fixed="{{true}}"
+        show-confirm-bar="{{false}}"
+        disabled="{{readonly}}"
       ></textarea>
     </view>
 
@@ -54,6 +62,7 @@
         data-field="contact"
         placeholder="手机号或微信号"
         placeholder-class="row-ph"
+        disabled="{{readonly}}"
       />
     </view>
 
@@ -87,6 +96,7 @@
           placeholder="与身份证一致"
           placeholder-class="row-ph"
           maxlength="20"
+          disabled="{{readonly}}"
         />
       </view>
       <view class="form-row">
@@ -99,16 +109,17 @@
           placeholder="18位身份证号"
           placeholder-class="row-ph"
           maxlength="18"
+          disabled="{{readonly}}"
         />
       </view>
       <text class="upload-label">*身份证人像面</text>
       <view class="id-upload-row">
-        <view class="id-upload" bindtap="onPickIdImage" data-field="idFrontImage" wx:if="{{!idFrontImage}}">
+        <view class="id-upload" bindtap="onPickIdImage" data-field="idFrontImage" wx:if="{{!idFrontImage && !readonly}}">
           <text class="id-upload-icon">📷</text>
           <text class="id-upload-text">上传正面</text>
         </view>
         <image class="id-preview" wx:if="{{idFrontImage}}" src="{{idFrontImage}}" mode="aspectFill" bindtap="onPreviewImage" data-url="{{idFrontImage}}"></image>
-        <view class="id-upload" bindtap="onPickIdImage" data-field="idBackImage" wx:if="{{!idBackImage}}">
+        <view class="id-upload" bindtap="onPickIdImage" data-field="idBackImage" wx:if="{{!idBackImage && !readonly}}">
           <text class="id-upload-icon">📷</text>
           <text class="id-upload-text">上传反面</text>
         </view>
@@ -128,6 +139,7 @@
           placeholder="营业执照上的名称"
           placeholder-class="row-ph"
           maxlength="40"
+          disabled="{{readonly}}"
         />
       </view>
       <view class="form-row">
@@ -140,6 +152,7 @@
           placeholder="18位统一社会信用代码"
           placeholder-class="row-ph"
           maxlength="18"
+          disabled="{{readonly}}"
         />
       </view>
       <view class="form-row">
@@ -152,10 +165,11 @@
           placeholder="法定代表人"
           placeholder-class="row-ph"
           maxlength="20"
+          disabled="{{readonly}}"
         />
       </view>
       <text class="upload-label">*营业执照照片</text>
-      <view class="license-upload" bindtap="onPickIdImage" data-field="licenseImage" wx:if="{{!licenseImage}}">
+      <view class="license-upload" bindtap="onPickIdImage" data-field="licenseImage" wx:if="{{!licenseImage && !readonly}}">
         <text class="id-upload-icon">📄</text>
         <text class="id-upload-text">上传营业执照</text>
       </view>
@@ -167,7 +181,7 @@
       <view class="cover-box" bindtap="onChooseCover">
         <block wx:if="{{cover}}">
           <image class="cover-img" src="{{cover}}" mode="aspectFill"></image>
-          <view class="cover-mask" catchtap="onChooseCover">更换封面</view>
+          <view class="cover-mask" wx:if="{{!readonly}}" catchtap="onChooseCover">更换封面</view>
         </block>
         <view class="cover-empty" wx:else>
           <text class="cover-icon">＋</text>
@@ -182,6 +196,8 @@
       <text class="rule-item">· 成为主理人后可发起活动、管理成员与动态</text>
     </view>
 
-    <button class="submit" bindtap="onSubmit">提交审核</button>
+    <button class="submit" wx:if="{{!readonly}}" bindtap="onSubmit">
+      {{clubProfileEdit ? '保存俱乐部信息' : (apply && apply.status === 'pending' ? '保存修改' : '提交审核')}}
+    </button>
   </view>
 </view>

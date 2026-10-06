@@ -75,7 +75,7 @@ function toLocalClubApplyShape(doc) {
   if (!doc) return null;
   const auditStatus = doc.auditStatus || doc.status || 'pending';
   return {
-    id: doc.id,
+    id: doc.id || doc._id,
     name: doc.clubName,
     clubName: doc.clubName,
     city: doc.city,
@@ -96,7 +96,7 @@ function publicHostApply(doc, viewerOpenid) {
   const { _id, _openid, idCard, idFrontImage, idBackImage, licenseImage, ...rest } = doc;
   const isMine = viewerOpenid && (doc.openid === viewerOpenid || doc._openid === viewerOpenid);
   const auditStatus = rest.auditStatus || 'pending';
-  return {
+  const row = {
     id: _id,
     applicantId: rest.userId || rest.openid,
     applicantNickname: rest.userName || '宠友',
@@ -119,6 +119,12 @@ function publicHostApply(doc, viewerOpenid) {
     submittedAt: rest.submittedAt,
     clubId: rest.clubId || '',
   };
+  if (isMine) {
+    row.idFrontImage = idFrontImage || '';
+    row.idBackImage = idBackImage || '';
+    row.licenseImage = licenseImage || '';
+  }
+  return row;
 }
 
 module.exports = {

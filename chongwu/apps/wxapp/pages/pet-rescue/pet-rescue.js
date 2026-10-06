@@ -116,6 +116,17 @@ Page({
     this.applyFilter(this.data.list, filter);
   },
 
+  onPublishTap() {
+    if (!requireInteract()) return;
+    wx.showActionSheet({
+      itemList: ['寻宠 / 招领', '领养 / 救助'],
+      success: (res) => {
+        if (res.tapIndex === 0) this.onPublishLost();
+        else if (res.tapIndex === 1) this.onPublishAdopt();
+      },
+    });
+  },
+
   onPublishLost() {
     if (!requireInteract()) return;
     wx.navigateTo({ url: '/pages/lost-publish/lost-publish' });

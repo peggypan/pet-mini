@@ -2125,22 +2125,27 @@ function applyHostApplyFromCloud(data) {
     return null;
   }
   const pub = data.apply;
-  const row = pub.apply || pub;
-  if (!row) {
+  const row = (pub && pub.apply) || pub || {};
+  const auditStatus = data.auditStatus || row.status || pub.auditStatus || 'pending';
+  if (auditStatus !== 'pending' && auditStatus !== 'approved' && auditStatus !== 'rejected') {
     clearClubApply();
     return null;
   }
+  const clubId = data.clubId || pub.clubId || row.clubId || '';
   const local = {
-    id: row.id || pub.id,
-    name: row.name || row.clubName || pub.clubName,
-    city: row.city || pub.city,
-    intro: row.intro || pub.intro,
+    id: clubId || row.id || pub.id,
+    applyId: row.id || pub.id,
+    clubId,
+    name: row.name || row.clubName || pub.clubName || '',
+    city: row.city || pub.city || '',
+    intro: row.intro || pub.intro || '',
     contact: row.contact || pub.contact || '',
-    cover: row.cover || pub.cover,
-    status: row.status || data.auditStatus || pub.auditStatus,
+    cover: row.cover || pub.cover || '',
+    status: auditStatus === 'approved' ? 'approved' : auditStatus,
     submittedAt: row.submittedAt || pub.submittedAt,
   };
   write(KEYS.clubApply, local);
+  if (data.club) upsertMyOwnedClub(data.club);
   return local;
 }
 

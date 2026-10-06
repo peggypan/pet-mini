@@ -14,7 +14,12 @@ function uploadOne(localPath) {
   const m = localPath.match(/\.([a-zA-Z0-9]+)(?:\?|$)/);
   const ext = (m && m[1]) || 'jpg';
   const cloudPath = `host-applies/${Date.now()}_${Math.random().toString(36).slice(2, 10)}.${ext}`;
-  return wx.cloud.uploadFile({ cloudPath, filePath: localPath }).then((res) => res.fileID);
+  return wx.cloud
+    .uploadFile({ cloudPath, filePath: localPath })
+    .then((res) => {
+      if (!res || !res.fileID) throw new Error('图片上传失败，请重试');
+      return res.fileID;
+    });
 }
 
 async function resolveUrl(url) {
@@ -32,13 +37,16 @@ async function uploadHostApplyMedia(body) {
       if (next[key]) next[key] = await resolveUrl(next[key]);
     }),
   );
+  const stillLocal = imageFields.filter((key) => next[key] && needsCloudUpload(next[key]));
+  if (stillLocal.length) {
+    throw new Error('证件或封面尚未上传到云存储，请重新选择图片');
+  }
   return next;
 }
 
 async function ensureCloudLogin() {
-  const { refreshPetsFromCloud } = require('./pet-cloud-sync');
   try {
-    const loginData = await cloudApi.login();
+    const loginData = await cloudApi.callApi('auth', 'login');
     if (loginData && loginData.token) {
       const app = getApp();
       app.globalData.token = loginData.token;
@@ -46,22 +54,42 @@ async function ensureCloudLogin() {
       wx.setStorageSync('token', loginData.token);
       wx.setStorageSync('userInfo', loginData.user);
     }
+    return loginData;
   } catch (e) {
-    // ignore
+    console.warn('[host-apply-cloud-sync] auth.login', e);
+    throw new Error((e && e.message) || '请先登录后再操作');
   }
-  await refreshPetsFromCloud().catch(() => {});
+}
+
+async function syncHostApplyClubState(data) {
+  if (!data || !data.apply) return data;
+  let next = data;
+
+  if (!next.clubId) {
+    try {
+      next = await hostApplyApi('ensureClub');
+      store.applyHostApplyFromCloud(next);
+    } catch (e) {
+      console.warn('[host-apply-cloud-sync] ensureClub', e);
+    }
+  }
+
+  return next;
 }
 
 async function refreshHostApplyFromCloud() {
-  if (!cloudApi.cloudEnabled()) return store.getClubApply();
+  if (!cloudApi.cloudEnabled()) {
+    return { local: store.getClubApply(), remote: null };
+  }
   await ensureCloudLogin();
   try {
-    const data = await hostApplyApi('getMine');
+    let data = await hostApplyApi('getMine');
     store.applyHostApplyFromCloud(data);
-    return store.getClubApply();
+    data = await syncHostApplyClubState(data);
+    return { local: store.getClubApply(), remote: (data && data.apply) || null };
   } catch (e) {
     console.warn('[host-apply-cloud-sync] getMine', e);
-    return store.getClubApply();
+    return { local: store.getClubApply(), remote: null };
   }
 }
 
@@ -71,10 +99,30 @@ async function submitHostApplyToCloud(payload) {
   }
   await ensureCloudLogin();
   const body = await uploadHostApplyMedia(payload);
-  const data = await hostApplyApi('submit', body);
-  store.applyHostApplyFromCloud(data);
-  store.pushMessage('主理人入驻已提交', '审核通过后可管理俱乐部与活动', 'system');
-  return store.getClubApply();
+  let data = await hostApplyApi('submit', body);
+  let local = store.applyHostApplyFromCloud(data);
+  if (!local) {
+    local = store.applyHostApplyFromCloud({
+      apply: data && data.apply,
+      auditStatus: (data && data.auditStatus) || 'pending',
+      clubId: data && data.clubId,
+      club: data && data.club,
+    });
+  }
+  if (!local) {
+    throw new Error('提交失败，请检查网络或稍后重试');
+  }
+  try {
+    data = await syncHostApplyClubState(data);
+    if (data && data.apply) {
+      const synced = store.applyHostApplyFromCloud(data);
+      if (synced) local = synced;
+    }
+  } catch (e) {
+    console.warn('[host-apply-cloud-sync] sync after submit', e);
+  }
+  store.pushMessage('主理人入驻已提交', '审核中，请耐心等待', 'system');
+  return local;
 }
 
 async function withdrawHostApplyFromCloud() {
@@ -92,4 +140,5 @@ module.exports = {
   refreshHostApplyFromCloud,
   submitHostApplyToCloud,
   withdrawHostApplyFromCloud,
+  syncHostApplyClubState,
 };

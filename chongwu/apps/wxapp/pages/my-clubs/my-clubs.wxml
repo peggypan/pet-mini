@@ -6,22 +6,37 @@
 
   <!-- 我的俱乐部（我是主理人） -->
   <block wx:if="{{tab === 'mine'}}">
-    <view class="club-card" wx:if="{{myClubs.length}}">
-      <view class="club-cover-wrap aspect-34">
-        <image class="club-cover" src="{{item.cover}}" mode="aspectFill"></image>
-      </view>
-      <view class="club-body">
-        <view class="club-head">
-          <text class="club-name">{{item.name}}</text>
-          <text class="club-status {{item.status === 'approved' ? 'ok' : ''}}">
-            {{item.status === 'approved' ? '已上线' : '审核中'}}
-          </text>
+    <view
+      class="club-card-mine tap"
+      wx:for="{{myClubs}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      data-pending="{{item.status === 'approved' ? '' : '1'}}"
+      bindtap="onOpenMyClub"
+    >
+      <view class="mine-cover aspect-34">
+        <image
+          class="mine-cover-img"
+          src="{{item.cover || '/assets/mock/real_hero.jpg'}}"
+          mode="aspectFill"
+        ></image>
+        <view class="mine-cover-mask"></view>
+        <view class="club-status mine-status {{item.status === 'approved' ? 'ok' : ''}}">
+          <text class="mine-status-label">{{item.status === 'approved' ? '已上线' : '审核中'}}</text>
         </view>
-        <text class="club-meta">{{item.city}} · 主理人</text>
-        <text class="club-intro">{{item.intro}}</text>
+      </view>
+      <view class="mine-body">
+        <text class="mine-name">{{item.name || item.clubName || '我的俱乐部'}}</text>
+        <text class="mine-meta">{{item.city || '未选城市'}} · 我是主理人</text>
+        <text class="mine-intro">{{item.intro || '暂无介绍，点击完善俱乐部信息'}}</text>
+        <view class="mine-foot">
+          <text class="mine-hint" wx:if="{{item.status !== 'approved'}}">审核通过后将展示在同城推荐</text>
+          <text class="mine-hint ok" wx:else>点击进入管理俱乐部</text>
+          <text class="mine-arrow">详情 ›</text>
+        </view>
       </view>
     </view>
-    <view class="empty" wx:else>
+    <view class="empty" wx:if="{{!myClubs.length}}">
       <text class="empty-icon">🏟</text>
       <text class="empty-text">还没有自己主理的俱乐部</text>
       <button class="empty-btn" bindtap="onGoApply">成为主理人</button>

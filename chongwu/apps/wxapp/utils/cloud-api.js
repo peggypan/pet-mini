@@ -18,7 +18,8 @@ function callApi(module, action, payload = {}, options = {}) {
     .then((res) => {
       const body = res.result;
       if (!body || typeof body.code !== 'number') {
-        throw new Error('云函数返回格式异常');
+        const hint = body && body.message ? body.message : '';
+        throw new Error(hint || '云函数返回格式异常，请确认已部署 api 云函数');
       }
       if (body.code !== 0) {
         const err = new Error(body.message || '请求失败');
@@ -27,6 +28,14 @@ function callApi(module, action, payload = {}, options = {}) {
         throw err;
       }
       return body.data;
+    })
+    .catch((err) => {
+      if (err && err.code != null && err.message) throw err;
+      const msg = (err && (err.errMsg || err.message)) || '云函数调用失败';
+      if (/FUNCTION_NOT_FOUND|could not be found/i.test(msg)) {
+        throw new Error('未找到云函数 api，请在开发者工具中上传并部署');
+      }
+      throw new Error(msg);
     });
 }
 

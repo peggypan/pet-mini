@@ -3,7 +3,7 @@
     <view class="search-row">
       <view class="search" bindtap="onSearch">
         <text class="search-icon">🔍</text>
-        <text class="search-ph">搜搭子、活动、友好点位、商家</text>
+        <text class="search-ph">搜搭子、活动、友好点位</text>
       </view>
       <view class="city" bindtap="onCityTap">
         <text>{{city}}</text>

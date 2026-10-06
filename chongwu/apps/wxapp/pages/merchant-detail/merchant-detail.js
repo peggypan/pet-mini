@@ -1,66 +1,71 @@
-// pages/merchant-detail/merchant-detail.js
+const { findMerchant } = require('../../utils/catalog');
+const cloudApi = require('../../utils/cloud-api');
+const { fetchMerchantFromCloud } = require('../../utils/merchant-cloud-sync');
+const amap = require('../../utils/amap');
+
 Page({
-
-  /**
-   * 页面的初始数据
-   */
   data: {
-
+    merchant: null,
+    loading: true,
   },
 
-  /**
-   * 生命周期函数--监听页面加载
-   */
   onLoad(options) {
-
+    const id = options.id || '';
+    this._merchantId = id;
+    this.loadMerchant(id);
   },
 
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady() {
-
+  loadMerchant(id) {
+    if (!id) {
+      this.setData({ loading: false, merchant: null });
+      wx.showToast({ title: '缺少商家信息', icon: 'none' });
+      return;
+    }
+    let merchant = findMerchant(id);
+    if (merchant) {
+      this.setData({ merchant, loading: false });
+      wx.setNavigationBarTitle({ title: merchant.name || '商家详情' });
+    }
+    if (cloudApi.cloudEnabled()) {
+      fetchMerchantFromCloud(id)
+        .then((row) => {
+          if (row) {
+            this.setData({ merchant: row, loading: false });
+            wx.setNavigationBarTitle({ title: row.name || '商家详情' });
+          } else if (!merchant) {
+            this.setData({ loading: false });
+          }
+        })
+        .catch(() => {
+          if (!merchant) this.setData({ loading: false });
+        });
+    } else if (!merchant) {
+      this.setData({ loading: false });
+    }
   },
 
-  /**
-   * 生命周期函数--监听页面显示
-   */
-  onShow() {
-
+  onOpenPlace() {
+    const { merchant } = this.data;
+    if (!merchant || !merchant.address) return;
+    amap.openPlace({
+      name: merchant.name,
+      address: merchant.address,
+      city: merchant.city,
+    });
   },
 
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide() {
-
+  onBook() {
+    const id = this._merchantId || (this.data.merchant && this.data.merchant.id);
+    if (!id) return;
+    wx.navigateTo({ url: `/pages/service-book/service-book?id=${id}` });
   },
 
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload() {
-
+  onCall() {
+    const phone = this.data.merchant && this.data.merchant.contactPhone;
+    if (!phone) {
+      wx.showToast({ title: '暂无联系电话', icon: 'none' });
+      return;
+    }
+    wx.makePhoneCall({ phoneNumber: phone });
   },
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh() {
-
-  },
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom() {
-
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage() {
-
-  }
-})
+});

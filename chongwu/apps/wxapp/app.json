@@ -11,7 +11,6 @@
     "pages/buddy-map/buddy-map",
     "pages/social/social",
     "pages/local/local",
-    "pages/merchant-detail/merchant-detail",
     "pages/profile/profile",
     "pages/profile-edit/profile-edit",
     "pages/buddy-detail/buddy-detail",
@@ -32,16 +31,13 @@
     "pages/my-clubs/my-clubs",
     "pages/club-detail/club-detail",
     "pages/lost-publish/lost-publish",
-    "pages/adopt-publish/adopt-publish",
     "pages/map-submit/map-submit",
-    "pages/service-book/service-book",
     "pages/messages/messages",
     "pages/pet-form/pet-form",
     "pages/pet-cert/pet-cert",
     "pages/pet-cert-poster/pet-cert-poster",
     "pages/pet-cert-verify/pet-cert-verify",
-    "pages/chat/chat",
-    "pages/chat-call/chat-call"
+    "pages/chat/chat"
   ],
   "requiredPrivateInfos": [
     "chooseLocation",

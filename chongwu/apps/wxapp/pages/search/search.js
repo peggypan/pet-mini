@@ -3,14 +3,22 @@ const amap = require('../../utils/amap');
 const store = require('../../utils/store');
 const cloudApi = require('../../utils/cloud-api');
 const { refreshMerchantsFromCloud } = require('../../utils/merchant-cloud-sync');
+const featurePages = require('../../config/feature-pages');
 
-const TAB_DEF = [
-  { id: 'all', name: '全部' },
-  { id: 'buddy', name: '搭子' },
-  { id: 'event', name: '活动' },
-  { id: 'point', name: '点位' },
-  { id: 'merchant', name: '商家' },
-];
+function buildTabDef() {
+  const tabs = [
+    { id: 'all', name: '全部' },
+    { id: 'buddy', name: '搭子' },
+    { id: 'event', name: '活动' },
+    { id: 'point', name: '点位' },
+  ];
+  if (featurePages.merchantSearch) {
+    tabs.push({ id: 'merchant', name: '商家' });
+  }
+  return tabs;
+}
+
+const TAB_DEF = buildTabDef();
 
 Page({
   data: {
@@ -21,6 +29,7 @@ Page({
     results: { buddies: [], events: [], points: [], merchants: [] },
     hasAnyResult: false,
     hotWords: ['遛狗', '朝阳公园', '猫咖', '洗护', '露营', '友好餐厅'],
+    merchantSearch: featurePages.merchantSearch,
   },
 
   onLoad(options) {
@@ -29,7 +38,7 @@ Page({
       this.setData({ keyword, focusInput: false });
       this.runSearch(keyword);
     }
-    if (cloudApi.cloudEnabled()) {
+    if (featurePages.merchantSearch && cloudApi.cloudEnabled()) {
       refreshMerchantsFromCloud({ city: store.getCity(), limit: 80 }).catch(() => {});
     }
   },
@@ -63,6 +72,9 @@ Page({
 
   runSearch(keyword) {
     const results = searchAll(keyword.trim());
+    if (!featurePages.merchantSearch) {
+      results.merchants = [];
+    }
     const hasAnyResult = !!(
       results.buddies.length
       || results.events.length
@@ -103,7 +115,7 @@ Page({
       return;
     }
     if (type === 'merchant') {
-      wx.navigateTo({ url: `/pages/merchant-detail/merchant-detail?id=${id}` });
+      wx.showToast({ title: '商家功能即将上线', icon: 'none' });
     }
   },
 });

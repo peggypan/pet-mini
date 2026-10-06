@@ -1,2 +1,42 @@
-<!--pages/merchant-detail/merchant-detail.wxml-->
-<text>pages/merchant-detail/merchant-detail.wxml</text>
+<view class="page" wx:if="{{merchant}}">
+  <view class="cover-wrap aspect-34">
+    <image
+      class="cover"
+      src="{{merchant.cover || merchant.logoUrl || '/assets/mock/real_hero.jpg'}}"
+      mode="aspectFill"
+    ></image>
+  </view>
+  <view class="card">
+    <text class="name">{{merchant.name}}</text>
+    <text class="meta">{{merchant.city}} · {{merchant.category || merchant.type || '宠物服务'}}</text>
+    <view class="meta-row" wx:if="{{merchant.rating != null || merchant.price}}">
+      <text class="meta" wx:if="{{merchant.rating != null}}">评分 {{merchant.rating}}</text>
+      <text class="price" wx:if="{{merchant.price}}">{{merchant.price}}</text>
+    </view>
+    <view class="tags" wx:if="{{merchant.tags && merchant.tags.length}}">
+      <text class="tag" wx:for="{{merchant.tags}}" wx:key="*this">{{item}}</text>
+    </view>
+    <view class="section">
+      <text class="label">门店介绍</text>
+      <text class="intro">{{merchant.intro || '暂无介绍'}}</text>
+    </view>
+    <view class="section" wx:if="{{merchant.address}}">
+      <text class="label">地址</text>
+      <text class="addr tap" bindtap="onOpenPlace">📍 {{merchant.address}}</text>
+    </view>
+    <view class="section" wx:if="{{merchant.contactName || merchant.contactPhone}}">
+      <text class="label">联系</text>
+      <text class="intro">{{merchant.contactName}}{{merchant.contactName && merchant.contactPhone ? ' · ' : ''}}{{merchant.contactPhone}}</text>
+    </view>
+  </view>
+
+  <view class="bottom">
+    <button class="btn-secondary" wx:if="{{merchant.contactPhone}}" bindtap="onCall">电话联系</button>
+    <button class="btn-primary" bindtap="onBook">预约服务</button>
+  </view>
+</view>
+
+<view class="loading" wx:elif="{{loading}}">加载中…</view>
+<view class="empty" wx:else>
+  <text>商家不存在或已下线</text>
+</view>

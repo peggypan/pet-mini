@@ -3,7 +3,7 @@
     <text class="search-icon">🔍</text>
     <input
       class="search-input"
-      placeholder="搜搭子、活动、友好点位、商家"
+      placeholder="{{merchantSearch ? '搜搭子、活动、友好点位、商家' : '搜搭子、活动、友好点位'}}"
       value="{{keyword}}"
       focus="{{focusInput}}"
       bindinput="onInput"
@@ -74,7 +74,7 @@
         </view>
       </view>
     </view>
-    <view class="block" wx:if="{{results.merchants.length}}">
+    <view class="block" wx:if="{{merchantSearch && results.merchants.length}}">
       <text class="block-title">商家</text>
       <view class="row" wx:for="{{results.merchants}}" wx:key="id" data-type="merchant" data-id="{{item.id}}" bindtap="onResultTap">
         <view class="row-cover-wrap aspect-34 aspect-34-sm">
@@ -138,7 +138,7 @@
       </view>
       <view class="empty" wx:if="{{!results.points.length}}">暂无点位结果</view>
     </block>
-    <block wx:if="{{activeTab === 'merchant'}}">
+    <block wx:if="{{merchantSearch && activeTab === 'merchant'}}">
       <view class="row" wx:for="{{results.merchants}}" wx:key="id" data-type="merchant" data-id="{{item.id}}" bindtap="onResultTap">
         <view class="row-cover-wrap aspect-34 aspect-34-sm">
           <image class="row-cover" src="{{item.cover}}" mode="aspectFill"></image>

@@ -1,7 +1,33 @@
 {
   "description": "项目配置文件",
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      { "type": "folder", "value": "database" },
+      { "type": "folder", "value": "cloudfunctions" },
+      { "type": "suffix", "value": ".md" },
+      { "type": "file", "value": "config/cloud-env.example.js" },
+      { "type": "folder", "value": "pages/index" },
+      { "type": "folder", "value": "pages/discover" },
+      { "type": "folder", "value": "pages/mall" },
+      { "type": "folder", "value": "pages/mall-product" },
+      { "type": "folder", "value": "pages/mall-service" },
+      { "type": "folder", "value": "pages/service" },
+      { "type": "folder", "value": "pages/service-detail" },
+      { "type": "folder", "value": "pages/service-order" },
+      { "type": "folder", "value": "pages/orders" },
+      { "type": "folder", "value": "pages/idle" },
+      { "type": "folder", "value": "pages/idle-detail" },
+      { "type": "folder", "value": "pages/idle-order" },
+      { "type": "folder", "value": "pages/idle-publish" },
+      { "type": "folder", "value": "pages/health" },
+      { "type": "folder", "value": "pages/health-record" },
+      { "type": "folder", "value": "pages/diet-record" },
+      { "type": "folder", "value": "pages/pet-raise" },
+      { "type": "folder", "value": "pages/merchant-detail" },
+      { "type": "folder", "value": "pages/service-book" },
+      { "type": "folder", "value": "pages/chat-call" },
+      { "type": "folder", "value": "pages/adopt-publish" }
+    ],
     "include": []
   },
   "setting": {
@@ -20,7 +46,7 @@
     "uglifyFileName": false,
     "checkInvalidKey": true,
     "checkSiteMap": true,
-    "uploadWithSourceMap": true,
+    "uploadWithSourceMap": false,
     "compileHotReLoad": false,
     "lazyloadPlaceholderEnable": false,
     "useMultiFrameRuntime": true,

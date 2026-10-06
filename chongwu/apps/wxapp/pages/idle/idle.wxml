@@ -2,7 +2,7 @@
 <view class="page">
   <!-- 促销 Banner：clap.png 作为背景 -->
   <view class="promo-banner">
-    <image class="promo-bg" src="/assets/mock/clap.png" mode="aspectFill"></image>
+    <image class="promo-bg" src="/assets/mock/real_hero.jpg" mode="aspectFill"></image>
     <view class="promo-text-wrap">
       <text class="promo-text">让爱意延续,</text>
       <text class="promo-text">把闲置变成新欢</text>

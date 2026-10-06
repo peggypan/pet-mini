@@ -40,7 +40,7 @@
       <text class="proof-missing">档案标注为{{pet.vaccineLabel}}，但未附带证明图片</text>
     </view>
 
-    <text class="brand">宠头头 · 电子宠证查验页</text>
+    <text class="brand">遛搭搭 · 电子宠证查验页</text>
     <text class="privacy-note">未展示紧急联系人及联系电话</text>
   </view>
 </view>

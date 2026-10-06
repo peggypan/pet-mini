@@ -229,7 +229,7 @@ Page({
       };
     }
     return {
-      title: '宠头头 · 宠物社区',
+      title: '遛搭搭 · 宠物社区',
       path: '/pages/social/social',
     };
   },

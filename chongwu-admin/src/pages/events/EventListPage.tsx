@@ -99,7 +99,7 @@ export function EventListPage() {
   const openAdd = () => {
     form.resetFields();
     form.setFieldsValue({
-      hostName: '宠头头官方',
+      hostName: '遛搭搭官方',
       city: '北京',
       category: EVENT_CATEGORY_OPTIONS[0],
       role: 'personal',

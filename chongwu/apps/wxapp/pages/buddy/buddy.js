@@ -212,7 +212,7 @@ Page({
 
   onShareAppMessage() {
     return {
-      title: '宠头头 · 搭子广场',
+      title: '遛搭搭 · 搭子广场',
       path: '/pages/buddy/buddy',
     };
   },

@@ -56,7 +56,7 @@ Page({
   onDisagree() {
     wx.showModal({
       title: '无法继续使用',
-      content: '未同意隐私保护指引，将无法使用宠头头小程序。',
+      content: '未同意隐私保护指引，将无法使用遛搭搭小程序。',
       confirmText: '退出',
       cancelText: '再看看',
       success: (res) => {

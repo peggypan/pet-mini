@@ -381,7 +381,7 @@ Page({
   onShareAppMessage() {
     const { event } = this.data;
     if (!event) {
-      return { title: '宠头头 · 同城宠物活动', path: '/pages/events/events' };
+      return { title: '遛搭搭 · 同城宠物活动', path: '/pages/events/events' };
     }
     return {
       title: event.title || '一起来参加宠物活动',

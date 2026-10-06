@@ -33,7 +33,7 @@ export const routeMetaList: RouteMeta[] = [
 export function getRouteMeta(pathname: string): RouteMeta {
   const exact = routeMetaList.find((r) => r.path === pathname);
   if (exact) return exact;
-  return { path: pathname, title: '宠头头运营台', breadcrumb: ['工作台'] };
+  return { path: pathname, title: '遛搭搭运营台', breadcrumb: ['工作台'] };
 }
 
 /** 侧边栏菜单项待办数量（Mock，接云后由接口填充） */

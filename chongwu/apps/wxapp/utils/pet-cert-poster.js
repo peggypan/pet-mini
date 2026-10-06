@@ -172,7 +172,7 @@ function drawStyleFresh(ctx, pet, avatarImg) {
   ctx.fillStyle = '#1E88E5';
   ctx.font = '800 36px sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('宠头头 · 电子宠证', POSTER_W / 2, 128);
+  ctx.fillText('遛搭搭 · 电子宠证', POSTER_W / 2, 128);
 
   const cx = POSTER_W / 2;
   const cy = 280;
@@ -229,7 +229,7 @@ function drawStyleFresh(ctx, pet, avatarImg) {
     qrSize,
     '#0D2137',
     '#64748B',
-    { caption: '扫码查验电子宠证', subCaption: '宠头头小程序' },
+    { caption: '扫码查验电子宠证', subCaption: '遛搭搭小程序' },
   );
 
   ctx.fillStyle = 'rgba(13, 33, 55, 0.45)';
@@ -294,7 +294,7 @@ function drawStyleMagazine(ctx, pet, avatarImg) {
       boxFill: '#FFFFFF',
       qrFg: '#0D2137',
       caption: '扫码查验电子宠证',
-      subCaption: '宠头头',
+      subCaption: '遛搭搭',
     },
   );
 }
@@ -364,7 +364,7 @@ function drawStyleCute(ctx, pet, avatarImg) {
     qrSize,
     '#2D2A32',
     '#9CA3AF',
-    { caption: '扫码查验电子宠证', subCaption: '宠头头小程序' },
+    { caption: '扫码查验电子宠证', subCaption: '遛搭搭小程序' },
   );
 
   ctx.fillStyle = '#FFB6C1';

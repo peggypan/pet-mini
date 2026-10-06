@@ -1,5 +1,5 @@
 /**
- * 宠头头 · 宠物搭子交友 Mock（对齐交付文档 MVP）
+ * 遛搭搭 · 宠物搭子交友 Mock（对齐交付文档 MVP）
  */
 
 const BASE = '/assets/mock';
@@ -552,7 +552,7 @@ const MOCK_EVENTS = [
     seats: '28/40',
     remain: 12,
     require: '须带牵引绳与疫苗本',
-    host: '宠头头官方',
+    host: '遛搭搭官方',
     hostId: 'host_e1',
     hostPetName: '官方活动',
     hostAvatar: REAL.avatar,
@@ -652,7 +652,7 @@ const MOCK_EVENTS = [
     seats: '12/20',
     remain: 8,
     require: '慢节奏、尊重边界；紧张毛孩可全程牵绳',
-    host: '暖爪心理 · 宠头头合作',
+    host: '暖爪心理 · 遛搭搭合作',
     hostId: 'host_e4',
     hostPetName: '团子',
     hostAvatar: REAL.cat,

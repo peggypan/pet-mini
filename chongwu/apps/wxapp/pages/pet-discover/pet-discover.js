@@ -453,7 +453,7 @@ Page({
     const q = store.petLikeQuota();
     if (q.left <= 0) this.grantShareBonus();
     return {
-      title: '遛搭搭搭搭 · 让毛孩子遇见更好的伙伴',
+      title: '宠头头搭搭 · 让毛孩子遇见更好的伙伴',
     };
   },
 

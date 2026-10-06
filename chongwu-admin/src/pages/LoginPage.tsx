@@ -17,7 +17,7 @@ export function LoginPage() {
           <span className="admin-logo-mark" style={{ margin: '0 auto', display: 'grid' }}>
             🐾
           </span>
-          <h1>遛搭搭运营后台</h1>
+          <h1>宠头头运营后台</h1>
           <p>管理社区、活动、地图标点与商家入驻</p>
           <p style={{ marginTop: 12 }}>
             <span className="cloud-badge">微信云开发 · 接口待接入</span>

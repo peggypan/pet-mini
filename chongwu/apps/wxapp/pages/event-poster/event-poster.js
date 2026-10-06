@@ -91,7 +91,7 @@ Page({
   onShareAppMessage() {
     const { event, posters, current } = this.data;
     return {
-      title: event ? `邀请你参加：${event.title}` : '遛搭搭活动邀请',
+      title: event ? `邀请你参加：${event.title}` : '宠头头活动邀请',
       path: event ? `/pages/event-detail/event-detail?id=${event.id}` : '/pages/home/home',
       imageUrl: posters[current]?.url || '',
     };

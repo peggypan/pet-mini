@@ -247,7 +247,7 @@ function drawCenterFooterQr(ctx, event, qrImage, options = {}) {
     {
       ...options,
       compactCaption: true,
-      caption: options.caption || '长按识别 · 遛搭搭',
+      caption: options.caption || '长按识别 · 宠头头',
       subCaption: '',
       boxFill: 'rgba(255,255,255,0.96)',
       seed: options.seed || 'center',
@@ -317,7 +317,7 @@ function drawStyleFresh(ctx, event, coverImg, qrImage) {
   ctx.fillText(event.host || '主理人', innerX, brandMid - 8);
   ctx.fillStyle = '#1E88E5';
   ctx.font = '800 30px sans-serif';
-  ctx.fillText('遛搭搭', innerX, brandMid + 32);
+  ctx.fillText('宠头头', innerX, brandMid + 32);
 }
 
 function drawStyleMagazine(ctx, event, coverImg, qrImage) {
@@ -447,7 +447,7 @@ function drawStyleCute(ctx, event, coverImg, qrImage) {
 
   ctx.fillStyle = '#FF8FAB';
   ctx.font = '700 24px sans-serif';
-  ctx.fillText('遛搭搭 · 一起带毛孩出门', cx, panelTop + panelH - 28);
+  ctx.fillText('宠头头 · 一起带毛孩出门', cx, panelTop + panelH - 28);
 }
 
 function drawPoster(ctx, styleId, event, coverImg, qrImage) {

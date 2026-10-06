@@ -72,7 +72,7 @@ Page({
   onShareAppMessage() {
     const buddy = this.data.buddy;
     if (!buddy) {
-      return { title: '遛搭搭 · 搭搭', path: '/pages/pet-discover/pet-discover' };
+      return { title: '宠头头 · 搭搭', path: '/pages/pet-discover/pet-discover' };
     }
     return {
       title: `${buddy.userName} · ${buddy.petName} 找${buddy.buddyType || '搭子'}`,

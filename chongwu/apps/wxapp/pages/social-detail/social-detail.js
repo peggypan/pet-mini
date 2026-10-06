@@ -424,7 +424,7 @@ Page({
       ? `id=${postId}&source=local`
       : `id=${postId}`;
     if (!post) {
-      return { title: '遛搭搭 · 宠物社区', path: '/pages/social/social' };
+      return { title: '宠头头 · 宠物社区', path: '/pages/social/social' };
     }
     if (post.lostType === 'lost') {
       const loc = post.geoLocation?.name || post.location || '同城';

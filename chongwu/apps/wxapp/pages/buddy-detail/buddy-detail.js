@@ -104,7 +104,7 @@ Page({
   onShareAppMessage() {
     const buddy = this.data.buddy;
     if (!buddy) {
-      return { title: '遛搭搭 · 搭子详情', path: '/pages/buddy/buddy' };
+      return { title: '宠头头 · 搭子详情', path: '/pages/buddy/buddy' };
     }
     return {
       title: `${buddy.userName} · ${buddy.petName} 找${buddy.buddyType || '搭子'}`,

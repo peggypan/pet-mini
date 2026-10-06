@@ -405,7 +405,7 @@ export const mockEvents: EventRow[] = [
   {
     id: 'e1',
     title: '周末携宠露营季',
-    hostName: '遛搭搭官方',
+    hostName: '宠头头官方',
     city: '北京',
     category: '宠物聚会',
     role: 'personal',
@@ -446,7 +446,7 @@ export const mockEvents: EventRow[] = [
   {
     id: 'e4',
     title: '毛孩情绪疗愈慢走局',
-    hostName: '暖爪心理 · 遛搭搭合作',
+    hostName: '暖爪心理 · 宠头头合作',
     city: '北京',
     category: '疗愈活动',
     role: 'personal',

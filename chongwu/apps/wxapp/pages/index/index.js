@@ -253,14 +253,14 @@ Page({
   onShareAppMessage() {
     const invite = getInviteCode();
     return {
-      title: this.data.invite?.shareTitle || '遛搭搭 · 养宠一站式服务社区',
+      title: this.data.invite?.shareTitle || '宠头头 · 养宠一站式服务社区',
       path: `/pages/index/index?invite=${invite}`,
     };
   },
 
   onShareTimeline() {
     return {
-      title: '遛搭搭 · 养宠一站式服务社区',
+      title: '宠头头 · 养宠一站式服务社区',
       query: `invite=${getInviteCode()}`,
     };
   },

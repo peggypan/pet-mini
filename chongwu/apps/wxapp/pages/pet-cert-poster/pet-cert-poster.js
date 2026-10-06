@@ -104,7 +104,7 @@ Page({
     const { pet, posters, current } = this.data;
     const name = pet && pet.name ? pet.name : '毛孩子';
     return {
-      title: `${name} 的电子宠证 · 遛搭搭`,
+      title: `${name} 的电子宠证 · 宠头头`,
       path: '/pages/pet-cert/pet-cert',
       imageUrl: posters[current]?.url || '',
     };

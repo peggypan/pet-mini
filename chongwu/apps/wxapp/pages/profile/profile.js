@@ -519,7 +519,7 @@ Page({
     });
   },
   onAbout() {
-    wx.showModal({ title: '关于遛搭搭', content: '以宠物为媒介的同城社交与生活平台', showCancel: false });
+    wx.showModal({ title: '关于宠头头', content: '以宠物为媒介的同城社交与生活平台', showCancel: false });
   },
   onToggleProfileTag(e) {
     const label = e.currentTarget.dataset.label;

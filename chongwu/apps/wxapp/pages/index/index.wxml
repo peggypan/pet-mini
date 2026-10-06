@@ -7,7 +7,7 @@
         <text class="brand-mark-icon">🐾</text>
       </view>
       <view class="brand-text">
-        <text class="brand-name">遛搭搭</text>
+        <text class="brand-name">宠头头</text>
         <text class="brand-slogan">养宠一站式服务社区</text>
       </view>
       <view class="pet-pill" bindtap="onFamilyTap">

@@ -34,7 +34,7 @@ function AdminLayoutInner() {
   const [openKeys, setOpenKeys] = useState<string[]>(() => openKeysFromPath(location.pathname));
 
   useEffect(() => {
-    document.title = `${meta.title} · 遛搭搭运营台`;
+    document.title = `${meta.title} · 宠头头运营台`;
   }, [meta.title]);
 
   useEffect(() => {
@@ -75,7 +75,7 @@ function AdminLayoutInner() {
       >
         <div className="admin-logo" onClick={() => navigate('/')}>
           <span className="admin-logo-mark">🐾</span>
-          {!collapsed && <span>遛搭搭运营台</span>}
+          {!collapsed && <span>宠头头运营台</span>}
         </div>
         <Menu
           mode="inline"
@@ -115,7 +115,7 @@ function AdminLayoutInner() {
             <Outlet />
           </div>
           <footer className="admin-footer">
-            <span>遛搭搭小程序运营后台</span>
+            <span>宠头头小程序运营后台</span>
             <Link to="/">返回工作台</Link>
           </footer>
         </Content>

@@ -354,12 +354,12 @@ Page({
     if (lastPublishedId) {
       if (postType === 'adopt' && cloudApi.cloudEnabled()) {
         return {
-          title: shareTitle || '爱心领养 · 遛搭搭',
+          title: shareTitle || '爱心领养 · 宠头头',
           path: `/pages/social-detail/social-detail?id=${lastPublishedId}&source=local`,
         };
       }
       return {
-        title: shareTitle || '寻宠启事 · 遛搭搭',
+        title: shareTitle || '寻宠启事 · 宠头头',
         path: `/pages/social-detail/social-detail?id=${lastPublishedId}`,
       };
     }
@@ -371,7 +371,7 @@ Page({
       ? `/pages/lost-publish/lost-publish?mode=rescue-adopt&postType=${postType}`
       : '/pages/lost-publish/lost-publish';
     return {
-      title: preview ? `${tag} · ${loc} · ${preview}` : `${tag} · 遛搭搭同城互助`,
+      title: preview ? `${tag} · ${loc} · ${preview}` : `${tag} · 宠头头同城互助`,
       path: sharePath,
     };
   },
@@ -380,7 +380,7 @@ Page({
     const { shareTitle, postType } = this.data;
     const tag = SHARE_PAGE_TAG[postType] || '同城互助';
     return {
-      title: shareTitle || `${tag} · 遛搭搭`,
+      title: shareTitle || `${tag} · 宠头头`,
     };
   },
 });

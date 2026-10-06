@@ -30,7 +30,7 @@
       <text class="activity-addr" wx:if="{{pet.activityAreaAddress && pet.activityAreaName && pet.activityAreaAddress !== pet.activityAreaName}}">{{pet.activityAreaAddress}}</text>
       <text class="activity-hint" wx:if="{{pet.activityAreaLatitude}}">点击查看地图 ›</text>
     </view>
-    <text class="brand">遛搭搭 · 电子宠证</text>
+    <text class="brand">宠头头 · 电子宠证</text>
   </view>
 
   <view class="qr-section" wx:if="{{profileComplete && auditStatus !== 'rejected' && auditStatus !== 'hidden'}}">

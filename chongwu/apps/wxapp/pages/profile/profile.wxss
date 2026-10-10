@@ -17,6 +17,10 @@ page {
   box-sizing: border-box;
 }
 
+.login-block-spacer {
+  height: 200rpx;
+}
+
 .palette-canvas {
   position: fixed;
   left: -9999px;
@@ -380,31 +384,55 @@ page {
   border-radius: 999rpx;
 }
 
-.login-block {
-  margin-bottom: 24rpx;
+.login-dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(100rpx + env(safe-area-inset-bottom));
+  z-index: 120;
+  padding: 20rpx 28rpx 16rpx;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, #ffffff 28%);
+  box-sizing: border-box;
+  pointer-events: auto;
 }
 
-.login-bar {
+.login-dock-primary,
+.login-dock-secondary {
+  display: block;
+  width: 100%;
   margin-bottom: 12rpx;
-  background: #ffffff;
-  color: #2a8fd4;
   border-radius: 999rpx;
-  border: none;
   font-size: 28rpx;
   font-weight: 700;
   height: 88rpx;
-  padding: 0 24rpx;
-}
-
-.login-bar::after {
+  line-height: 88rpx;
+  padding: 0;
   border: none;
 }
 
-.login-bar-secondary {
-  background: rgba(255, 255, 255, 0.22);
-  color: #ffffff;
+.login-dock-primary::after,
+.login-dock-secondary::after {
+  border: none;
+}
+
+.login-dock-primary {
+  background: linear-gradient(135deg, #5bb8ff, #4da7f8);
+  color: #1a1a1a;
+}
+
+.login-dock-secondary {
+  background: #f0f7ff;
+  color: #2a8fd4;
   font-weight: 600;
-  border: 2rpx solid rgba(255, 255, 255, 0.45);
+}
+
+.login-dock-hint {
+  display: block;
+  font-size: 20rpx;
+  line-height: 1.45;
+  color: #888;
+  text-align: center;
+  padding: 0 12rpx;
 }
 
 .bento {

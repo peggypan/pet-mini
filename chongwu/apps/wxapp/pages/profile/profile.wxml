@@ -90,16 +90,7 @@
         <text class="mood-emoji">🦴</text>
       </view>
 
-      <view class="login-block" wx:if="{{!isLogin}}">
-        <button
-          id="login-phone-btn"
-          class="login-bar"
-          open-type="getPhoneNumber|agreePrivacyAuthorization"
-          bindgetphonenumber="onGetPhoneNumber"
-          bindagreeprivacyauthorization="onAgreePrivacyForPhone"
-        >微信授权手机号登录</button>
-        <button class="login-bar login-bar-secondary" bindtap="onWxLogin">微信快捷登录（开发用）</button>
-      </view>
+      <view class="login-block-spacer" wx:if="{{!isLogin}}"></view>
 
       <view class="bento">
         <view class="bento-row bento-row-main">
@@ -212,6 +203,25 @@
     </view>
   </view>
 </scroll-view>
+
+<!-- 授权按钮必须在 scroll-view 外；快速验证见 getPhoneNumber 官方文档 -->
+<view class="login-dock" wx:if="{{!isLogin}}">
+  <button
+    wx:if="{{privacyReady}}"
+    id="login-phone-btn"
+    class="login-dock-primary"
+    open-type="getPhoneNumber"
+    bindgetphonenumber="onGetPhoneNumber"
+  >微信授权手机号登录</button>
+  <button
+    wx:else
+    id="profile-agree-privacy-btn"
+    class="login-dock-primary"
+    open-type="agreePrivacyAuthorization"
+    bindagreeprivacyauthorization="onAgreePrivacyForLogin"
+  >同意隐私后继续</button>
+  <text class="login-dock-hint">使用微信手机号快速验证登录，请在真机点击上方按钮</text>
+</view>
 
 <view class="stat-sheet-mask" wx:if="{{statSheetVisible}}" catchtap="onCloseStatSheet"></view>
 <view class="stat-sheet {{statSheetVisible ? 'show' : ''}}" wx:if="{{statSheetVisible}}">

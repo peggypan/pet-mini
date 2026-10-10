@@ -31,6 +31,7 @@ const userFollowsHandler = require('./handlers/user_follows');
 /** 已实现：… / social_comments.* / local_posts.* */
 const ROUTES = {
   'system.ping': (payload, ctx) => system.ping(payload, ctx),
+  'system.phoneLoginReadiness': (payload, ctx) => system.phoneLoginReadiness(payload, ctx),
   'system.getWxacode': (payload, ctx) => system.getWxacode(payload),
   'system.checkCollections': (payload, ctx) => system.checkCollections(payload),
   'system.scanBrokenMediaUrls': (payload, ctx) => system.scanBrokenMediaUrls(payload),

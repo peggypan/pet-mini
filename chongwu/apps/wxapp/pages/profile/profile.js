@@ -22,6 +22,7 @@ const { getDisplayNickname } = require('../../utils/user-profile-display');
 const { pullUserProfileFromCloud } = require('../../utils/persist-user-profile');
 const { buildProfileStatList } = require('../../utils/profile-stat-list');
 const { consumeLoginPromptFlag } = require('../../utils/require-login');
+const { ensurePrivacyBeforeLogin, isDevtools } = require('../../utils/privacy');
 const { displayPublishTime } = require('../../utils/relative-time');
 const TAB_KEYS = ['myEvents', 'joined', 'buddy', 'social'];
 
@@ -154,6 +155,7 @@ function buildFeed(tabKey) {
 Page({
   data: {
     isLogin: false,
+    privacyReady: true,
     userInfo: null,
     pet: {},
     stats: { following: 0, followers: 0, heart: 0, likesCollects: 0, events: 0, orders: 0, organized: 0 },
@@ -243,7 +245,13 @@ Page({
   },
 
   paintProfileFromCache() {
-    const token = wx.getStorageSync('token');
+    let token = wx.getStorageSync('token');
+    try {
+      const g = getApp().globalData;
+      if (g && g.token) token = g.token;
+    } catch (e) {
+      // ignore
+    }
     const myEvents = store.listMyEvents();
     const statCounts = buildProfileStatCounts();
     this.setData({
@@ -302,6 +310,7 @@ Page({
     if (!this.data.statSheetVisible) {
       this.setTabBarHidden(false);
     }
+    this.refreshPrivacyReady();
     const token = this.paintProfileFromCache();
     this.refreshProfileInBackground();
     if (!token && consumeLoginPromptFlag()) {
@@ -309,6 +318,27 @@ Page({
         wx.showToast({ title: '请先登录', icon: 'none' });
       });
     }
+  },
+
+  refreshPrivacyReady() {
+    if (!wx.getPrivacySetting) {
+      this.setData({ privacyReady: true });
+      return;
+    }
+    wx.getPrivacySetting({
+      success: (res) => {
+        const ready = !res.needAuthorization;
+        this.setData({ privacyReady: ready });
+        if (ready) {
+          try {
+            getApp().globalData.privacyAccepted = true;
+          } catch (e) {
+            // ignore
+          }
+        }
+      },
+      fail: () => this.setData({ privacyReady: true }),
+    });
   },
 
   setTabBarHidden(hidden) {
@@ -386,30 +416,46 @@ Page({
     wx.navigateTo({ url: '/pages/city-picker/city-picker' });
   },
 
-  onAgreePrivacyForPhone() {
-    getApp().handlePrivacyAgree('login-phone-btn');
+  _isPhoneAuthOk(errMsg) {
+    const msg = String(errMsg || '');
+    return msg === 'getPhoneNumber:ok' || msg === 'getRealtimePhoneNumber:ok';
+  },
+
+  onAgreePrivacyForLogin() {
+    getApp().handlePrivacyAgree('profile-agree-privacy-btn');
+    this.setData({ privacyReady: true });
+    wx.showToast({ title: '请再点「微信授权手机号登录」', icon: 'none' });
   },
 
   onGetPhoneNumber(e) {
     const detail = e.detail || {};
     const errMsg = detail.errMsg || '';
+    if (isDevtools() && !detail.code && !this._isPhoneAuthOk(errMsg)) {
+      wx.showModal({
+        title: '请在真机测试手机号',
+        content: '开发者工具里通常不会出现手机号授权弹窗，请用「预览」扫码在真机点击「微信授权手机号登录」。',
+        showCancel: false,
+        confirmText: '知道了',
+      });
+      return;
+    }
     if (errMsg.includes('deny') || errMsg.includes('cancel')) {
       wx.showToast({ title: '已取消手机号授权', icon: 'none' });
       return;
     }
-    const ok = errMsg === 'getPhoneNumber:ok' || !!detail.code || !!detail.encryptedData;
+    if (errMsg.includes('privacy') || errMsg.includes('privacy agreement')) {
+      ensurePrivacyBeforeLogin();
+      return;
+    }
+    const ok = this._isPhoneAuthOk(errMsg) || !!detail.code || !!detail.encryptedData;
     if (!ok) {
       const explained = explainGetPhoneNumberFail(detail);
       if (!explained) return;
       wx.showModal({
         title: explained.title,
         content: explained.content,
-        confirmText: explained.suggestWxLogin ? '微信快捷登录' : '知道了',
-        cancelText: explained.suggestWxLogin ? '知道了' : undefined,
-        showCancel: !!explained.suggestWxLogin,
-        success: (res) => {
-          if (explained.suggestWxLogin && res.confirm) this.onWxLogin();
-        },
+        showCancel: false,
+        confirmText: '知道了',
       });
       return;
     }
@@ -418,21 +464,12 @@ Page({
       this.onShow();
       wx.showToast({ title: '登录成功', icon: 'success' });
     }).catch((err) => {
-      wx.showToast({ title: err.message || '登录失败', icon: 'none' });
+      wx.showModal({
+        title: '手机号登录失败',
+        content: (err && err.message) || '登录失败',
+        showCancel: false,
+      });
     }).finally(() => wx.hideLoading());
-  },
-
-  onWxLogin() {
-    wx.showLoading({ title: '登录中', mask: true });
-    app.loginByWechat()
-      .then(() => {
-        this.onShow();
-        wx.showToast({ title: '登录成功', icon: 'success' });
-      })
-      .catch((err) => {
-        wx.showToast({ title: err.message || '登录失败', icon: 'none' });
-      })
-      .finally(() => wx.hideLoading());
   },
 
   onPetCert() { wx.navigateTo({ url: '/pages/pet-cert/pet-cert' }); },

@@ -30,6 +30,12 @@ function redirectToPrivacyGateIfNeeded() {
           resolve(false);
           return;
         }
+        try {
+          const app = getApp();
+          if (app && app.globalData) app.globalData.privacyAccepted = true;
+        } catch (e) {
+          // ignore
+        }
         resolve(true);
       },
       fail: () => resolve(true),
@@ -37,9 +43,57 @@ function redirectToPrivacyGateIfNeeded() {
   });
 }
 
+/** 登录/手机号授权前：未同意隐私则引导，避免点击后无任何弹窗 */
+function ensurePrivacyBeforeLogin() {
+  return new Promise((resolve) => {
+    if (!wx.getPrivacySetting) {
+      resolve(true);
+      return;
+    }
+    wx.getPrivacySetting({
+      success: (res) => {
+        if (!res.needAuthorization) {
+          try {
+            const app = getApp();
+            if (app && app.globalData) app.globalData.privacyAccepted = true;
+          } catch (e) {
+            // ignore
+          }
+          resolve(true);
+          return;
+        }
+        wx.showModal({
+          title: '需先同意隐私指引',
+          content: '使用微信登录或手机号登录前，请先阅读并同意《用户隐私保护指引》。',
+          confirmText: '去同意',
+          cancelText: '取消',
+          success: (r) => {
+            if (r.confirm) {
+              wx.reLaunch({ url: PRIVACY_GATE });
+            }
+            resolve(false);
+          },
+          fail: () => resolve(false),
+        });
+      },
+      fail: () => resolve(true),
+    });
+  });
+}
+
+function isDevtools() {
+  try {
+    return wx.getSystemInfoSync().platform === 'devtools';
+  } catch (e) {
+    return false;
+  }
+}
+
 module.exports = {
   PRIVACY_GATE,
   isPrivacyScopeError,
   showPrivacyGuide,
   redirectToPrivacyGateIfNeeded,
+  ensurePrivacyBeforeLogin,
+  isDevtools,
 };

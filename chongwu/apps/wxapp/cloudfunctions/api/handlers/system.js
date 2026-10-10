@@ -44,6 +44,28 @@ async function ping() {
   });
 }
 
+/** 手机号快速验证链路自检（不消费 phoneCode，不扣费） */
+async function phoneLoginReadiness() {
+  const openapiFn = cloud.openapi && cloud.openapi.phonenumber && cloud.openapi.phonenumber.getPhoneNumber;
+  return ok({
+    ready: typeof openapiFn === 'function',
+    flow: [
+      'button open-type=getPhoneNumber',
+      'bindgetphonenumber → e.detail.code',
+      'auth.login → auth.bindPhone({ phoneCode })',
+      'openapi phonenumber.getPhoneNumber',
+    ],
+    cloudConfig: 'cloudfunctions/api/config.json 需含 phonenumber.getPhoneNumber',
+    platformChecklist: [
+      '小程序非个人主体且已微信认证',
+      '用户隐私保护指引已声明「手机号」并发布',
+      '开发管理-接口设置已开启「手机号快速验证组件」',
+      '付费管理仍有体验额度或已购资源包',
+    ],
+    doc: 'https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/getPhoneNumber.html',
+  });
+}
+
 /**
  * 无数量限制小程序码（海报、分享）
  * scene 最多 32 字符；page 不含 query，参数放 scene
@@ -212,6 +234,7 @@ async function scanBrokenMediaUrls() {
 
 module.exports = {
   ping,
+  phoneLoginReadiness,
   getWxacode,
   checkCollections,
   repairTmpMediaUrls,

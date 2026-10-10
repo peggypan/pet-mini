@@ -41,14 +41,16 @@ Page({
     }
   },
 
-  onAgree() {
+  onAgreePrivacyAuth() {
     const app = getApp();
     if (app && app.handlePrivacyAgree) {
       app.handlePrivacyAgree('agree-privacy-btn');
     }
-    app.globalData.privacyAccepted = true;
-    if (typeof app.tryAutoLocateCity === 'function') {
-      app.tryAutoLocateCity();
+    if (app) {
+      app.globalData.privacyAccepted = true;
+      if (typeof app.tryAutoLocateCity === 'function') {
+        app.tryAutoLocateCity();
+      }
     }
     tryLaunchWithSplash();
   },

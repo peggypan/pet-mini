@@ -50,7 +50,8 @@ A openid（截断）：____  B openid：____
 | USER-01 | 首次进入 | 同意隐私后任意触发登录（如进「我的」） | `users` 新增 1 条，含 `openid`、默认昵称 |
 | USER-02 | 我的 | 查看头像、网名展示 | 与 `users` 或本地合并展示一致 |
 | USER-03 | **`profile-edit`** | 改签名/头像（若开放）并保存 | `auth.updateProfile` 成功；`users.updatedAt` 变化 |
-| USER-04 | 我的 | 手机号授权（若入口存在） | `auth.bindPhone` 成功；`users.phone` 有值 |
+| USER-04 | 我的 | **真机**点「微信授权手机号登录」（[快速验证](https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/getPhoneNumber.html)） | 微信半屏同意 → `getPhoneNumber:ok` 且 `detail.code` 有值 → `auth.bindPhone` 成功；`users.phone` / `phoneMasked` 有值 |
+| USER-04b | 开发者工具 Console | `require('./utils/cloud-api.js').callApi('system','phoneLoginReadiness')` | `code:0`，`ready:true`（需已部署最新 `api`） |
 | USER-05 | 换机/清缓存 | 仅保留云账号：清本地 Storage → 再进「我的」登录 | `auth.me` 拉回网名/积分等 |
 | USER-06 | 控制台 | 直接改 `users.points` 为 100 → 我的页下拉刷新 | 积分展示更新（走 `points_ledger` 同步逻辑） |
 

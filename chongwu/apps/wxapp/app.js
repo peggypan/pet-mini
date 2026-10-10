@@ -47,7 +47,12 @@ App({
 
   onLaunch() {
     this.initCloud();
-    // 不在此注册 wx.onNeedPrivacyAuthorization：只存 resolve 不弹窗会卡住 getPhoneNumber，无法出现微信手机号授权窗
+    if (wx.onNeedPrivacyAuthorization) {
+      wx.onNeedPrivacyAuthorization((resolve) => {
+        this.globalData.resolvePrivacyAuthorization = resolve;
+        wx.reLaunch({ url: '/pages/privacy-gate/privacy-gate' });
+      });
+    }
     if (wx.getPrivacySetting) {
       wx.getPrivacySetting({
         success: (res) => {
@@ -177,15 +182,17 @@ App({
   /** 手机号授权登录（button open-type=getPhoneNumber） */
   loginByPhone(phoneDetail = {}) {
     if (cloudApi.cloudEnabled()) {
-      const phoneCode = phoneDetail.code || '';
-      const chain = cloudApi.login({ force: true });
-      const withPhone = phoneCode
-        ? chain.then(() => cloudApi.callApi('auth', 'bindPhone', { phoneCode }))
-        : chain;
-      return withPhone.then((data) => {
-        persistSession(this, data);
-        return data;
-      });
+      const phoneCode = String(phoneDetail.code || '').trim();
+      if (!phoneCode) {
+        return Promise.reject(new Error('未拿到手机号 code，请用真机点击「微信授权手机号登录」'));
+      }
+      return cloudApi
+        .login({ force: true })
+        .then(() => cloudApi.callApi('auth', 'bindPhone', { phoneCode }))
+        .then((data) => {
+          persistSession(this, data);
+          return data;
+        });
     }
     return new Promise((resolve, reject) => {
       wx.login({

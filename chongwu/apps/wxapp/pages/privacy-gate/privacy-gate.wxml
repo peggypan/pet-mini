@@ -16,7 +16,7 @@
         id="agree-privacy-btn"
         class="btn-agree"
         open-type="agreePrivacyAuthorization"
-        bindagreeprivacyauthorization="onAgree"
+        bindagreeprivacyauthorization="onAgreePrivacyAuth"
       >
         同意并进入
       </button>

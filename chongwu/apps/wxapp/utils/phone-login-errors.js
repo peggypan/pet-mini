@@ -1,4 +1,4 @@
-/** getPhoneNumber 失败说明（多为公众平台未开通能力，非前端 bug） */
+/** getPhoneNumber / getRealtimePhoneNumber 失败说明（多为公众平台未开通能力，非前端 bug） */
 
 function explainGetPhoneNumberFail(detail = {}) {
   const errMsg = String(detail.errMsg || '');
@@ -12,7 +12,7 @@ function explainGetPhoneNumberFail(detail = {}) {
         '表示当前 AppID 在平台侧没有调用权限，需在 mp.weixin.qq.com 配置：\n' +
         '① 小程序已微信认证，且主体非「个人」\n' +
         '② 设置 → 用户隐私保护指引 → 勾选并发布「手机号」\n' +
-        '③ 开发管理 → 接口设置 → 开启「手机号快速验证组件」\n' +
+        '③ 开发管理 → 接口设置 → 开启「手机号快速验证」或「手机号实时验证」\n' +
         '④ 付费管理 → 仍有 1000 次体验额度或已购资源包\n\n' +
         '配置生效后需重新上传/体验版再测。开发阶段可用下方「微信快捷登录」。',
       suggestWxLogin: true,

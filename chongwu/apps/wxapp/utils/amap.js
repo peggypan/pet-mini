@@ -7,6 +7,51 @@ const { findNearestCity, findCityByName, findNearestCitySmart, resolvePrefecture
 const reverseGeocodeCache = require('./reverse-geocode-cache');
 
 const BASE = 'https://apis.map.qq.com/ws';
+/** 仅 status=121 表示日配额用尽；勿用「上限」等模糊文案误判（会导致控制台仍显示 0 次） */
+function isTencentDailyQuotaError(err) {
+  const status = Number(err && err.tencentStatus);
+  if (status === 121) return true;
+  const msg = String((err && err.message) || '');
+  return /此key每日调用量已达到上限|调用量已达到上限/i.test(msg);
+}
+
+function clearClientQuotaBlockFlag() {
+  try {
+    wx.removeStorageSync('mvp_tencent_geocode_quota_day');
+  } catch (e) {
+    // ignore
+  }
+}
+
+function reverseGeocodeViaCloud(lng, lat) {
+  const cloudApi = require('./cloud-api');
+  if (!cloudApi.cloudEnabled()) {
+    return Promise.reject(new Error('cloud_off'));
+  }
+  return cloudApi.callApi('map', 'reverseGeocode', { lat, lng }).then((data) => {
+    if (!data || !data.city) throw new Error('云函数未返回城市');
+    const resolved = resolvePrefectureCity({
+      province: data.province || '',
+      city: data.city,
+      district: data.district || '',
+      adcode: data.adcode || '',
+      lat,
+      lng,
+    });
+    const packed = packReverseResult(lng, lat, {
+      province: resolved.province || data.province || '',
+      city: resolved.name,
+      district: data.district || '',
+      adcode: data.adcode || '',
+      address: data.formattedAddress || data.address || '',
+      formattedAddress: data.formattedAddress || data.address || '',
+      source: data.source || 'cloud_tencent',
+    });
+    reverseGeocodeCache.set(lat, lng, packed);
+    clearClientQuotaBlockFlag();
+    return packed;
+  });
+}
 
 function request(path, data) {
   return new Promise((resolve, reject) => {
@@ -19,7 +64,10 @@ function request(path, data) {
           return;
         }
         if (Number(res.data.status) !== 0) {
-          reject(new Error(res.data.message || '腾讯地图接口错误'));
+          const err = new Error(res.data.message || '腾讯地图接口错误');
+          err.tencentStatus = Number(res.data.status);
+          console.warn('[amap] tencent api', path, 'status=', err.tencentStatus, err.message);
+          reject(err);
           return;
         }
         resolve(res.data);
@@ -55,33 +103,41 @@ function packReverseResult(lng, lat, payload) {
 
 function fallbackReverseGeocode(lng, lat, err) {
   const msg = (err && err.message) || '';
-  if (msg.includes('上限') || msg.includes('quota') || msg.includes('配额')) {
-    console.warn('[amap] 腾讯逆地理当日配额已用尽，已改用本地推断；可在 lbs.qq.com 查看用量或次日重置');
+  const status = err && err.tencentStatus;
+  if (isTencentDailyQuotaError(err)) {
+    console.warn('[amap] 腾讯逆地理日配额用尽(status 121)，已改用本地推断');
   } else {
-    console.warn('[amap] reverseGeocode tencent failed, fallback', msg);
+    console.warn(
+      '[amap] reverseGeocode failed → local fallback',
+      status != null ? `status=${status}` : '',
+      msg,
+      '若 lbs.qq.com 调用量为 0，多为 Key 与控制台不一致或未绑定小程序 AppID',
+    );
   }
   const cached = reverseGeocodeCache.get(lat, lng);
   if (cached && cached.city) {
     return packReverseResult(lng, lat, { ...cached, source: 'cache' });
   }
-  const nearest = findNearestCitySmart(lat, lng);
-  return packReverseResult(lng, lat, {
-    province: nearest.province || '',
-    city: nearest.name,
+  const resolved = resolvePrefectureCity({
+    province: '',
+    city: '',
     district: '',
     adcode: '',
-    address: `${nearest.province || ''}${nearest.name}`,
-    formattedAddress: `${nearest.province || ''}${nearest.name}`,
+    lat,
+    lng,
+  });
+  return packReverseResult(lng, lat, {
+    province: resolved.province || '',
+    city: resolved.name,
+    district: '',
+    adcode: '',
+    address: `${resolved.province || ''}${resolved.name}`,
+    formattedAddress: `${resolved.province || ''}${resolved.name}`,
     source: 'fallback',
   });
 }
 
-/** 逆地理编码：坐标 → 地址与城市（location 为 lat,lng） */
-function reverseGeocode(lng, lat) {
-  const cached = reverseGeocodeCache.get(lat, lng);
-  if (cached && cached.city) {
-    return Promise.resolve(packReverseResult(lng, lat, { ...cached, source: 'cache' }));
-  }
+function reverseGeocodeDirectTencent(lng, lat) {
   if (!isTencentMapConfigured()) {
     return Promise.resolve(fallbackReverseGeocode(lng, lat, new Error('no_key')));
   }
@@ -113,6 +169,31 @@ function reverseGeocode(lng, lat) {
     reverseGeocodeCache.set(lat, lng, packed);
     return packed;
   }).catch((err) => fallbackReverseGeocode(lng, lat, err));
+}
+
+/**
+ * 逆地理编码：坐标 → 城市
+ * 云开发开启时仅走云函数（服务端调腾讯），避免小程序端 wx.request 鉴权与控制台统计不一致。
+ */
+function reverseGeocode(lng, lat) {
+  const cached = reverseGeocodeCache.get(lat, lng);
+  if (cached && cached.city) {
+    return Promise.resolve(packReverseResult(lng, lat, { ...cached, source: 'cache' }));
+  }
+  const cloudApi = require('./cloud-api');
+  if (cloudApi.cloudEnabled()) {
+    return reverseGeocodeViaCloud(lng, lat).catch((err) => {
+      const msg = (err && err.message) || String(err);
+      console.warn('[amap] cloud reverseGeocode failed', msg);
+      if (/^\[121\]|此key每日调用量已达到上限/i.test(msg)) {
+        console.warn(
+          '[amap] 若 LBS 已分配额度仍 121：请「上传并部署」云函数 api，并检查云开发环境变量 TENCENT_MAP_KEY 是否与 amap-config 一致',
+        );
+      }
+      return fallbackReverseGeocode(lng, lat, err);
+    });
+  }
+  return reverseGeocodeDirectTencent(lng, lat);
 }
 
 /** 地理编码：地址 → 坐标 */

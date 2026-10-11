@@ -27,6 +27,7 @@ const petDiscoverLikesHandler = require('./handlers/pet_discover_likes');
 const chatThreadsHandler = require('./handlers/chat_threads');
 const chatMessagesHandler = require('./handlers/chat_messages');
 const userFollowsHandler = require('./handlers/user_follows');
+const mapHandler = require('./handlers/map');
 
 /** 已实现：… / social_comments.* / local_posts.* */
 const ROUTES = {
@@ -36,6 +37,8 @@ const ROUTES = {
   'system.checkCollections': (payload, ctx) => system.checkCollections(payload),
   'system.scanBrokenMediaUrls': (payload, ctx) => system.scanBrokenMediaUrls(payload),
   'system.repairTmpMediaUrls': (payload, ctx) => system.repairTmpMediaUrls(payload),
+  'map.reverseGeocode': (payload, ctx) => mapHandler.reverseGeocode(payload, ctx),
+  'map.diagnoseGeocodeKey': (payload, ctx) => mapHandler.diagnoseGeocodeKey(payload, ctx),
   'auth.login': (payload, ctx) => auth.login(payload, ctx),
   'auth.me': (payload, ctx) => auth.me(payload, ctx),
   'auth.bindPhone': (payload, ctx) => auth.bindPhone(payload, ctx),

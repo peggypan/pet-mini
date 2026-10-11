@@ -30,10 +30,7 @@ Page({
       this.getTabBar().setData({ selected: 0 });
     }
     this.paintHomeFromCache();
-    const app = getApp();
-    const forceLocate = !(app && app.globalData && app.globalData._homeAutoLocateDone);
-    if (app && app.globalData) app.globalData._homeAutoLocateDone = true;
-    autoLocateCity({ silent: true, force: forceLocate })
+    autoLocateCity({ silent: true, force: false })
       .then((loc) => {
         if (!loc || !loc.city) return;
         const patch = { city: loc.city, cityAuto: !!loc.auto };

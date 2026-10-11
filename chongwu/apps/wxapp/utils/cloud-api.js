@@ -25,6 +25,8 @@ function callApi(module, action, payload = {}, options = {}) {
         const err = new Error(body.message || '请求失败');
         err.code = body.code;
         err.details = body.details;
+        const m = String(body.message || '').match(/^\[(\d+)\]/);
+        if (m) err.tencentStatus = Number(m[1]);
         throw err;
       }
       return body.data;

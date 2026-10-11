@@ -16,6 +16,7 @@ const { requireLogin } = require('../../utils/require-login');
 const cloudApi = require('../../utils/cloud-api');
 const { refreshEventsFeedFromCloud } = require('../../utils/event-cloud-sync');
 const { refreshMapPointsFromCloud } = require('../../utils/map-point-cloud-sync');
+const { autoLocateCity } = require('../../utils/city-location');
 
 Page({
   data: {
@@ -58,10 +59,31 @@ Page({
     this.setData({ city, amapReady: amap.isAmapConfigured() }, () => {
       this.applyPlazaEvents();
     });
-    this.loadMapPreview(city).catch(() => {});
-    if (cloudApi.cloudEnabled()) {
-      this.refreshLocalInBackground(city);
-    }
+    autoLocateCity({ silent: true, force: false })
+      .then((loc) => {
+        const nextCity = (loc && loc.city) || city;
+        const after = () => {
+          if (cloudApi.cloudEnabled()) {
+            this.refreshLocalInBackground(nextCity);
+          }
+        };
+        if (nextCity !== this.data.city) {
+          this.setData({ city: nextCity }, () => {
+            this.applyPlazaEvents();
+            this.loadMapPreview(nextCity).catch(() => {});
+            after();
+          });
+          return;
+        }
+        this.loadMapPreview(nextCity).catch(() => {});
+        after();
+      })
+      .catch(() => {
+        this.loadMapPreview(city).catch(() => {});
+        if (cloudApi.cloudEnabled()) {
+          this.refreshLocalInBackground(city);
+        }
+      });
   },
 
   refreshLocalInBackground(city) {

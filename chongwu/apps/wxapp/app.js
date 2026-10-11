@@ -78,6 +78,11 @@ App({
     // 定位须在用户同意隐私保护指引之后，不可在 privacy-gate 之前调 wx.getLocation
     this.syncCloudPets();
     this.syncSensitiveWords();
+    if (wx.onAppShow) {
+      wx.onAppShow(() => {
+        this.tryAutoLocateCity();
+      });
+    }
   },
 
   initCloud() {

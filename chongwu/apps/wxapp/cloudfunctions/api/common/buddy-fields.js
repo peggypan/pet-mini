@@ -97,11 +97,13 @@ function publicBuddy(doc, viewerOpenid) {
   const { _id, _openid, ...rest } = doc;
   const isMine = viewerOpenid && (doc.openid === viewerOpenid || doc._openid === viewerOpenid);
   const time = formatPublishTime(rest.createdAt || rest.updatedAt);
+  const authorOpenid = doc.openid || doc._openid || '';
   return {
     id: _id,
     ...rest,
     isMine: !!isMine,
     userName: isMine ? '我' : rest.userName,
+    peerOpenid: isMine ? '' : authorOpenid,
     createdAt: rest.createdAt,
     updatedAt: rest.updatedAt,
     time,

@@ -38,12 +38,20 @@ async function uploadBuddyMedia(payload) {
 
 const { hasLoginToken, ensureCloudSession } = require('./cloud-session');
 const { resolveBuddyPosts } = require('./cloud-media');
+const {
+  findBuddy,
+  decodeBuddyIdParam,
+  findBuddyInStoreByOpenid,
+  isMapMarkerSeqId,
+} = require('./catalog');
 
 async function refreshBuddyFeedFromCloud(options = {}) {
   if (!cloudApi.cloudEnabled()) return store.listBuddyPosts();
   try {
+    const city = (options.city || store.getCity() || '').trim();
     const data = await cloudApi.listBuddyFeed({
       zone: options.zone || 'all',
+      city,
       limit: options.limit || 80,
     });
     let list = (data && data.list) || [];
@@ -92,8 +100,62 @@ async function removeBuddyFromCloud(id) {
   return true;
 }
 
+/** 详情页：本地 mock/缓存 → 云单条拉取并写入缓存 */
+async function loadBuddyDetail(id) {
+  const sid = decodeBuddyIdParam(id);
+  if (!sid || isMapMarkerSeqId(sid)) return null;
+
+  const cached = findBuddy(sid);
+  if (cached) return cached;
+
+  if (!cloudApi.cloudEnabled()) return null;
+
+  const tryGet = async (postId) => {
+    const data = await cloudApi.getBuddyPost(postId);
+    const buddy = data && data.buddy;
+    if (!buddy || !buddy.id) return null;
+    const list = await resolveBuddyPosts([buddy]);
+    const row = list[0] || buddy;
+    store.upsertBuddyPostFromCloud(row);
+    return findBuddy(buddy.id);
+  };
+
+  try {
+    const got = await tryGet(sid);
+    if (got) return got;
+  } catch (e) {
+    console.warn('[buddy-cloud-sync] get', sid, e);
+  }
+
+  const byOpenid = findBuddyInStoreByOpenid(sid);
+  if (byOpenid && byOpenid.id) {
+    const local = findBuddy(byOpenid.id);
+    if (local) return local;
+    try {
+      return await tryGet(byOpenid.id);
+    } catch (e) {
+      console.warn('[buddy-cloud-sync] get by cached openid', e);
+    }
+  }
+
+  try {
+    await refreshBuddyFeedFromCloud({ limit: 100 });
+    let afterFeed = findBuddy(sid);
+    if (!afterFeed) {
+      const row = findBuddyInStoreByOpenid(sid);
+      if (row && row.id) afterFeed = findBuddy(row.id);
+    }
+    if (afterFeed) return afterFeed;
+    return await tryGet(sid);
+  } catch (e) {
+    console.warn('[buddy-cloud-sync] loadBuddyDetail fallback', sid, e);
+    return null;
+  }
+}
+
 module.exports = {
   refreshBuddyFeedFromCloud,
   saveBuddyToCloud,
   removeBuddyFromCloud,
+  loadBuddyDetail,
 };

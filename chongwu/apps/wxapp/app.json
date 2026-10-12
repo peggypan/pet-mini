@@ -37,7 +37,8 @@
     "pages/pet-cert/pet-cert",
     "pages/pet-cert-poster/pet-cert-poster",
     "pages/pet-cert-verify/pet-cert-verify",
-    "pages/chat/chat"
+    "pages/chat/chat",
+    "pages/feedback/feedback"
   ],
   "requiredPrivateInfos": [
     "chooseLocation",

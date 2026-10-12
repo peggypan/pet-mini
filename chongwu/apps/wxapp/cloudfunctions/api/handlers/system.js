@@ -18,6 +18,7 @@ const COLLECTION_NAMES = [
   'chat_threads',
   'chat_messages',
   'user_follows',
+  'user_feedback',
   'events',
   'event_signups',
   'event_interests',

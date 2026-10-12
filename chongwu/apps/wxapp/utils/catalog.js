@@ -42,11 +42,64 @@ function normalizeBuddyMedia(buddy) {
   return { ...buddy, mediaList: [] };
 }
 
+function decodeBuddyIdParam(id) {
+  const raw = String(id || '').trim();
+  if (!raw || raw === 'undefined' || raw === 'null') return '';
+  try {
+    return decodeURIComponent(raw).trim();
+  } catch (e) {
+    return raw;
+  }
+}
+
+/** 地图 marker 的 id 为 1,2,3…，不能当作搭子帖 id */
+function isMapMarkerSeqId(id) {
+  const s = String(id || '').trim();
+  return /^\d+$/.test(s) && Number(s) >= 1 && Number(s) <= 64;
+}
+
+function findBuddyInStoreByOpenid(openid) {
+  const oid = String(openid || '').trim();
+  if (!oid) return null;
+  return store.listBuddyPosts().find((p) => {
+    const po = String(p.openid || p._openid || p.peerOpenid || '').trim();
+    return po && po === oid;
+  }) || null;
+}
+
+/** 用于跳转详情：只认搭子帖 id / 疗愈 hp_ id，不用 userId、openid、marker 序号 */
+function resolveBuddyPostId(source) {
+  if (!source) return '';
+  const sid = decodeBuddyIdParam(source.id != null ? source.id : source);
+  if (sid.startsWith('hp_')) return sid;
+  if (sid && !isMapMarkerSeqId(sid)) {
+    if (store.getBuddyPost(sid) || findHealingPetBuddy(sid)) return sid;
+    if (sid.length >= 12 || String(sid).startsWith('bd')) return sid;
+  }
+  const fromPost = source.id != null ? source : null;
+  const oid = String(
+    (fromPost && (fromPost.peerOpenid || fromPost.openid || fromPost._openid))
+    || (typeof source === 'string' ? source : '')
+    || '',
+  ).trim();
+  if (oid && !isMapMarkerSeqId(oid)) {
+    const hit = findBuddyInStoreByOpenid(oid);
+    if (hit && hit.id) return String(hit.id);
+  }
+  return sid && !isMapMarkerSeqId(sid) ? sid : '';
+}
+
 function findBuddy(id) {
-  const sid = String(id);
+  const sid = decodeBuddyIdParam(id);
+  if (!sid) return null;
+  if (isMapMarkerSeqId(sid)) return null;
   const fromHealingPet = findHealingPetBuddy(sid);
   if (fromHealingPet) return normalizeBuddyMedia(fromHealingPet);
-  const raw = store.getBuddyPost(sid) || MOCK_BUDDY.find((b) => String(b.id) === sid) || null;
+  let raw = store.getBuddyPost(sid) || null;
+  if (!raw) raw = findBuddyInStoreByOpenid(sid);
+  if (!raw && !cloudApi.cloudEnabled()) {
+    raw = MOCK_BUDDY.find((b) => String(b.id) === sid) || null;
+  }
   return normalizeBuddyMedia(raw);
 }
 
@@ -220,6 +273,10 @@ function getDefaultPets() {
 module.exports = {
   findSocialPost,
   findBuddy,
+  decodeBuddyIdParam,
+  resolveBuddyPostId,
+  findBuddyInStoreByOpenid,
+  isMapMarkerSeqId,
   listAllBuddies,
   listAllEvents,
   listRecentEvents,

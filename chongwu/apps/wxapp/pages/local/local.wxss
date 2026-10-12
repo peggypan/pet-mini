@@ -213,16 +213,55 @@ page {
   height: 100%;
 }
 
+.map-preview-enter {
+  position: absolute;
+  left: 50%;
+  bottom: 48rpx;
+  z-index: 6;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  max-width: 94%;
+  padding: 22rpx 36rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #0091ff 0%, #0066cc 100%);
+  box-shadow: 0 8rpx 28rpx rgba(0, 102, 204, 0.45), 0 0 0 2rpx rgba(255, 255, 255, 0.85);
+}
+
+.map-preview-enter-text {
+  font-size: 32rpx;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 1rpx;
+  white-space: nowrap;
+}
+
+.map-preview-enter-arrow {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1;
+  margin-top: -4rpx;
+}
+
 .map-preview-mask {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
+  z-index: 5;
   padding: 20rpx 24rpx;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.55));
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.42));
   display: flex;
   align-items: center;
   justify-content: space-between;
+  pointer-events: none;
+}
+
+.map-preview-mask .map-preview-tag {
+  pointer-events: auto;
 }
 
 .map-preview-tag {
@@ -232,12 +271,6 @@ page {
   padding: 6rpx 16rpx;
   border-radius: 999rpx;
   font-weight: 700;
-}
-
-.map-preview-tip {
-  font-size: 24rpx;
-  color: #fff;
-  font-weight: 600;
 }
 
 .map-actions {

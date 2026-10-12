@@ -13,7 +13,7 @@ function startBuddyChat(buddy) {
     confirmText: '发起私聊',
     success: (res) => {
       if (!res.confirm) return;
-      const peerOpenid = buddy.openid || buddy._openid || '';
+      const peerOpenid = buddy.peerOpenid || buddy.openid || buddy._openid || '';
       const peerId = peerOpenid || buddy.id;
       const threadPayload = {
         id: `c_${peerId}`,
@@ -32,8 +32,11 @@ function startBuddyChat(buddy) {
       const avatar = encodeURIComponent(buddy.avatar || buddy.cover || '');
       const peerName = encodeURIComponent(buddy.userName || '');
       const petName = encodeURIComponent(buddy.petName || '');
+      const peerOpenidQ = peerOpenid
+        ? `&peerOpenid=${encodeURIComponent(peerOpenid)}`
+        : '';
       wx.navigateTo({
-        url: `/pages/chat/chat?threadId=${encodeURIComponent(threadId)}&peerId=${peerId}&peerName=${peerName}&petName=${petName}&avatar=${avatar}&shareComment=1&shareTitle=${shareTitle}&shareText=${shareText}&shareRef=${buddy.id}`,
+        url: `/pages/chat/chat?threadId=${encodeURIComponent(threadId)}&peerId=${peerId}&peerName=${peerName}&petName=${petName}&avatar=${avatar}${peerOpenidQ}&shareComment=1&shareTitle=${shareTitle}&shareText=${shareText}&shareRef=${buddy.id}`,
       });
       if (cloudApi.cloudEnabled()) {
         ensureChatThreadOnCloud(threadPayload).catch(() => {});

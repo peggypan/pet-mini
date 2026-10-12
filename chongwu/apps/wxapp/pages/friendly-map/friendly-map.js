@@ -1,35 +1,10 @@
 const store = require('../../utils/store');
 const cloudApi = require('../../utils/cloud-api');
 const { refreshMapPointsFromCloud } = require('../../utils/map-point-cloud-sync');
-const { listAllMapPoints, listAllBuddies } = require('../../utils/catalog');
+const { listAllMapPoints } = require('../../utils/catalog');
 const amap = require('../../utils/amap');
 const { filterPointsByPetSentiment, getPetSentiment } = require('../../utils/map-pet-filter');
 const { collectPetServicePOIs, mergeMapPoints } = require('../../utils/map-pet-poi-collector');
-const { buildPetAvatarMarkers } = require('../../utils/pet-map-markers');
-
-const BUDDY_MARKER_ID_BASE = 10000;
-
-function buildBuddyMarkers(buddies, latitude, longitude) {
-  const peers = buddies.slice(0, 12).map((b) => ({
-    peerId: b.id,
-    id: b.id,
-    buddyId: b.id,
-    userName: b.userName,
-    petName: b.petName,
-    avatar: b.avatar,
-  }));
-  return buildPetAvatarMarkers(peers, latitude, longitude, BUDDY_MARKER_ID_BASE).map((m, index) => ({
-    ...m,
-    buddyId: buddies[index] && buddies[index].id,
-    callout: {
-      content: `${m.userName || '宠友'}${m.petName ? ' · ' + m.petName : ''}\n${(buddies[index] && buddies[index].buddyType) || '宠友'}`,
-      display: 'BYCLICK',
-      padding: 8,
-      borderRadius: 8,
-      fontSize: 12,
-    },
-  }));
-}
 
 Page({
   data: {
@@ -163,9 +138,8 @@ Page({
       activePointId,
       calloutMode: 'BYCLICK',
     });
-    const buddyMarkers = this._buddyMarkers || [];
     const searchMarker = this._searchMarker ? [this._searchMarker] : [];
-    return [...pointMarkers, ...buddyMarkers, ...searchMarker];
+    return [...pointMarkers, ...searchMarker];
   },
 
   refreshMapMarkers() {
@@ -195,7 +169,6 @@ Page({
     let longitude = saved.lng || 116.4074;
     const raw = listAllMapPoints();
     this._allPoints = raw;
-    this._buddyMarkers = buildBuddyMarkers(listAllBuddies(), latitude, longitude);
     this.setData({
       latitude,
       longitude,
@@ -241,7 +214,6 @@ Page({
     const collected = await collectPetServicePOIs({ city, latitude, longitude });
     points = mergeMapPoints(points, collected);
     this._allPoints = points;
-    this._buddyMarkers = buildBuddyMarkers(listAllBuddies(), latitude, longitude);
 
     this.setData({
       latitude,
@@ -292,10 +264,6 @@ Page({
     const markerId = e.detail.markerId;
     const marker = this.data.markers.find((m) => m.id === markerId);
     if (!marker) return;
-    if (marker.buddyId != null) {
-      wx.navigateTo({ url: `/pages/buddy-detail/buddy-detail?id=${marker.buddyId}` });
-      return;
-    }
     const point = this.data.points.find((p) => p.id === marker.pointId);
     if (point) this.focusPoint(point);
   },

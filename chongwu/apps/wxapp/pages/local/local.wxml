@@ -59,14 +59,18 @@
         class="map-preview"
         longitude="{{mapLongitude}}"
         latitude="{{mapLatitude}}"
-        scale="13"
+        scale="{{mapPreviewScale}}"
         markers="{{mapMarkers}}"
+        show-location
         enable-scroll="{{false}}"
         enable-zoom="{{false}}"
       ></map>
+      <view class="map-preview-enter" catchtap="onOpenFullMap">
+        <text class="map-preview-enter-text">点击进入宠物友好地图</text>
+        <text class="map-preview-enter-arrow">›</text>
+      </view>
       <view class="map-preview-mask">
         <text class="map-preview-tag">{{amapReady ? '腾讯地图' : '地图预览'}}</text>
-        <text class="map-preview-tip">点击进入全屏友好地图 ›</text>
       </view>
     </view>
     <pet-map-fab

@@ -482,6 +482,11 @@ Page({
       confirmText: '知道了',
     });
   },
+
+  onContactFeedback() {
+    if (!requireLogin()) return;
+    wx.navigateTo({ url: '/pages/feedback/feedback' });
+  },
   onEditProfile() {
     if (!this.data.isLogin) {
       wx.showToast({ title: '请先登录', icon: 'none' });

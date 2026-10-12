@@ -14,13 +14,15 @@ const {
 } = require('../../utils/pet-profile-guard');
 const {
   followResultToast,
-  toFollowFriend,
   peerFollowIdCandidates,
   isFollowedAny,
   isFollowedByPeerAny,
-  resolveChatPeerFollowKey,
 } = require('../../utils/pet-follow');
-const { fetchFollowRelation, toggleFollowOnCloud } = require('../../utils/follow-cloud-sync');
+const {
+  fetchFollowRelation,
+  toggleFollowAuthorSynced,
+  applyFollowState,
+} = require('../../utils/follow-cloud-sync');
 const cloudApi = require('../../utils/cloud-api');
 const {
   ensureChatThreadOnCloud,
@@ -280,19 +282,6 @@ Page({
     }
   },
 
-  syncLocalFollowEntry(followKey, peer, following) {
-    if (!followKey || !peer) return;
-    const row = {
-      id: followKey,
-      userName: peer.userName,
-      petName: peer.petName,
-      avatar: peer.avatar,
-    };
-    const has = store.isFollowed(followKey);
-    if (following && !has) store.toggleFollow(row);
-    else if (!following && has) store.toggleFollow(row);
-  },
-
   async syncPeerActions(peer) {
     if (!peer || !peer.id) return;
     const threadMeta = this._threadMeta || {};
@@ -305,11 +294,15 @@ Page({
     if (targetOpenid && cloudApi.cloudEnabled()) {
       const rel = await fetchFollowRelation(targetOpenid);
       if (rel) {
-        followed = !!rel.following;
         peerFollowsMe = !!rel.follower;
-        mutualFollow = !!rel.mutual;
-        const followKey = `oid:${targetOpenid}`;
-        this.syncLocalFollowEntry(followKey, peer, followed);
+        followed = !!rel.following || followed;
+        mutualFollow = !!rel.mutual || (followed && peerFollowsMe);
+        if (rel.following) {
+          applyFollowState(
+            { ...peer, openid: targetOpenid, peerOpenid: targetOpenid },
+            true,
+          );
+        }
       }
     }
 
@@ -328,48 +321,23 @@ Page({
     if (!peer || !peer.id) return;
     const threadMeta = this._threadMeta || {};
     const targetOpenid = peer.peerOpenid || threadMeta.peerOpenid || '';
-
-    if (targetOpenid && cloudApi.cloudEnabled()) {
-      try {
-        const rel = await toggleFollowOnCloud(targetOpenid, {
-          userName: peer.userName,
-          petName: peer.petName,
-          avatar: peer.avatar,
-        });
-        if (rel) {
-          const followKey = `oid:${targetOpenid}`;
-          this.syncLocalFollowEntry(followKey, peer, rel.following);
-          this.setData({
-            followed: !!rel.following,
-            peerFollowsMe: !!rel.follower,
-            mutualFollow: !!rel.mutual,
-          });
-          this.syncLimitState(this.data.messages);
-          wx.showToast({ title: followResultToast(rel.following), icon: 'none' });
-          return;
-        }
-      } catch (e) {
-        console.warn('[chat] cloud follow', e);
-      }
-    }
-
-    const friend = toFollowFriend({
+    const result = await toggleFollowAuthorSynced({
       ...peer,
       openid: targetOpenid,
       peerOpenid: targetOpenid,
-    }) || {
-      id: resolveChatPeerFollowKey(peer, threadMeta) || peer.id,
-      userName: peer.userName,
-      petName: peer.petName,
-      avatar: peer.avatar,
-    };
-    const result = store.toggleFollow(friend);
+      id: peer.buddyId || peer.id,
+    });
     const candidates = peerFollowIdCandidates(peer, threadMeta);
-    const mutualFollow = result.followed && isFollowedByPeerAny(candidates);
+    const peerFollowsMe = result.peerFollowsMe != null
+      ? !!result.peerFollowsMe
+      : isFollowedByPeerAny(candidates);
+    const mutualFollow = result.mutual != null
+      ? !!result.mutual
+      : (result.followed && peerFollowsMe);
     this.setData({
       followed: result.followed,
       mutualFollow,
-      peerFollowsMe: isFollowedByPeerAny(candidates),
+      peerFollowsMe,
     });
     this.syncLimitState(this.data.messages);
     wx.showToast({ title: followResultToast(result.followed), icon: 'none' });

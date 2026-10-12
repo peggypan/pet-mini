@@ -1,4 +1,8 @@
-const { findCityByName } = require('./china-cities');
+const { findCityByName, findNearestCitySmart } = require('./china-cities');
+
+function normalizeCityName(name) {
+  return String(name || '').trim().replace(/市$/, '');
+}
 
 function haversineKm(lat1, lng1, lat2, lng2) {
   const R = 6371;
@@ -80,6 +84,66 @@ function isStoredDistanceUsable(raw) {
   return true;
 }
 
+/** 由 GPS 推断当前所在地级市 */
+function resolveCityFromGps(lat, lng) {
+  if (!isValidCoord(lat, lng)) return '';
+  const nearest = findNearestCitySmart(lat, lng);
+  return normalizeCityName(nearest && nearest.name);
+}
+
+/** 推断搭子所属地级市（用于同城筛选） */
+function inferBuddyCityName(buddy) {
+  if (!buddy) return '';
+  const ll = pickBuddyLatLng(buddy);
+  let fromCoords = '';
+  if (ll) {
+    const nearest = findNearestCitySmart(ll.lat, ll.lng);
+    if (nearest && nearest.name) fromCoords = normalizeCityName(nearest.name);
+  }
+  const explicit = normalizeCityName(buddy.city);
+  if (fromCoords && explicit && fromCoords !== explicit) {
+    return fromCoords;
+  }
+  if (explicit) return explicit;
+  if (fromCoords) return fromCoords;
+  const places = [
+    buddy.expectPlaceAddress,
+    buddy.expectPlace,
+    buddy.location && buddy.location.address,
+    buddy.location && buddy.location.name,
+  ];
+  for (let i = 0; i < places.length; i += 1) {
+    const c = findCityCoordsFromPlaceName(places[i]);
+    if (c && c.name) return normalizeCityName(c.name);
+  }
+  return '';
+}
+
+function buddyMatchesCity(buddy, viewerCity) {
+  const want = normalizeCityName(viewerCity);
+  if (!want) return true;
+  const got = inferBuddyCityName(buddy);
+  if (!got) return false;
+  return got === want;
+}
+
+/** 地图「附近」：有坐标则按直线距离；无坐标则按同城 */
+const MAP_NEARBY_MAX_KM = 100;
+
+function buddyIsNearViewer(buddy, viewer) {
+  const v = viewer || {};
+  const vLat = Number(v.lat);
+  const vLng = Number(v.lng);
+  const vCity = normalizeCityName(v.city) || resolveCityFromGps(vLat, vLng);
+
+  const target = pickBuddyLatLng(buddy);
+  if (isValidCoord(vLat, vLng) && target) {
+    return haversineKm(vLat, vLng, target.lat, target.lng) <= MAP_NEARBY_MAX_KM;
+  }
+  if (!vCity) return false;
+  return buddyMatchesCity(buddy, vCity);
+}
+
 /** 相对当前用户/城市的直线距离文案（不含「距您」前缀） */
 function buddyDistanceText(buddy, viewerLocation) {
   const origin = resolveViewerLatLng(viewerLocation);
@@ -96,6 +160,11 @@ function buddyDistanceText(buddy, viewerLocation) {
 module.exports = {
   haversineKm,
   formatKm,
+  normalizeCityName,
+  resolveCityFromGps,
+  inferBuddyCityName,
+  buddyMatchesCity,
+  buddyIsNearViewer,
   pickBuddyLatLng,
   resolveViewerLatLng,
   buddyDistanceText,

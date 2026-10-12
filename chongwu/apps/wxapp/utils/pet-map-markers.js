@@ -1,4 +1,7 @@
-/** 地图上散布宠物/宠友头像 marker（演示坐标） */
+/** 地图上宠友头像 marker：优先搭子真实坐标，无坐标时在地图中心附近微偏移 */
+
+const { pickBuddyLatLng } = require('./geo-distance');
+const { FALLBACK_ICON, hydrateMapMarkerIcons } = require('./map-marker-icon');
 
 function hashSeed(str) {
   let h = 0;
@@ -11,20 +14,27 @@ function buildPetAvatarMarkers(peers, latitude, longitude, idBase = 1) {
   const lng = Number(longitude) || 116.4074;
   return (peers || []).slice(0, 24).map((peer, index) => {
     const seed = hashSeed(String(peer.peerId || peer.id || index));
+    const atPeer = pickBuddyLatLng(peer);
+    const markerLat = atPeer ? atPeer.lat : lat + ((seed % 17) - 8) * 0.00075;
+    const markerLng = atPeer ? atPeer.lng : lng + ((seed % 23) - 11) * 0.00095;
+    const postId = peer.postId || peer.buddyId || peer.peerId || peer.id;
     return {
       id: idBase + index,
-      peerId: peer.peerId || peer.id,
+      postId,
+      peerId: postId,
+      buddyId: postId,
+      peerOpenid: peer.peerOpenid || '',
       userName: peer.userName || peer.peerName || '宠友',
       petName: peer.petName || '',
       avatar: peer.avatar || peer.avatarUrl || '',
-      latitude: lat + ((seed % 17) - 8) * 0.00075,
-      longitude: lng + ((seed % 23) - 11) * 0.00095,
-      iconPath: peer.avatar || peer.avatarUrl || '/assets/mock/real_avatar.jpg',
-      width: 44,
-      height: 44,
+      latitude: markerLat,
+      longitude: markerLng,
+      iconPath: FALLBACK_ICON,
+      width: 48,
+      height: 48,
       alpha: 0.98,
       callout: {
-        content: `${peer.userName || '宠友'}${peer.petName ? ' · ' + peer.petName : ''}\n点击私聊`,
+        content: `${peer.userName || '宠友'}${peer.petName ? ' · ' + peer.petName : ''}\n查看搭子详情`,
         display: 'BYCLICK',
         padding: 8,
         borderRadius: 8,
@@ -36,4 +46,5 @@ function buildPetAvatarMarkers(peers, latitude, longitude, idBase = 1) {
 
 module.exports = {
   buildPetAvatarMarkers,
+  hydrateMapMarkerIcons,
 };

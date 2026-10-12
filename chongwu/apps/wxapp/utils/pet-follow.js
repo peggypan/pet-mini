@@ -6,7 +6,7 @@ const store = require('./store');
 
 function resolveAuthorFollowId(source) {
   if (!source) return '';
-  const openid = source.openid || source._openid;
+  const openid = source.openid || source._openid || source.peerOpenid;
   if (openid) return `oid:${openid}`;
   if (source.userId) return `uid:${source.userId}`;
   if (source.authorId) return String(source.authorId);
@@ -14,6 +14,35 @@ function resolveAuthorFollowId(source) {
   const name = (source.userName || 'user').trim();
   const pet = (source.petName || 'pet').trim();
   return `social_${name}_${pet}`;
+}
+
+/** 同一作者可能用不同 id 存关注（详情/聊天/云），查询时需全部匹配 */
+function allAuthorFollowIds(source) {
+  if (!source) return [];
+  const ids = [];
+  const openid = source.openid || source._openid || source.peerOpenid;
+  if (openid) {
+    ids.push(`oid:${openid}`, String(openid));
+  }
+  if (source.userId) ids.push(`uid:${source.userId}`, String(source.userId));
+  if (source.authorId && source.authorId !== 'me') ids.push(String(source.authorId));
+  if (source.id != null && String(source.id) !== '') ids.push(String(source.id));
+  const nameKey = resolveAuthorFollowId({
+    userName: source.userName || source.name,
+    petName: source.petName || source.pet,
+  });
+  if (nameKey && nameKey !== 'me') ids.push(nameKey);
+  return [...new Set(ids.filter(Boolean))];
+}
+
+function canonicalFollowAuthorId(source) {
+  if (!source) return '';
+  const openid = source.openid || source._openid || source.peerOpenid;
+  if (openid) return `oid:${openid}`;
+  if (source.userId) return `uid:${source.userId}`;
+  if (source.id != null && String(source.id) !== '') return String(source.id);
+  const social = resolveAuthorFollowId(source);
+  return social && social !== 'me' ? social : '';
 }
 
 function resolvePostAuthorId(post) {
@@ -28,7 +57,7 @@ function isSelfContentAuthor(source) {
 }
 
 function toFollowFriend(source) {
-  const id = resolveAuthorFollowId(source);
+  const id = canonicalFollowAuthorId(source);
   if (!id || id === 'me' || isSelfContentAuthor(source)) return null;
   return {
     id,
@@ -39,15 +68,20 @@ function toFollowFriend(source) {
 }
 
 function isAuthorFollowed(source) {
-  const id = resolveAuthorFollowId(source);
-  if (!id || id === 'me') return false;
-  return store.isFollowed(id);
+  if (!source || isSelfContentAuthor(source)) return false;
+  return isFollowedAny(allAuthorFollowIds(source));
 }
 
 function toggleFollowAuthor(source) {
   const friend = toFollowFriend(source);
   if (!friend) return { followed: false, list: store.listFollows() };
-  return store.toggleFollow(friend);
+  const aliases = allAuthorFollowIds(source);
+  const wasFollowed = isFollowedAny(aliases);
+  store.removeFollowsByIds(aliases);
+  if (!wasFollowed) {
+    return store.toggleFollow(friend);
+  }
+  return { followed: false, list: store.listFollows() };
 }
 
 function followResultToast(followed) {
@@ -55,13 +89,13 @@ function followResultToast(followed) {
 }
 
 function decoratePostFollow(post) {
-  const authorId = resolveAuthorFollowId(post);
+  const authorId = canonicalFollowAuthorId(post) || resolveAuthorFollowId(post);
   const isSelfAuthor = isSelfContentAuthor(post);
   return {
     ...post,
     authorId,
     isSelfAuthor,
-    followed: authorId && !isSelfAuthor ? store.isFollowed(authorId) : false,
+    followed: !isSelfAuthor ? isAuthorFollowed(post) : false,
   };
 }
 
@@ -79,17 +113,11 @@ function resolveChatPeerFollowKey(peer, thread) {
 }
 
 function peerFollowIdCandidates(peer, thread) {
-  const keys = new Set();
-  const primary = resolveChatPeerFollowKey(peer, thread);
-  if (primary) keys.add(String(primary));
-  if (peer && peer.id != null) keys.add(String(peer.id));
-  const oid = (peer && (peer.openid || peer.peerOpenid))
-    || (thread && thread.peerOpenid);
-  if (oid) {
-    keys.add(String(oid));
-    keys.add(`oid:${oid}`);
-  }
-  return [...keys];
+  return allAuthorFollowIds({
+    ...(peer || {}),
+    openid: (peer && (peer.openid || peer.peerOpenid)) || (thread && thread.peerOpenid) || '',
+    id: (peer && (peer.buddyId || peer.id)) || '',
+  });
 }
 
 function isFollowedAny(candidates) {
@@ -101,13 +129,14 @@ function isFollowedByPeerAny(candidates) {
 }
 
 function decorateBuddyFollow(buddy) {
-  const authorId = resolveAuthorFollowId(buddy);
+  const authorId = canonicalFollowAuthorId(buddy) || resolveAuthorFollowId(buddy);
   const isSelfAuthor = isSelfContentAuthor(buddy);
   return {
     ...buddy,
     authorId,
     isSelfAuthor,
-    followed: authorId && !isSelfAuthor ? store.isFollowed(authorId) : false,
+    peerOpenid: buddy.peerOpenid || buddy.openid || buddy._openid || '',
+    followed: !isSelfAuthor ? isAuthorFollowed(buddy) : false,
   };
 }
 
@@ -116,6 +145,8 @@ module.exports = {
   followResultToast,
   resolvePostAuthorId,
   resolveAuthorFollowId,
+  allAuthorFollowIds,
+  canonicalFollowAuthorId,
   resolveChatPeerFollowKey,
   peerFollowIdCandidates,
   isFollowedAny,

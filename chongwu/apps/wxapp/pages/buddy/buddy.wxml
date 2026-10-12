@@ -8,7 +8,7 @@
     <view class="pet-map-head">
       <view class="pet-map-head-text">
         <text class="pet-map-title">宠友搭子</text>
-        <text class="pet-map-sub">点击地图进入宠物友好地图 · 点头像私聊</text>
+        <text class="pet-map-sub">点击地图进入宠物搭子地图 · 点头像私聊</text>
       </view>
       <view class="pet-map-count">{{mapPeerCount}} 位在附近</view>
     </view>

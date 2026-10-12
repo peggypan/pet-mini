@@ -35,6 +35,7 @@ Page({
     city: '北京',
     mapLatitude: 39.9042,
     mapLongitude: 116.4074,
+    mapPreviewScale: 13,
     mapMarkers: [],
     amapReady: false,
     petProfileBlocked: false,

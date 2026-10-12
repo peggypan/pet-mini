@@ -11,6 +11,7 @@ const amap = require('../../utils/amap');
 const { syncPetProfileGate, requireInteract } = require('../../utils/pet-profile-guard');
 const { deleteOwnedBuddyPost } = require('../../utils/user-content-delete');
 const { autoLocateCity } = require('../../utils/city-location');
+const { buddyMatchesCity } = require('../../utils/geo-distance');
 
 Page({
   data: {
@@ -50,7 +51,10 @@ Page({
   },
 
   filterSourceRows() {
-    let list = listAllBuddies().filter((b) => b.zone === this.data.zoneTab);
+    const city = store.getCity();
+    let list = listAllBuddies()
+      .filter((b) => buddyMatchesCity(b, city))
+      .filter((b) => b.zone === this.data.zoneTab);
     if (this.data.filterType !== '全部') {
       list = list.filter((b) => b.buddyType === this.data.filterType);
     }

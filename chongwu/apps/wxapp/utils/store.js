@@ -829,6 +829,14 @@ function getProfileSocialStats() {
   };
 }
 
+function removeFollowsByIds(ids) {
+  const set = new Set((ids || []).map((id) => String(id)));
+  if (!set.size) return listFollows();
+  const list = listFollows().filter((f) => !set.has(String(f.id)));
+  write(KEYS.follows, list);
+  return list;
+}
+
 function toggleFollow(friend) {
   if (!friend || friend.id == null) return { followed: false, list: listFollows() };
   const list = listFollows();
@@ -2315,6 +2323,7 @@ module.exports = {
   isFollowedByPeer,
   isMutualFollow,
   toggleFollow,
+  removeFollowsByIds,
   listCollects,
   isCollected,
   toggleCollect,

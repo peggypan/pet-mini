@@ -1,5 +1,6 @@
-const store = require('../../utils/store');
-const { loadPetMap, onMapMarkerTap, openPeerChat } = require('../../utils/pet-buddy-map');
+const { loadPetMap, onMapMarkerTap, openBuddyDetail } = require('../../utils/pet-buddy-map');
+const { refreshBuddyFeedFromCloud } = require('../../utils/buddy-cloud-sync');
+const cloudApi = require('../../utils/cloud-api');
 
 Page({
   data: {
@@ -12,6 +13,12 @@ Page({
   },
 
   onShow() {
+    if (cloudApi.cloudEnabled()) {
+      refreshBuddyFeedFromCloud({ limit: 80 })
+        .catch(() => {})
+        .finally(() => loadPetMap(this));
+      return;
+    }
     loadPetMap(this);
   },
 
@@ -19,23 +26,8 @@ Page({
     onMapMarkerTap(this, e);
   },
 
-  onPeerChat(e) {
+  onPeerTap(e) {
     const peer = (this.data.mapPeers || [])[Number(e.currentTarget.dataset.index)];
-    openPeerChat(peer);
-  },
-
-  onRelocate() {
-    wx.getLocation({
-      type: 'gcj02',
-      success: (res) => {
-        this.setData({
-          mapLatitude: res.latitude,
-          mapLongitude: res.longitude,
-          mapScale: 15,
-        });
-        loadPetMap(this);
-      },
-      fail: () => wx.showToast({ title: '获取位置失败', icon: 'none' }),
-    });
+    openBuddyDetail(peer);
   },
 });

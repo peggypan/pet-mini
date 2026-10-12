@@ -1,4 +1,4 @@
-const { findBuddy } = require('../../utils/catalog');
+const { loadBuddyDetail } = require('../../utils/buddy-cloud-sync');
 const { RISK_TIPS } = require('../../utils/mock');
 const store = require('../../utils/store');
 const { startBuddyChat } = require('../../utils/buddy-chat');
@@ -6,8 +6,8 @@ const amap = require('../../utils/amap');
 const {
   followResultToast,
   decorateBuddyFollow,
-  toggleFollowAuthor,
 } = require('../../utils/pet-follow');
+const { toggleFollowAuthorSynced } = require('../../utils/follow-cloud-sync');
 const { requireInteract } = require('../../utils/pet-profile-guard');
 const { deleteOwnedBuddyPost, finishAfterDelete } = require('../../utils/user-content-delete');
 const { buddyDistanceText } = require('../../utils/geo-distance');
@@ -16,7 +16,18 @@ Page({
   data: { buddy: null, followed: false, collected: false, isOwner: false },
 
   onLoad(options) {
-    const raw = findBuddy(options.id);
+    const id = (options && (options.id || options.scene)) || '';
+    this.loadBuddy(id);
+  },
+
+  async loadBuddy(id) {
+    wx.showLoading({ title: '加载中', mask: true });
+    let raw = null;
+    try {
+      raw = await loadBuddyDetail(id);
+    } finally {
+      wx.hideLoading();
+    }
     if (!raw) {
       wx.showToast({ title: '搭子不存在', icon: 'none' });
       return;
@@ -58,11 +69,11 @@ Page({
     startBuddyChat(this.data.buddy);
   },
 
-  onFollow() {
+  async onFollow() {
     if (!requireInteract()) return;
     const buddy = this.data.buddy;
     if (!buddy || buddy.isSelfAuthor) return;
-    const result = toggleFollowAuthor(buddy);
+    const result = await toggleFollowAuthorSynced(buddy);
     this.setData({
       followed: result.followed,
       buddy: { ...buddy, followed: result.followed },

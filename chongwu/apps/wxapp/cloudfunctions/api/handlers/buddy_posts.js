@@ -15,9 +15,15 @@ function sortByCreatedDesc(rows) {
   });
 }
 
+function normalizeFeedCity(raw) {
+  const s = String(raw || '').trim().replace(/市$/, '');
+  return s || '';
+}
+
 async function listFeed(payload, wxContext) {
   const _ = getDb().command;
   const zone = payload && payload.zone;
+  const city = normalizeFeedCity(payload && payload.city);
   const limit = Math.min(100, Math.max(1, Number(payload && payload.limit) || 50));
   const skip = Math.max(0, Number(payload && payload.skip) || 0);
 
@@ -28,6 +34,9 @@ async function listFeed(payload, wxContext) {
   ];
   if (zone && zone !== 'all') {
     parts.push({ zone });
+  }
+  if (city) {
+    parts.push(_.or([{ city }, { city: `${city}市` }]));
   }
 
   let rows = [];

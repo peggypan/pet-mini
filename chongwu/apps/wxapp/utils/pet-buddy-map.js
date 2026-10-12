@@ -1,29 +1,65 @@
 const store = require('./store');
 const cloudApi = require('./cloud-api');
 const { ensureChatThreadOnCloud } = require('./chat-cloud-sync');
-const { listAllBuddies } = require('./catalog');
-const { buildPetAvatarMarkers } = require('./pet-map-markers');
+const { listAllBuddies, resolveBuddyPostId } = require('./catalog');
+const { buildPetAvatarMarkers, hydrateMapMarkerIcons } = require('./pet-map-markers');
+const { buddyIsNearViewer, resolveCityFromGps } = require('./geo-distance');
 
-function collectMapPeers(posts) {
+/** 地图只展示其他宠友，不含本人帖与档案疗愈搭子 */
+function isSelfBuddyRow(b) {
+  if (!b) return true;
+  if (b.healingPetProfile === true) return true;
+  return store.isMyUserContent(b);
+}
+
+function buddyPeerKey(b) {
+  if (b.userId) return `u:${b.userId}`;
+  if (b.openid) return `o:${b.openid}`;
+  if (b._openid) return `o:${b._openid}`;
+  return `id:${b.id}`;
+}
+
+function peerFromBuddy(b) {
+  const postId = resolveBuddyPostId(b);
+  if (!postId) return null;
+  return {
+    postId,
+    buddyId: postId,
+    peerId: postId,
+    id: postId,
+    peerOpenid: b.peerOpenid || b.openid || b._openid || '',
+    userName: b.userName,
+    petName: b.petName,
+    avatar: b.avatar,
+    location: b.location,
+    expectPlace: b.expectPlace,
+    expectPlaceAddress: b.expectPlaceAddress,
+    city: b.city,
+    latitude: b.latitude,
+    longitude: b.longitude,
+  };
+}
+
+function collectMapPeers(posts, viewer) {
   const map = new Map();
-  listAllBuddies().forEach((b) => {
-    map.set(String(b.id), {
-      peerId: b.id,
-      userName: b.userName,
-      petName: b.petName,
-      avatar: b.avatar,
+  listAllBuddies()
+    .filter((b) => !isSelfBuddyRow(b))
+    .filter((b) => buddyIsNearViewer(b, viewer))
+    .forEach((b) => {
+      const peer = peerFromBuddy(b);
+      if (!peer) return;
+      map.set(buddyPeerKey(b), peer);
     });
-  });
-  (posts || []).forEach((p) => {
-    const peerId = p.userId || `u_${p.userName || p.id}`;
-    if (map.has(String(peerId))) return;
-    map.set(String(peerId), {
-      peerId,
-      userName: p.userName,
-      petName: p.petName,
-      avatar: p.avatar,
+  (posts || [])
+    .filter((p) => !isSelfBuddyRow(p))
+    .filter((p) => buddyIsNearViewer(p, viewer))
+    .forEach((p) => {
+      const key = buddyPeerKey(p);
+      if (map.has(key)) return;
+      const peer = peerFromBuddy(p);
+      if (!peer) return;
+      map.set(key, peer);
     });
-  });
   return Array.from(map.values());
 }
 
@@ -34,18 +70,25 @@ function loadPetMap(page, options) {
   let longitude = loc.lng || 116.4074;
 
   const apply = () => {
-    const peers = collectMapPeers(posts);
-    const markers = buildPetAvatarMarkers(peers, latitude, longitude);
+    const viewer = {
+      lat: latitude,
+      lng: longitude,
+      city: resolveCityFromGps(latitude, longitude) || store.getCity(),
+    };
+    const peers = collectMapPeers(posts, viewer);
+    const built = buildPetAvatarMarkers(peers, latitude, longitude);
     page.setData({
       mapLatitude: latitude,
       mapLongitude: longitude,
-      mapMarkers: markers,
       mapPeerCount: peers.length,
       mapPeers: peers,
     });
+    hydrateMapMarkerIcons(built).then((markers) => {
+      if (!page || typeof page.setData !== 'function') return;
+      page.setData({ mapMarkers: markers });
+    });
   };
 
-  apply();
   wx.getLocation({
     type: 'gcj02',
     success: (res) => {
@@ -53,7 +96,7 @@ function loadPetMap(page, options) {
       longitude = res.longitude;
       apply();
     },
-    fail: () => {},
+    fail: () => apply(),
   });
 }
 
@@ -79,21 +122,42 @@ async function openPeerChat(peer) {
   }
 }
 
+/** 进入搭子详情（收藏 / 举报 / 发起私聊 / 期望地点导航） */
+function openBuddyDetail(peerOrId) {
+  const buddyId = typeof peerOrId === 'object'
+    ? resolveBuddyPostId({
+      id: peerOrId.postId || peerOrId.buddyId || peerOrId.peerId,
+      peerOpenid: peerOrId.peerOpenid,
+      openid: peerOrId.openid,
+    })
+    : resolveBuddyPostId(String(peerOrId || ''));
+  if (!buddyId) {
+    wx.showToast({ title: '无法打开该搭子', icon: 'none' });
+    return;
+  }
+  wx.navigateTo({
+    url: `/pages/buddy-detail/buddy-detail?id=${encodeURIComponent(buddyId)}`,
+  });
+}
+
+function findMarkerByTapId(markers, markerId) {
+  const mid = Number(markerId);
+  return (markers || []).find(
+    (m) => m.id === markerId || m.id === mid || String(m.id) === String(markerId),
+  );
+}
+
 function onMapMarkerTap(page, e) {
   const markerId = e.detail.markerId;
-  const marker = (page.data.mapMarkers || []).find((m) => m.id === markerId);
-  if (!marker || !marker.peerId) return;
-  openPeerChat({
-    peerId: marker.peerId,
-    userName: marker.userName,
-    petName: marker.petName,
-    avatar: marker.avatar,
-  });
+  const marker = findMarkerByTapId(page.data.mapMarkers, markerId);
+  if (!marker) return;
+  openBuddyDetail(marker);
 }
 
 module.exports = {
   collectMapPeers,
   loadPetMap,
   onMapMarkerTap,
+  openBuddyDetail,
   openPeerChat,
 };

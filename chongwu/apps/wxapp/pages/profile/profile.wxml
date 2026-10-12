@@ -118,13 +118,11 @@
               <text class="mini-title">成为主理人</text>
               <text class="mini-sub">开俱乐部 · 办活动</text>
             </view>
-            <button class="bento-mini-contact-btn" open-type="contact" session-from="profile-contact">
-              <view class="bento-mini">
-                <text class="mini-icon">💬</text>
-                <text class="mini-title">联系我们</text>
-                <text class="mini-sub">微信客服 · 在线沟通</text>
-              </view>
-            </button>
+            <view class="bento-mini" bindtap="onContactFeedback">
+              <text class="mini-icon">💬</text>
+              <text class="mini-title">联系我们</text>
+              <text class="mini-sub">意见反馈 · 图文提交</text>
+            </view>
             <view class="bento-mini" bindtap="onOrders">
               <text class="mini-icon">💳</text>
               <text class="mini-title">服务预约</text>

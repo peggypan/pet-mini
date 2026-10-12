@@ -23,7 +23,8 @@
         { "name": "local_posts", "desc": "同城寻宠/领养/救助" },
         { "name": "chat_threads", "desc": "私信会话列表" },
         { "name": "chat_messages", "desc": "私信消息" },
-        { "name": "user_follows", "desc": "用户关注/互关" }
+        { "name": "user_follows", "desc": "用户关注/互关" },
+        { "name": "user_feedback", "desc": "用户意见反馈（图文）" }
       ]
     },
     {
@@ -77,6 +78,7 @@
     "chat_threads",
     "chat_messages",
     "user_follows",
+    "user_feedback",
     "events",
     "event_signups",
     "event_interests",

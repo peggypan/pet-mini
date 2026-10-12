@@ -37,6 +37,7 @@
     { "name": "chat_threads", "template": "C_cloud_only", "phase": 2 },
     { "name": "chat_messages", "template": "C_cloud_only", "phase": 2 },
     { "name": "user_follows", "template": "C_cloud_only", "phase": 2 },
+    { "name": "user_feedback", "template": "C_cloud_only", "phase": 2 },
     { "name": "events", "template": "C_cloud_only", "phase": 3 },
     { "name": "event_signups", "template": "C_cloud_only", "phase": 3 },
     { "name": "event_interests", "template": "C_cloud_only", "phase": 3 },

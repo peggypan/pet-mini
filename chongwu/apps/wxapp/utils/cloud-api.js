@@ -192,6 +192,10 @@ function removeEventSignup(payload) {
   return callApi('event_signups', 'remove', payload);
 }
 
+function submitUserFeedback(payload) {
+  return callApi('user_feedback', 'save', payload || {});
+}
+
 module.exports = {
   cloudEnabled,
   callApi,
@@ -231,4 +235,5 @@ module.exports = {
   getEventSignup,
   saveEventSignup,
   removeEventSignup,
+  submitUserFeedback,
 };

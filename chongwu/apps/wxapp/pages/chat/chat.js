@@ -401,15 +401,20 @@ Page({
   },
 
   findLocalThread(customPeer, peerId) {
+    const { threadsSamePeer, resolveThreadOpenid } = require('../../utils/chat-thread-display');
     const threads = store.listChatThreads();
     if (customPeer.threadId) {
       const hit = threads.find((t) => String(t.id) === String(customPeer.threadId));
       if (hit) return hit;
     }
-    if (peerId) {
-      const hit = threads.find((t) => String(t.peerId) === String(peerId));
-      if (hit) return hit;
-    }
+    const probe = {
+      peerId: peerId || customPeer.peerId || '',
+      peerOpenid: customPeer.peerOpenid || '',
+    };
+    const oid = resolveThreadOpenid(probe);
+    if (oid) probe.peerId = oid;
+    const hit = threads.find((t) => threadsSamePeer(t, probe));
+    if (hit) return hit;
     return null;
   },
 

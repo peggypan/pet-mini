@@ -1,0 +1,8 @@
+page {
+  background: #f5f8fc;
+}
+
+.bootstrap {
+  min-height: 100vh;
+  background: #f5f8fc;
+}

@@ -1,5 +1,6 @@
 {
   "pages": [
+    "pages/bootstrap/bootstrap",
     "pages/privacy-gate/privacy-gate",
     "pages/splash-ad/splash-ad",
     "pages/home/home",

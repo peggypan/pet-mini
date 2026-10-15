@@ -1,7 +1,7 @@
 const { ok, fail } = require('../common/response');
 const { chatThreads, now, getDb } = require('../common/db');
 const { requireUser } = require('../common/auth-user');
-const { pickEnsureThreadPayload, publicThread } = require('../common/chat-fields');
+const { pickEnsureThreadPayload, publicThread, dedupePublicThreads } = require('../common/chat-fields');
 
 async function assertOwnThread(auth, threadId) {
   try {
@@ -42,7 +42,47 @@ async function listMine(_payload, wxContext) {
       });
   }
 
-  return ok({ list: rows.map((d) => publicThread(d)).filter(Boolean) });
+  return ok({ list: dedupePublicThreads(rows) });
+}
+
+function normalizeOpenid(raw) {
+  const s = String(raw || '').trim();
+  if (!s) return '';
+  if (s.startsWith('oid:')) return s.slice(4);
+  if (s.startsWith('c_') && s.length > 22) return s.slice(2);
+  return s;
+}
+
+async function findExistingThread(auth, body) {
+  const _ = getDb().command;
+  const owner = _.or([{ openid: auth.openid }, { _openid: auth.openid }]);
+  const active = { status: 1 };
+  const oid = normalizeOpenid(body.peerOpenid)
+    || (body.peerId && body.peerId.length >= 26 ? body.peerId : '');
+
+  if (oid) {
+    const byOpenid = await chatThreads()
+      .where(_.and([owner, active, { peerOpenid: oid }]))
+      .limit(1)
+      .get();
+    if (byOpenid.data && byOpenid.data[0]) return byOpenid.data[0];
+
+    const byPeerAsOpenid = await chatThreads()
+      .where(_.and([owner, active, { peerId: oid }]))
+      .limit(1)
+      .get();
+    if (byPeerAsOpenid.data && byPeerAsOpenid.data[0]) return byPeerAsOpenid.data[0];
+  }
+
+  if (body.peerId) {
+    const byPeerId = await chatThreads()
+      .where(_.and([owner, active, { peerId: body.peerId }]))
+      .limit(1)
+      .get();
+    if (byPeerId.data && byPeerId.data[0]) return byPeerId.data[0];
+  }
+
+  return null;
 }
 
 async function ensure(payload, wxContext) {
@@ -50,13 +90,16 @@ async function ensure(payload, wxContext) {
   if (auth.err) return auth.err;
 
   const body = pickEnsureThreadPayload(payload);
-  if (!body.peerId) return fail(400, '缺少 peerId');
+  if (!body.peerId && !body.peerOpenid) return fail(400, '缺少 peerId');
 
-  const res = await chatThreads()
-    .where({ openid: auth.openid, peerId: body.peerId, status: 1 })
-    .limit(1)
-    .get();
-  let doc = (res.data && res.data[0]) || null;
+  const oid = normalizeOpenid(body.peerOpenid)
+    || (body.peerId && body.peerId.length >= 26 ? body.peerId : '');
+  if (oid) {
+    body.peerOpenid = oid;
+    body.peerId = oid;
+  }
+
+  let doc = await findExistingThread(auth, body);
   const ts = now();
 
   if (doc) {

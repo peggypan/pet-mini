@@ -34,6 +34,7 @@ Page({
   },
 
   applyChatTabFromCache(silent) {
+    store.persistChatThreadsCompact();
     const patch = {
       chats: decorateChatThreadsForList(store.listChatThreads()),
       chatUnread: store.countUnreadChats(),

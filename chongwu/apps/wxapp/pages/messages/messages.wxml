@@ -14,7 +14,7 @@
     <view
       class="chat-item"
       wx:for="{{chats}}"
-      wx:key="id"
+      wx:key="dedupeKey"
       bindtap="onChatTap"
       data-peerid="{{item.peerId}}"
       data-threadid="{{item.id}}"

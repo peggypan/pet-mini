@@ -1,4 +1,4 @@
-<view class="gate">
+<view class="gate" wx:if="{{showGate}}">
   <view class="hero">
     <text class="logo">宠头头</text>
     <text class="tagline">宠物搭子 · 同城社交与生活</text>

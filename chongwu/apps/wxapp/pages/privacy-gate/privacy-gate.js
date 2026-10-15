@@ -1,8 +1,10 @@
 const { tryLaunchWithSplash } = require('../../utils/splash-ad-launch');
+const { markPrivacyAccepted, clearPrivacyAccepted } = require('../../utils/privacy');
 
 Page({
   data: {
     contractName: '',
+    showGate: false,
   },
 
   onLoad() {
@@ -11,12 +13,14 @@ Page({
 
   checkAndEnter() {
     if (!wx.getPrivacySetting) {
+      markPrivacyAccepted();
       tryLaunchWithSplash();
       return;
     }
     wx.getPrivacySetting({
       success: (res) => {
         if (!res.needAuthorization) {
+          markPrivacyAccepted();
           const app = getApp();
           if (app) {
             app.globalData.privacyAccepted = true;
@@ -27,10 +31,14 @@ Page({
           tryLaunchWithSplash();
           return;
         }
-        this.setData({ contractName: res.privacyContractName || '' });
+        clearPrivacyAccepted();
+        this.setData({
+          showGate: true,
+          contractName: res.privacyContractName || '',
+        });
       },
       fail: () => {
-        this.setData({ contractName: '' });
+        this.setData({ showGate: true, contractName: '' });
       },
     });
   },
@@ -42,6 +50,7 @@ Page({
   },
 
   onAgreePrivacyAuth() {
+    markPrivacyAccepted();
     const app = getApp();
     if (app && app.handlePrivacyAgree) {
       app.handlePrivacyAgree('agree-privacy-btn');

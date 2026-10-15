@@ -969,13 +969,105 @@ function cloudEnabledForChat() {
   }
 }
 
+const {
+  dedupeChatThreads,
+  resolveThreadOpenid,
+  threadsSamePeer,
+  pickRicherThread,
+  threadDedupeKey,
+} = require('./chat-thread-display');
+
+function mergeChatMessageLists(current, incoming) {
+  const map = new Map();
+  (current || []).forEach((m) => {
+    if (m && m.id != null) map.set(String(m.id), m);
+  });
+  (incoming || []).forEach((m) => {
+    if (m && m.id != null) map.set(String(m.id), m);
+  });
+  return [...map.values()].sort((a, b) => {
+    const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    if (ta !== tb) return ta - tb;
+    return String(a.id).localeCompare(String(b.id));
+  });
+}
+
+function enrichThreadPeerOpenid(thread) {
+  if (!thread) return thread;
+  if (resolveThreadOpenid(thread)) return thread;
+  const pid = String(thread.peerId || '').trim();
+  if (!pid) return thread;
+  const buddy = getBuddyPost(pid);
+  const oid = (buddy && (buddy.peerOpenid || buddy.openid || buddy._openid)) || '';
+  if (!oid) return thread;
+  return { ...thread, peerOpenid: oid };
+}
+
+function mergeThreadPairIntoCanonical(list, i, j) {
+  const a = list[i];
+  const b = list[j];
+  const canonical = pickRicherThread(a, b);
+  const other = canonical === a ? b : a;
+  const canonicalId = canonical.id;
+  if (other.id && String(other.id) !== String(canonicalId)) {
+    const msgs = getChatMessages(other.id);
+    if (msgs.length) {
+      const existing = getChatMessages(canonicalId);
+      setChatMessagesForThread(canonicalId, mergeChatMessageLists(existing, msgs));
+    }
+  }
+  const winner = pickRicherThread(canonical, other);
+  const loser = winner === canonical ? other : canonical;
+  const oid = resolveThreadOpenid(winner) || resolveThreadOpenid(loser);
+  list[i] = {
+    ...winner,
+    peerOpenid: oid || winner.peerOpenid || loser.peerOpenid || '',
+    peerId: oid || winner.peerId || loser.peerId,
+    unread: (canonical.unread || 0) + (other.unread || 0),
+  };
+  list.splice(j, 1);
+}
+
+function compactChatThreads(threads) {
+  let list = (threads || []).map(enrichThreadPeerOpenid).filter(Boolean);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (let i = 0; i < list.length; i += 1) {
+      for (let j = i + 1; j < list.length; j += 1) {
+        if (!threadsSamePeer(list[i], list[j])) continue;
+        mergeThreadPairIntoCanonical(list, i, j);
+        changed = true;
+        break;
+      }
+      if (changed) break;
+    }
+  }
+  return dedupeChatThreads(list);
+}
+
 function ensureChatThreads() {
   let threads = read(KEYS.chatThreads, []);
   if (!threads.length && !cloudEnabledForChat()) {
     threads = MOCK_CHATS.map((t) => ({ ...t }));
     write(KEYS.chatThreads, threads);
   }
-  return threads;
+  const compact = compactChatThreads(threads);
+  const prevSig = (threads || []).map((t) => threadDedupeKey(t)).sort().join('\n');
+  const nextSig = compact.map((t) => threadDedupeKey(t)).sort().join('\n');
+  if (prevSig !== nextSig || compact.length !== threads.length) {
+    write(KEYS.chatThreads, compact.slice(0, 50));
+    return compact.slice(0, 50);
+  }
+  return compact;
+}
+
+function persistChatThreadsCompact() {
+  const threads = read(KEYS.chatThreads, []);
+  const compact = compactChatThreads(threads);
+  write(KEYS.chatThreads, compact.slice(0, 50));
+  return compact;
 }
 
 function listChatThreads() {
@@ -983,22 +1075,40 @@ function listChatThreads() {
 }
 
 function ensureChatThread(thread) {
-  if (!thread || !thread.peerId) return null;
+  if (!thread || (!thread.peerId && !thread.peerOpenid)) return null;
+  const enriched = enrichThreadPeerOpenid({
+    ...thread,
+    peerOpenid: thread.peerOpenid || '',
+  });
+  const oid = resolveThreadOpenid(enriched);
+  const peerId = oid || enriched.peerId;
   const threads = ensureChatThreads();
-  const existing = threads.find((t) => String(t.peerId) === String(thread.peerId));
-  if (existing) return existing;
+  const existing = threads.find((t) => threadsSamePeer(t, { ...enriched, peerId }));
+  if (existing) {
+    const patch = {
+      ...existing,
+      peerOpenid: oid || existing.peerOpenid || '',
+      peerId: oid || existing.peerId,
+      peerName: enriched.peerName || existing.peerName,
+      petName: enriched.petName || existing.petName,
+      avatar: enriched.avatar || existing.avatar,
+    };
+    upsertChatThreadFromCloud(patch);
+    return patch;
+  }
   const row = {
-    id: thread.id || `c_${thread.peerId}`,
-    peerId: thread.peerId,
-    peerName: thread.peerName || '用户',
-    petName: thread.petName || '宠物',
-    avatar: thread.avatar || '',
+    id: thread.id || `c_${peerId}`,
+    peerId,
+    peerOpenid: oid || enriched.peerOpenid || '',
+    peerName: enriched.peerName || '用户',
+    petName: enriched.petName || '宠物',
+    avatar: enriched.avatar || '',
     lastMessage: thread.lastMessage || '',
     lastTime: thread.lastTime || '',
     unread: 0,
   };
-  const next = [row, ...threads.filter((t) => String(t.peerId) !== String(thread.peerId))];
-  write(KEYS.chatThreads, next.slice(0, 50));
+  const next = [row, ...threads.filter((t) => !threadsSamePeer(t, row))];
+  write(KEYS.chatThreads, compactChatThreads(next).slice(0, 50));
   return row;
 }
 
@@ -1095,7 +1205,7 @@ function mapCloudThread(thread) {
 }
 
 function replaceChatThreadsFromCloud(list) {
-  const threads = (list || []).map(mapCloudThread).filter(Boolean);
+  const threads = compactChatThreads((list || []).map(mapCloudThread).filter(Boolean));
   write(KEYS.chatThreads, threads.slice(0, 50));
   return threads;
 }
@@ -1106,11 +1216,7 @@ function upsertChatThreadFromCloud(thread) {
   const threads = ensureChatThreads();
   const idx = threads.findIndex((t) => {
     if (String(t.id) === String(row.id)) return true;
-    if (String(t.peerId) === String(row.peerId)) return true;
-    if (row.peerOpenid && t.peerOpenid && String(t.peerOpenid) === String(row.peerOpenid)) {
-      return true;
-    }
-    return false;
+    return threadsSamePeer(t, row);
   });
   if (idx >= 0) {
     threads[idx] = { ...threads[idx], ...row };
@@ -2333,6 +2439,7 @@ module.exports = {
   recordPostThumbLike,
   listPostThumbLikes,
   listChatThreads,
+  persistChatThreadsCompact,
   ensureChatThread,
   getChatMessages,
   addChatMessage,

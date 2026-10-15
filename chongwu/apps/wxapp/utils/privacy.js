@@ -1,6 +1,31 @@
 /** 隐私相关工具（启动页统一授权，功能点不再单独弹窗） */
 
 const PRIVACY_GATE = '/pages/privacy-gate/privacy-gate';
+const PRIVACY_ACCEPTED_KEY = 'privacy_authorization_v1';
+
+function isPrivacyAcceptedLocally() {
+  try {
+    return !!wx.getStorageSync(PRIVACY_ACCEPTED_KEY);
+  } catch (e) {
+    return false;
+  }
+}
+
+function markPrivacyAccepted() {
+  try {
+    wx.setStorageSync(PRIVACY_ACCEPTED_KEY, true);
+  } catch (e) {
+    // ignore
+  }
+}
+
+function clearPrivacyAccepted() {
+  try {
+    wx.removeStorageSync(PRIVACY_ACCEPTED_KEY);
+  } catch (e) {
+    // ignore
+  }
+}
 
 function isPrivacyScopeError(err) {
   const msg = String((err && (err.errMsg || err.message)) || '');
@@ -26,10 +51,12 @@ function redirectToPrivacyGateIfNeeded() {
     wx.getPrivacySetting({
       success: (res) => {
         if (res.needAuthorization) {
+          clearPrivacyAccepted();
           wx.reLaunch({ url: PRIVACY_GATE });
           resolve(false);
           return;
         }
+        markPrivacyAccepted();
         try {
           const app = getApp();
           if (app && app.globalData) app.globalData.privacyAccepted = true;
@@ -53,6 +80,7 @@ function ensurePrivacyBeforeLogin() {
     wx.getPrivacySetting({
       success: (res) => {
         if (!res.needAuthorization) {
+          markPrivacyAccepted();
           try {
             const app = getApp();
             if (app && app.globalData) app.globalData.privacyAccepted = true;
@@ -91,6 +119,10 @@ function isDevtools() {
 
 module.exports = {
   PRIVACY_GATE,
+  PRIVACY_ACCEPTED_KEY,
+  isPrivacyAcceptedLocally,
+  markPrivacyAccepted,
+  clearPrivacyAccepted,
   isPrivacyScopeError,
   showPrivacyGuide,
   redirectToPrivacyGateIfNeeded,

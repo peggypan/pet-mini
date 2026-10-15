@@ -4,6 +4,7 @@ const cloudEnv = require('./config/cloud-env');
 const cloudApi = require('./utils/cloud-api');
 const { refreshPetsFromCloud } = require('./utils/pet-cloud-sync');
 const { refreshSensitiveWordsFromCloud } = require('./utils/sensitive-words-cloud-sync');
+const { markPrivacyAccepted, clearPrivacyAccepted } = require('./utils/privacy');
 
 function persistSession(app, data) {
   if (!data || !data.token) return;
@@ -39,6 +40,7 @@ App({
       this.globalData.resolvePrivacyAuthorization = null;
     }
     this.globalData.privacyAccepted = true;
+    markPrivacyAccepted();
   },
 
   agreePrivacyAuthorization() {
@@ -49,6 +51,7 @@ App({
     this.initCloud();
     if (wx.onNeedPrivacyAuthorization) {
       wx.onNeedPrivacyAuthorization((resolve) => {
+        clearPrivacyAccepted();
         this.globalData.resolvePrivacyAuthorization = resolve;
         wx.reLaunch({ url: '/pages/privacy-gate/privacy-gate' });
       });
@@ -59,12 +62,16 @@ App({
           const accepted = !res.needAuthorization;
           this.globalData.privacyAccepted = accepted;
           if (accepted) {
+            markPrivacyAccepted();
             this.tryAutoLocateCity();
+          } else {
+            clearPrivacyAccepted();
           }
         },
       });
     } else {
       this.globalData.privacyAccepted = true;
+      markPrivacyAccepted();
       this.tryAutoLocateCity();
     }
     const token = wx.getStorageSync('token');

@@ -28,13 +28,62 @@ function formatChatThreadTitle(peerName, petName) {
   return `${name} · ${pet}`;
 }
 
+function normalizePeerOpenid(raw) {
+  const s = trim(raw);
+  if (!s) return '';
+  if (s.startsWith('oid:')) return s.slice(4);
+  if (s.startsWith('c_') && s.length > 22) return s.slice(2);
+  return s;
+}
+
+/** 会话去重键：优先 openid，避免同一宠友因帖子 id / openid 各建一条 */
+function resolveThreadOpenid(thread) {
+  if (!thread) return '';
+  let oid = normalizePeerOpenid(thread.peerOpenid);
+  const peerId = trim(thread.peerId);
+  if (!oid && peerId) {
+    if (peerId.length >= 26 && /^[a-zA-Z0-9_-]+$/.test(peerId)) {
+      oid = peerId;
+    } else {
+      oid = normalizePeerOpenid(peerId);
+    }
+  }
+  return oid;
+}
+
+function threadDisplayTitle(thread) {
+  if (!thread) return '';
+  return formatChatThreadTitle(thread.peerName, thread.petName);
+}
+
+function isStableChatTitle(title) {
+  const t = trim(title);
+  if (!t || t === '宠友' || t === '宠友 · 宠物' || t === '用户 · 宠物') return false;
+  return t.length >= 5;
+}
+
 function threadDedupeKey(thread) {
   if (!thread) return '';
-  const openid = trim(thread.peerOpenid);
-  if (openid) return `oid:${openid}`;
+  const oid = resolveThreadOpenid(thread);
+  if (oid) return `oid:${oid}`;
+  const title = threadDisplayTitle(thread);
+  if (isStableChatTitle(title)) return `name:${title}`;
   const peerId = trim(thread.peerId);
-  if (peerId && peerId.length > 20 && !peerId.startsWith('c_')) return `oid:${peerId}`;
   return peerId ? `id:${peerId}` : `tid:${thread.id || ''}`;
+}
+
+function threadsSamePeer(a, b) {
+  if (!a || !b) return false;
+  const ka = threadDedupeKey(a);
+  const kb = threadDedupeKey(b);
+  if (ka && kb && ka === kb && !ka.startsWith('tid:')) return true;
+  const ta = threadDisplayTitle(a);
+  const tb = threadDisplayTitle(b);
+  if (isStableChatTitle(ta) && ta === tb) return true;
+  const oa = resolveThreadOpenid(a);
+  const ob = resolveThreadOpenid(b);
+  if (oa && ob && oa === ob) return true;
+  return false;
 }
 
 function threadSortTime(thread) {
@@ -47,13 +96,24 @@ function threadSortTime(thread) {
   return 0;
 }
 
+function isCloudThreadId(id) {
+  const s = String(id || '');
+  return s.length >= 20 && !s.startsWith('c_');
+}
+
 function pickRicherThread(a, b) {
   if (!a) return b;
   if (!b) return a;
+  const cloudA = isCloudThreadId(a.id);
+  const cloudB = isCloudThreadId(b.id);
+  if (cloudA !== cloudB) return cloudB ? b : a;
   const ta = threadSortTime(a);
   const tb = threadSortTime(b);
   if (tb !== ta) return tb > ta ? b : a;
-  return (b.unread || 0) > (a.unread || 0) ? b : a;
+  if ((b.unread || 0) !== (a.unread || 0)) {
+    return (b.unread || 0) > (a.unread || 0) ? b : a;
+  }
+  return cloudB ? b : a;
 }
 
 function dedupeChatThreads(threads) {
@@ -75,6 +135,7 @@ function decorateChatThreadRow(thread) {
     ...thread,
     displayTitle: title,
     lastTime: formatThreadLastTime(thread),
+    dedupeKey: threadDedupeKey(thread),
   };
 }
 
@@ -85,7 +146,12 @@ function decorateChatThreadsForList(threads) {
 module.exports = {
   formatChatThreadTitle,
   formatThreadLastTime,
+  normalizePeerOpenid,
+  resolveThreadOpenid,
+  threadDedupeKey,
+  threadsSamePeer,
   dedupeChatThreads,
   decorateChatThreadRow,
   decorateChatThreadsForList,
+  pickRicherThread,
 };

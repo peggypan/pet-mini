@@ -18,12 +18,16 @@ const {
   sampleImageColors,
 } = require('../../utils/image-palette');
 const amap = require('../../utils/amap');
-const { getDisplayNickname } = require('../../utils/user-profile-display');
+const { getDisplayNickname, getProfileAvatarUrl } = require('../../utils/user-profile-display');
 const { pullUserProfileFromCloud } = require('../../utils/persist-user-profile');
 const { buildProfileStatList } = require('../../utils/profile-stat-list');
 const { consumeLoginPromptFlag } = require('../../utils/require-login');
 const { ensurePrivacyBeforeLogin, isDevtools } = require('../../utils/privacy');
 const { displayPublishTime } = require('../../utils/relative-time');
+const {
+  fetchAllProfileFeedSources,
+  fetchProfileFeedSource,
+} = require('../../utils/profile-feed-cloud');
 const TAB_KEYS = ['myEvents', 'joined', 'buddy', 'social'];
 
 function buildClubTileSub() {
@@ -65,8 +69,9 @@ function feedCoverFromPost(p) {
   return p.image || (p.images && p.images[0]) || '';
 }
 
-function buildSocialFeedItems() {
-  return store.listSocialPosts().slice(0, 20).map((p) => {
+function buildSocialFeedItems(posts) {
+  const source = Array.isArray(posts) ? posts : [];
+  return source.slice(0, 50).map((p) => {
     const cover = feedCoverFromPost(p) || getDefaultPet().avatar;
     return {
       id: p.id,
@@ -92,9 +97,11 @@ function formatFeedDate(isoOrStr) {
   return `${m}月${day}`;
 }
 
-function buildFeed(tabKey) {
+function buildFeed(tabKey, sources) {
+  const src = sources || {};
   if (tabKey === 'myEvents') {
-    return store.listMyEvents().map((ev) => ({
+    const rows = Array.isArray(src.myEvents) ? src.myEvents : [];
+    return rows.map((ev) => ({
       id: ev.id,
       kind: 'event',
       dateLabel: formatFeedDate(ev.createdAt || ev.eventDate),
@@ -111,7 +118,8 @@ function buildFeed(tabKey) {
     }));
   }
   if (tabKey === 'joined') {
-    return store.listEventSignups().map((ev, i) => ({
+    const rows = Array.isArray(src.joined) ? src.joined : [];
+    return rows.map((ev, i) => ({
       id: ev.id || `join-${i}`,
       kind: 'joined',
       dateLabel: formatFeedDate(ev.createdAt || ev.time),
@@ -128,10 +136,8 @@ function buildFeed(tabKey) {
     }));
   }
   if (tabKey === 'buddy') {
-    return store.listBuddyPosts()
-      .filter((p) => p.userName === '我' || !p.userName)
-      .slice(0, 20)
-      .map((p) => ({
+    const rows = Array.isArray(src.buddy) ? src.buddy : [];
+    return rows.slice(0, 50).map((p) => ({
         id: p.id,
         kind: 'buddy',
         dateLabel: displayPublishTime(p) || p.time || '',
@@ -149,7 +155,7 @@ function buildFeed(tabKey) {
         url: `/pages/buddy-detail/buddy-detail?id=${p.id}`,
       }));
   }
-  return buildSocialFeedItems();
+  return buildSocialFeedItems(src.social);
 }
 
 Page({
@@ -163,12 +169,14 @@ Page({
     activeTab: 0,
     tabLabels: ['我的活动', '我参与的', '我的搭子', '宠友动态'],
     feedList: [],
+    feedLoading: false,
     clubTileSub: '暂无俱乐部',
     profileTagOptions: [],
     heroGradient: gradientStyleString(DEFAULT),
     heroSourceImage: '',
     profileBio: '和毛孩子一起，遇见同城宠友与好活动～',
     displayNickname: '宠友',
+    profileAvatar: '/assets/mock/real_avatar.jpg',
     statSheetVisible: false,
     statSheetTitle: '',
     statSheetSummary: '',
@@ -230,11 +238,90 @@ Page({
     this.refreshFeed(tab, true);
   },
 
+  applyFeedFromSources(sources, tabIndex, refreshGradient = true) {
+    const idx = typeof tabIndex === 'number' ? tabIndex : this.data.activeTab;
+    const key = TAB_KEYS[idx] || TAB_KEYS[0];
+    this._profileFeedSources = sources || this._profileFeedSources || {};
+    this.setData(
+      { feedList: buildFeed(key, this._profileFeedSources), feedLoading: false },
+      () => {
+        if (refreshGradient) this.applyHeroImage();
+      },
+    );
+  },
+
   refreshFeed(tabIndex, refreshGradient = true) {
-    const key = TAB_KEYS[tabIndex] || TAB_KEYS[0];
-    this.setData({ feedList: buildFeed(key) }, () => {
-      if (refreshGradient) this.applyHeroImage();
-    });
+    const idx = typeof tabIndex === 'number' ? tabIndex : this.data.activeTab;
+    const key = TAB_KEYS[idx] || TAB_KEYS[0];
+    if (this._profileFeedSources) {
+      this.applyFeedFromSources(this._profileFeedSources, idx, refreshGradient);
+      return;
+    }
+    this.loadProfileFeedFromCloud(idx, refreshGradient);
+  },
+
+  loadProfileFeedFromCloud(tabIndex, refreshGradient = true) {
+    const idx = typeof tabIndex === 'number' ? tabIndex : this.data.activeTab;
+    const key = TAB_KEYS[idx] || TAB_KEYS[0];
+    let token = wx.getStorageSync('token');
+    try {
+      const g = getApp().globalData;
+      if (g && g.token) token = g.token;
+    } catch (e) {
+      // ignore
+    }
+    if (!token || !cloudApi.cloudEnabled()) {
+      this._profileFeedSources = { myEvents: [], joined: [], buddy: [], social: [] };
+      this.setData({ feedList: [], feedLoading: false });
+      return;
+    }
+    this.setData({ feedLoading: true });
+    fetchProfileFeedSource(key)
+      .then((list) => {
+        const next = { ...(this._profileFeedSources || {}), [key]: list };
+        this.applyFeedFromSources(next, idx, refreshGradient);
+      })
+      .catch(() => {
+        this.setData({ feedList: [], feedLoading: false });
+      });
+  },
+
+  refreshProfileFeedFromCloud() {
+    if (this._profileFeedRefreshPromise) return this._profileFeedRefreshPromise;
+    this._profileFeedRefreshPromise = (async () => {
+      let token = wx.getStorageSync('token');
+      try {
+        const g = getApp().globalData;
+        if (g && g.token) token = g.token;
+      } catch (e) {
+        // ignore
+      }
+      if (!token || !cloudApi.cloudEnabled()) {
+        this._profileFeedSources = { myEvents: [], joined: [], buddy: [], social: [] };
+        this.setData({
+          feedList: [],
+          feedLoading: false,
+          'stats.events': 0,
+          'stats.organized': 0,
+        });
+        return;
+      }
+      this.setData({ feedLoading: true });
+      try {
+        const sources = await fetchAllProfileFeedSources();
+        this._profileFeedSources = sources;
+        this.setData({
+          'stats.events': (sources.joined || []).length,
+          'stats.organized': (sources.myEvents || []).length,
+        });
+        this.applyFeedFromSources(sources, this.data.activeTab, true);
+      } catch (e) {
+        this.setData({ feedList: [], feedLoading: false });
+      } finally {
+        this._profileFeedRefreshPromise = null;
+      }
+    })();
+    return this._profileFeedRefreshPromise;
   },
 
   onHide() {
@@ -252,28 +339,35 @@ Page({
     } catch (e) {
       // ignore
     }
-    const myEvents = store.listMyEvents();
     const statCounts = buildProfileStatCounts();
+    const feedSources = this._profileFeedSources;
+    const joinedCount = feedSources && feedSources.joined ? feedSources.joined.length : 0;
+    const organizedCount = feedSources && feedSources.myEvents ? feedSources.myEvents.length : 0;
     this.setData({
       isLogin: !!token,
       userInfo: wx.getStorageSync('userInfo'),
       displayNickname: getDisplayNickname(),
+      profileAvatar: getProfileAvatarUrl(),
       pet: getDefaultPet(),
       stats: {
         following: statCounts.following,
         followers: statCounts.followers,
         heart: statCounts.heart,
         likesCollects: statCounts.likesCollects,
-        events: store.listEventSignups().length,
+        events: token ? joinedCount : 0,
         orders: store.listServiceBooks().length,
-        organized: myEvents.length,
+        organized: token ? organizedCount : 0,
       },
       city: store.getCity(),
       clubTileSub: buildClubTileSub(),
       profileBio: store.getUserProfile().bio || '和毛孩子一起，遇见同城宠友与好活动～',
       pointsBalance: store.getUserPointsBalance(),
     });
-    this.refreshFeed(this.data.activeTab, true);
+    if (feedSources) {
+      this.applyFeedFromSources(feedSources, this.data.activeTab, true);
+    } else if (!token) {
+      this.setData({ feedList: [], feedLoading: false });
+    }
     this.refreshProfileTags();
     return token;
   },
@@ -287,15 +381,19 @@ Page({
         const { refreshClubsFromCloud } = require('../../utils/club-cloud-sync');
         const { refreshJoinedClubsFromCloud } = require('../../utils/club-member-cloud-sync');
         await Promise.all([
-          refreshPetsFromCloud(),
           refreshPointsFromCloud(),
-          pullUserProfileFromCloud(),
           refreshClubsFromCloud({ city: store.getCity(), limit: 50 }).catch(() => {}),
           refreshJoinedClubsFromCloud().catch(() => {}),
         ]);
+        await refreshPetsFromCloud();
+        await pullUserProfileFromCloud();
+        const { syncProfileAvatarEverywhere } = require('../../utils/user-profile-display');
+        const u = wx.getStorageSync('userInfo') || {};
+        if (u.avatarUrl) syncProfileAvatarEverywhere(u.avatarUrl);
+        await this.refreshProfileFeedFromCloud();
         this.paintProfileFromCache();
       } catch (e) {
-        // keep local cache
+        // keep other cached profile fields
       } finally {
         this._profileRefreshPromise = null;
       }
@@ -313,6 +411,9 @@ Page({
     this.refreshPrivacyReady();
     const token = this.paintProfileFromCache();
     this.refreshProfileInBackground();
+    if (token && cloudApi.cloudEnabled()) {
+      this.refreshProfileFeedFromCloud();
+    }
     if (!token && consumeLoginPromptFlag()) {
       wx.nextTick(() => {
         wx.showToast({ title: '请先登录', icon: 'none' });
@@ -629,9 +730,14 @@ Page({
       success: (res) => {
         if (!res.confirm) return;
         app.logout();
+        this._profileFeedSources = null;
         this.setData({
           isLogin: false,
           userInfo: null,
+          feedList: [],
+          feedLoading: false,
+          'stats.events': 0,
+          'stats.organized': 0,
         });
         wx.showToast({ title: '已退出登录', icon: 'none' });
       },

@@ -247,14 +247,15 @@ function listAllMapPoints() {
 function getDefaultPet() {
   const local = store.listPets()[0];
   if (local) {
-    const avatarUrl = local.avatarUrl || local.avatar || '';
+    const avatarUrl = (local.avatarUrl || local.avatar || '').trim();
     const useMockAvatar = !avatarUrl || avatarUrl.includes('/assets/mock/');
+    const displayAvatar = useMockAvatar ? MOCK_PET.avatar : avatarUrl;
     return {
       ...MOCK_PET,
       ...local,
       name: local.name || MOCK_PET.name,
       breed: local.breedName || local.breed || MOCK_PET.breed,
-      avatar: useMockAvatar ? MOCK_PET.avatar : avatarUrl,
+      avatar: displayAvatar,
       avatarUrl: useMockAvatar ? '' : avatarUrl,
       cover: local.coverUrl || (useMockAvatar ? MOCK_PET.cover : avatarUrl),
       healingPet: !!local.healingPet,

@@ -18,9 +18,8 @@
       </view>
 
       <view class="profile-row">
-        <view class="avatar-wrap" bindtap="onEditProfile">
-          <image class="avatar" src="{{pet.avatar}}" mode="aspectFill"></image>
-          <view class="avatar-edit-badge">✎</view>
+        <view class="avatar-wrap">
+          <image class="avatar" src="{{profileAvatar}}" mode="aspectFill"></image>
         </view>
         <view class="profile-meta">
           <view class="name-row" wx:if="{{isLogin}}">
@@ -66,10 +65,9 @@
         </view>
       </scroll-view>
 
-      <view class="bio-line" bindtap="onEditBio">
+      <view class="bio-line">
         <text class="bio-quote">「</text>
         <text class="bio-text">{{isLogin ? profileBio : '登录后完善主页，展示你和爱宠'}}</text>
-        <text class="bio-edit" wx:if="{{isLogin}}">✎</text>
       </view>
 
       <view
@@ -82,12 +80,6 @@
           <text class="activity-area-main">{{pet.activityAreaName || pet.activityAreaAddress}}</text>
           <text class="activity-area-sub" wx:if="{{pet.activityAreaLatitude}}">常活动区域 · 点击查看</text>
         </view>
-      </view>
-
-      <view class="mood-bar">
-        <text class="mood-emoji">🐾</text>
-        <view class="mood-track"><view class="mood-fill"></view></view>
-        <text class="mood-emoji">🦴</text>
       </view>
 
       <view class="login-block-spacer" wx:if="{{!isLogin}}"></view>
@@ -185,7 +177,10 @@
           </view>
         </view>
 
-        <view class="feed-empty" wx:if="{{!feedList.length}}">
+        <view class="feed-empty" wx:if="{{feedLoading}}">
+          <text class="feed-empty-text">加载中…</text>
+        </view>
+        <view class="feed-empty" wx:elif="{{!feedList.length}}">
           <text class="feed-empty-icon">📅</text>
           <text class="feed-empty-text">这里还没有内容</text>
           <view class="feed-empty-actions">

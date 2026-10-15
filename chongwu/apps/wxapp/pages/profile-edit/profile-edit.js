@@ -2,7 +2,7 @@ const store = require('../../utils/store');
 const { getDefaultPet } = require('../../utils/catalog');
 const { chooseMedia } = require('../../utils/choose-media');
 const { persistUserProfileFields } = require('../../utils/persist-user-profile');
-const { getDisplayNickname } = require('../../utils/user-profile-display');
+const { getDisplayNickname, getProfileAvatarUrl, syncProfileAvatarEverywhere } = require('../../utils/user-profile-display');
 const { savePetToCloud } = require('../../utils/pet-cloud-sync');
 const cloudApi = require('../../utils/cloud-api');
 const { blockSubPageWithoutLogin } = require('../../utils/pet-profile-guard');
@@ -24,15 +24,16 @@ Page({
   },
 
   loadForm() {
-    const pet = getDefaultPet();
     const profile = store.getUserProfile();
-    const userInfo = wx.getStorageSync('userInfo') || {};
-    const cloudAvatar = (userInfo.avatarUrl || '').trim();
     this.setData({
-      avatarUrl: pet.avatar || pet.avatarUrl || cloudAvatar || '/assets/mock/real_avatar.jpg',
+      avatarUrl: getProfileAvatarUrl(),
       nickname: getDisplayNickname(),
       bio: profile.bio || DEFAULT_BIO,
     });
+  },
+
+  onShow() {
+    this.loadForm();
   },
 
   onInput(e) {
@@ -71,7 +72,7 @@ Page({
         avatarUrl,
       });
       const savedAvatar = (result && result.uploadedAvatarUrl) || avatarUrl;
-      store.updateDefaultPetAvatar(savedAvatar);
+      syncProfileAvatarEverywhere(savedAvatar);
       const pet = getDefaultPet();
       if (cloudApi.cloudEnabled() && pet.id && pet.id !== 'demo') {
         try {

@@ -24,7 +24,7 @@
         enable-scroll="{{false}}"
       >
         <cover-view class="pet-map-tap-layer" catchtap="onOpenBuddyMap">
-          <cover-view class="pet-map-tap-hint">点击进入宠物友好地图</cover-view>
+          <cover-view class="pet-map-tap-hint">点击进入宠物搭子地图</cover-view>
         </cover-view>
       </map>
     </view>

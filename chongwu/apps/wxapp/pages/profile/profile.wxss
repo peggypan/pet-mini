@@ -87,7 +87,6 @@ page {
 .tag-scroll,
 .bio-line,
 .activity-area-row,
-.mood-bar,
 .login-block,
 .bento {
   position: relative;
@@ -148,22 +147,6 @@ page {
   border: 4rpx solid rgba(255, 255, 255, 0.95);
   box-shadow: 0 8rpx 24rpx rgba(0, 60, 120, 0.2);
   display: block;
-}
-
-.avatar-edit-badge {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 36rpx;
-  height: 36rpx;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.95);
-  color: #4da7f8;
-  font-size: 20rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.12);
 }
 
 .profile-meta {
@@ -301,13 +284,6 @@ page {
   border-radius: 16rpx;
 }
 
-.bio-edit {
-  margin-left: 12rpx;
-  font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.75);
-  flex-shrink: 0;
-}
-
 .activity-area-row {
   display: flex;
   align-items: flex-start;
@@ -356,32 +332,6 @@ page {
   font-size: 24rpx;
   color: rgba(255, 255, 255, 0.9);
   line-height: 1.55;
-}
-
-.mood-bar {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-  margin-bottom: 16rpx;
-}
-
-.mood-emoji {
-  font-size: 30rpx;
-}
-
-.mood-track {
-  flex: 1;
-  height: 10rpx;
-  background: rgba(255, 255, 255, 0.22);
-  border-radius: 999rpx;
-  overflow: hidden;
-}
-
-.mood-fill {
-  width: 58%;
-  height: 100%;
-  background: linear-gradient(90deg, #5EB8FF 0%, #4DA7F8 100%);
-  border-radius: 999rpx;
 }
 
 .login-dock {

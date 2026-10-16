@@ -116,6 +116,10 @@ function userFeedback() {
   return getDb().collection('user_feedback');
 }
 
+function appSettings() {
+  return getDb().collection('app_settings');
+}
+
 function now() {
   return getDb().serverDate();
 }
@@ -150,5 +154,6 @@ module.exports = {
   chatMessages,
   userFollows,
   userFeedback,
+  appSettings,
   now,
 };

@@ -1,6 +1,10 @@
 import { Button, Descriptions, Drawer, Form, Input, Modal, Popconfirm, Space, Table, Tag, message } from 'antd';
 import { useMemo, useState } from 'react';
-import { nextAdminId, nowAdminTime } from '../../utils/admin-record';
+import { fetchBuddyPosts } from '../../services/admin-data';
+import { auditStatusToDecision, moderatePost } from '../../services/moderation';
+import { createOfficialContent, ensureCloudImageUrl } from '../../services/admin-write';
+import { SplashImageUpload } from '../../components/SplashImageUpload';
+import { useCloudList } from '../../hooks/useCloudList';
 import { PageIntro } from '../../components/PageIntro';
 import { AuditStatusTag } from '../../components/AuditStatusTag';
 import { StatusFilterBar, filterByAuditStatus, type StatusFilterValue } from '../../components/StatusFilterBar';
@@ -15,7 +19,6 @@ import {
   resolveMediaUrls,
 } from '../../components/DetailMediaGallery';
 import { buddyZoneLabel } from '../../config/miniapp-align';
-import { mockBuddyPosts } from '../../mock/data';
 import type { BuddyPlazaZone, BuddyPostRow } from '../../types';
 
 type AddForm = {
@@ -24,6 +27,7 @@ type AddForm = {
   city: string;
   timeSlot: string;
   buddyType?: string;
+  coverImage?: string;
 };
 
 function buddyImages(row: BuddyPostRow): string[] {
@@ -31,7 +35,7 @@ function buddyImages(row: BuddyPostRow): string[] {
 }
 
 export function BuddyListPage() {
-  const [rows, setRows] = useState(mockBuddyPosts);
+  const { rows, loading, reload } = useCloudList(fetchBuddyPosts, []);
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue>('all');
   const [keyword, setKeyword] = useState('');
   const [zoneFilter, setZoneFilter] = useState<BuddyPlazaZone | 'all'>('all');
@@ -62,15 +66,28 @@ export function BuddyListPage() {
     return list;
   }, [rows, statusFilter, zoneFilter, keyword]);
 
-  const setStatus = (id: string, status: BuddyPostRow['status']) => {
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
-    if (detail?.id === id) setDetail((d) => (d ? { ...d, status } : d));
-    message.success('已更新（Mock）');
+  const setStatus = async (id: string, status: BuddyPostRow['status']) => {
+    try {
+      await moderatePost('buddy', id, auditStatusToDecision(status));
+      message.success('已更新');
+      await reload();
+      if (detail?.id === id) {
+        setDetail((d) => (d ? { ...d, status } : d));
+      }
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '操作失败');
+    }
   };
 
-  const removeRow = (id: string) => {
-    setRows((prev) => prev.filter((r) => r.id !== id));
-    message.success('已删除（Mock）');
+  const removeRow = async (id: string) => {
+    try {
+      await moderatePost('buddy', id, 'hide', '运营下架');
+      message.success('已下架');
+      setDetail((d) => (d?.id === id ? null : d));
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '下架失败');
+    }
   };
 
   const openAdd = () => {
@@ -81,31 +98,40 @@ export function BuddyListPage() {
 
   const submitAdd = async () => {
     const values = await form.validateFields();
-    const row: BuddyPostRow = {
-      id: nextAdminId('b'),
-      title: values.title.trim(),
-      userName: values.userName.trim(),
-      city: values.city.trim(),
-      timeSlot: values.timeSlot.trim(),
-      buddyType: values.buddyType?.trim(),
-      status: 'approved',
-      createdAt: nowAdminTime(),
-    };
-    setRows((prev) => [row, ...prev]);
-    setAddOpen(false);
-    message.success('已新增（Mock）');
+    try {
+      let cover = values.coverImage?.trim() || '';
+      if (cover) cover = await ensureCloudImageUrl(cover, 'admin/buddy');
+      await createOfficialContent('buddy', {
+        userName: values.userName.trim(),
+        title: values.title.trim(),
+        desc: values.title.trim(),
+        buddyType: values.buddyType || '遛狗搭子',
+        city: values.city.trim(),
+        expectTime: values.timeSlot.trim(),
+        zone: 'normal',
+        ...(cover ? { cover, images: [cover] } : {}),
+      });
+      message.success('已发布官方搭子帖');
+      setAddOpen(false);
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '发布失败');
+    }
   };
 
   const pendingCount = useMemo(() => countPendingStatus(rows, (r) => r.status), [rows]);
   useSyncMenuPendingBadge(MENU_PATH, pendingCount);
 
-  const bulkApproveAll = () => {
+  const bulkApproveAll = async () => {
     if (!pendingCount) return;
-    setRows((prev) =>
-      prev.map((r) => (r.status === 'pending' ? { ...r, status: 'approved' as const } : r)),
-    );
-    setDetail((d) => (d?.status === 'pending' ? { ...d, status: 'approved' } : d));
-    message.success(`已通过 ${pendingCount} 条搭子帖`);
+    const pending = rows.filter((r) => r.status === 'pending');
+    try {
+      await Promise.all(pending.map((r) => moderatePost('buddy', r.id, 'approve')));
+      message.success(`已通过 ${pending.length} 条搭子帖`);
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '批量通过失败');
+    }
   };
 
   return (
@@ -137,6 +163,7 @@ export function BuddyListPage() {
       />
       <Table
         rowKey="id"
+        loading={loading}
         dataSource={displayRows}
         pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
         scroll={{ x: 1040 }}
@@ -264,6 +291,9 @@ export function BuddyListPage() {
           </Form.Item>
           <Form.Item name="timeSlot" label="时段" rules={[{ required: true }]}>
             <Input placeholder="本周六 17:00" />
+          </Form.Item>
+          <Form.Item name="coverImage" label="封面图（可选）">
+            <SplashImageUpload uploadFolder="admin/buddy" previewMaxHeight={140} />
           </Form.Item>
         </Form>
       </Modal>

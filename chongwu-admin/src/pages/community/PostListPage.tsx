@@ -24,10 +24,13 @@ import { countPendingStatus } from '../../utils/audit-pending';
 const MENU_PATH = '/community/posts';
 import { DetailMediaSection, resolveMediaUrls } from '../../components/DetailMediaGallery';
 import { COMMUNITY_ZONE_LABELS, lostTypeLabel, zoneLabel } from '../../config/miniapp-align';
-import { mockSocialPosts } from '../../mock/data';
+import { useCloudList } from '../../hooks/useCloudList';
+import { fetchSocialPosts } from '../../services/admin-data';
+import { auditStatusToDecision, moderatePost } from '../../services/moderation';
+import { createOfficialContent, ensureCloudImageUrl } from '../../services/admin-write';
+import { AdminImageUrlsField } from '../../components/AdminImageUrlsField';
+import { SplashImageUpload } from '../../components/SplashImageUpload';
 import type { SocialLostType, SocialPostRow } from '../../types';
-import { nextAdminId, nowAdminTime } from '../../utils/admin-record';
-
 type KindFilter = 'all' | 'community' | 'rescue';
 
 type AddForm = {
@@ -37,10 +40,12 @@ type AddForm = {
   topic?: string;
   content: string;
   lostType?: SocialLostType | '';
+  coverImage?: string;
+  images?: string[];
 };
 
 export function PostListPage() {
-  const [rows, setRows] = useState(mockSocialPosts);
+  const { rows, loading, reload } = useCloudList(() => fetchSocialPosts(), []);
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue>('all');
   const [kindFilter, setKindFilter] = useState<KindFilter>('all');
   const [keyword, setKeyword] = useState('');
@@ -75,56 +80,75 @@ export function PostListPage() {
     return list;
   }, [rows, statusFilter, kindFilter, keyword]);
 
-  const setStatus = (id: string, status: SocialPostRow['status']) => {
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
-    if (detail?.id === id) setDetail((d) => (d ? { ...d, status } : d));
-    message.success('已更新（Mock）');
+  const setStatus = async (id: string, status: SocialPostRow['status']) => {
+    try {
+      await moderatePost('social', id, auditStatusToDecision(status));
+      message.success('已更新');
+      if (detail?.id === id) setDetail((d) => (d ? { ...d, status } : d));
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '操作失败');
+    }
   };
 
-  const removeRow = (id: string) => {
-    setRows((prev) => prev.filter((r) => r.id !== id));
-    message.success('已删除（Mock）');
+  const removeRow = async (id: string) => {
+    try {
+      await moderatePost('social', id, 'hide', '运营下架');
+      message.success('已下架');
+      setDetail((d) => (d?.id === id ? null : d));
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '操作失败');
+    }
   };
 
   const openAdd = () => {
     form.resetFields();
-    form.setFieldsValue({ zone: 'dog', userName: '运营录入', petName: '官方' });
+    form.setFieldsValue({ zone: 'dog', userName: '运营录入', petName: '官方', images: [] });
     setAddOpen(true);
   };
 
   const submitAdd = async () => {
     const values = await form.validateFields();
-    const lostType = values.lostType || undefined;
-    const row: SocialPostRow = {
-      id: nextAdminId('sp'),
-      userName: values.userName.trim(),
-      petName: values.petName.trim(),
-      zone: values.zone,
-      topic: values.topic?.trim() || undefined,
-      content: values.content.trim(),
-      lostType,
-      mediaCount: 0,
-      likes: 0,
-      comments: 0,
-      status: 'approved',
-      essence: false,
-      createdAt: nowAdminTime(),
-    };
-    setRows((prev) => [row, ...prev]);
-    setAddOpen(false);
-    message.success('已新增（Mock）');
+    try {
+      let cover = values.coverImage?.trim() || '';
+      if (cover) cover = await ensureCloudImageUrl(cover, 'admin/social');
+      const extraImages = await Promise.all(
+        (values.images || []).filter(Boolean).map((u) => ensureCloudImageUrl(u, 'admin/social')),
+      );
+      const images = [...new Set([...(cover ? [cover] : []), ...extraImages])].slice(0, 6);
+      await createOfficialContent('social', {
+        userName: values.userName.trim(),
+        petName: values.petName.trim(),
+        zone: values.zone,
+        topic: values.topic?.trim() || '',
+        content: values.content.trim(),
+        lostType: values.lostType || '',
+        title: values.lostType ? values.content.trim().slice(0, 40) : '',
+        city: '北京',
+        ...(images.length ? { image: images[0], images } : {}),
+      });
+      message.success('已发布官方动态');
+      setAddOpen(false);
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '发布失败');
+    }
   };
 
   const pendingCount = useMemo(() => countPendingStatus(rows, (r) => r.status), [rows]);
   useSyncMenuPendingBadge(MENU_PATH, pendingCount);
 
-  const bulkApproveAll = () => {
+  const bulkApproveAll = async () => {
     if (!pendingCount) return;
-    setRows((prev) =>
-      prev.map((r) => (r.status === 'pending' ? { ...r, status: 'approved' as const } : r)),
-    );
-    setDetail((d) => (d?.status === 'pending' ? { ...d, status: 'approved' } : d));
-    message.success(`已通过 ${pendingCount} 条动态`);
+    const pending = rows.filter((r) => r.status === 'pending');
+    try {
+      await Promise.all(pending.map((r) => moderatePost('social', r.id, 'approve')));
+      message.success(`已通过 ${pending.length} 条动态`);
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '批量通过失败');
+    }
   };
 
   return (
@@ -160,6 +184,7 @@ export function PostListPage() {
       />
       <Table
         rowKey="id"
+        loading={loading}
         dataSource={displayRows}
         pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
         scroll={{ x: 1180 }}
@@ -203,9 +228,14 @@ export function PostListPage() {
                 size="small"
                 checked={v}
                 disabled={!!r.userDeleted}
-                onChange={(checked) =>
-                  setRows((prev) => prev.map((x) => (x.id === r.id ? { ...x, essence: checked } : x)))
-                }
+                onChange={async (checked) => {
+                  try {
+                    await moderatePost('social', r.id, 'approve', undefined, checked);
+                    await reload();
+                  } catch (e) {
+                    message.error(e instanceof Error ? e.message : '更新精华失败');
+                  }
+                }}
               />
             ),
           },
@@ -318,6 +348,12 @@ export function PostListPage() {
           </Form.Item>
           <Form.Item name="topic" label="话题">
             <Input placeholder="#携宠露营" />
+          </Form.Item>
+          <Form.Item name="coverImage" label="封面（可选）">
+            <SplashImageUpload uploadFolder="admin/social" previewMaxHeight={140} />
+          </Form.Item>
+          <Form.Item name="images" label="多图（可选，≤6，不含封面重复）">
+            <AdminImageUrlsField uploadFolder="admin/social" max={6} />
           </Form.Item>
           <Form.Item name="content" label="正文" rules={[{ required: true, message: '请输入正文' }]}>
             <Input.TextArea rows={4} placeholder="动态内容" />

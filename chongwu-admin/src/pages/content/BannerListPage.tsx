@@ -16,9 +16,10 @@ import { useMemo, useState } from 'react';
 import { PageIntro } from '../../components/PageIntro';
 import { ListToolbar } from '../../components/ListToolbar';
 import { SplashImageUpload } from '../../components/SplashImageUpload';
-import { mockBanners } from '../../mock/data';
+import { useCloudList } from '../../hooks/useCloudList';
+import { fetchBanners, saveBanner } from '../../services/admin-data';
+import { ensureCloudImageUrl } from '../../services/admin-write';
 import type { BannerRow } from '../../types';
-import { nextAdminId } from '../../utils/admin-record';
 
 const BANNER_TYPES = [
   { value: 'mapPointsCampaign', label: '地图积分活动 (mapPointsCampaign)' },
@@ -48,20 +49,8 @@ function toForm(row: BannerRow): FormValues {
   };
 }
 
-function fromForm(values: FormValues, id?: string): BannerRow {
-  return {
-    id: id || nextAdminId('banner'),
-    title: values.title.trim(),
-    type: values.type,
-    cover: values.cover.trim(),
-    link: values.link.trim(),
-    sortOrder: values.sortOrder,
-    status: values.online ? 1 : 0,
-  };
-}
-
 export function BannerListPage() {
-  const [rows, setRows] = useState(mockBanners);
+  const { rows, loading, reload } = useCloudList(() => fetchBanners(), []);
   const [keyword, setKeyword] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<BannerRow | null>(null);
@@ -99,20 +88,51 @@ export function BannerListPage() {
 
   const onSave = async () => {
     const values = await form.validateFields();
-    const next = fromForm(values, editing?.id);
-    if (editing) {
-      setRows((prev) => prev.map((r) => (r.id === editing.id ? next : r)));
-      message.success('已保存');
-    } else {
-      setRows((prev) => [...prev, next]);
-      message.success('已新增 Banner');
+    try {
+      const cover = await ensureCloudImageUrl(values.cover.trim(), 'admin/banners');
+      await saveBanner({
+        id: editing?.id,
+        title: values.title.trim(),
+        type: values.type,
+        cover,
+        link: values.link.trim(),
+        sortOrder: values.sortOrder,
+        status: values.online ? 1 : 0,
+      });
+      message.success(editing ? '已保存' : '已新增 Banner');
+      setModalOpen(false);
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '保存失败');
     }
-    setModalOpen(false);
   };
 
-  const removeRow = (id: string) => {
-    setRows((prev) => prev.filter((r) => r.id !== id));
-    message.success('已删除');
+  const removeRow = async (id: string) => {
+    try {
+      await saveBanner({ id, remove: true });
+      message.success('已删除');
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '删除失败');
+    }
+  };
+
+  const toggleOnline = async (row: BannerRow, online: boolean) => {
+    try {
+      await saveBanner({
+        id: row.id,
+        title: row.title,
+        type: row.type,
+        cover: row.cover,
+        link: row.link,
+        sortOrder: row.sortOrder,
+        status: online ? 1 : 0,
+      });
+      message.success(online ? '已上线' : '已下线');
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '更新失败');
+    }
   };
 
   return (
@@ -129,6 +149,7 @@ export function BannerListPage() {
       />
       <Table
         rowKey="id"
+        loading={loading}
         dataSource={displayRows}
         pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
         scroll={{ x: 960 }}
@@ -156,14 +177,7 @@ export function BannerListPage() {
             dataIndex: 'status',
             width: 80,
             render: (v, r) => (
-              <Switch
-                checked={v === 1}
-                onChange={(checked) =>
-                  setRows((prev) =>
-                    prev.map((x) => (x.id === r.id ? { ...x, status: checked ? 1 : 0 } : x)),
-                  )
-                }
-              />
+              <Switch checked={v === 1} onChange={(checked) => void toggleOnline(r, checked)} />
             ),
           },
           {
@@ -175,7 +189,7 @@ export function BannerListPage() {
                 <Button type="link" size="small" onClick={() => openEdit(r)}>
                   编辑
                 </Button>
-                <Popconfirm title="确定删除该 Banner？" onConfirm={() => removeRow(r.id)}>
+                <Popconfirm title="确定删除该 Banner？" onConfirm={() => void removeRow(r.id)}>
                   <Button type="link" size="small" danger>
                     删除
                   </Button>
@@ -208,9 +222,10 @@ export function BannerListPage() {
             rules={[{ required: true, message: '请上传或填写封面 URL' }]}
           >
             <SplashImageUpload
+              uploadFolder="admin/banners"
               previewMaxHeight={160}
               placeholder="或粘贴封面 URL（建议宽图 750×360 左右）"
-              hint="首页轮播横图；支持本地上传，接云后走对象存储"
+              hint="首页轮播横图；本地上传写入云存储"
             />
           </Form.Item>
           <Form.Item

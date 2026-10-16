@@ -9,7 +9,9 @@ import { countPendingStatus } from '../../utils/audit-pending';
 
 const MENU_PATH = '/pets';
 import { DetailMediaSection } from '../../components/DetailMediaGallery';
-import { mockPets } from '../../mock/data';
+import { useCloudList } from '../../hooks/useCloudList';
+import { fetchPets } from '../../services/admin-data';
+import { updatePetAudit } from '../../services/moderation';
 import type { AuditStatus, PetRow, PetVaccineStatus } from '../../types';
 
 const VACCINE_LABEL: Record<string, string> = {
@@ -68,7 +70,7 @@ function PetGalleryCell({ photos }: { photos?: string[] }) {
 }
 
 export function PetListPage() {
-  const [rows, setRows] = useState(mockPets);
+  const { rows, loading, reload } = useCloudList(() => fetchPets(), []);
   const [keyword, setKeyword] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue>('all');
   const [detail, setDetail] = useState<PetRow | null>(null);
@@ -100,14 +102,14 @@ export function PetListPage() {
     return list;
   }, [rows, keyword, statusFilter]);
 
-  const patchRow = (id: string, patch: Partial<PetRow>) => {
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
-    setDetail((d) => (d && d.id === id ? { ...d, ...patch } : d));
-  };
-
-  const approve = (row: PetRow) => {
-    patchRow(row.id, { auditStatus: 'approved', rejectReason: undefined });
-    message.success(`已通过「${row.name}」档案审核`);
+  const approve = async (row: PetRow) => {
+    try {
+      await updatePetAudit(row.id, 'approved');
+      message.success(`已通过「${row.name}」档案审核`);
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '操作失败');
+    }
   };
 
   const openReject = (row: PetRow) => {
@@ -115,40 +117,43 @@ export function PetListPage() {
     setRejectReason(row.rejectReason || '');
   };
 
-  const confirmReject = () => {
+  const confirmReject = async () => {
     if (!rejectModal) return;
     const reason = rejectReason.trim() || '资料不符合要求，请修改后重新提交';
-    patchRow(rejectModal.id, {
-      auditStatus: 'rejected',
-      rejectReason: reason,
-      certPublished: false,
-    });
-    message.warning('已驳回档案');
-    setRejectModal(null);
-    setRejectReason('');
+    try {
+      await updatePetAudit(rejectModal.id, 'rejected', reason);
+      message.warning('已驳回档案');
+      setRejectModal(null);
+      setRejectReason('');
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '操作失败');
+    }
   };
 
-  const hideProfile = (row: PetRow) => {
-    patchRow(row.id, { auditStatus: 'hidden', certPublished: false });
-    message.info('已隐藏该档案');
+  const hideProfile = async (row: PetRow) => {
+    try {
+      await updatePetAudit(row.id, 'hidden');
+      message.info('已隐藏该档案');
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '操作失败');
+    }
   };
 
   const pendingCount = useMemo(() => countPendingStatus(rows, (r) => r.auditStatus), [rows]);
   useSyncMenuPendingBadge(MENU_PATH, pendingCount);
 
-  const bulkApproveAll = () => {
+  const bulkApproveAll = async () => {
     if (!pendingCount) return;
-    setRows((prev) =>
-      prev.map((r) =>
-        r.auditStatus === 'pending'
-          ? { ...r, auditStatus: 'approved', rejectReason: undefined }
-          : r,
-      ),
-    );
-    setDetail((d) =>
-      d?.auditStatus === 'pending' ? { ...d, auditStatus: 'approved', rejectReason: undefined } : d,
-    );
-    message.success(`已通过 ${pendingCount} 份档案`);
+    const pending = rows.filter((r) => r.auditStatus === 'pending');
+    try {
+      await Promise.all(pending.map((r) => updatePetAudit(r.id, 'approved')));
+      message.success(`已通过 ${pending.length} 份档案`);
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '批量通过失败');
+    }
   };
 
   return (
@@ -165,6 +170,7 @@ export function PetListPage() {
       />
       <Table
         rowKey="id"
+        loading={loading}
         dataSource={displayRows}
         scroll={{ x: 1680 }}
         pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条档案` }}

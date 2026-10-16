@@ -20,7 +20,7 @@ export function BulkApproveButton({
   return (
     <Popconfirm
       title={`确认${label}？`}
-      description={`将 ${pendingCount} ${unit}待审内容全部标记为已通过（Mock）。`}
+      description={`将 ${pendingCount} ${unit}待审内容全部标记为已通过并写入云库。`}
       onConfirm={onConfirm}
       okText="确认通过"
       cancelText="取消"

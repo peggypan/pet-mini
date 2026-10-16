@@ -11,20 +11,19 @@ Schema 以 [`chongwu/apps/wxapp/database/schemas`](../../apps/wxapp/database/sch
 | 前端 CloudBase Web SDK + 匿名登录 | 无法安全持有管理员密钥；权限规则应「仅云函数可写」 |
 | 前端直连数据库 | 会暴露 Secret，且绕开 `adminToken` 鉴权 |
 
-**推荐架构：**
+**推荐架构（当前实现）：**
 
 ```
-React Admin (5173)
-    │  HTTPS / 开发期 Vite 代理
-    ▼
-Node BFF (chongwu-admin/server, 8787)
-    │  @cloudbase/node-sdk.callFunction('api', { module, action, payload })
+React Admin（静态网站托管 或 localhost）
+    │  @cloudbase/js-sdk：匿名登录 + callFunction('api')
     ▼
 云函数 api/router.js
     │  requireAdmin(payload) 校验 adminToken
     ▼
-云数据库集合（与 schemas 一致）
+云数据库集合（与 schemas 一致，权限模板 C：不浏览器直连库）
 ```
+
+可选：`server/` Node BFF 仅作 Secret 转发备用，**默认不需要**。
 
 C 端小程序同样走 `api`，但用 `auth.login` + openid；运营走 `admin.login` + `adminToken`，在 handler 里分支权限。
 
@@ -39,32 +38,24 @@ C 端小程序同样走 `api`，但用 `auth.login` + openid；运营走 `admin.
    - `ADMIN_TOKEN_SECRET`：签发 `adminToken` 的 HMAC 密钥  
 5. 首次登录：`admin.login` 在 `admin_users` 为空时允许 **`admin` / `demo`** 引导创建 super（仅开发；上线前改密并禁用弱口令）。
 
-### 2.2 Admin BFF
-
-```bash
-cd chongwu-admin/server
-cp .env.example .env
-# 填写 TCB_ENV、TCB_SECRET_ID、TCB_SECRET_KEY（云开发 → 设置 → 云 API 密钥）
-npm install
-npm run dev
-```
-
-### 2.3 Admin 前端
+### 2.2 Admin 前端（Web SDK）
 
 ```bash
 cd chongwu-admin
-cp .env.example .env.development   # VITE_API_BASE=/api
+cp .env.example .env.local
+# VITE_TCB_ENV=cloud1-xxx
+# 可选 VITE_TCB_ACCESS_KEY=Publishable Key
 npm install
 npm run dev
 ```
 
-浏览器访问 http://localhost:5173 ，登录走真实 `admin.login`。
+浏览器访问 http://localhost:5173 ，登录走 `admin.login`；业务请求走 `callApi` → 云函数 `api`。
 
-**密钥说明：** `TCB_SECRET_ID/KEY` 只放在 `server/.env`，不要写进 Vite 前端环境变量。
+**安全：** 不要把 `SecretId/SecretKey` 写进前端；Web 端仅用 Publishable Key（可选）+ 匿名登录满足 SDK 鉴权，**业务权限靠 payload.adminToken**。
 
 ## 3. 接口约定（与小程序一致）
 
-请求体（BFF 转发给云函数 `event`）：
+请求体（`callFunction` 的 `data`）：
 
 ```json
 {
@@ -92,20 +83,24 @@ npm run dev
 
 | 后台菜单 | 集合 (schema) | 列表接口 (admin_feed) | 审核 / 写操作 |
 |----------|---------------|------------------------|---------------|
-| 用户列表 | `users` | `admin_feed.listUsers` | 禁用账号（待增 `admin_feed.setUserStatus`） |
+| 用户列表 | `users` | `admin_feed.listUsers` | `admin_feed.setUserStatus` |
 | 宠物档案 | `pets` | `admin_feed.listPets` | 隐藏/驳回 `auditStatus` |
 | 社区动态 | `social_posts` | `admin_feed.listSocialPosts` | `admin.moderatePost` |
 | 评论 | `social_comments` | `admin_feed.listSocialComments` | `admin.moderatePost` type=comment |
 | 搭子广场 | `buddy_posts` | `admin_feed.listBuddyPosts` | `admin.moderatePost` |
 | 活动 | `events` | `admin_feed.listEvents` | moderate / 下架 |
-| 报名核销 | `event_signups` | `admin_feed.listEventSignups` | 只读 + 导出 |
-| 地图标点 | `map_points` | `admin_feed.listMapPoints` | `admin.reviewMapPoint` |
-| 寻宠救助 | `social_posts` + `local_posts` | `listSocialPosts` lostType / `listLocalPosts` | moderate |
+| 报名核销 | `event_signups` | `admin_feed.listEventSignups` | `admin_feed.checkInSignup` |
+| 地图标点 | `map_points` | `admin_feed.listMapPoints` | `admin.reviewMapPoint`、`admin_feed.createOfficialMapPoint` |
+| 寻宠救助 | `social_posts` + `local_posts` | `listSocialPosts` lostType / `listLocalPosts` | moderate + `createOfficialContent` |
 | 商家入驻 | `merchant_applies` | `admin_feed.listMerchantApplies` | `admin.reviewMerchantApply` |
+| 门店管理 | `merchants` | `admin_feed.listMerchants` | `setMerchantBizStatus`、`saveMerchantAdmin` |
+| 运营发帖 | 各内容集合 | — | `createOfficialContent`（social/buddy/event/local）；配图走 `uploadMedia` + `images`/`cover`/`detailImages` |
+| 素材上传 | 云存储 | — | `admin_feed.uploadMedia` |
 | 主理人 | `host_applies` | `admin_feed.listHostApplies` | 已有 `admin.reviewHostApply` |
-| 俱乐部 | `clubs` / `club_members` | `admin_feed.listClubs` / `listClubMembers` | `clubs.save` 需 admin 包装 |
-| Banner | `banners` | `banners.listFeed`（全量需 admin） | `admin_feed.saveBanner` |
+| 俱乐部 | `clubs` / `club_members` | `admin_feed.listClubs` / `listClubMembers` | `saveClubAdmin`、`updateClubOnlineStatus` |
+| Banner | `banners` | `admin_feed.listBanners` | `admin_feed.saveBanner` |
 | 开屏广告 | `splash_ads` | `admin_feed.listSplashAds` | `admin_feed.saveSplashAd` |
+| 话题 / 分区 | `app_settings` doc `community` | `admin_feed.getCommunityConfig` | `admin_feed.saveCommunityConfig` |
 | 积分流水 | `points_ledger` | `admin_feed.listPointsLedger` | 地图审核通过时云函数内部 `credit` |
 | 敏感词 | `sensitive_words` | `sensitive_words.listFeed` | `admin_feed.saveSensitiveWord` |
 
@@ -118,7 +113,7 @@ C 端 `*.listFeed` 通常只返回 `auditStatus=approved`；**后台必须用 `a
 3. **按模块建 service**：`services/buddy.ts`、`services/events.ts`…  
 4. 页面：`useEffect` 拉数 + 审核按钮调 cloud  
 5. **`src/mock/data.ts`** — 保留为 `import.meta.env.DEV && VITE_USE_MOCK` 开关（可选）  
-6. **待办角标**：`PendingBadgeContext` 改调 `admin_feed.pendingCounts`（待增）
+6. **待办角标**：`PendingBadgeContext` → `admin_feed.summaryCounts`（`mapCountsToMenuBadges`）
 
 单页改造模板：
 
@@ -168,6 +163,7 @@ useEffect(() => {
 | `chongwu/apps/wxapp/cloudfunctions/api/router.js` | 路由表 |
 | `chongwu/apps/wxapp/cloudfunctions/api/handlers/admin.js` | 登录、主理人审核 |
 | `chongwu/apps/wxapp/cloudfunctions/api/handlers/admin_feed.js` | 运营列表与 Banner/敏感词写 |
-| `chongwu-admin/server/` | 本地 BFF |
-| `chongwu-admin/src/services/cloud-api.ts` | 前端 API 客户端 |
+| `chongwu-admin/src/services/cloudbase-client.ts` | Web SDK 初始化与 callFunction |
+| `chongwu-admin/src/services/cloud-api.ts` | callApi + adminToken |
+| `chongwu-admin/server/` | 可选 BFF（默认不用） |
 | `chongwu/docs/wechat-cloud-dev.md` | 小程序云开发总览 |

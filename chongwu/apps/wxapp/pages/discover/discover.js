@@ -1,4 +1,5 @@
 const { MOCK_SOCIAL, MOCK_NEARBY } = require('../../utils/mock');
+const communityCfg = require('../../utils/community-config-cloud');
 const { listAllEvents } = require('../../utils/catalog');
 const store = require('../../utils/store');
 const amap = require('../../utils/amap');
@@ -24,6 +25,7 @@ Page({
     }
     this.reloadFriends();
     this.setData({ events: listAllEvents() });
+    void communityCfg.applyCommunityUiToPage(this, { topics: true });
   },
 
   reloadFriends(filterId) {

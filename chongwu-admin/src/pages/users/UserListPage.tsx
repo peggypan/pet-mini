@@ -1,19 +1,33 @@
-import { Button, Descriptions, Drawer, Table, Tag, Typography } from 'antd';
+import { Button, Descriptions, Drawer, Popconfirm, Space, Table, Tag, Typography, message } from 'antd';
 import { useMemo, useState } from 'react';
 import { PageIntro } from '../../components/PageIntro';
 import { ListToolbar } from '../../components/ListToolbar';
 import { DetailMediaSection } from '../../components/DetailMediaGallery';
-import { mockUsers } from '../../mock/data';
+import { useCloudList } from '../../hooks/useCloudList';
+import { fetchUsers, setUserStatus } from '../../services/admin-data';
 import type { UserRow } from '../../types';
 
 export function UserListPage() {
   const [keyword, setKeyword] = useState('');
   const [detail, setDetail] = useState<UserRow | null>(null);
+  const { rows: allRows, loading, reload } = useCloudList(() => fetchUsers(), []);
+
+  const toggleStatus = async (user: UserRow) => {
+    const next = user.status === 1 ? 0 : 1;
+    try {
+      await setUserStatus(user.id, next);
+      message.success(next === 0 ? '已禁用' : '已恢复');
+      setDetail((d) => (d?.id === user.id ? { ...d, status: next } : d));
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '操作失败');
+    }
+  };
 
   const displayRows = useMemo(() => {
     const q = keyword.trim().toLowerCase();
-    if (!q) return mockUsers;
-    return mockUsers.filter(
+    if (!q) return allRows;
+    return allRows.filter(
       (u) =>
         u.nickname.toLowerCase().includes(q)
         || u.openid.toLowerCase().includes(q)
@@ -21,7 +35,7 @@ export function UserListPage() {
         || (u.deviceModel || '').toLowerCase().includes(q)
         || (u.ipRegion || '').toLowerCase().includes(q),
     );
-  }, [keyword]);
+  }, [keyword, allRows]);
 
   return (
     <>
@@ -32,6 +46,7 @@ export function UserListPage() {
       <ListToolbar searchPlaceholder="昵称 / openid / 手机号 / 机型" onSearch={setKeyword} />
       <Table
         rowKey="id"
+        loading={loading}
         dataSource={displayRows}
         scroll={{ x: 1100 }}
         pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 人` }}
@@ -110,6 +125,17 @@ export function UserListPage() {
             <Descriptions.Item label="注册时间">{detail.createdAt}</Descriptions.Item>
             <Descriptions.Item label="最近登录">{detail.lastLoginAt}</Descriptions.Item>
           </Descriptions>
+          <Space style={{ marginTop: 16 }}>
+            {detail.status === 1 ? (
+              <Popconfirm title="禁用后用户将无法登录小程序，确定？" onConfirm={() => void toggleStatus(detail)}>
+                <Button danger>禁用账号</Button>
+              </Popconfirm>
+            ) : (
+              <Button type="primary" onClick={() => void toggleStatus(detail)}>
+                恢复账号
+              </Button>
+            )}
+          </Space>
           </>
         ) : null}
       </Drawer>

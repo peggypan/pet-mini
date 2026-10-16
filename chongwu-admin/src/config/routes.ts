@@ -36,15 +36,15 @@ export function getRouteMeta(pathname: string): RouteMeta {
   return { path: pathname, title: '宠头头运营台', breadcrumb: ['工作台'] };
 }
 
-/** 侧边栏菜单项待办数量（Mock，接云后由接口填充） */
-export const menuPendingBadges: Record<string, number> = {
-  '/community/posts': 1,
-  '/community/comments': 1,
-  '/map-points': 23,
-  '/merchants/applies': 5,
-  '/rescue': 8,
-  '/buddy': 1,
-  '/host/applies': 1,
-  '/host/event-qualify': 1,
-  '/pets': 1,
-};
+/** 侧边栏待办角标 path 列表（数量由 PendingBadgeContext + summaryCounts 填充） */
+export const menuBadgePaths = [
+  '/pets',
+  '/community/posts',
+  '/community/comments',
+  '/buddy',
+  '/host/applies',
+  '/host/event-qualify',
+  '/map-points',
+  '/merchants/applies',
+  '/rescue',
+] as const;

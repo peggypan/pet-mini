@@ -1,6 +1,6 @@
 # 宠头头 · 运营后台
 
-对应小程序 `chongwu/apps/wxapp` 的管理端。UI 已就绪；**数据对接微信云开发**（与 `database/schemas` 同一套集合），经 **Node BFF** 调用云函数 `api`。
+对应小程序 `chongwu/apps/wxapp` 的管理端。浏览器通过 **`@cloudbase/js-sdk`** 调用云函数 **`api`**（与小程序同一套 `module.action`），无需自建 Node BFF。
 
 ## 功能模块（与小程序对齐）
 
@@ -9,7 +9,7 @@
 | 工作台 | 待办汇总、核心指标 |
 | 用户与宠物 | C 端用户、宠物档案、电子宠证快照 |
 | 社区动态 | 帖子审核、评论、话题、分区 |
-| 搭子广场 | 遛狗/社交邀约帖 |
+| 搭子广场 | 遛狗/社交邀约帖（**已接云** `admin_feed.listBuddyPosts`） |
 | 活动 | 活动列表、报名核销、活动发布资质（无保证金） |
 | 友好地图 | 用户标点审核、积分发放 |
 | 寻宠救助 | 走失/招领/领养/救助信息 |
@@ -21,41 +21,45 @@
 
 ## 本地运行
 
-**1. 启动 BFF（连接云函数，需配置密钥）**
-
-```bash
-cd chongwu-admin/server
-cp .env.example .env
-# 编辑 .env：TCB_ENV、TCB_SECRET_ID、TCB_SECRET_KEY
-npm install
-npm run dev
-```
-
-**2. 启动前端**
-
 ```bash
 cd chongwu-admin
+cp .env.example .env.local
+# 编辑 VITE_TCB_ENV=cloud1-xxx（与 wxapp config/cloud-env.js 一致）
 npm install
 npm run dev
 ```
 
-- 前端：http://localhost:5173（`/api` 代理到 BFF 8787）  
-- 登录：云库 `admin_users` 为空时首次可用 **`admin` / `demo`**（见云函数 `admin.login`）；上线前务必改密。  
-- 各列表页仍可能显示 Mock，按 **`docs/admin-database-integration.md`** 逐步改为 `callApi`。
+- 访问 http://localhost:5173  
+- 登录：云函数 `admin.login`；`admin_users` 为空时首次可用 **`admin` / `demo`**（仅开发环境表单预填，上线前改密）。  
+- 云开发控制台需允许 **Web 安全域名**（本地含 `localhost`）；可选配置 **Publishable Key** → `VITE_TCB_ACCESS_KEY`。  
+- 侧边栏待办角标来自 **`admin_feed.summaryCounts`**（约 60 秒刷新；进入列表页后以列表 pending 为准）。
 
-## 界面特性（当前版本）
+## 部署（完整步骤）
 
-- 侧栏可折叠、面包屑、页面标题随路由更新  
-- 菜单待办角标（Mock 数量，接云后可替换）  
-- 工作台：指标卡片、快捷入口、待办、最近动态  
-- 审核类列表：状态分段筛选 + 搜索 + 表格分页  
-- 评论管理：支持楼中楼回复字段展示  
-- 路由懒加载，首屏体积更小  
+**详见 [docs/DEPLOY.md](./docs/DEPLOY.md)** — 环境变量、控制台配置、编译与上传脚本。
 
-## 对接云数据库（必读）
+快捷命令：
 
-详见 **[docs/admin-database-integration.md](./docs/admin-database-integration.md)**（架构、接口映射、页面改造顺序）。
+```bash
+npm run build              # 编译 → dist/
+npm run build:check-env    # 校验 VITE_TCB_ENV 后编译
+npm run deploy:static      # 编译 + CloudBase CLI 上传静态托管（需 cloudbase login）
+npm run deploy:api:help    # 云函数 api 部署说明
+```
 
-- Schema：`chongwu/apps/wxapp/database/schemas`  
-- 云函数路由：`cloudfunctions/api/router.js`（含 `admin_feed.*`、`admin.moderatePost` 等）  
-- 前端封装：`src/services/cloud-api.ts`
+## 代码入口
+
+| 文件 | 作用 |
+|------|------|
+| `src/services/cloudbase-client.ts` | 初始化 SDK、匿名登录、`callFunction('api')` |
+| `src/services/cloud-api.ts` | `callApi(module, action)` + `adminToken` |
+| `src/services/buddy.ts` | 搭子列表示例 |
+| `src/services/auth.ts` | `admin.login` |
+
+## 可选：Node BFF
+
+`server/` 为早期 **SecretId/Key 转发** 方案，**默认不必启动**。仅当 Web SDK 调云函数受限时可作备用。
+
+## 对接文档
+
+详见 **[docs/admin-database-integration.md](./docs/admin-database-integration.md)**。

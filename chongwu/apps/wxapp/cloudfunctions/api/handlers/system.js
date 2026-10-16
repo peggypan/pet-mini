@@ -35,6 +35,7 @@ const COLLECTION_NAMES = [
   'points_ledger',
   'sensitive_words',
   'admin_users',
+  'app_settings',
 ];
 
 async function ping() {

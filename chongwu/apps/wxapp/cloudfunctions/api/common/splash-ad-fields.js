@@ -28,6 +28,7 @@ function publicSplashAd(doc) {
     status: rest.status || 'draft',
     startAt: rest.startAt,
     endAt: rest.endAt,
+    updatedAt: rest.updatedAt,
   };
 }
 

@@ -9,11 +9,13 @@ import { countPendingStatus } from '../../utils/audit-pending';
 
 const MENU_PATH = '/host/applies';
 import { DetailMediaSection } from '../../components/DetailMediaGallery';
-import { mockHostApplies } from '../../mock/data';
+import { useCloudList } from '../../hooks/useCloudList';
+import { fetchHostApplies } from '../../services/admin-data';
+import { reviewHostApply } from '../../services/moderation';
 import type { HostApplyRow } from '../../types';
 
 export function HostApplyReviewPage() {
-  const [rows, setRows] = useState(mockHostApplies);
+  const { rows, loading, reload } = useCloudList(() => fetchHostApplies(), []);
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue>('pending');
   const [keyword, setKeyword] = useState('');
   const [detail, setDetail] = useState<HostApplyRow | null>(null);
@@ -40,22 +42,34 @@ export function HostApplyReviewPage() {
     return list;
   }, [rows, statusFilter, keyword]);
 
-  const patchStatus = (id: string, status: HostApplyRow['status']) => {
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
-    if (detail?.id === id) setDetail((d) => (d ? { ...d, status } : d));
-    message.success(status === 'approved' ? '已通过，可在「俱乐部管理」上线' : '已更新（Mock）');
+  const patchStatus = async (id: string, status: HostApplyRow['status']) => {
+    try {
+      await reviewHostApply(
+        id,
+        status === 'approved' ? 'approve' : 'reject',
+        status === 'rejected' ? '未通过审核' : undefined,
+      );
+      message.success(status === 'approved' ? '已通过，可在「俱乐部管理」上线' : '已拒绝');
+      if (detail?.id === id) setDetail((d) => (d ? { ...d, status } : d));
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '操作失败');
+    }
   };
 
   const pendingCount = useMemo(() => countPendingStatus(rows, (r) => r.status), [rows]);
   useSyncMenuPendingBadge(MENU_PATH, pendingCount);
 
-  const bulkApproveAll = () => {
+  const bulkApproveAll = async () => {
     if (!pendingCount) return;
-    setRows((prev) =>
-      prev.map((r) => (r.status === 'pending' ? { ...r, status: 'approved' as const } : r)),
-    );
-    setDetail((d) => (d?.status === 'pending' ? { ...d, status: 'approved' } : d));
-    message.success(`已通过 ${pendingCount} 个主理人申请`);
+    const pending = rows.filter((r) => r.status === 'pending');
+    try {
+      await Promise.all(pending.map((r) => reviewHostApply(r.id, 'approve')));
+      message.success(`已通过 ${pending.length} 个主理人申请`);
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '批量通过失败');
+    }
   };
 
   return (
@@ -72,6 +86,7 @@ export function HostApplyReviewPage() {
       />
       <Table
         rowKey="id"
+        loading={loading}
         dataSource={displayRows}
         pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
         columns={[

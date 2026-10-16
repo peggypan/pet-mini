@@ -8,17 +8,20 @@ import { useSyncMenuPendingBadge } from '../../context/PendingBadgeContext';
 import { countPendingStatus } from '../../utils/audit-pending';
 
 const MENU_PATH = '/community/comments';
-import { mockComments, mockSocialPosts } from '../../mock/data';
+import { useCloudList } from '../../hooks/useCloudList';
+import { fetchSocialComments, fetchSocialPosts } from '../../services/admin-data';
+import { auditStatusToDecision, moderatePost } from '../../services/moderation';
 import type { CommentRow } from '../../types';
 
-function postTitle(postId: string) {
-  const p = mockSocialPosts.find((x) => x.id === postId);
-  if (!p) return '—';
-  return (p.content || p.topic || postId).slice(0, 48);
-}
-
 export function CommentListPage() {
-  const [rows, setRows] = useState(mockComments);
+  const { rows, loading, reload } = useCloudList(() => fetchSocialComments(), []);
+  const { rows: posts } = useCloudList(() => fetchSocialPosts(), []);
+
+  const postTitle = (postId: string) => {
+    const p = posts.find((x) => x.id === postId);
+    if (!p) return postId.slice(0, 12);
+    return (p.content || p.topic || postId).slice(0, 48);
+  };
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue>('all');
   const [keyword, setKeyword] = useState('');
   const [detail, setDetail] = useState<CommentRow | null>(null);
@@ -45,22 +48,30 @@ export function CommentListPage() {
     return list;
   }, [rows, statusFilter, keyword]);
 
-  const setStatus = (id: string, status: CommentRow['status']) => {
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
-    if (detail?.id === id) setDetail((d) => (d ? { ...d, status } : d));
-    message.success('已更新（Mock）');
+  const setStatus = async (id: string, status: CommentRow['status']) => {
+    try {
+      await moderatePost('comment', id, auditStatusToDecision(status));
+      message.success('已更新');
+      if (detail?.id === id) setDetail((d) => (d ? { ...d, status } : d));
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '操作失败');
+    }
   };
 
   const pendingCount = useMemo(() => countPendingStatus(rows, (r) => r.status), [rows]);
   useSyncMenuPendingBadge(MENU_PATH, pendingCount);
 
-  const bulkApproveAll = () => {
+  const bulkApproveAll = async () => {
     if (!pendingCount) return;
-    setRows((prev) =>
-      prev.map((r) => (r.status === 'pending' ? { ...r, status: 'approved' as const } : r)),
-    );
-    setDetail((d) => (d?.status === 'pending' ? { ...d, status: 'approved' } : d));
-    message.success(`已通过 ${pendingCount} 条评论`);
+    const pending = rows.filter((r) => r.status === 'pending');
+    try {
+      await Promise.all(pending.map((r) => moderatePost('comment', r.id, 'approve')));
+      message.success(`已通过 ${pending.length} 条评论`);
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '批量通过失败');
+    }
   };
 
   return (
@@ -77,6 +88,7 @@ export function CommentListPage() {
       />
       <Table
         rowKey="id"
+        loading={loading}
         dataSource={displayRows}
         pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
         scroll={{ x: 960 }}

@@ -101,7 +101,11 @@ function AdminLayoutInner() {
             <Breadcrumb items={breadcrumbItems} />
           </Space>
           <Space size="large">
-            <Tag className="cloud-badge">云开发 · Mock 数据</Tag>
+            <Tag className="cloud-badge">
+              云开发
+              {(import.meta.env.VITE_TCB_ENV || '').slice(0, 12)}
+              {(import.meta.env.VITE_TCB_ENV || '').length > 12 ? '…' : ''}
+            </Tag>
             <Dropdown menu={userMenu} placement="bottomRight">
               <Space style={{ cursor: 'pointer' }}>
                 <Avatar style={{ background: '#1E88E5' }} icon={<UserOutlined />} />

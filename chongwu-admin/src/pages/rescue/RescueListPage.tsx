@@ -23,9 +23,12 @@ import { countPendingStatus } from '../../utils/audit-pending';
 const MENU_PATH = '/rescue';
 import { DetailMediaSection, resolveMediaUrls } from '../../components/DetailMediaGallery';
 import { RESCUE_SOURCE_LABELS, lostTypeLabel } from '../../config/miniapp-align';
-import { mockRescuePosts } from '../../mock/data';
+import { useCloudList } from '../../hooks/useCloudList';
+import { fetchRescuePosts } from '../../services/admin-data';
+import { auditStatusToDecision, moderatePost } from '../../services/moderation';
+import { AdminImageUrlsField } from '../../components/AdminImageUrlsField';
+import { createOfficialContent, ensureCloudImageUrl } from '../../services/admin-write';
 import type { RescuePostRow } from '../../types';
-import { nextAdminId, nowAdminTime } from '../../utils/admin-record';
 
 type TypeFilter = 'all' | RescuePostRow['type'];
 
@@ -37,10 +40,15 @@ type AddForm = {
   contact: string;
   userName?: string;
   source: 'social' | 'local';
+  images?: string[];
 };
 
+function rescueModerateKind(row: RescuePostRow): 'social' | 'local' {
+  return row.source === 'social' ? 'social' : 'local';
+}
+
 export function RescueListPage() {
-  const [rows, setRows] = useState(mockRescuePosts);
+  const { rows, loading, reload } = useCloudList(() => fetchRescuePosts(), []);
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue>('all');
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const [keyword, setKeyword] = useState('');
@@ -73,55 +81,91 @@ export function RescueListPage() {
     return list;
   }, [rows, statusFilter, typeFilter, keyword]);
 
-  const setStatus = (id: string, status: RescuePostRow['status']) => {
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
-    if (detail?.id === id) setDetail((d) => (d ? { ...d, status } : d));
-    message.success('已更新（Mock）');
+  const setStatus = async (row: RescuePostRow, status: RescuePostRow['status']) => {
+    try {
+      await moderatePost(rescueModerateKind(row), row.id, auditStatusToDecision(status));
+      message.success('已更新');
+      if (detail?.id === row.id) setDetail((d) => (d ? { ...d, status } : d));
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '操作失败');
+    }
   };
 
-  const removeRow = (id: string) => {
-    setRows((prev) => prev.filter((r) => r.id !== id));
-    if (detail?.id === id) setDetail(null);
-    message.success('已删除（Mock）');
+  const removeRow = async (row: RescuePostRow) => {
+    try {
+      await moderatePost(rescueModerateKind(row), row.id, 'hide', '运营下架');
+      message.success('已下架');
+      if (detail?.id === row.id) setDetail(null);
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '操作失败');
+    }
   };
 
   const openAdd = () => {
     form.resetFields();
-    form.setFieldsValue({ type: 'lost', source: 'local', city: '北京' });
+    form.setFieldsValue({ type: 'lost', source: 'local', city: '北京', images: [] });
     setAddOpen(true);
   };
 
   const submitAdd = async () => {
     const values = await form.validateFields();
-    const refId = nextAdminId(values.source === 'social' ? 'sp' : 'lp');
-    const row: RescuePostRow = {
-      id: nextAdminId('r'),
-      type: values.type,
-      title: values.title.trim(),
-      preview: values.preview.trim(),
-      city: values.city.trim(),
-      contact: values.contact.trim(),
-      userName: values.userName?.trim() || '运营录入',
-      source: values.source,
-      refId,
-      status: 'approved',
-      createdAt: nowAdminTime(),
-    };
-    setRows((prev) => [row, ...prev]);
-    setAddOpen(false);
-    message.success('已新增（Mock）');
+    const kind = values.source === 'social' ? 'social' : 'local';
+    try {
+      const rawImages = (values.images || []).filter(Boolean);
+      const images = await Promise.all(
+        rawImages.map((u) => ensureCloudImageUrl(u, 'admin/rescue')),
+      );
+      const imageFields = images.length
+        ? { image: images[0], images }
+        : {};
+      if (kind === 'social') {
+        await createOfficialContent('social', {
+          userName: values.userName?.trim() || '宠头头官方',
+          content: `${values.title.trim()}\n${values.preview.trim()}`,
+          title: values.title.trim(),
+          lostType: values.type,
+          city: values.city.trim(),
+          zone: 'dog',
+          ...imageFields,
+        });
+      } else {
+        await createOfficialContent('local', {
+          type: values.type,
+          title: values.title.trim(),
+          preview: values.preview.trim(),
+          desc: values.preview.trim(),
+          city: values.city.trim(),
+          contact: values.contact.trim(),
+          userName: values.userName?.trim() || '宠头头官方',
+          ...imageFields,
+        });
+      }
+      message.success('已录入救助信息');
+      setAddOpen(false);
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '录入失败');
+    }
   };
 
   const pendingCount = useMemo(() => countPendingStatus(rows, (r) => r.status), [rows]);
   useSyncMenuPendingBadge(MENU_PATH, pendingCount);
 
-  const bulkApproveAll = () => {
+  const bulkApproveAll = async () => {
     if (!pendingCount) return;
-    setRows((prev) =>
-      prev.map((r) => (r.status === 'pending' ? { ...r, status: 'approved' as const } : r)),
-    );
-    setDetail((d) => (d?.status === 'pending' ? { ...d, status: 'approved' } : d));
-    message.success(`已通过 ${pendingCount} 条救助信息`);
+    const pending = rows.filter((r) => r.status === 'pending');
+    try {
+      await Promise.all(
+        pending.map((r) => moderatePost(rescueModerateKind(r), r.id, 'approve')),
+      );
+      message.success(`已通过 ${pending.length} 条救助信息`);
+      setDetail((d) => (d?.status === 'pending' ? { ...d, status: 'approved' } : d));
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '批量通过失败');
+    }
   };
 
   return (
@@ -151,6 +195,7 @@ export function RescueListPage() {
       />
       <Table
         rowKey="id"
+        loading={loading}
         dataSource={displayRows}
         pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
         scroll={{ x: 1180 }}
@@ -194,10 +239,10 @@ export function RescueListPage() {
                 </Button>
                 {r.status === 'pending' ? (
                   <>
-                    <Button type="link" size="small" onClick={() => setStatus(r.id, 'approved')}>
+                    <Button type="link" size="small" onClick={() => void setStatus(r, 'approved')}>
                       通过
                     </Button>
-                    <Button type="link" size="small" danger onClick={() => setStatus(r.id, 'rejected')}>
+                    <Button type="link" size="small" danger onClick={() => void setStatus(r, 'rejected')}>
                       拒绝
                     </Button>
                   </>
@@ -206,12 +251,12 @@ export function RescueListPage() {
                     <Button type="link" size="small">
                       置顶
                     </Button>
-                    <Button type="link" size="small" onClick={() => setStatus(r.id, 'hidden')}>
+                    <Button type="link" size="small" onClick={() => void setStatus(r, 'hidden')}>
                       隐藏
                     </Button>
                   </>
                 )}
-                <Popconfirm title="确定删除该条记录？" onConfirm={() => removeRow(r.id)}>
+                <Popconfirm title="确定下架该条记录？" onConfirm={() => void removeRow(r)}>
                   <Button type="link" size="small" danger>
                     删除
                   </Button>
@@ -276,6 +321,9 @@ export function RescueListPage() {
           </Form.Item>
           <Form.Item name="preview" label="摘要" rules={[{ required: true }]}>
             <Input.TextArea rows={3} placeholder="简要描述" />
+          </Form.Item>
+          <Form.Item name="images" label="现场照片（可选）">
+            <AdminImageUrlsField uploadFolder="admin/rescue" max={6} />
           </Form.Item>
           <Form.Item name="userName" label="发布者">
             <Input placeholder="可选" />

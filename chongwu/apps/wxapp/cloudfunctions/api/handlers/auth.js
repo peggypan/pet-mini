@@ -55,12 +55,21 @@ async function login(_payload, wxContext) {
     const got = await col.doc(addRes._id).get();
     doc = got.data;
   } else {
+    if (doc.status === 0) {
+      return fail(403, '账号已被禁用，请联系客服');
+    }
     await col.doc(doc._id).update({
       data: {
         lastLoginAt: now(),
         updatedAt: now(),
       },
     });
+    const got = await col.doc(doc._id).get();
+    doc = got.data;
+  }
+
+  if (doc.status === 0) {
+    return fail(403, '账号已被禁用，请联系客服');
   }
 
   const token = `cloud_${doc._id}`;

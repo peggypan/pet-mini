@@ -1,0 +1,8 @@
+{
+  "*": {
+    "invoke": "auth != null"
+  },
+  "api": {
+    "invoke": true
+  }
+}

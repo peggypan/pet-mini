@@ -1,31 +1,32 @@
-import type { BuddyPostRow } from '../types';
-import { callApi } from './cloud-api';
+import type { BuddyPlazaZone, BuddyPostRow } from '../types';
+import { asAuditStatus } from './mappers';
 
-type ListData = { list: BuddyPostRow[] };
-
-/** 运营列表：含 pending/rejected，走 admin_feed.listBuddyPosts */
-export async function listBuddyPostsForAdmin(params?: {
-  auditStatus?: string;
-  limit?: number;
-  skip?: number;
-}) {
-  const data = await callApi<ListData>('admin_feed', 'listBuddyPosts', {
-    auditStatus: params?.auditStatus || 'all',
-    limit: params?.limit ?? 50,
-    skip: params?.skip ?? 0,
-  });
-  return data;
-}
-
-export async function moderateBuddyPost(
-  id: string,
-  decision: 'approve' | 'reject' | 'hide',
-  rejectReason?: string,
-) {
-  return callApi('admin', 'moderatePost', {
-    kind: 'buddy',
-    id,
-    decision,
-    rejectReason,
-  });
+export function mapCloudBuddyToRow(raw: Record<string, unknown>): BuddyPostRow {
+  const images = raw.images;
+  const mediaList = raw.mediaList;
+  let imageList: string[] | undefined;
+  if (Array.isArray(images)) imageList = images.map(String);
+  else if (Array.isArray(mediaList)) {
+    imageList = mediaList
+      .map((m) => (m && typeof m === 'object' && 'url' in m ? String((m as { url: string }).url) : ''))
+      .filter(Boolean);
+  }
+  const zone = (raw.zone as BuddyPlazaZone | undefined) || 'normal';
+  return {
+    id: String(raw.id),
+    userName: String(raw.userName || '宠友'),
+    title: String(raw.title || raw.buddyType || '找搭子'),
+    city: String(raw.city || ''),
+    timeSlot: String(raw.timeSlot || raw.time || ''),
+    buddyType: raw.buddyType ? String(raw.buddyType) : undefined,
+    zone,
+    petName: raw.petName ? String(raw.petName) : undefined,
+    desc: raw.desc ? String(raw.desc) : undefined,
+    healingPetProfile: !!raw.healingPetProfile || String(raw.id || '').startsWith('hp_'),
+    mediaCount: imageList?.length,
+    images: imageList,
+    status: asAuditStatus(raw.status ?? raw.auditStatus),
+    userDeleted: !!raw.userDeleted,
+    createdAt: String(raw.createdAt || raw.time || ''),
+  };
 }

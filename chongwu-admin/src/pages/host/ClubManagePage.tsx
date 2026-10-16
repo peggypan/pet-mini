@@ -1,18 +1,32 @@
-import { Button, Descriptions, Drawer, Image, Space, Table, message } from 'antd';
+import { Button, Descriptions, Drawer, Form, Image, Input, Modal, Space, Table, message } from 'antd';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PageIntro } from '../../components/PageIntro';
 import { ClubOnlineStatusTag } from '../../components/ClubOnlineStatusTag';
 import { ListToolbar } from '../../components/ListToolbar';
 import { DetailMediaSection } from '../../components/DetailMediaGallery';
-import { mockManagedClubs } from '../../mock/data';
+import { SplashImageUpload } from '../../components/SplashImageUpload';
+import { useCloudList } from '../../hooks/useCloudList';
+import { fetchClubs } from '../../services/admin-data';
+import { ensureCloudImageUrl, saveClubAdmin } from '../../services/admin-write';
+import { updateClubOnlineStatus } from '../../services/moderation';
 import type { ClubOnlineStatus, ManagedClubRow } from '../../types';
 
+type ClubEditForm = {
+  name: string;
+  city: string;
+  intro: string;
+  cover?: string;
+};
+
 export function ClubManagePage() {
-  const [rows, setRows] = useState(mockManagedClubs);
+  const { rows, loading, reload } = useCloudList(() => fetchClubs(), []);
   const [keyword, setKeyword] = useState('');
   const [statusFilter, setStatusFilter] = useState<ClubOnlineStatus | 'all'>('all');
   const [detail, setDetail] = useState<ManagedClubRow | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editing, setEditing] = useState<ManagedClubRow | null>(null);
+  const [form] = Form.useForm<ClubEditForm>();
 
   const displayRows = useMemo(() => {
     let list = rows;
@@ -29,10 +43,59 @@ export function ClubManagePage() {
     return list;
   }, [rows, statusFilter, keyword]);
 
-  const setOnline = (id: string, onlineStatus: ClubOnlineStatus) => {
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, onlineStatus } : r)));
-    if (detail?.id === id) setDetail((d) => (d ? { ...d, onlineStatus } : d));
-    message.success(onlineStatus === 'online' ? '已上线，小程序「我的俱乐部」可见' : '状态已更新');
+  const openEdit = (row: ManagedClubRow) => {
+    setEditing(row);
+    form.setFieldsValue({
+      name: row.name,
+      city: row.city,
+      intro: row.intro,
+      cover: row.cover,
+    });
+    setEditOpen(true);
+  };
+
+  const onSaveEdit = async () => {
+    if (!editing) return;
+    const values = await form.validateFields();
+    try {
+      const cover = values.cover ? await ensureCloudImageUrl(values.cover.trim(), 'admin/clubs') : '';
+      await saveClubAdmin({
+        id: editing.id,
+        name: values.name.trim(),
+        city: values.city.trim(),
+        intro: values.intro.trim(),
+        ...(cover ? { cover } : {}),
+      });
+      message.success('俱乐部资料已保存');
+      setEditOpen(false);
+      if (detail?.id === editing.id) {
+        setDetail((d) =>
+          d
+            ? {
+                ...d,
+                name: values.name.trim(),
+                city: values.city.trim(),
+                intro: values.intro.trim(),
+                ...(cover ? { cover } : {}),
+              }
+            : d,
+        );
+      }
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '保存失败');
+    }
+  };
+
+  const setOnline = async (id: string, onlineStatus: ClubOnlineStatus) => {
+    try {
+      await updateClubOnlineStatus(id, onlineStatus);
+      if (detail?.id === id) setDetail((d) => (d ? { ...d, onlineStatus } : d));
+      message.success(onlineStatus === 'online' ? '已上线，小程序「我的俱乐部」可见' : '状态已更新');
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '操作失败');
+    }
   };
 
   return (
@@ -73,6 +136,7 @@ export function ClubManagePage() {
       />
       <Table
         rowKey="id"
+        loading={loading}
         dataSource={displayRows}
         pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
         columns={[
@@ -97,11 +161,14 @@ export function ClubManagePage() {
           },
           {
             title: '操作',
-            width: 240,
+            width: 280,
             render: (_, r) => (
               <Space wrap>
                 <Button type="link" size="small" onClick={() => setDetail(r)}>
                   查看资料
+                </Button>
+                <Button type="link" size="small" onClick={() => openEdit(r)}>
+                  编辑
                 </Button>
                 {r.onlineStatus !== 'online' && (
                   <Button type="link" size="small" onClick={() => setOnline(r.id, 'online')}>
@@ -140,6 +207,31 @@ export function ClubManagePage() {
           </>
         ) : null}
       </Drawer>
+
+      <Modal
+        title={`编辑俱乐部 · ${editing?.name || ''}`}
+        open={editOpen}
+        onCancel={() => setEditOpen(false)}
+        onOk={() => void onSaveEdit()}
+        okText="保存"
+        width={520}
+        destroyOnClose
+      >
+        <Form form={form} layout="vertical" style={{ marginTop: 8 }}>
+          <Form.Item name="name" label="名称" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="city" label="城市" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="intro" label="介绍" rules={[{ required: true }]}>
+            <Input.TextArea rows={4} />
+          </Form.Item>
+          <Form.Item name="cover" label="封面">
+            <SplashImageUpload uploadFolder="admin/clubs" previewMaxHeight={120} />
+          </Form.Item>
+        </Form>
+      </Modal>
     </>
   );
 }

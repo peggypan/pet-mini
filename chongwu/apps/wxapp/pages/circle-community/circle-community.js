@@ -1,6 +1,7 @@
 const store = require('../../utils/store');
 const { getDefaultPet } = require('../../utils/catalog');
-const { findCircle, HOT_TOPICS } = require('../../utils/circle-community');
+const { findCircle } = require('../../utils/circle-community');
+const communityCfg = require('../../utils/community-config-cloud');
 const { openEventPublishEntry } = require('../../utils/event-publish-nav');
 const {
   chooseLocationPoint,
@@ -15,7 +16,7 @@ Page({
     circleId: '',
     circle: null,
     messages: [],
-    hotTopics: HOT_TOPICS,
+    hotTopics: communityCfg.getHotTopicNames(),
     selectedTopic: '',
     inputText: '',
     pendingImages: [],
@@ -34,6 +35,9 @@ Page({
 
   onShow() {
     if (this.data.circleId) this.loadMessages(this.data.circleId);
+    void communityCfg.refreshCommunityConfigFromCloud({}).then((cfg) => {
+      this.setData({ hotTopics: cfg.topicNames });
+    });
   },
 
   loadCircle(circleId) {

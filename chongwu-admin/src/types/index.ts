@@ -270,6 +270,10 @@ export interface MerchantRow {
   type: string;
   rating: number;
   status: 0 | 1 | 2; // 待审/正常/拒绝
+  intro?: string;
+  address?: string;
+  contactPhone?: string;
+  cover?: string;
 }
 
 export interface MerchantApplyRow {

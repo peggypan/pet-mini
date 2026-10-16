@@ -18,7 +18,6 @@ import {
   HEALING_EVENT_CATEGORY,
   isHealingEventCategory,
 } from '../../config/miniapp-align';
-import { nextAdminId } from '../../utils/admin-record';
 import { useMemo, useState } from 'react';
 import { PageIntro } from '../../components/PageIntro';
 import { ListToolbar } from '../../components/ListToolbar';
@@ -27,7 +26,11 @@ import {
   DetailMediaSection,
   resolveMediaUrls,
 } from '../../components/DetailMediaGallery';
-import { mockEvents } from '../../mock/data';
+import { useCloudList } from '../../hooks/useCloudList';
+import { fetchEvents } from '../../services/admin-data';
+import { moderatePost } from '../../services/moderation';
+import { AdminImageUrlsField } from '../../components/AdminImageUrlsField';
+import { createOfficialContent, ensureCloudImageUrl } from '../../services/admin-write';
 import type { EventListStatus, EventRow } from '../../types';
 
 function eventCoverImages(row: EventRow): string[] {
@@ -47,7 +50,7 @@ const statusMap: Record<EventListStatus, { color: string; label: string }> = {
 };
 
 export function EventListPage() {
-  const [rows, setRows] = useState(mockEvents);
+  const { rows, loading, reload } = useCloudList(() => fetchEvents(), []);
   const [keyword, setKeyword] = useState('');
   const [statusFilter, setStatusFilter] = useState<EventListStatus | 'all'>('all');
   const [categoryFilter, setCategoryFilter] = useState<'all' | 'healing'>('all');
@@ -62,6 +65,10 @@ export function EventListPage() {
     place: string;
     startAt: string;
     maxPeople: number;
+    coverImages?: string[];
+    detailImages?: string[];
+    desc?: string;
+    detailContent?: string;
   }>();
 
   const displayRows = useMemo(() => {
@@ -84,16 +91,26 @@ export function EventListPage() {
     return list;
   }, [rows, statusFilter, categoryFilter, keyword]);
 
-  const setStatus = (id: string, status: EventListStatus) => {
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
-    if (detail?.id === id) setDetail((d) => (d ? { ...d, status } : d));
-    message.success('已更新（Mock）');
+  const platformHide = async (id: string) => {
+    try {
+      await moderatePost('event', id, 'hide', '平台下架');
+      message.success('已下架');
+      if (detail?.id === id) setDetail((d) => (d ? { ...d, status: 'cancelled' } : d));
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '操作失败');
+    }
   };
 
-  const removeRow = (id: string) => {
-    setRows((prev) => prev.filter((r) => r.id !== id));
-    if (detail?.id === id) setDetail(null);
-    message.success('已删除（Mock）');
+  const removeRow = async (id: string) => {
+    try {
+      await moderatePost('event', id, 'hide', '运营删除');
+      message.success('已隐藏');
+      if (detail?.id === id) setDetail(null);
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '操作失败');
+    }
   };
 
   const openAdd = () => {
@@ -104,35 +121,41 @@ export function EventListPage() {
       category: EVENT_CATEGORY_OPTIONS[0],
       role: 'personal',
       maxPeople: 20,
+      coverImages: [],
+      detailImages: [],
     });
     setAddOpen(true);
   };
 
   const submitAdd = async () => {
     const values = await form.validateFields();
-    const maxPeople = Number(values.maxPeople) || 20;
-    const row: EventRow = {
-      id: nextAdminId('e'),
-      title: values.title.trim(),
-      hostName: values.hostName.trim(),
-      city: values.city.trim(),
-      category: values.category,
-      role: values.role,
-      place: values.place.trim(),
-      startAt: values.startAt.trim(),
-      maxPeople,
-      seatsText: `0/${maxPeople}`,
-      coverImageCount: 0,
-      detailImageCount: 0,
-      hasDetailContent: false,
-      auditStatus: 'approved',
-      source: 'official',
-      signupCount: 0,
-      status: 'published',
-    };
-    setRows((prev) => [row, ...prev]);
-    setAddOpen(false);
-    message.success('已新增（Mock）');
+    try {
+      const coverImages = await Promise.all(
+        (values.coverImages || []).filter(Boolean).map((u) => ensureCloudImageUrl(u, 'admin/event')),
+      );
+      const detailImages = await Promise.all(
+        (values.detailImages || []).filter(Boolean).map((u) => ensureCloudImageUrl(u, 'admin/event')),
+      );
+      await createOfficialContent('event', {
+        title: values.title.trim(),
+        hostName: values.hostName.trim(),
+        category: values.category,
+        role: values.role,
+        city: values.city.trim(),
+        place: values.place.trim(),
+        startAt: values.startAt.trim(),
+        maxPeople: Number(values.maxPeople) || 20,
+        desc: values.desc?.trim() || '',
+        detailContent: values.detailContent?.trim() || '',
+        ...(coverImages.length ? { cover: coverImages[0], images: coverImages } : {}),
+        ...(detailImages.length ? { detailImages } : {}),
+      });
+      message.success('已创建官方活动');
+      setAddOpen(false);
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '创建失败');
+    }
   };
 
   return (
@@ -177,6 +200,7 @@ export function EventListPage() {
       />
       <Table
         rowKey="id"
+        loading={loading}
         dataSource={displayRows}
         pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
         scroll={{ x: 1420 }}
@@ -249,7 +273,7 @@ export function EventListPage() {
                     <Button type="link" size="small">
                       推荐首页
                     </Button>
-                    <Button type="link" size="small" danger onClick={() => setStatus(r.id, 'cancelled')}>
+                    <Button type="link" size="small" danger onClick={() => void platformHide(r.id)}>
                       平台下架
                     </Button>
                   </>
@@ -257,7 +281,7 @@ export function EventListPage() {
                 {r.status === 'user_deleted' && (
                   <Tag color="default">小程序端已不可见</Tag>
                 )}
-                <Popconfirm title="确定删除该活动记录？" onConfirm={() => removeRow(r.id)}>
+                <Popconfirm title="确定隐藏该活动记录？" onConfirm={() => void removeRow(r.id)}>
                   <Button type="link" size="small" danger>
                     删除
                   </Button>
@@ -336,8 +360,20 @@ export function EventListPage() {
           <Form.Item name="startAt" label="开始时间" rules={[{ required: true }]}>
             <Input placeholder="2026-04-05 09:00" />
           </Form.Item>
+          <Form.Item name="desc" label="列表摘要（可选）">
+            <Input.TextArea rows={2} placeholder="活动简介，列表卡片展示" />
+          </Form.Item>
+          <Form.Item name="detailContent" label="详情正文（可选）">
+            <Input.TextArea rows={4} placeholder="对齐 event-detail 详情区文案" />
+          </Form.Item>
           <Form.Item name="maxPeople" label="人数上限" rules={[{ required: true }]}>
             <Input type="number" min={2} max={100} />
+          </Form.Item>
+          <Form.Item name="coverImages" label="头图轮播（可选，≤6）">
+            <AdminImageUrlsField uploadFolder="admin/event" max={6} />
+          </Form.Item>
+          <Form.Item name="detailImages" label="详情配图（可选，≤6）">
+            <AdminImageUrlsField uploadFolder="admin/event" max={6} />
           </Form.Item>
         </Form>
       </Modal>

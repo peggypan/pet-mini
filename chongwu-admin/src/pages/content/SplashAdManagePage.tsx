@@ -18,7 +18,9 @@ import { useMemo, useState } from 'react';
 import { PageIntro } from '../../components/PageIntro';
 import { ListToolbar } from '../../components/ListToolbar';
 import { SplashImageUpload } from '../../components/SplashImageUpload';
-import { mockSplashAds } from '../../mock/data';
+import { useCloudList } from '../../hooks/useCloudList';
+import { fetchSplashAds, saveSplashAd } from '../../services/admin-data';
+import { ensureCloudImageUrl } from '../../services/admin-write';
 import type { SplashAdRow, SplashAdStatus, SplashLinkType, SplashShowRule } from '../../types';
 
 const LINK_TYPE_LABEL: Record<SplashLinkType, string> = {
@@ -72,10 +74,10 @@ function toFormValues(row: SplashAdRow): FormValues {
   };
 }
 
-function fromFormValues(values: FormValues, id?: string): SplashAdRow {
+function fromFormValues(values: FormValues, id?: string) {
   const [start, end] = values.schedule || [];
   return {
-    id: id || `splash_${Date.now()}`,
+    id,
     name: values.name,
     imageUrl: values.imageUrl,
     linkType: values.linkType,
@@ -88,12 +90,11 @@ function fromFormValues(values: FormValues, id?: string): SplashAdRow {
     status: values.status,
     startAt: start ? start.format('YYYY-MM-DD HH:mm') : undefined,
     endAt: end ? end.format('YYYY-MM-DD HH:mm') : undefined,
-    updatedAt: dayjs().format('YYYY-MM-DD HH:mm'),
   };
 }
 
 export function SplashAdManagePage() {
-  const [rows, setRows] = useState(mockSplashAds);
+  const { rows, loading, reload } = useCloudList(() => fetchSplashAds(), []);
   const [keyword, setKeyword] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<SplashAdRow | null>(null);
@@ -133,27 +134,41 @@ export function SplashAdManagePage() {
 
   const onSave = async () => {
     const values = await form.validateFields();
-    const next = fromFormValues(values, editing?.id);
-    if (editing) {
-      setRows((prev) => prev.map((r) => (r.id === editing.id ? next : r)));
-      message.success('已保存');
-    } else {
-      setRows((prev) => [next, ...prev]);
-      message.success('已创建');
+    const payload = fromFormValues(values, editing?.id);
+    try {
+      payload.imageUrl = await ensureCloudImageUrl(payload.imageUrl, 'admin/splash');
+      await saveSplashAd(payload);
+      message.success(editing ? '已保存' : '已创建');
+      setModalOpen(false);
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '保存失败');
     }
-    setModalOpen(false);
   };
 
-  const toggleOnline = (row: SplashAdRow) => {
+  const toggleOnline = async (row: SplashAdRow) => {
     const nextStatus: SplashAdStatus = row.status === 'online' ? 'offline' : 'online';
-    setRows((prev) =>
-      prev.map((r) =>
-        r.id === row.id
-          ? { ...r, status: nextStatus, updatedAt: dayjs().format('YYYY-MM-DD HH:mm') }
-          : r,
-      ),
-    );
-    message.success(nextStatus === 'online' ? '已开启投放' : '已下线');
+    try {
+      await saveSplashAd({
+        id: row.id,
+        name: row.name,
+        imageUrl: row.imageUrl,
+        linkType: row.linkType,
+        linkTarget: row.linkTarget,
+        durationSec: row.durationSec,
+        skippable: row.skippable,
+        skipAfterSec: row.skipAfterSec,
+        showRule: row.showRule,
+        sortOrder: row.sortOrder,
+        status: nextStatus,
+        startAt: row.startAt,
+        endAt: row.endAt,
+      });
+      message.success(nextStatus === 'online' ? '已开启投放' : '已下线');
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '操作失败');
+    }
   };
 
   return (
@@ -170,6 +185,7 @@ export function SplashAdManagePage() {
       <ListToolbar searchPlaceholder="内部名称" onSearch={setKeyword} />
       <Table
         rowKey="id"
+        loading={loading}
         dataSource={displayRows}
         pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
         scroll={{ x: 1200 }}
@@ -249,7 +265,7 @@ export function SplashAdManagePage() {
                 <Button type="link" size="small" onClick={() => openEdit(r)}>
                   编辑
                 </Button>
-                <Button type="link" size="small" onClick={() => toggleOnline(r)}>
+                <Button type="link" size="small" onClick={() => void toggleOnline(r)}>
                   {r.status === 'online' ? '下线' : '投放'}
                 </Button>
               </Space>
@@ -275,7 +291,7 @@ export function SplashAdManagePage() {
             label="全屏素材"
             rules={[{ required: true, message: '请上传图片或填写 URL' }]}
           >
-            <SplashImageUpload />
+            <SplashImageUpload uploadFolder="admin/splash" />
           </Form.Item>
           <Form.Item name="linkType" label="点击跳转">
             <Select

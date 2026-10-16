@@ -1,10 +1,25 @@
 import { Button, Table, Tag, message } from 'antd';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { PageIntro } from '../../components/PageIntro';
-import { mockSignups } from '../../mock/data';
+import { ListToolbar } from '../../components/ListToolbar';
+import { useCloudList } from '../../hooks/useCloudList';
+import { checkInEventSignup, fetchEventSignups } from '../../services/admin-data';
 
 export function SignupListPage() {
-  const [rows, setRows] = useState(mockSignups);
+  const { rows, loading, reload } = useCloudList(() => fetchEventSignups(), []);
+  const [keyword, setKeyword] = useState('');
+
+  const displayRows = useMemo(() => {
+    const q = keyword.trim().toLowerCase();
+    if (!q) return rows;
+    return rows.filter(
+      (r) =>
+        r.eventTitle.toLowerCase().includes(q)
+        || r.userName.toLowerCase().includes(q)
+        || (r.ticketCode || '').toLowerCase().includes(q)
+        || (r.phone || '').includes(q),
+    );
+  }, [rows, keyword]);
 
   return (
     <>
@@ -12,9 +27,11 @@ export function SignupListPage() {
         title="报名与核销"
         description="对齐 event-detail 核销码弹窗：二维码含报名人、手机号、宠物名与品种；主理人扫码或此处手动核销。"
       />
+      <ListToolbar searchPlaceholder="活动 / 用户 / 核销码 / 手机" onSearch={setKeyword} />
       <Table
         rowKey="id"
-        dataSource={rows}
+        loading={loading}
+        dataSource={displayRows}
         pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
         scroll={{ x: 1100 }}
         columns={[
@@ -46,8 +63,15 @@ export function SignupListPage() {
                   type="link"
                   size="small"
                   onClick={() => {
-                    setRows((prev) => prev.map((x) => (x.id === r.id ? { ...x, checkedIn: true } : x)));
-                    message.success('已核销（Mock）');
+                    void (async () => {
+                      try {
+                        const res = await checkInEventSignup(r.id);
+                        message.success(res.alreadyCheckedIn ? '该报名此前已核销' : '已核销');
+                        await reload();
+                      } catch (e) {
+                        message.error(e instanceof Error ? e.message : '核销失败');
+                      }
+                    })();
                   }}
                 >
                   手动核销

@@ -23,6 +23,7 @@ const pointsLedgerHandler = require('./handlers/points_ledger');
 const sensitiveWordsHandler = require('./handlers/sensitive_words');
 const adminHandler = require('./handlers/admin');
 const adminFeedHandler = require('./handlers/admin_feed');
+const appSettingsHandler = require('./handlers/app_settings');
 const adminUsersHandler = require('./handlers/admin_users');
 const petDiscoverLikesHandler = require('./handlers/pet_discover_likes');
 const chatThreadsHandler = require('./handlers/chat_threads');
@@ -133,6 +134,8 @@ const ROUTES = {
   'admin.reviewHostApply': (payload, ctx) => adminHandler.reviewHostApply(payload, ctx),
   'admin.moderatePost': (payload, ctx) => adminFeedHandler.moderatePost(payload, ctx),
   'admin.reviewMapPoint': (payload, ctx) => adminFeedHandler.reviewMapPoint(payload, ctx),
+  'admin.reviewMerchantApply': (payload, ctx) => adminFeedHandler.reviewMerchantApply(payload, ctx),
+  'admin.reviewEventQualify': (payload, ctx) => adminFeedHandler.reviewEventQualify(payload, ctx),
   'admin_feed.listUsers': (payload, ctx) => adminFeedHandler.listUsers(payload, ctx),
   'admin_feed.listPets': (payload, ctx) => adminFeedHandler.listPets(payload, ctx),
   'admin_feed.listSocialPosts': (payload, ctx) => adminFeedHandler.listSocialPosts(payload, ctx),
@@ -147,7 +150,31 @@ const ROUTES = {
   'admin_feed.listPointsLedger': (payload, ctx) => adminFeedHandler.listPointsLedger(payload, ctx),
   'admin_feed.listBanners': (payload, ctx) => adminFeedHandler.listBanners(payload, ctx),
   'admin_feed.listSplashAds': (payload, ctx) => adminFeedHandler.listSplashAds(payload, ctx),
+  'admin_feed.saveBanner': (payload, ctx) => adminFeedHandler.saveBanner(payload, ctx),
+  'admin_feed.saveSplashAd': (payload, ctx) => adminFeedHandler.saveSplashAd(payload, ctx),
+  'admin_feed.checkInSignup': (payload, ctx) => adminFeedHandler.checkInSignup(payload, ctx),
+  'admin_feed.getCommunityConfig': (payload, ctx) => adminFeedHandler.getCommunityConfig(payload, ctx),
+  'admin_feed.saveCommunityConfig': (payload, ctx) => adminFeedHandler.saveCommunityConfig(payload, ctx),
+  'admin_feed.setUserStatus': (payload, ctx) => adminFeedHandler.setUserStatus(payload, ctx),
+  'admin_feed.uploadMedia': (payload, ctx) => adminFeedHandler.uploadMedia(payload, ctx),
+  'admin_feed.createOfficialContent': (payload, ctx) =>
+    adminFeedHandler.createOfficialContent(payload, ctx),
+  'admin_feed.setMerchantBizStatus': (payload, ctx) =>
+    adminFeedHandler.setMerchantBizStatus(payload, ctx),
+  'admin_feed.createOfficialMapPoint': (payload, ctx) =>
+    adminFeedHandler.createOfficialMapPoint(payload, ctx),
+  'admin_feed.saveMerchantAdmin': (payload, ctx) => adminFeedHandler.saveMerchantAdmin(payload, ctx),
+  'app_settings.getCommunityConfig': (payload, ctx) =>
+    appSettingsHandler.getCommunityConfig(payload, ctx),
   'admin_feed.saveSensitiveWord': (payload, ctx) => adminFeedHandler.saveSensitiveWord(payload, ctx),
+  'admin_feed.updatePetAudit': (payload, ctx) => adminFeedHandler.updatePetAudit(payload, ctx),
+  'admin_feed.listMerchants': (payload, ctx) => adminFeedHandler.listMerchants(payload, ctx),
+  'admin_feed.listClubs': (payload, ctx) => adminFeedHandler.listClubs(payload, ctx),
+  'admin_feed.listClubMembers': (payload, ctx) => adminFeedHandler.listClubMembers(payload, ctx),
+  'admin_feed.listEventQualify': (payload, ctx) => adminFeedHandler.listEventQualify(payload, ctx),
+  'admin_feed.saveClubAdmin': (payload, ctx) => adminFeedHandler.saveClubAdmin(payload, ctx),
+  'admin_feed.updateClubOnlineStatus': (payload, ctx) => adminFeedHandler.updateClubOnlineStatus(payload, ctx),
+  'admin_feed.summaryCounts': (payload, ctx) => adminFeedHandler.summaryCounts(payload, ctx),
   'admin_users.listFeed': (payload, ctx) => adminUsersHandler.listFeed(payload, ctx),
   'admin_users.get': (payload, ctx) => adminUsersHandler.get(payload, ctx),
   'admin_users.save': (payload, ctx) => adminUsersHandler.save(payload, ctx),
@@ -168,11 +195,7 @@ const ROUTES = {
   'user_feedback.save': (payload, ctx) => userFeedbackHandler.save(payload, ctx),
 };
 
-const PLANNED = [
-  'admin.reviewMerchantApply',
-  'admin_feed.saveBanner',
-  'admin_feed.saveSplashAd',
-];
+const PLANNED = [];
 
 async function route(event) {
   const module = event.module || '';

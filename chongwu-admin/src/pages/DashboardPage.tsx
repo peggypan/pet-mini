@@ -7,10 +7,10 @@ import {
   ArrowRightOutlined,
 } from '@ant-design/icons';
 import { PageIntro } from '../components/PageIntro';
-import { dashboardStats, recentActivity } from '../mock/data';
 import { Link } from 'react-router-dom';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { usePendingBadges } from '../context/PendingBadgeContext';
+import { fetchDashboardCounts, type DashboardCounts } from '../services/admin-data';
 
 type WorkbenchItem = { title: string; path: string; pending?: number };
 
@@ -49,58 +49,110 @@ function buildWorkbenchGroups(badge: (path: string) => number): WorkbenchGroup[]
       items: [
         { title: '友好地图标点', path: '/map-points', pending: badge('/map-points') },
         { title: '商家入驻', path: '/merchants/applies', pending: badge('/merchants/applies') },
+        { title: '门店管理', path: '/merchants' },
+      ],
+    },
+    {
+      label: '内容与系统',
+      items: [
+        { title: '首页 Banner', path: '/banners' },
+        { title: '开机广告', path: '/content/splash-ads' },
+        { title: '积分流水', path: '/points' },
+        { title: '话题配置', path: '/community/topics' },
+        { title: '社区分区', path: '/community/zones' },
+        { title: '敏感词', path: '/settings/sensitive' },
       ],
     },
   ];
 }
 
-const statCards = [
-  {
-    title: '注册用户',
-    value: dashboardStats.users,
-    icon: <UserOutlined />,
-    path: '/users',
-    accent: true,
-  },
-  {
-    title: '宠物档案',
-    value: dashboardStats.pets,
-    icon: <HeartOutlined />,
-    path: '/pets',
-  },
-  {
-    title: '今日社区帖',
-    value: dashboardStats.postsToday,
-    icon: <CommentOutlined />,
-    path: '/community/posts',
-  },
-  {
-    title: '今日搭子帖',
-    value: dashboardStats.buddyToday,
-    icon: <CommentOutlined />,
-    path: '/buddy',
-  },
-  {
-    title: '在线活动',
-    value: dashboardStats.eventsPublished,
-    icon: <CalendarOutlined />,
-    path: '/events',
-  },
-  {
-    title: '本周报名',
-    value: dashboardStats.eventSignupsWeek,
-    icon: <CalendarOutlined />,
-    path: '/events/signups',
-  },
-];
+function buildStatCards(counts: DashboardCounts | null) {
+  const c = counts || {
+    users: 0,
+    petsPending: 0,
+    socialPending: 0,
+    commentsPending: 0,
+    buddyPending: 0,
+    hostPending: 0,
+    qualifyPending: 0,
+    mapPending: 0,
+    merchantApplyPending: 0,
+  };
+  return [
+    {
+      title: '注册用户',
+      value: c.users,
+      icon: <UserOutlined />,
+      path: '/users',
+      accent: true,
+    },
+    {
+      title: '宠物待审',
+      value: c.petsPending,
+      icon: <HeartOutlined />,
+      path: '/pets',
+    },
+    {
+      title: '社区待审',
+      value: c.socialPending,
+      icon: <CommentOutlined />,
+      path: '/community/posts',
+    },
+    {
+      title: '搭子待审',
+      value: c.buddyPending,
+      icon: <CommentOutlined />,
+      path: '/buddy',
+    },
+    {
+      title: '地图待审',
+      value: c.mapPending,
+      icon: <CalendarOutlined />,
+      path: '/map-points',
+    },
+    {
+      title: '商家入驻待审',
+      value: c.merchantApplyPending,
+      icon: <CalendarOutlined />,
+      path: '/merchants/applies',
+    },
+  ];
+}
+
+function buildActivityFeed(counts: DashboardCounts | null): { time: string; text: string; path: string }[] {
+  if (!counts) return [];
+  const items: { time: string; text: string; path: string }[] = [];
+  const push = (n: number, text: string, path: string) => {
+    if (n > 0) items.push({ time: '待办', text: `${text} ${n} 项`, path });
+  };
+  push(counts.petsPending, '宠物档案待审核', '/pets');
+  push(counts.socialPending, '社区动态待审核', '/community/posts');
+  push(counts.commentsPending, '评论待审核', '/community/comments');
+  push(counts.buddyPending, '搭子帖待审核', '/buddy');
+  push(counts.hostPending, '主理人入驻待审核', '/host/applies');
+  push(counts.qualifyPending, '活动资质待审核', '/host/event-qualify');
+  push(counts.mapPending, '地图标点待审核', '/map-points');
+  push(counts.merchantApplyPending, '商家入驻待审核', '/merchants/applies');
+  push(counts.localPending ?? 0, '本地帖待审核', '/rescue');
+  return items.slice(0, 8);
+}
 
 export function DashboardPage() {
   const { badges, pendingTotal } = usePendingBadges();
+  const [counts, setCounts] = useState<DashboardCounts | null>(null);
+
+  useEffect(() => {
+    void fetchDashboardCounts()
+      .then(setCounts)
+      .catch(() => setCounts(null));
+  }, []);
+
+  const statCards = useMemo(() => buildStatCards(counts), [counts]);
   const workbenchGroups = useMemo(
     () => buildWorkbenchGroups((path) => badges[path] || 0),
     [badges],
   );
-  const activityFeed = recentActivity.slice(0, 6);
+  const activityFeed = useMemo(() => buildActivityFeed(counts), [counts]);
 
   return (
     <>

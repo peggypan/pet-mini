@@ -2,8 +2,8 @@ const store = require('../../utils/store');
 const { pickMixedMedia, MEDIA_LIMIT_HINT, mediaSlots } = require('../../utils/media-upload');
 const { getDefaultPet } = require('../../utils/catalog');
 const { EMOJI_TABS, getEmojiList } = require('../../utils/pet-emoji');
-const { HOT_TOPICS } = require('../../utils/circle-community');
-const { POST_ZONES } = require('../../utils/community-zones');
+const communityCfg = require('../../utils/community-config-cloud');
+const { getPostZonesList } = require('../../utils/community-zones');
 const {
   blockSubPageWithoutLogin,
   blockSubPageWithoutProfile,
@@ -17,7 +17,7 @@ const sensitiveWords = require('../../utils/sensitive-words');
 
 Page({
   data: {
-    zones: POST_ZONES,
+    zones: getPostZonesList(),
     zone: 'dog',
     title: '',
     content: '',
@@ -30,13 +30,16 @@ Page({
     emojiTab: 'cat',
     emojiList: getEmojiList('cat'),
     showEmoji: true,
-    hotTopics: HOT_TOPICS,
+    hotTopics: communityCfg.getHotTopicNames(),
     selectedTopic: '',
     petProfileBlocked: false,
   },
 
   onShow() {
     syncPetProfileGate(this);
+    void communityCfg.refreshCommunityConfigFromCloud({}).then((cfg) => {
+      this.setData({ zones: cfg.postZones, hotTopics: cfg.topicNames });
+    });
   },
 
   onLoad(options) {
@@ -46,7 +49,7 @@ Page({
     if (options.topic) {
       patch.selectedTopic = decodeURIComponent(options.topic);
     }
-    if (options.zone && POST_ZONES.some((z) => z.id === options.zone)) {
+    if (options.zone && getPostZonesList().some((z) => z.id === options.zone)) {
       patch.zone = options.zone;
     }
     if (Object.keys(patch).length) this.setData(patch);

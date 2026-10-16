@@ -8,7 +8,9 @@ import { countPendingStatus } from '../../utils/audit-pending';
 
 const MENU_PATH = '/host/event-qualify';
 import { LabeledImageGrid, type LabeledImageItem } from '../../components/DetailMediaGallery';
-import { mockEventQualify } from '../../mock/data';
+import { useCloudList } from '../../hooks/useCloudList';
+import { fetchEventQualify } from '../../services/admin-data';
+import { reviewEventQualify } from '../../services/moderation';
 import type { EventQualifyRow, VerifyStatus } from '../../types';
 
 function qualifyCredentialItems(row: EventQualifyRow): LabeledImageItem[] {
@@ -27,7 +29,7 @@ function qualifyCredentialItems(row: EventQualifyRow): LabeledImageItem[] {
 }
 
 export function EventQualifyManagePage() {
-  const [rows, setRows] = useState(mockEventQualify);
+  const { rows, loading, reload } = useCloudList(() => fetchEventQualify(), []);
   const [keyword, setKeyword] = useState('');
   const [verifyFilter, setVerifyFilter] = useState<VerifyStatus | 'all'>('pending');
   const [detail, setDetail] = useState<EventQualifyRow | null>(null);
@@ -44,22 +46,24 @@ export function EventQualifyManagePage() {
     return list;
   }, [rows, verifyFilter, keyword]);
 
-  const patchRow = (id: string, patch: Partial<EventQualifyRow>) => {
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
-    if (detail?.id === id) setDetail((d) => (d ? { ...d, ...patch } : d));
+  const approveVerify = async (id: string) => {
+    try {
+      await reviewEventQualify(id, 'approve');
+      message.success('身份/资质已通过');
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '操作失败');
+    }
   };
 
-  const approveVerify = (id: string) => {
-    patchRow(id, {
-      verifyStatus: 'approved',
-      canPublish: true,
-    });
-    message.success('身份/资质已通过（Mock）');
-  };
-
-  const rejectVerify = (id: string) => {
-    patchRow(id, { verifyStatus: 'rejected', canPublish: false });
-    message.warning('已驳回');
+  const rejectVerify = async (id: string) => {
+    try {
+      await reviewEventQualify(id, 'reject', '资质未通过');
+      message.warning('已驳回');
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '操作失败');
+    }
   };
 
   const pendingCount = useMemo(
@@ -68,21 +72,16 @@ export function EventQualifyManagePage() {
   );
   useSyncMenuPendingBadge(MENU_PATH, pendingCount);
 
-  const bulkApproveAll = () => {
+  const bulkApproveAll = async () => {
     if (!pendingCount) return;
-    setRows((prev) =>
-      prev.map((r) =>
-        r.verifyStatus === 'pending'
-          ? { ...r, verifyStatus: 'approved' as const, canPublish: true }
-          : r,
-      ),
-    );
-    setDetail((d) =>
-      d?.verifyStatus === 'pending'
-        ? { ...d, verifyStatus: 'approved', canPublish: true }
-        : d,
-    );
-    message.success(`已通过 ${pendingCount} 条活动发布资质`);
+    const pending = rows.filter((r) => r.verifyStatus === 'pending');
+    try {
+      await Promise.all(pending.map((r) => reviewEventQualify(r.id, 'approve')));
+      message.success(`已通过 ${pending.length} 条活动发布资质`);
+      await reload();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '批量通过失败');
+    }
   };
 
   return (
@@ -112,6 +111,7 @@ export function EventQualifyManagePage() {
       />
       <Table
         rowKey="id"
+        loading={loading}
         dataSource={displayRows}
         pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
         scroll={{ x: 1100 }}

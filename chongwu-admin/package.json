@@ -6,11 +6,15 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:check-env": "bash scripts/build-admin.sh",
+    "deploy:static": "bash scripts/deploy-admin-static.sh",
+    "deploy:api:help": "bash scripts/deploy-cloud-api.sh",
     "lint": "oxlint",
     "preview": "vite preview"
   },
   "dependencies": {
     "@ant-design/icons": "^6.3.4",
+    "@cloudbase/js-sdk": "^3.10.2",
     "antd": "^6.6.5",
     "dayjs": "^1.11.23",
     "react": "^19.2.8",

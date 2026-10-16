@@ -12,19 +12,50 @@ const COMMUNITY_ZONES = [
 
 const POST_ZONES = COMMUNITY_ZONES.filter((z) => z.id !== 'all');
 
-const ZONE_LABEL_MAP = POST_ZONES.reduce((acc, z) => {
+let runtimeCommunityZones = null;
+
+function setRuntimeCommunityZones(zones) {
+  runtimeCommunityZones = Array.isArray(zones) && zones.length ? zones : null;
+}
+
+function getCommunityZonesList() {
+  return runtimeCommunityZones || COMMUNITY_ZONES;
+}
+
+function getPostZonesList() {
+  return getCommunityZonesList().filter((z) => z.id !== 'all');
+}
+
+function rebuildZoneLabelMap() {
+  return getPostZonesList().reduce((acc, z) => {
+    acc[z.id] = z.name;
+    return acc;
+  }, {});
+}
+
+let ZONE_LABEL_MAP = POST_ZONES.reduce((acc, z) => {
   acc[z.id] = z.name;
   return acc;
 }, {});
 
 function getZoneMeta(zoneId) {
-  if (!zoneId || zoneId === 'all') return COMMUNITY_ZONES[0];
-  return POST_ZONES.find((z) => z.id === zoneId) || { id: zoneId, name: '社区', icon: '🐾', desc: '', theme: 'all' };
+  const list = getCommunityZonesList();
+  if (!zoneId || zoneId === 'all') return list[0] || COMMUNITY_ZONES[0];
+  return (
+    getPostZonesList().find((z) => z.id === zoneId) || {
+      id: zoneId,
+      name: '社区',
+      icon: '🐾',
+      desc: '',
+      theme: 'all',
+    }
+  );
 }
 
 function getZoneLabel(zoneId) {
   if (!zoneId || zoneId === 'all') return '全部';
-  return ZONE_LABEL_MAP[zoneId] || '社区';
+  const map = runtimeCommunityZones ? rebuildZoneLabelMap() : ZONE_LABEL_MAP;
+  return map[zoneId] || '社区';
 }
 
 function filterPostsByZone(posts, zoneId) {
@@ -47,6 +78,9 @@ module.exports = {
   COMMUNITY_ZONES,
   POST_ZONES,
   ZONE_LABEL_MAP,
+  setRuntimeCommunityZones,
+  getCommunityZonesList,
+  getPostZonesList,
   getZoneMeta,
   getZoneLabel,
   filterPostsByZone,

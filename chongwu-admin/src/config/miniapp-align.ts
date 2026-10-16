@@ -60,6 +60,20 @@ export const EVENT_ROLE_LABELS: Record<string, string> = {
   merchant: '商家发布',
 };
 
+export const MAP_POINT_TYPES = [
+  '宠物医院',
+  '宠物门店',
+  '宠物友好公园',
+  '宠物友好酒店',
+  '宠物友好商场',
+  '宠物友好餐厅',
+  '宠物友好景区',
+  '宠物友好露营地',
+  '其他',
+  '宠物不友好',
+  '宠物毒点',
+] as const;
+
 export const RESCUE_SOURCE_LABELS: Record<string, string> = {
   social: '社区帖（lost-publish）',
   local: '本地领养帖',

@@ -2,10 +2,12 @@ const { MOCK_SOCIAL } = require('../../utils/mock');
 const store = require('../../utils/store');
 const {
   COMMUNITY_ZONES,
+  getCommunityZonesList,
   getZoneLabel,
   filterPostsByZone,
   decoratePostZone,
 } = require('../../utils/community-zones');
+const communityCfg = require('../../utils/community-config-cloud');
 const { normalizePostMedia, previewPostMedia } = require('../../utils/social-post-media');
 const { withContentParts } = require('../../utils/social-content-parts');
 const { openSocialHashtagFilter } = require('../../utils/social-hashtag-nav');
@@ -40,14 +42,14 @@ Page({
       wx.removeStorageSync('social_tab');
       if (pendingTab === 'map') {
         wx.navigateTo({ url: '/pages/buddy/buddy' });
-      } else if (COMMUNITY_ZONES.some((z) => z.id === pendingTab)) {
+      } else if (getCommunityZonesList().some((z) => z.id === pendingTab)) {
         this.setData({ activeZone: pendingTab });
       }
     }
     const pendingZone = wx.getStorageSync('social_zone');
     if (pendingZone) {
       wx.removeStorageSync('social_zone');
-      if (COMMUNITY_ZONES.some((z) => z.id === pendingZone)) {
+      if (getCommunityZonesList().some((z) => z.id === pendingZone)) {
         this.setData({ activeZone: pendingZone });
       }
     }
@@ -60,6 +62,7 @@ Page({
     this.setData(showPatch, () => {
       this.reloadPosts();
     });
+    void communityCfg.applyCommunityUiToPage(this);
   },
 
   onCityTap() {

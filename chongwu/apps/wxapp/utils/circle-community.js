@@ -72,5 +72,14 @@ module.exports = {
   findCircle,
   seedCircleMessages,
   buildFeaturedCommunities,
-  HOT_TOPICS: MOCK_SOCIAL.topics.map((t) => t.name),
+  getHotTopicNames() {
+    try {
+      const cc = require('./community-config-cloud');
+      const names = cc.getHotTopicNames();
+      if (names && names.length) return names;
+    } catch (e) {
+      /* circular or missing */
+    }
+    return MOCK_SOCIAL.topics.map((t) => t.name);
+  },
 };

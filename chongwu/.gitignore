@@ -9,7 +9,7 @@ dev.db-journal
 # Environment
 .env
 .env.local
-# .env.cloud
+.env.cloud
 .env.cloud-md
 # Build
 dist/

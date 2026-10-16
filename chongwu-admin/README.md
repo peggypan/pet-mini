@@ -1,6 +1,6 @@
 # 宠头头 · 运营后台
 
-对应小程序 `chongwu/apps/wxapp` 的管理端，当前为 **纯前端界面 + Mock 数据**，后续对接 **微信云开发 / 云数据库** 与云函数。
+对应小程序 `chongwu/apps/wxapp` 的管理端。UI 已就绪；**数据对接微信云开发**（与 `database/schemas` 同一套集合），经 **Node BFF** 调用云函数 `api`。
 
 ## 功能模块（与小程序对齐）
 
@@ -21,13 +21,27 @@
 
 ## 本地运行
 
+**1. 启动 BFF（连接云函数，需配置密钥）**
+
+```bash
+cd chongwu-admin/server
+cp .env.example .env
+# 编辑 .env：TCB_ENV、TCB_SECRET_ID、TCB_SECRET_KEY
+npm install
+npm run dev
+```
+
+**2. 启动前端**
+
 ```bash
 cd chongwu-admin
 npm install
 npm run dev
 ```
 
-默认 http://localhost:5173 ，任意账号密码可进入（占位登录）。
+- 前端：http://localhost:5173（`/api` 代理到 BFF 8787）  
+- 登录：云库 `admin_users` 为空时首次可用 **`admin` / `demo`**（见云函数 `admin.login`）；上线前务必改密。  
+- 各列表页仍可能显示 Mock，按 **`docs/admin-database-integration.md`** 逐步改为 `callApi`。
 
 ## 界面特性（当前版本）
 
@@ -38,10 +52,10 @@ npm run dev
 - 评论管理：支持楼中楼回复字段展示  
 - 路由懒加载，首屏体积更小  
 
-## 后续接入云开发（规划）
+## 对接云数据库（必读）
 
-1. 云数据库集合命名与 `src/types` 中实体字段对齐  
-2. `src/services/*` 替换 Mock 为 `wx.cloud` / HTTP 网关  
-3. 管理端登录：云函数 + 管理员 openid 白名单  
+详见 **[docs/admin-database-integration.md](./docs/admin-database-integration.md)**（架构、接口映射、页面改造顺序）。
 
-详见 `docs/cloud-integration.md`。
+- Schema：`chongwu/apps/wxapp/database/schemas`  
+- 云函数路由：`cloudfunctions/api/router.js`（含 `admin_feed.*`、`admin.moderatePost` 等）  
+- 前端封装：`src/services/cloud-api.ts`

@@ -35,9 +35,11 @@
 
 ## 本仓库替换点
 
-- `src/mock/*.ts` → 删除或仅 dev 使用  
-- 新增 `src/services/cloud.ts` 封装调用  
-- 页面中 `useEffect` 拉数改为 service 层  
+完整步骤见 **[admin-database-integration.md](./admin-database-integration.md)**（BFF + `admin_feed.*` 路由 + 页面改造顺序）。
+
+- `src/mock/data.ts` → 逐步改为 `src/services/*` + `callApi`  
+- `server/` Node BFF 调用云函数 `api`  
+- 登录已接 `admin.login`（`src/services/auth.ts`）  
 
 ## 小程序云开发（已搭骨架）
 

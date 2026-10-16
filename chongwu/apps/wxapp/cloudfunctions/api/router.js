@@ -22,6 +22,7 @@ const splashAdsHandler = require('./handlers/splash_ads');
 const pointsLedgerHandler = require('./handlers/points_ledger');
 const sensitiveWordsHandler = require('./handlers/sensitive_words');
 const adminHandler = require('./handlers/admin');
+const adminFeedHandler = require('./handlers/admin_feed');
 const adminUsersHandler = require('./handlers/admin_users');
 const petDiscoverLikesHandler = require('./handlers/pet_discover_likes');
 const chatThreadsHandler = require('./handlers/chat_threads');
@@ -130,6 +131,23 @@ const ROUTES = {
   'admin.login': (payload, ctx) => adminHandler.login(payload, ctx),
   'admin.me': (payload, ctx) => adminHandler.me(payload, ctx),
   'admin.reviewHostApply': (payload, ctx) => adminHandler.reviewHostApply(payload, ctx),
+  'admin.moderatePost': (payload, ctx) => adminFeedHandler.moderatePost(payload, ctx),
+  'admin.reviewMapPoint': (payload, ctx) => adminFeedHandler.reviewMapPoint(payload, ctx),
+  'admin_feed.listUsers': (payload, ctx) => adminFeedHandler.listUsers(payload, ctx),
+  'admin_feed.listPets': (payload, ctx) => adminFeedHandler.listPets(payload, ctx),
+  'admin_feed.listSocialPosts': (payload, ctx) => adminFeedHandler.listSocialPosts(payload, ctx),
+  'admin_feed.listSocialComments': (payload, ctx) => adminFeedHandler.listSocialComments(payload, ctx),
+  'admin_feed.listBuddyPosts': (payload, ctx) => adminFeedHandler.listBuddyPosts(payload, ctx),
+  'admin_feed.listEvents': (payload, ctx) => adminFeedHandler.listEvents(payload, ctx),
+  'admin_feed.listEventSignups': (payload, ctx) => adminFeedHandler.listEventSignups(payload, ctx),
+  'admin_feed.listMapPoints': (payload, ctx) => adminFeedHandler.listMapPoints(payload, ctx),
+  'admin_feed.listLocalPosts': (payload, ctx) => adminFeedHandler.listLocalPosts(payload, ctx),
+  'admin_feed.listHostApplies': (payload, ctx) => adminFeedHandler.listHostApplies(payload, ctx),
+  'admin_feed.listMerchantApplies': (payload, ctx) => adminFeedHandler.listMerchantApplies(payload, ctx),
+  'admin_feed.listPointsLedger': (payload, ctx) => adminFeedHandler.listPointsLedger(payload, ctx),
+  'admin_feed.listBanners': (payload, ctx) => adminFeedHandler.listBanners(payload, ctx),
+  'admin_feed.listSplashAds': (payload, ctx) => adminFeedHandler.listSplashAds(payload, ctx),
+  'admin_feed.saveSensitiveWord': (payload, ctx) => adminFeedHandler.saveSensitiveWord(payload, ctx),
   'admin_users.listFeed': (payload, ctx) => adminUsersHandler.listFeed(payload, ctx),
   'admin_users.get': (payload, ctx) => adminUsersHandler.get(payload, ctx),
   'admin_users.save': (payload, ctx) => adminUsersHandler.save(payload, ctx),
@@ -151,10 +169,9 @@ const ROUTES = {
 };
 
 const PLANNED = [
-  'pets.*',
-  'admin.reviewMapPoint',
   'admin.reviewMerchantApply',
-  'admin.moderatePost',
+  'admin_feed.saveBanner',
+  'admin_feed.saveSplashAd',
 ];
 
 async function route(event) {

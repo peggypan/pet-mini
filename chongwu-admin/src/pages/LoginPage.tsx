@@ -1,13 +1,25 @@
 import { Button, Card, Form, Input, message } from 'antd';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { adminLogin } from '../services/auth';
+
+type LoginForm = { username: string; password: string };
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
-  const onFinish = () => {
-    sessionStorage.setItem('chongwu_admin_token', 'mock-token');
-    message.success('登录成功（演示）');
-    navigate('/');
+  const onFinish = async (values: LoginForm) => {
+    setLoading(true);
+    try {
+      await adminLogin(values.username, values.password);
+      message.success('登录成功');
+      navigate('/');
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '登录失败');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -20,7 +32,7 @@ export function LoginPage() {
           <h1>宠头头运营后台</h1>
           <p>管理社区、活动、地图标点与商家入驻</p>
           <p style={{ marginTop: 12 }}>
-            <span className="cloud-badge">微信云开发 · 接口待接入</span>
+            <span className="cloud-badge">微信云开发 · 经 BFF 调用 api 云函数</span>
           </p>
         </div>
         <Form layout="vertical" onFinish={onFinish} initialValues={{ username: 'admin', password: 'demo' }}>
@@ -30,7 +42,7 @@ export function LoginPage() {
           <Form.Item name="password" label="密码" rules={[{ required: true }]}>
             <Input.Password size="large" placeholder="密码" />
           </Form.Item>
-          <Button type="primary" htmlType="submit" size="large" block>
+          <Button type="primary" htmlType="submit" size="large" block loading={loading}>
             进入控制台
           </Button>
         </Form>

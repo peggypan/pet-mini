@@ -9,8 +9,12 @@ async function listFeed(payload, _wxContext) {
   const nowMs = Date.now();
 
   const parts = [{ status: 1 }];
-  if (city) {
-    parts.push(_.or([{ city: '' }, { city }]));
+  const cityTrim = typeof city === 'string' ? city.trim() : '';
+  if (cityTrim) {
+    // 全国/未设 city 的 Banner（无字段或空串）对所有城市展示
+    parts.push(
+      _.or([{ city: '' }, { city: cityTrim }, { city: _.exists(false) }]),
+    );
   }
 
   let rows = [];
@@ -26,7 +30,10 @@ async function listFeed(payload, _wxContext) {
     rows = sortBanners(res.data || []);
   }
 
-  rows = rows.filter((d) => isWithinSchedule(d, nowMs));
+  rows = rows.filter((d) => {
+    if (d.status === 0 || d.status === '0') return false;
+    return isWithinSchedule(d, nowMs);
+  });
   return ok({ list: rows.map((d) => publicBanner(d)) });
 }
 

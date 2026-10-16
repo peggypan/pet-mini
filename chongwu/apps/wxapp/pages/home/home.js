@@ -29,7 +29,7 @@ Page({
     this.paintHomeFromCache();
     if (cloudApi.cloudEnabled()) {
       const loc = store.getCityLocation();
-      refreshBannersFromCloud({ city: loc.city, limit: 10 }).then((rows) => {
+      refreshBannersFromCloud({ limit: 10 }).then((rows) => {
         this.setData({ banners: rows || [] });
       });
     }
@@ -60,10 +60,15 @@ Page({
     this._buddySource = listAllBuddies().filter((b) => b.zone !== 'match');
     const viewer = store.getCityLocation();
     const buddyFeed = resetFeed(this._buddySource, (row) => buildBuddyPlazaCard(row, viewer));
+    const cachedBanners = store.listHomeBanners();
+    const banners =
+      cachedBanners.length || !cloudApi.cloudEnabled()
+        ? cachedBanners
+        : this.data.banners || [];
     this.setData({
       city: loc.city || '北京',
       cityAuto: !!loc.auto,
-      banners: store.listHomeBanners(),
+      banners,
       buddyPlaza: buddyFeed.list,
       buddyHasMore: buddyFeed.hasMore,
     });
@@ -75,11 +80,12 @@ Page({
     this._homeRefreshPromise = (async () => {
       try {
         const loc = store.getCityLocation();
-        await Promise.all([
-          refreshEventsFeedFromCloud({ limit: 80 }),
-          refreshBannersFromCloud({ city: loc.city, limit: 10 }),
-        ]);
+        const bannerRows = await refreshBannersFromCloud({ limit: 10 });
+        await refreshEventsFeedFromCloud({ limit: 80 });
         this.paintHomeFromCache();
+        if (bannerRows && bannerRows.length) {
+          this.setData({ banners: bannerRows });
+        }
       } catch (e) {
         // keep cache
       } finally {

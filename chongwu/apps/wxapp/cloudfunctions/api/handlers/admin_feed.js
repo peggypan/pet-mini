@@ -540,7 +540,7 @@ async function saveBanner(payload, _wxContext) {
   };
   if (subtitle) data.subtitle = subtitle;
   if (tag) data.tag = tag;
-  if (city) data.city = city;
+  data.city = city || '';
   if (startAt) data.startAt = startAt;
   if (endAt) data.endAt = endAt;
 

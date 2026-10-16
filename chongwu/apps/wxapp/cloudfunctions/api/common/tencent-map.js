@@ -1,5 +1,5 @@
 /** 腾讯位置服务 WebService Key（与小程序 utils/amap-config 保持一致，上线建议改云函数环境变量） */
-const TENCENT_MAP_KEY = process.env.TENCENT_MAP_KEY || '32YBZ-3MSEQ-6OA55-26ZZZ-NOUGJ-WEFNQ';
+const TENCENT_MAP_KEY = process.env.TENCENT_MAP_KEY
 
 function isConfigured() {
   const key = (TENCENT_MAP_KEY || '').trim();

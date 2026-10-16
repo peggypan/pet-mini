@@ -13,7 +13,7 @@
 const PLACEHOLDER_KEY = 'YOUR_TENCENT_MAP_KEY';
 
 /** 只改这一行的值为控制台复制的 Key；不要改 isTencentMapConfigured 的判断逻辑 */
-const TENCENT_MAP_KEY = '32YBZ-3MSEQ-6OA55-26ZZZ-NOUGJ-WEFNQ';
+const TENCENT_MAP_KEY = process.env.TENCENT_MAP_KEY
 
 function isTencentMapConfigured() {
   const key = (TENCENT_MAP_KEY || '').trim();

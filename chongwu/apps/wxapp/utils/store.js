@@ -2092,10 +2092,21 @@ function replaceBannersFromCloud(list) {
   return rows;
 }
 
+/** 写入已映射的首页 Banner 缓存（如换链后的 cover） */
+function replaceHomeBanners(rows) {
+  const list = (rows || []).filter(Boolean);
+  write(KEYS.homeBanners, list);
+  return list;
+}
+
 function listHomeBanners() {
+  const cloudApi = require('./cloud-api');
+  const cached = listBannersCache();
+  if (cloudApi.cloudEnabled()) {
+    return cached;
+  }
+  if (cached.length) return cached;
   const { MOCK_HOME } = require('./mock');
-  const cloud = listBannersCache();
-  if (cloud.length) return cloud;
   return MOCK_HOME.banners || [];
 }
 
@@ -2514,6 +2525,7 @@ module.exports = {
   getCity,
   listHomeBanners,
   replaceBannersFromCloud,
+  replaceHomeBanners,
   mapBannerFromCloud,
   setSplashAdCache,
   getSplashAdCache,

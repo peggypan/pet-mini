@@ -12,7 +12,7 @@
     </view>
   </view>
 
-  <view class="banner-wrap aspect-169">
+  <view class="banner-wrap aspect-169" wx:if="{{banners.length}}">
     <swiper
       class="banner"
       autoplay

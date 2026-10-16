@@ -25,6 +25,16 @@ Page({
     riskTip: RISK_TIPS.meet,
   },
 
+  onLoad() {
+    this.paintHomeFromCache();
+    if (cloudApi.cloudEnabled()) {
+      const loc = store.getCityLocation();
+      refreshBannersFromCloud({ city: loc.city, limit: 10 }).then((rows) => {
+        this.setData({ banners: rows || [] });
+      });
+    }
+  },
+
   onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0 });

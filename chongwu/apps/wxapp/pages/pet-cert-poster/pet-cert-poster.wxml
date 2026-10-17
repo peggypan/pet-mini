@@ -1,7 +1,7 @@
 <view class="page">
   <view class="head" wx:if="{{pet}}">
     <text class="head-title">{{pet.name}} 的分享海报</text>
-    <text class="head-sub">已生成 3 种风格：证照蓝调 / 杂志封面 / 萌宠名片</text>
+    <text class="head-sub">搭搭同款卡片风 · 3 种天空配色 · 含完整档案与查验二维码</text>
   </view>
 
   <view class="loading" wx:if="{{generating}}">

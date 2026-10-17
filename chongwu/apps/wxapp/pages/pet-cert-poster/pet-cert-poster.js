@@ -1,6 +1,7 @@
 const store = require('../../utils/store');
 const { getDefaultPet } = require('../../utils/catalog');
 const { generatePetCertPosters } = require('../../utils/pet-cert-poster');
+const { resolvePetMedia } = require('../../utils/cloud-media');
 const { publishPetCertToCloud } = require('../../utils/pet-cert-cloud-sync');
 const { requireInteract } = require('../../utils/pet-profile-guard');
 
@@ -24,7 +25,9 @@ Page({
     if (options.petId) {
       pet = store.getPet(options.petId);
     }
-    if (!pet) pet = getDefaultPet();
+    if (!pet) {
+      pet = store.listPets()[0] || getDefaultPet();
+    }
     this.setData({ pet });
     wx.setNavigationBarTitle({ title: '宠证分享海报' });
   },
@@ -39,10 +42,12 @@ Page({
     if (!pet) return;
     this.setData({ generating: true, error: '' });
     try {
-      if (pet.id) {
-        await publishPetCertToCloud(pet.id).catch(() => {});
+      const raw = pet.id ? (store.getPet(pet.id) || pet) : pet;
+      if (raw.id) {
+        await publishPetCertToCloud(raw.id).catch(() => {});
       }
-      const posters = await generatePetCertPosters(this, pet);
+      const resolved = await resolvePetMedia(raw);
+      const posters = await generatePetCertPosters(this, resolved);
       this.setData({ posters, generating: false });
     } catch (err) {
       this.setData({

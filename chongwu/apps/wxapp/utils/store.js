@@ -2521,6 +2521,13 @@ function updateDefaultPetAvatar(avatarUrl) {
   if (!avatarUrl) return null;
   const pets = listPets();
   if (pets.length) {
+    const pet = pets[0];
+    const gallery = Array.isArray(pet.galleryPhotos) ? pet.galleryPhotos.filter(Boolean) : [];
+    const existing = (pet.avatarUrl || pet.avatar || '').trim();
+    const hasRealPetAvatar = existing && !existing.includes('/assets/mock/');
+    if (gallery.length || hasRealPetAvatar) {
+      return pet;
+    }
     return updatePet(pets[0].id, { avatarUrl, avatar: avatarUrl });
   }
   return addPet({

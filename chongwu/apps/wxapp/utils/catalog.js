@@ -9,6 +9,7 @@ const store = require('./store');
 const cloudApi = require('./cloud-api');
 const { findHealingPetBuddy } = require('./pet-healing');
 const { dedupeMediaList } = require('./media-dedupe');
+const { pickPetDisplayPhoto } = require('./pet-photo-pool');
 
 function findSocialPost(id) {
   const sid = String(id);
@@ -252,17 +253,17 @@ function listAllMapPoints() {
 function getDefaultPet() {
   const local = store.listPets()[0];
   if (local) {
-    const avatarUrl = (local.avatarUrl || local.avatar || '').trim();
-    const useMockAvatar = !avatarUrl || avatarUrl.includes('/assets/mock/');
-    const displayAvatar = useMockAvatar ? MOCK_PET.avatar : avatarUrl;
+    const displayAvatar = pickPetDisplayPhoto(local);
+    const rawAvatar = (local.avatarUrl || local.avatar || '').trim();
+    const useMockAvatar = !rawAvatar || rawAvatar.includes('/assets/mock/');
     return {
       ...MOCK_PET,
       ...local,
       name: local.name || MOCK_PET.name,
       breed: local.breedName || local.breed || MOCK_PET.breed,
       avatar: displayAvatar,
-      avatarUrl: useMockAvatar ? '' : avatarUrl,
-      cover: local.coverUrl || (useMockAvatar ? MOCK_PET.cover : avatarUrl),
+      avatarUrl: useMockAvatar ? '' : rawAvatar,
+      cover: local.coverUrl || displayAvatar,
       healingPet: !!local.healingPet,
       healingBuddyType: local.healingBuddyType || '',
       healingIntro: local.healingIntro || '',

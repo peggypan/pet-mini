@@ -6,9 +6,15 @@ const { refreshBuddyFeedFromCloud } = require('../../utils/buddy-cloud-sync');
 const { resolveBuddyPosts } = require('../../utils/cloud-media');
 const {
   refreshPetDiscoverFromCloud,
+  syncReconciledPetLikes,
   swipeOnCloud,
   addShareBonusOnCloud,
 } = require('../../utils/pet-discover-likes-cloud-sync');
+const {
+  resolveLikedBuddyId,
+  reconcilePetLikeItems,
+} = require('../../utils/pet-discover-likes-present');
+const { loadBuddyDetail } = require('../../utils/buddy-cloud-sync');
 const amap = require('../../utils/amap');
 const { requireInteract } = require('../../utils/pet-profile-guard');
 const { requireLogin } = require('../../utils/require-login');
@@ -138,10 +144,9 @@ Page({
         }
         this.reloadDeck();
         if (!cloudApi.cloudEnabled()) return;
-        await Promise.all([
-          refreshBuddyFeedFromCloud({ limit: 80 }),
-          refreshPetDiscoverFromCloud(),
-        ]);
+        await refreshBuddyFeedFromCloud({ limit: 80 });
+        await refreshPetDiscoverFromCloud();
+        await syncReconciledPetLikes();
         const cached = store.listBuddyPosts();
         if (cached.some(
           (p) => (p.cover || '').startsWith('cloud://')
@@ -422,15 +427,18 @@ Page({
     this.reloadDeck();
   },
 
-  onOpenLikes() {
+  async onOpenLikes() {
     if (!requireInteract()) return;
+    await syncReconciledPetLikes();
     const row = store.getPetLikes();
     const viewer = store.getCityLocation();
-    const items = (row.items || []).map((item) => {
+    const items = reconcilePetLikeItems(row.items || []).map((item) => {
       const buddy = findBuddy(item.id);
       const distance = buddy ? buddyDistanceText(buddy, viewer) : '';
       return { ...item, distance: distance || item.distance || '' };
     });
+    store.replacePetLikeItems(items);
+    this.refreshQuota();
     this.setData({ showLikes: true, likedList: items });
   },
 
@@ -438,11 +446,32 @@ Page({
     this.setData({ showLikes: false });
   },
 
-  onLikedTap(e) {
+  async onLikedTap(e) {
     if (!requireInteract()) return;
     const id = e.currentTarget.dataset.id;
+    const row = (this.data.likedList || []).find((x) => String(x.id) === String(id));
+    const buddyId = resolveLikedBuddyId(row || { id });
+    if (!buddyId) {
+      wx.showToast({ title: '搭子已下架', icon: 'none' });
+      return;
+    }
+    wx.showLoading({ title: '加载中', mask: true });
+    const buddy = await loadBuddyDetail(buddyId).catch(() => null);
+    wx.hideLoading();
+    if (!buddy) {
+      wx.showToast({ title: '搭子已下架', icon: 'none' });
+      const next = (store.getPetLikes().items || []).filter(
+        (x) => String(x.id) !== String(buddyId) && String(x.id) !== String(id),
+      );
+      store.replacePetLikeItems(reconcilePetLikeItems(next));
+      this.refreshQuota();
+      if (this.data.showLikes) {
+        this.onOpenLikes();
+      }
+      return;
+    }
     this.setData({ showLikes: false });
-    wx.navigateTo({ url: `/pages/buddy-detail/buddy-detail?id=${id}` });
+    wx.navigateTo({ url: `/pages/buddy-detail/buddy-detail?id=${encodeURIComponent(buddy.id)}` });
   },
 
   onShareAppMessage() {

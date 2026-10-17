@@ -62,14 +62,45 @@ function petLikeToday() {
   return `${d.getFullYear()}-${m}-${day}`;
 }
 
+function petLikeItemKey(item) {
+  return String((item && (item.id != null ? item.id : item.targetId)) || '').trim();
+}
+
+function likedAtMs(item) {
+  const t = item && item.likedAt;
+  if (!t) return 0;
+  const ms = new Date(t).getTime();
+  return Number.isFinite(ms) ? ms : 0;
+}
+
+/** 同一搭子帖 targetId 只保留最近一条（修复云端/本地重复写入） */
+function dedupePetLikeItems(items) {
+  const map = new Map();
+  (items || []).forEach((item) => {
+    if (!item) return;
+    const key = petLikeItemKey(item);
+    if (!key) return;
+    const prev = map.get(key);
+    if (!prev || likedAtMs(item) >= likedAtMs(prev)) {
+      map.set(key, item);
+    }
+  });
+  return Array.from(map.values()).sort((a, b) => likedAtMs(b) - likedAtMs(a));
+}
+
 function getPetLikes() {
   const row = read(KEYS.petLikes, null);
   if (!row || row.date !== petLikeToday()) {
     return { date: petLikeToday(), items: [], bonus: 0, used: 0, shareCount: 0 };
   }
   if (typeof row.bonus !== 'number') row.bonus = 0;
+  if (Array.isArray(row.items)) {
+    row.items = dedupePetLikeItems(row.items);
+  } else {
+    row.items = [];
+  }
   if (typeof row.used !== 'number') {
-    row.used = Array.isArray(row.items) ? row.items.length : 0;
+    row.used = row.items.length;
   }
   if (typeof row.shareCount !== 'number') {
     row.shareCount = Math.min(
@@ -91,7 +122,16 @@ function consumePetSwipe({ pet, asLike }) {
   if (row.used >= limit) return { ok: false, quota: true };
   row.used += 1;
   if (asLike && pet) {
-    const exists = row.items.some((x) => String(x.id) === String(pet.id));
+    const petId = String(pet.id);
+    let exists = row.items.some((x) => String(x.id) === petId);
+    if (!exists) {
+      try {
+        const { resolveLikedBuddyId } = require('./pet-discover-likes-present');
+        exists = row.items.some((x) => resolveLikedBuddyId(x) === petId);
+      } catch (e) {
+        /* ignore */
+      }
+    }
     if (!exists) {
       row.items.push({
         id: pet.id,
@@ -167,17 +207,28 @@ function applyPetDiscoverQuota(quota) {
 
 function applyPetDiscoverFromCloud(data) {
   if (!data) return getPetLikes();
-  const items = (data.items || data.list || [])
+  const q = data.quota || {};
+  const today = q.date || petLikeToday();
+  const current = getPetLikes();
+  const localItems = current.date === today ? (current.items || []) : [];
+  const cloudItems = (data.items || data.list || [])
     .map(mapCloudLikeItem)
     .filter(Boolean);
-  const q = data.quota || {};
+  const items = dedupePetLikeItems([...cloudItems, ...localItems]);
   const row = {
-    date: q.date || petLikeToday(),
+    date: today,
     items: items.slice(0, 80),
     used: q.used != null ? Number(q.used) : 0,
     bonus: q.bonus != null ? Number(q.bonus) : 0,
     shareCount: q.shareCount != null ? Number(q.shareCount) : 0,
   };
+  write(KEYS.petLikes, row);
+  return row;
+}
+
+function replacePetLikeItems(items) {
+  const row = getPetLikes();
+  row.items = dedupePetLikeItems(items || []).slice(0, 80);
   write(KEYS.petLikes, row);
   return row;
 }
@@ -2689,6 +2740,8 @@ module.exports = {
   setDraft,
   getDraft,
   getPetLikes,
+  dedupePetLikeItems,
+  replacePetLikeItems,
   addPetLike,
   consumePetSwipe,
   petLikeQuota,

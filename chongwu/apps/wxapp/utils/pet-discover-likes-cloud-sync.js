@@ -9,6 +9,24 @@ function discoverLikesApi(action, payload = {}) {
 }
 
 const { hasLoginToken, ensureCloudSession } = require('./cloud-session');
+const {
+  reconcilePetLikeItems,
+  collectSupersededLikeTargetIds,
+} = require('./pet-discover-likes-present');
+
+async function syncReconciledPetLikes() {
+  const before = store.getPetLikes().items || [];
+  const after = reconcilePetLikeItems(before);
+  store.replacePetLikeItems(after);
+  const superseded = collectSupersededLikeTargetIds(before, after);
+  if (cloudApi.cloudEnabled() && hasLoginToken() && superseded.length) {
+    await ensureCloudSession().catch(() => {});
+    await Promise.all(
+      superseded.map((targetId) => discoverLikesApi('remove', { targetId }).catch(() => {})),
+    );
+  }
+  return after;
+}
 
 async function refreshPetDiscoverFromCloud() {
   if (!cloudApi.cloudEnabled()) {
@@ -55,6 +73,7 @@ async function swipeOnCloud(pet, asLike) {
   try {
     const data = await discoverLikesApi('swipe', mapCardToSwipePayload(pet, asLike));
     store.applyPetDiscoverFromCloud(data);
+    await syncReconciledPetLikes();
     if (asLike && pet) {
       store.setHeartLike(
         {
@@ -102,6 +121,7 @@ async function addShareBonusOnCloud() {
 
 module.exports = {
   refreshPetDiscoverFromCloud,
+  syncReconciledPetLikes,
   swipeOnCloud,
   addShareBonusOnCloud,
 };

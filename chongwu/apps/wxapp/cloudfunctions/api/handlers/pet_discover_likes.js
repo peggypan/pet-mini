@@ -1,7 +1,7 @@
 const { ok, fail } = require('../common/response');
 const { petDiscoverLikes, petDiscoverDaily, now, getDb } = require('../common/db');
 const { requireUser } = require('../common/auth-user');
-const { pickSwipePayload, publicLike } = require('../common/pet-discover-likes-fields');
+const { pickSwipePayload, publicLike, dedupeLikeDocs, likeDocKey } = require('../common/pet-discover-likes-fields');
 const {
   quotaView,
   getOrCreateDaily,
@@ -10,16 +10,8 @@ const {
 } = require('../common/pet-discover-quota');
 
 async function countMyLikes(openid) {
-  const _ = getDb().command;
-  try {
-    const res = await petDiscoverLikes()
-      .where(_.and([{ openid }, { status: 1 }]))
-      .count();
-    return (res && res.total) || 0;
-  } catch (e) {
-    const res = await petDiscoverLikes().where({ openid }).limit(100).get();
-    return (res.data || []).filter((d) => d.status !== 0).length;
-  }
+  const rows = await listMineRows(openid, 100);
+  return rows.length;
 }
 
 async function listMineRows(openid, limit) {
@@ -41,7 +33,7 @@ async function listMineRows(openid, limit) {
       return tb - ta;
     });
   }
-  return rows;
+  return dedupeLikeDocs(rows);
 }
 
 async function getSummary(_payload, wxContext) {
@@ -75,9 +67,10 @@ async function getQuota(_payload, wxContext) {
 }
 
 async function findLike(openid, targetId) {
-  if (!targetId) return null;
+  const tid = likeDocKey({ targetId });
+  if (!tid) return null;
   const res = await petDiscoverLikes()
-    .where({ openid, targetId, status: 1 })
+    .where({ openid, targetId: tid, status: 1 })
     .limit(1)
     .get();
   return (res.data && res.data[0]) || null;

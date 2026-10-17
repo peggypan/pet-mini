@@ -4,6 +4,14 @@ const { ensureChatThreadOnCloud } = require('./chat-cloud-sync');
 const { listAllBuddies, resolveBuddyPostId } = require('./catalog');
 const { buildPetAvatarMarkers, hydrateMapMarkerIcons } = require('./pet-map-markers');
 const { buddyIsNearViewer, resolveCityFromGps } = require('./geo-distance');
+const {
+  filterPeersBySpecies,
+  countPeersBySpecies,
+  filterKeyLabel,
+  resolveBuddySpeciesCode,
+  markerLabelForPeer,
+} = require('./buddy-map-species');
+const { buddyActiveInFeed } = require('./buddy-expect-expiry');
 
 /** 地图只展示其他宠友，不含本人帖与档案疗愈搭子 */
 function isSelfBuddyRow(b) {
@@ -37,6 +45,9 @@ function peerFromBuddy(b) {
     city: b.city,
     latitude: b.latitude,
     longitude: b.longitude,
+    petSpecies: b.petSpecies || '',
+    species: resolveBuddySpeciesCode(b),
+    buddyType: b.buddyType || '',
   };
 }
 
@@ -44,6 +55,7 @@ function collectMapPeers(posts, viewer) {
   const map = new Map();
   listAllBuddies()
     .filter((b) => !isSelfBuddyRow(b))
+    .filter((b) => buddyActiveInFeed(b))
     .filter((b) => buddyIsNearViewer(b, viewer))
     .forEach((b) => {
       const peer = peerFromBuddy(b);
@@ -52,6 +64,7 @@ function collectMapPeers(posts, viewer) {
     });
   (posts || [])
     .filter((p) => !isSelfBuddyRow(p))
+    .filter((p) => buddyActiveInFeed(p))
     .filter((p) => buddyIsNearViewer(p, viewer))
     .forEach((p) => {
       const key = buddyPeerKey(p);
@@ -75,13 +88,24 @@ function loadPetMap(page, options) {
       lng: longitude,
       city: resolveCityFromGps(latitude, longitude) || store.getCity(),
     };
-    const peers = collectMapPeers(posts, viewer);
+    const allPeers = collectMapPeers(posts, viewer);
+    const speciesFilter = (page.data && page.data.mapSpeciesFilter) || 'all';
+    const peers = filterPeersBySpecies(allPeers, speciesFilter).map((p) => {
+      const meta = markerLabelForPeer(p);
+      return {
+        ...p,
+        speciesDockClass: meta.dockClass,
+        speciesTag: meta.content,
+      };
+    });
     const built = buildPetAvatarMarkers(peers, latitude, longitude);
     page.setData({
       mapLatitude: latitude,
       mapLongitude: longitude,
       mapPeerCount: peers.length,
       mapPeers: peers,
+      mapSpeciesCounts: countPeersBySpecies(allPeers),
+      mapSpeciesFilterLabel: filterKeyLabel(speciesFilter),
     });
     hydrateMapMarkerIcons(built).then((markers) => {
       if (!page || typeof page.setData !== 'function') return;

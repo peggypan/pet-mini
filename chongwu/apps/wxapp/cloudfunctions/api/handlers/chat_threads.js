@@ -137,6 +137,21 @@ async function ensure(payload, wxContext) {
   return ok({ thread: publicThread(doc) });
 }
 
+async function remove(payload, wxContext) {
+  const auth = await requireUser(wxContext);
+  if (auth.err) return auth.err;
+  const threadId = payload && payload.threadId;
+  if (!threadId) return fail(400, '缺少 threadId');
+
+  const owned = await assertOwnThread(auth, threadId);
+  if (owned.err) return owned.err;
+
+  await chatThreads().doc(threadId).update({
+    data: { status: 0, updatedAt: now() },
+  });
+  return ok({ threadId: String(threadId) });
+}
+
 async function markRead(payload, wxContext) {
   const auth = await requireUser(wxContext);
   if (auth.err) return auth.err;
@@ -157,5 +172,6 @@ module.exports = {
   listMine,
   ensure,
   markRead,
+  remove,
   assertOwnThread,
 };

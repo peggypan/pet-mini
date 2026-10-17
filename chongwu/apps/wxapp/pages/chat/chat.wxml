@@ -1,6 +1,6 @@
 <view class="page {{panelTools ? 'tools-open' : ''}} {{panelEmoji ? 'emoji-open' : ''}}">
   <view class="peer-bar" wx:if="{{peer}}">
-    <image class="peer-avatar" src="{{peerAvatar || peer.avatar}}" mode="aspectFill"></image>
+    <image class="peer-avatar" src="{{peerAvatar}}" mode="aspectFill"></image>
     <view class="peer-info">
       <text class="peer-name">{{peerDisplayTitle || peer.displayTitle || peer.userName}}</text>
       <text class="peer-tip">输入框右侧笑脸可发表情包</text>
@@ -57,7 +57,7 @@
       <image
         wx:if="{{!item.isMe}}"
         class="msg-avatar"
-        src="{{item.displayAvatar || peerAvatar}}"
+        src="{{peerAvatar}}"
         mode="aspectFill"
       ></image>
 

@@ -35,6 +35,16 @@ page { background: #F5F8FC; }
   margin-bottom: 8rpx;
 }
 
+.renew-hint {
+  padding: 16rpx 20rpx;
+  margin-bottom: 12rpx;
+  border-radius: 16rpx;
+  background: #fff0f0;
+  color: #8a4b4b;
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
 .healing-publish-hint {
   padding: 16rpx 20rpx;
   margin-bottom: 12rpx;
@@ -171,19 +181,7 @@ input, .picker, textarea {
 
 .media-add {
   position: relative;
-  width: calc((100% - 32rpx) / 3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #F5F8FC;
-  border-radius: 14rpx;
-  border: 2rpx dashed rgba(77, 167, 248, 0.35);
   box-sizing: border-box;
-}
-
-.add-icon {
-  font-size: 48rpx;
-  color: #BBBBBB;
 }
 
 .media-empty {

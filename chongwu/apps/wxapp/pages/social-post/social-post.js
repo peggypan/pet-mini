@@ -1,6 +1,5 @@
 const store = require('../../utils/store');
 const { pickMixedMedia, MEDIA_LIMIT_HINT, mediaSlots } = require('../../utils/media-upload');
-const { getDefaultPet } = require('../../utils/catalog');
 const { EMOJI_TABS, getEmojiList } = require('../../utils/pet-emoji');
 const communityCfg = require('../../utils/community-config-cloud');
 const { getPostZonesList } = require('../../utils/community-zones');
@@ -146,11 +145,11 @@ Page({
     }
 
     const imageUrls = mediaList.filter((m) => m.type === 'image').map((m) => m.url);
-    const pet = getDefaultPet();
+    const { getDisplayNickname, getProfileAvatarUrl } = require('../../utils/user-profile-display');
     const payload = {
-      userName: '我',
-      petName: pet.name,
-      avatar: pet.avatar,
+      userName: getDisplayNickname(),
+      petName: '',
+      avatar: getProfileAvatarUrl(),
       zone,
       topic: selectedTopic,
       title: headline,

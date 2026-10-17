@@ -13,16 +13,22 @@ function isSignupNotice(msg) {
 
 function isSignupNoticeRead(signup, linked) {
   if (signup && signup.noticeRead) return true;
-  if (linked) return linked.read !== false;
+  if (linked && linked.read === true) return true;
   return false;
+}
+
+function isNoticeRead(notice) {
+  return !!(notice && notice.read === true);
 }
 
 /**
  * 通知列表：已报名活动用报名记录补全详情，并去掉重复的旧报名通知
  */
-function buildNotices() {
+function buildNotices(options) {
   const messages = store.listMessages();
-  const signups = store.listEventSignups().map((row) => {
+  const signups = store.listEventSignups()
+    .filter((row) => !row.noticeHidden)
+    .map((row) => {
     const notice = store.buildEventSignupNotice(row);
     const linked = messages.find((m) => String(m.eventId) === String(row.eventId));
     return {
@@ -48,22 +54,32 @@ function buildNotices() {
     })
     .map((m) => ({
       ...m,
-      read: m.read !== false,
+      read: m.read === true,
       lines: m.type === 'event' && m.content ? String(m.content).split('\n') : [],
       timeText: formatTime(m.createdAt),
     }));
-  return [...signups, ...others].sort((a, b) => {
+  const sorted = [...signups, ...others].sort((a, b) => {
     const tb = Date.parse(b.createdAt || '') || 0;
     const ta = Date.parse(a.createdAt || '') || 0;
     return tb - ta;
   });
+  if (options && options.unreadOnly) {
+    return sorted.filter((n) => !isNoticeRead(n));
+  }
+  return sorted;
+}
+
+function buildUnreadNotices() {
+  return buildNotices({ unreadOnly: true });
 }
 
 function countUnreadNotices() {
-  return buildNotices().filter((n) => !n.read).length;
+  return buildNotices().filter((n) => !isNoticeRead(n)).length;
 }
 
 module.exports = {
   buildNotices,
+  buildUnreadNotices,
   countUnreadNotices,
+  isNoticeRead,
 };

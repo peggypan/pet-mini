@@ -512,6 +512,41 @@ textarea {
   flex-shrink: 0;
 }
 
+/* 相册/场景「添加」：aspect-34 用 ::before 撑高，加号需绝对居中（勿对父级 flex） */
+.aspect-34.media-add,
+.aspect-34.scene-add {
+  display: block;
+  background: var(--primary-bg);
+  border-radius: 14rpx;
+  border: 2rpx dashed rgba(77, 167, 248, 0.35);
+  box-sizing: border-box;
+}
+
+.aspect-34.media-add > .add-icon,
+.aspect-34.scene-add > .add-icon {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  font-size: 52rpx;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--primary);
+  margin: 0;
+  padding: 0;
+}
+
+/* 固定尺寸添加格加号（flex 居中） */
+.media-add > .add-icon,
+.img-add > .add-icon,
+.photo-add-icon,
+.upload-icon {
+  color: var(--primary);
+  line-height: 1;
+  font-weight: 300;
+}
+
 /* ========== 宠物搭子广场 · 双列 + 封面 3:4 ========== */
 .buddy-plaza-list {
   display: flex;

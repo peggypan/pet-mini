@@ -152,15 +152,21 @@ page {
 
 .media-grid {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: row;
+  flex-wrap: nowrap;
   gap: 12rpx;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .media-thumb {
-  width: calc(33.33% - 8rpx);
+  flex: 0 0 calc((100% - 24rpx) / 3);
+  width: calc((100% - 24rpx) / 3);
+  max-width: calc((100% - 24rpx) / 3);
   height: 180rpx;
   border-radius: 16rpx;
   background: #eef2f7;
+  box-sizing: border-box;
 }
 
 .footer {

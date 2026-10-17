@@ -59,7 +59,7 @@
       <view class="head">
         <image class="avatar" src="{{item.avatar}}" mode="aspectFill"></image>
         <view class="user">
-          <text class="name">{{item.userName}} · {{item.petName}}</text>
+          <text class="name">{{item.userName}}</text>
           <text
             class="meta place-tap"
             wx:if="{{item.location && item.location !== '同城'}}"

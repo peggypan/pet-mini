@@ -254,11 +254,12 @@ Page({
     ].filter(Boolean);
 
     const imageUrls = mediaList.filter((m) => m.type === 'image').map((m) => m.url);
-    const nick = (store.getUserProfile().nickname || '').trim() || '宠友';
+    const { getDisplayNickname, getProfileAvatarUrl } = require('../../utils/user-profile-display');
+    const nick = getDisplayNickname();
     const payload = {
       userName: nick,
-      petName: MOCK_PET.name,
-      avatar: MOCK_PET.avatar,
+      petName: '',
+      avatar: getProfileAvatarUrl(),
       zone,
       title,
       content: parts.join('\n'),

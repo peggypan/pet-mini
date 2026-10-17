@@ -243,6 +243,11 @@ page {
   overflow: hidden;
 }
 
+.media-add {
+  position: relative;
+  box-sizing: border-box;
+}
+
 .media-thumb {
   background: #E8F0F6;
 }

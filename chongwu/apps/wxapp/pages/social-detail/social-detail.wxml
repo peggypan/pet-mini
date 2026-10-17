@@ -3,7 +3,7 @@
     <image class="avatar" src="{{post.avatar}}" mode="aspectFill"></image>
     <view class="author-info">
       <view class="name-row">
-        <text class="name">{{post.userName}}{{post.petName ? ' · ' + post.petName : ''}}</text>
+        <text class="name">{{post.userName}}</text>
         <text class="lost-tag" wx:if="{{post.lostType}}">{{post.lostType === 'lost' ? '寻宠启事' : post.lostType === 'found' ? '招领信息' : post.lostType === 'rescue' ? '宠物救助' : '领养救助'}}</text>
         <text class="essence" wx:if="{{post.essence}}">精华</text>
       </view>
@@ -21,15 +21,6 @@
     </view>
   </view>
 
-  <view
-    class="loc-card"
-    wx:if="{{post.geoLocation || (post.location && post.location !== '同城')}}"
-    bindtap="onOpenPostLocation"
-  >
-    <text class="loc-card-name place-tap">{{post.geoLocation.name || post.location}}</text>
-    <text class="loc-card-addr" wx:if="{{post.geoLocation.address && post.geoLocation.address !== post.geoLocation.name}}">{{post.geoLocation.address}}</text>
-  </view>
-
   <view class="content-card">
     <text class="post-headline" wx:if="{{post.title}}">{{post.title}}</text>
     <view class="content" wx:if="{{post.contentParts && post.contentParts.length}}">
@@ -43,6 +34,14 @@
         <text class="content-tag content-tag-{{part.type}}" wx:elif="{{part.tag}}">{{part.text}}</text>
         <text wx:else>{{part.text}}</text>
       </block>
+    </view>
+    <view
+      class="loc-card loc-card-in-content"
+      wx:if="{{post.geoLocation || (post.location && post.location !== '同城')}}"
+      bindtap="onOpenPostLocation"
+    >
+      <text class="loc-card-name place-tap">{{post.geoLocation.name || post.location}}</text>
+      <text class="loc-card-addr" wx:if="{{post.geoLocation.address && post.geoLocation.address !== post.geoLocation.name}}">{{post.geoLocation.address}}</text>
     </view>
     <view class="post-media" wx:if="{{post.mediaList && post.mediaList.length}}">
       <block wx:for="{{post.mediaList}}" wx:key="index" wx:for-item="media">
@@ -89,7 +88,12 @@
   <view class="comment-panel">
     <text class="panel-title">评论</text>
     <view class="comment-thread" wx:for="{{commentList}}" wx:key="id" wx:for-item="root">
-      <view class="comment-item">
+      <view
+        class="comment-item"
+        bindlongpress="onCommentLongPress"
+        data-id="{{root.id}}"
+        data-can-delete="{{root.canDelete ? 1 : 0}}"
+      >
         <image class="c-avatar" src="{{root.avatar}}" mode="aspectFill"></image>
         <view class="c-body">
           <view class="c-top">
@@ -127,7 +131,15 @@
         </view>
       </view>
       <view class="comment-replies" wx:if="{{root.replies && root.replies.length}}">
-        <view class="comment-item comment-item-reply" wx:for="{{root.replies}}" wx:key="id" wx:for-item="item">
+        <view
+          class="comment-item comment-item-reply"
+          wx:for="{{root.replies}}"
+          wx:key="id"
+          wx:for-item="item"
+          bindlongpress="onCommentLongPress"
+          data-id="{{item.id}}"
+          data-can-delete="{{item.canDelete ? 1 : 0}}"
+        >
           <image class="c-avatar c-avatar-sm" src="{{item.avatar}}" mode="aspectFill"></image>
           <view class="c-body">
             <view class="c-top">
@@ -191,10 +203,12 @@
     value="{{commentText}}"
     extraSendable="{{!!pendingMedia}}"
     placeholder="{{commentPlaceholder}}"
+    showVoice="{{false}}"
+    showVideo="{{false}}"
+    showLocation="{{false}}"
     bind:input="onComposerInput"
     bind:send="onComposerSend"
     bind:tool="onComposerTool"
-    bind:voice="onComposerVoice"
     bind:panelchange="onPanelChange"
   >
     <view slot="prefix" class="bar-like {{post.liked ? 'is-liked' : ''}}" bindtap="onLike">

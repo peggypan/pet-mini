@@ -46,6 +46,7 @@ const KEYS = {
   collects: 'social_collects',
   heartLikes: 'profile_heart_likes',
   postThumbLikes: 'profile_post_thumb_likes',
+  postEngagement: 'mvp_post_engagement',
 };
 
 const MAP_MARK_POINTS_REWARD = 5;
@@ -466,13 +467,23 @@ function mapSocialFromCloud(post) {
   };
 }
 
+function mergeSocialRowEngagement(row) {
+  const eng = getPostEngagement('social', row.id);
+  if (!eng) return row;
+  return {
+    ...row,
+    likes: Math.max(Number(row.likes) || 0, Number(eng.likes) || 0),
+    shares: Math.max(Number(row.shares) || 0, Number(eng.shares) || 0),
+  };
+}
+
 function upsertSocialPostFromCloud(post) {
   if (!post || !post.id) return null;
-  const row = mapSocialFromCloud(post);
+  const row = mergeSocialRowEngagement(mapSocialFromCloud(post));
   const list = listSocialPosts();
   const idx = list.findIndex((p) => String(p.id) === String(row.id));
   if (idx >= 0) {
-    list[idx] = { ...list[idx], ...row };
+    list[idx] = mergeSocialRowEngagement({ ...list[idx], ...row });
   } else {
     list.unshift(row);
   }
@@ -481,7 +492,7 @@ function upsertSocialPostFromCloud(post) {
 }
 
 function replaceAllSocialPostsFromCloud(posts) {
-  const list = (posts || []).map(mapSocialFromCloud);
+  const list = (posts || []).map((p) => mergeSocialRowEngagement(mapSocialFromCloud(p)));
   write(KEYS.socialPosts, list);
   return list;
 }
@@ -960,6 +971,40 @@ function listPostThumbLikes() {
   );
 }
 
+function isPostThumbLiked(channel, postId) {
+  if (postId == null || !channel) return false;
+  const all = read(KEYS.postThumbLikes, {});
+  return !!all[`${channel}:${postId}`];
+}
+
+/** 动态/同城帖点赞分享（独立于云 list 缓存，避免 refresh 覆盖） */
+function postEngagementKey(channel, postId) {
+  return `${channel}:${postId}`;
+}
+
+function getPostEngagement(channel, postId) {
+  if (!channel || postId == null) return null;
+  const all = read(KEYS.postEngagement, {});
+  return all[postEngagementKey(channel, postId)] || null;
+}
+
+function patchPostEngagement(channel, postId, patch) {
+  if (!channel || postId == null) return null;
+  const key = postEngagementKey(channel, postId);
+  const all = read(KEYS.postEngagement, {});
+  const prev = all[key] || {};
+  const next = {
+    ...prev,
+    ...patch,
+    channel,
+    postId: String(postId),
+    updatedAt: new Date().toISOString(),
+  };
+  all[key] = next;
+  write(KEYS.postEngagement, all);
+  return next;
+}
+
 /** —— 私信 —— */
 function cloudEnabledForChat() {
   try {
@@ -1183,6 +1228,25 @@ function markThreadRead(threadId) {
     String(t.id) === String(threadId) ? { ...t, unread: 0 } : t,
   );
   write(KEYS.chatThreads, threads);
+  try {
+    const { refreshAllTabBars } = require('./tab-bar-badge');
+    refreshAllTabBars();
+  } catch (e) {
+    /* ignore */
+  }
+}
+
+function removeChatThread(threadId) {
+  const tid = String(threadId || '');
+  if (!tid) return false;
+  const threads = ensureChatThreads().filter((t) => String(t.id) !== tid);
+  write(KEYS.chatThreads, threads);
+  const all = read(KEYS.chatMessages, {});
+  if (Object.prototype.hasOwnProperty.call(all, tid)) {
+    delete all[tid];
+    write(KEYS.chatMessages, all);
+  }
+  return true;
 }
 
 function mapCloudThread(thread) {
@@ -1257,7 +1321,84 @@ function markMessagesRead() {
   write(KEYS.messages, list);
   const signups = listEventSignups().map((s) => ({ ...s, noticeRead: true }));
   write(KEYS.eventSignups, signups);
+  try {
+    const { refreshAllTabBars } = require('./tab-bar-badge');
+    refreshAllTabBars();
+  } catch (e) {
+    /* ignore */
+  }
   return list;
+}
+
+function markNoticeReadById(noticeId) {
+  const id = String(noticeId || '');
+  if (!id) return false;
+  if (id.startsWith('signup_')) {
+    const signupId = id.slice('signup_'.length);
+    let linkedEventId = '';
+    const list = listEventSignups().map((s) => {
+      if (String(s.id) === String(signupId)) {
+        linkedEventId = s.eventId || '';
+        return { ...s, noticeRead: true };
+      }
+      return s;
+    });
+    write(KEYS.eventSignups, list);
+    if (linkedEventId) {
+      const msgs = listMessages().map((m) => (
+        String(m.eventId) === String(linkedEventId) ? { ...m, read: true } : m
+      ));
+      write(KEYS.messages, msgs);
+    }
+    try {
+      const { refreshAllTabBars } = require('./tab-bar-badge');
+      refreshAllTabBars();
+    } catch (e) {
+      /* ignore */
+    }
+    return true;
+  }
+  const list = listMessages().map((m) => (
+    String(m.id) === id ? { ...m, read: true } : m
+  ));
+  write(KEYS.messages, list);
+  try {
+    const { refreshAllTabBars } = require('./tab-bar-badge');
+    refreshAllTabBars();
+  } catch (e) {
+    /* ignore */
+  }
+  return true;
+}
+
+function removeNoticeById(noticeId) {
+  const id = String(noticeId || '');
+  if (!id) return false;
+  if (id.startsWith('signup_')) {
+    const signupId = id.slice('signup_'.length);
+    const list = listEventSignups().map((s) => (
+      String(s.id) === String(signupId)
+        ? { ...s, noticeRead: true, noticeHidden: true }
+        : s
+    ));
+    write(KEYS.eventSignups, list);
+    try {
+      const { refreshAllTabBars } = require('./tab-bar-badge');
+      refreshAllTabBars();
+    } catch (e) {
+      /* ignore */
+    }
+    return true;
+  }
+  const next = listMessages().filter((m) => String(m.id) !== id);
+  write(KEYS.messages, next);
+  try {
+    const { refreshAllTabBars } = require('./tab-bar-badge');
+    refreshAllTabBars();
+  } catch (e) {
+    /* ignore */
+  }
+  return true;
 }
 
 function countUnreadNotices() {
@@ -2448,6 +2589,9 @@ module.exports = {
   isHeartLiked,
   setHeartLike,
   recordPostThumbLike,
+  isPostThumbLiked,
+  getPostEngagement,
+  patchPostEngagement,
   listPostThumbLikes,
   listChatThreads,
   persistChatThreadsCompact,
@@ -2455,12 +2599,15 @@ module.exports = {
   getChatMessages,
   addChatMessage,
   markThreadRead,
+  removeChatThread,
   replaceChatThreadsFromCloud,
   upsertChatThreadFromCloud,
   setChatMessagesForThread,
   appendChatMessageFromCloud,
   listMessages,
   markMessagesRead,
+  markNoticeReadById,
+  removeNoticeById,
   countUnreadNotices,
   countUnreadChats,
   countUnreadMessages,

@@ -1,12 +1,17 @@
 .page {
   min-height: 100vh;
-  padding: 32rpx 32rpx calc(32rpx + env(safe-area-inset-bottom));
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 32rpx 32rpx 0;
   box-sizing: border-box;
+  overflow: hidden;
   background: linear-gradient(180deg, #eef6ff 0%, #f8fafc 45%, #fff 100%);
 }
 
 .head {
-  margin-bottom: 28rpx;
+  flex-shrink: 0;
+  margin-bottom: 20rpx;
 }
 
 .head-title {
@@ -56,7 +61,11 @@
 }
 
 .poster-swiper {
-  height: 920rpx;
+  flex: 1;
+  width: 100%;
+  min-height: 360rpx;
+  height: calc(100vh - 560rpx - env(safe-area-inset-bottom));
+  max-height: 820rpx;
 }
 
 .poster-wrap {
@@ -80,7 +89,8 @@
 }
 
 .tips {
-  margin: 24rpx 8rpx 32rpx;
+  flex-shrink: 0;
+  margin: 16rpx 8rpx 20rpx;
   padding: 20rpx 24rpx;
   background: rgba(255, 255, 255, 0.85);
   border-radius: 16rpx;
@@ -95,9 +105,23 @@
 }
 
 .actions {
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   gap: 16rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+}
+
+.actions button {
+  width: 100% !important;
+  margin: 0;
+  padding: 22rpx 0;
+  line-height: 1.4;
+  box-sizing: border-box;
+}
+
+.actions button::after {
+  border: none;
 }
 
 .btn-primary,
@@ -105,6 +129,8 @@
 .btn-share {
   font-size: 30rpx;
   border-radius: 48rpx;
+  height: auto;
+  min-height: 88rpx;
 }
 
 .btn-primary {

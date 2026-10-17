@@ -4,7 +4,6 @@ const { refreshMapPointsFromCloud } = require('../../utils/map-point-cloud-sync'
 const { listAllMapPoints } = require('../../utils/catalog');
 const amap = require('../../utils/amap');
 const { filterPointsByPetSentiment, getPetSentiment } = require('../../utils/map-pet-filter');
-const { collectPetServicePOIs, mergeMapPoints } = require('../../utils/map-pet-poi-collector');
 
 Page({
   data: {
@@ -210,9 +209,7 @@ Page({
     }
 
     const raw = listAllMapPoints();
-    let points = await amap.enrichPointsWithCoords(raw, city);
-    const collected = await collectPetServicePOIs({ city, latitude, longitude });
-    points = mergeMapPoints(points, collected);
+    const points = await amap.enrichPointsWithCoords(raw, city);
     this._allPoints = points;
 
     this.setData({

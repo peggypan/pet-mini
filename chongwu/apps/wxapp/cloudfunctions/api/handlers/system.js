@@ -14,6 +14,7 @@ const COLLECTION_NAMES = [
   'pet_discover_daily',
   'social_posts',
   'social_comments',
+  'post_likes',
   'local_posts',
   'chat_threads',
   'chat_messages',

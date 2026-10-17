@@ -44,6 +44,7 @@ const {
   findBuddyInStoreByOpenid,
   isMapMarkerSeqId,
 } = require('./catalog');
+const { buddyActiveInFeed } = require('./buddy-expect-expiry');
 
 async function refreshBuddyFeedFromCloud(options = {}) {
   if (!cloudApi.cloudEnabled()) return store.listBuddyPosts();
@@ -56,6 +57,7 @@ async function refreshBuddyFeedFromCloud(options = {}) {
     });
     let list = (data && data.list) || [];
     list = await resolveBuddyPosts(list);
+    list = list.filter((row) => buddyActiveInFeed(row));
     return store.replaceAllBuddyPostsFromCloud(list);
   } catch (e) {
     console.warn('[buddy-cloud-sync] listFeed', e);
@@ -83,6 +85,8 @@ async function saveBuddyToCloud(payload, postId) {
     store.upsertBuddyPostFromCloud(await resolveBuddyPostMedia(buddy));
     if (!postId) {
       store.pushMessage('搭子发布成功', '你的找搭子已展示在搭子广场', 'social');
+    } else {
+      store.pushMessage('搭子已更新', '期望时间地点已更新，帖子重新上线', 'social');
     }
     return buddy;
   } finally {

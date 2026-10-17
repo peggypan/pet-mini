@@ -135,7 +135,7 @@
         </view>
         <view class="media-del" catchtap="onRemoveMedia" data-index="{{index}}">×</view>
       </view>
-      <view class="media-add" wx:if="{{mediaCanAdd}}" bindtap="onChooseMedia">
+      <view class="media-add aspect-34 aspect-34-third" wx:if="{{mediaCanAdd}}" bindtap="onChooseMedia">
         <text class="add-icon">＋</text>
       </view>
     </view>

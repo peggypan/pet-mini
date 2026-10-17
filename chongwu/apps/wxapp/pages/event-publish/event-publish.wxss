@@ -368,20 +368,12 @@ textarea:not(.row-textarea):not(.row-textarea-sm) {
 
 /* 相册追加按钮 */
 .media-add {
-  width: 152rpx;
-  height: 152rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #F5F8FC;
-  border-radius: 16rpx;
-  border: 1rpx dashed #CCCCCC;
+  position: relative;
   box-sizing: border-box;
 }
 
 .add-icon {
   font-size: 48rpx;
-  color: #BBBBBB;
 }
 
 /* 底部双按钮 */

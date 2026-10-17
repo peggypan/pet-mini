@@ -94,6 +94,29 @@ page { background: #F5F8FC; }
   white-space: nowrap;
 }
 
+.notice-entry-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+  padding: 20rpx 24rpx;
+  border-radius: 16rpx;
+  background: #fff;
+  border-left: 6rpx solid #FF5A7A;
+}
+
+.notice-entry-text {
+  font-size: 26rpx;
+  color: #333;
+  font-weight: 600;
+}
+
+.notice-entry-action {
+  font-size: 26rpx;
+  color: #3B8CFF;
+  font-weight: 600;
+}
+
 .unread {
   min-width: 32rpx;
   height: 32rpx;
@@ -109,15 +132,61 @@ page { background: #F5F8FC; }
   margin-left: 8rpx;
 }
 
+.notice-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8rpx 8rpx 20rpx;
+}
+
+.notice-toolbar-hint {
+  font-size: 24rpx;
+  color: #888;
+}
+
+.notice-toolbar-action {
+  font-size: 26rpx;
+  color: #3B8CFF;
+  font-weight: 600;
+}
+
 .notice-item {
   padding: 24rpx;
   margin-bottom: 12rpx;
   border-radius: 20rpx;
   background: #fff;
+  border-left: 6rpx solid #3B8CFF;
 }
 
 .notice-item.is-unread {
   background: #F3F9FF;
+}
+
+.notice-item.is-read {
+  border-left-color: #e0e0e0;
+  background: #fff;
+}
+
+.notice-item.is-read .notice-title {
+  font-weight: 600;
+  color: #666;
+}
+
+.notice-item.is-read .notice-content,
+.notice-item.is-read .notice-line {
+  color: #999;
+}
+
+.notice-tag {
+  flex-shrink: 0;
+  margin-right: 12rpx;
+  padding: 2rpx 10rpx;
+  font-size: 20rpx;
+  font-weight: 600;
+  color: #fff;
+  background: #FF5A7A;
+  border-radius: 8rpx;
+  line-height: 1.4;
 }
 
 .notice-title-row {
@@ -128,6 +197,7 @@ page { background: #F5F8FC; }
 
 .notice-title {
   flex: 1;
+  min-width: 0;
   font-size: 28rpx;
   font-weight: 700;
   color: #1A1A1A;

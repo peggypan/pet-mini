@@ -14,6 +14,7 @@ const { requireInteract } = require('../../utils/pet-profile-guard');
 const { requireLogin } = require('../../utils/require-login');
 const { buddyDistanceText } = require('../../utils/geo-distance');
 const { autoLocateCity } = require('../../utils/city-location');
+const { isSelfContentAuthor } = require('../../utils/pet-follow');
 
 const SWIPE_THRESHOLD = 72;
 const FLY_MS = 420;
@@ -57,7 +58,9 @@ function mapDeckCard(b, viewerLocation) {
 }
 
 function filterBuddyRows(discoverFilter, healingTypeFilter) {
-  let list = listAllBuddies().filter((b) => !b.healingPetProfile);
+  let list = listAllBuddies()
+    .filter((b) => !b.healingPetProfile)
+    .filter((b) => !isSelfContentAuthor(b));
   if (discoverFilter === 'healing') {
     list = list.filter((b) => (b.zone || 'normal') === 'healing');
     if (healingTypeFilter && healingTypeFilter !== '全部') {
@@ -115,7 +118,9 @@ Page({
 
   onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({ selected: 1 });
+      const bar = this.getTabBar();
+      bar.setData({ selected: 1 });
+      if (typeof bar.refreshUnread === 'function') bar.refreshUnread();
     }
     this.reloadDeck();
     this.refreshQuota();

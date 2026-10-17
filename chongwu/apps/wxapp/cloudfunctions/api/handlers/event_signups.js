@@ -55,7 +55,16 @@ async function loadParticipantPetPublic(openid, petIdHint) {
           id: doc._id,
           name: doc.name || '',
           breed: doc.breedName || doc.breed || '',
-          speciesLabel: doc.species === 1 ? '猫' : doc.species === 2 ? '狗' : '',
+          speciesLabel:
+            doc.species === 1
+              ? '猫'
+              : doc.species === 2
+                ? '狗'
+                : doc.species === 4
+                  ? '异宠'
+                  : doc.species === 3
+                    ? '其他'
+                    : '',
           vaccineStatus: doc.vaccineStatus,
           vaccineLabel: doc.vaccineStatus === 'immune' ? '已免疫' : '',
           personality: doc.personality || '',
@@ -80,7 +89,16 @@ async function loadParticipantPetPublic(openid, petIdHint) {
       id: doc._id,
       name: doc.name || '',
       breed: doc.breedName || doc.breed || '',
-      speciesLabel: doc.species === 1 ? '猫' : doc.species === 2 ? '狗' : '',
+      speciesLabel:
+        doc.species === 1
+          ? '猫'
+          : doc.species === 2
+            ? '狗'
+            : doc.species === 4
+              ? '异宠'
+              : doc.species === 3
+                ? '其他'
+                : '',
       vaccineStatus: doc.vaccineStatus,
       personality: doc.personality || '',
       socialTags: doc.socialTags || [],

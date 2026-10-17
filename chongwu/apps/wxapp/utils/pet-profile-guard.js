@@ -60,7 +60,7 @@ function validatePetProfile(pet) {
   }
 
   const species = Number(pet.species);
-  if (!species || species < 1 || species > 3) {
+  if (!species || species < 1 || species > 4) {
     return { ok: false, message: '请选择宠物种类' };
   }
 

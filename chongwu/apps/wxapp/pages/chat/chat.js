@@ -35,6 +35,7 @@ const {
   sendChatMessageOnCloud,
   startChatRealtime,
   stopChatRealtime,
+  refreshChatMessagesOnPage,
   resolvePeerAvatarUrl,
   resolveMyAvatarUrl,
   lookupPeerAvatarRaw,
@@ -270,6 +271,7 @@ Page({
     }
     if (!this.data.threadId) return;
     startChatRealtime(this, this.data.threadId);
+    refreshChatMessagesOnPage(this, this.data.threadId, { forceScroll: false }).catch(() => {});
     this.refreshChatAvatars().catch(() => {});
     if (this.data.peer) this.syncPeerActions(this.data.peer).catch(() => {});
   },
@@ -882,6 +884,7 @@ Page({
       }
     }
     this.appendMessage(row);
+    refreshChatMessagesOnPage(this, this.data.threadId, { forceScroll: false }).catch(() => {});
     const fileId = row.fileId || (isCloudFileId(row.url) ? row.url : '');
     if (fileId && (row.type === 'image' || row.type === 'video' || row.type === 'voice')) {
       resolveCloudFileUrl(fileId)

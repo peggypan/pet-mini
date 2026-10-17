@@ -1,7 +1,19 @@
 <view class="page">
   <view class="top-bar">
-    <text class="top-count">{{mapPeerCount}} 位宠友在附近</text>
-    <text class="top-tip">点地图或下方头像进入搭子详情</text>
+    <text class="top-count">{{mapPeerCount}} 位{{mapSpeciesFilter === 'all' ? '宠友' : mapSpeciesFilterLabel}}在附近</text>
+    <text class="top-tip">地图标签：蓝狗 · 橙猫 · 紫异宠 · 点头像看详情</text>
+    <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="species-scroll">
+      <view
+        class="species-tab {{mapSpeciesFilter === item.key ? 'on' : ''}}"
+        wx:for="{{speciesTabs}}"
+        wx:key="key"
+        data-key="{{item.key}}"
+        bindtap="onSpeciesFilter"
+      >
+        <text>{{item.label}}</text>
+        <text class="species-tab-count" wx:if="{{mapSpeciesCounts[item.key] > 0}}">{{mapSpeciesCounts[item.key]}}</text>
+      </view>
+    </scroll-view>
   </view>
   <view class="map-wrap">
     <map
@@ -25,7 +37,10 @@
         data-index="{{index}}"
         bindtap="onPeerTap"
       >
-        <image class="chat-peer-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+        <view class="chat-peer-avatar-wrap {{item.speciesDockClass}}">
+          <image class="chat-peer-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+          <text class="chat-peer-species">{{item.speciesTag}}</text>
+        </view>
         <text class="chat-peer-name">{{item.petName || item.userName}}</text>
       </view>
     </scroll-view>

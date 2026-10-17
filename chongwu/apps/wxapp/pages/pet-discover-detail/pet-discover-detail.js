@@ -3,6 +3,7 @@ const { startBuddyChat } = require('../../utils/buddy-chat');
 const amap = require('../../utils/amap');
 const store = require('../../utils/store');
 const { buddyDistanceText } = require('../../utils/geo-distance');
+const { dedupeUrlList } = require('../../utils/media-dedupe');
 
 function matchScore(id) {
   let h = 0;
@@ -37,13 +38,13 @@ Page({
       return;
     }
     const zone = raw.zone || 'normal';
-    const previewUrls = (raw.mediaList || [])
-      .map((m) => (m.type === 'image' ? m.url : m.poster || m.url))
-      .filter(Boolean);
     const cover = raw.cover || raw.avatar;
-    if (cover && !previewUrls.includes(cover)) {
-      previewUrls.unshift(cover);
-    }
+    const previewUrls = dedupeUrlList(
+      (raw.mediaList || [])
+        .map((m) => (m.type === 'image' ? m.url : m.poster || m.url))
+        .filter(Boolean),
+      { excludeCover: cover },
+    );
     const distance = buddyDistanceText(raw, store.getCityLocation()) || '';
     this.setData({
       buddy: {

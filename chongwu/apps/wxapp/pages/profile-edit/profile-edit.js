@@ -4,6 +4,7 @@ const { chooseMedia } = require('../../utils/choose-media');
 const { persistUserProfileFields } = require('../../utils/persist-user-profile');
 const { getDisplayNickname, getProfileAvatarUrl, syncProfileAvatarEverywhere } = require('../../utils/user-profile-display');
 const { savePetToCloud } = require('../../utils/pet-cloud-sync');
+const { isLocalDevPath } = require('../../utils/cloud-media');
 const cloudApi = require('../../utils/cloud-api');
 const { blockSubPageWithoutLogin } = require('../../utils/pet-profile-guard');
 const { requireLogin } = require('../../utils/require-login');
@@ -33,7 +34,12 @@ Page({
   },
 
   onShow() {
+    const draftAvatar = this.data.avatarUrl;
+    const keepDraftAvatar = isLocalDevPath(draftAvatar);
     this.loadForm();
+    if (keepDraftAvatar) {
+      this.setData({ avatarUrl: draftAvatar });
+    }
   },
 
   onInput(e) {
@@ -52,7 +58,12 @@ Page({
           this.setData({ avatarUrl: file.tempFilePath });
         }
       },
-    }).catch(() => {});
+    }).catch((err) => {
+      const msg = String((err && (err.errMsg || err.message)) || '');
+      if (msg.includes('cancel')) return;
+      if (msg.includes('privacy:not accepted') || msg.includes('privacy:authorize')) return;
+      wx.showToast({ title: '无法打开相册，请稍后重试', icon: 'none' });
+    });
   },
 
   async onSave() {

@@ -3,6 +3,7 @@ const { localPosts, now, getDb } = require('../common/db');
 const { requireUser } = require('../common/auth-user');
 const { pickLocalPayload, validateLocal, publicLocal } = require('../common/local-fields');
 const { rejectIfSensitive } = require('../common/sensitive-words');
+const { likedIdSet, viewerLikedPost } = require('../common/post-engagement');
 
 function viewerOpenid(ctx) {
   return (ctx && ctx.OPENID) || '';
@@ -50,8 +51,13 @@ async function listFeed(payload, wxContext) {
   }
 
   const openid = viewerOpenid(wxContext);
+  const likedSet = await likedIdSet(
+    openid,
+    'local_posts',
+    rows.map((d) => d._id),
+  );
   return ok({
-    list: rows.map((d) => publicLocal(d, openid)),
+    list: rows.map((d) => publicLocal(d, openid, { likedByViewer: likedSet.has(String(d._id)) })),
     skip,
     limit,
   });
@@ -73,7 +79,14 @@ async function listMine(_payload, wxContext) {
   }
 
   rows = rows.filter((d) => d.userDeleted !== true && d.status !== 0);
-  return ok({ list: rows.map((d) => publicLocal(d, auth.openid)) });
+  const likedSet = await likedIdSet(
+    auth.openid,
+    'local_posts',
+    rows.map((d) => d._id),
+  );
+  return ok({
+    list: rows.map((d) => publicLocal(d, auth.openid, { likedByViewer: likedSet.has(String(d._id)) })),
+  });
 }
 
 async function get(payload, wxContext) {
@@ -90,7 +103,8 @@ async function get(payload, wxContext) {
     if (doc.auditStatus !== 'approved' && doc.openid !== openid && doc._openid !== openid) {
       return fail(404, '信息不存在');
     }
-    return ok({ post: publicLocal(doc, openid) });
+    const likedByViewer = openid ? await viewerLikedPost(openid, id, 'local_posts') : false;
+    return ok({ post: publicLocal(doc, openid, { likedByViewer }) });
   } catch (e) {
     return fail(404, '信息不存在');
   }

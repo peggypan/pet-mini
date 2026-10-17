@@ -13,10 +13,15 @@ const { withContentParts } = require('../../utils/social-content-parts');
 const { openSocialHashtagFilter } = require('../../utils/social-hashtag-nav');
 const amap = require('../../utils/amap');
 const { decoratePostFollow, followResultToast } = require('../../utils/pet-follow');
+const { decoratePostAuthorForViewer } = require('../../utils/social-post-author-display');
 const { syncPetProfileGate, requireInteract } = require('../../utils/pet-profile-guard');
 const { deleteOwnedSocialPost } = require('../../utils/user-content-delete');
 const cloudApi = require('../../utils/cloud-api');
 const { refreshSocialFeedFromCloud } = require('../../utils/social-cloud-sync');
+const {
+  togglePostLikeSynced,
+  bumpPostShareSynced,
+} = require('../../utils/post-engagement-cloud-sync');
 const { withPublishTime } = require('../../utils/relative-time');
 
 Page({
@@ -35,7 +40,9 @@ Page({
   onShow() {
     syncPetProfileGate(this);
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({ selected: 2 });
+      const bar = this.getTabBar();
+      bar.setData({ selected: 2 });
+      if (typeof bar.refreshUnread === 'function') bar.refreshUnread();
     }
     const pendingTab = wx.getStorageSync('social_tab');
     if (pendingTab) {
@@ -115,6 +122,7 @@ Page({
       .map(withPublishTime)
       .map(decoratePostZone)
       .map(withContentParts)
+      .map(decoratePostAuthorForViewer)
       .map(decoratePostFollow);
     this.setData({
       displayPosts: filtered,
@@ -194,26 +202,30 @@ Page({
     this.reloadPosts();
   },
 
-  onLikeTap(e) {
+  async onLikeTap(e) {
     if (!requireInteract()) return;
     const { id } = e.currentTarget.dataset;
-    const posts = this.data.posts.map((p) => {
-      if (p.id !== id) return p;
-      const liked = !p.liked;
-      const likes = liked ? (p.likes || 0) + 1 : Math.max(0, (p.likes || 0) - 1);
-      store.updateSocialPost(id, { liked, likes });
+    const target = this.data.posts.find((p) => p.id === id);
+    if (!target) return;
+    wx.showLoading({ title: '处理中', mask: true });
+    try {
+      const patch = await togglePostLikeSynced(id, 'social', target);
       store.recordPostThumbLike({
         channel: 'social',
         postId: id,
-        liked,
-        title: (p.content || p.topic || '社区动态').slice(0, 32),
-        cover: p.image || (p.images && p.images[0]) || '',
-        userName: p.userName,
-        petName: p.petName,
+        liked: patch.liked,
+        title: (target.content || target.topic || '社区动态').slice(0, 32),
+        cover: target.image || (target.images && target.images[0]) || '',
+        userName: target.userName,
+        petName: target.petName,
       });
-      return { ...p, liked, likes };
-    });
-    this.setData({ posts }, () => this.applyDisplayPosts());
+      const posts = this.data.posts.map((p) => (p.id === id ? { ...p, ...patch } : p));
+      this.setData({ posts }, () => this.applyDisplayPosts());
+    } catch (err) {
+      wx.showToast({ title: (err && err.message) || '点赞失败', icon: 'none' });
+    } finally {
+      wx.hideLoading();
+    }
   },
 
   onSharePost(e) {
@@ -225,6 +237,21 @@ Page({
   onShareAppMessage() {
     const { sharePost } = this.data;
     if (sharePost) {
+      if (!this._shareBumpForPost || this._shareBumpForPost !== sharePost.id) {
+        this._shareBumpForPost = sharePost.id;
+        bumpPostShareSynced(sharePost.id, 'social', sharePost).then((next) => {
+          const posts = this.data.posts.map((p) => (
+            p.id === sharePost.id ? { ...p, shares: next.shares } : p
+          ));
+          this.setData({
+            posts,
+            sharePost: { ...sharePost, shares: next.shares },
+          }, () => this.applyDisplayPosts());
+          setTimeout(() => {
+            this._shareBumpForPost = '';
+          }, 800);
+        });
+      }
       const topic = sharePost.topic ? `${sharePost.topic} ` : '';
       return {
         title: `${topic}${sharePost.userName}：${(sharePost.content || '').slice(0, 28)}`,

@@ -84,17 +84,20 @@ function validateSocial(body) {
   return '';
 }
 
-function publicSocial(doc, viewerOpenid) {
+function publicSocial(doc, viewerOpenid, options) {
   if (!doc) return null;
   const { _id, _openid, ...rest } = doc;
   const isMine = viewerOpenid && (doc.openid === viewerOpenid || doc._openid === viewerOpenid);
   const time = formatPublishTime(rest.createdAt || rest.updatedAt);
+  const likedByViewer = options && options.likedByViewer === true;
   return {
     id: _id,
     ...rest,
     isMine: !!isMine,
     userName: isMine ? '我' : rest.userName,
-    liked: !!rest.liked && isMine,
+    likes: Math.max(0, Number(rest.likes) || 0),
+    shares: Math.max(0, Number(rest.shares) || 0),
+    liked: likedByViewer,
     createdAt: rest.createdAt,
     updatedAt: rest.updatedAt,
     time,

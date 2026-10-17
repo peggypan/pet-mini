@@ -68,9 +68,9 @@
 
     <view class="form-item">
       <text class="label">种类 *</text>
-      <picker bindchange="onSpeciesChange" value="{{species - 1}}" range="{{['狗', '猫', '其他']}}">
+      <picker bindchange="onSpeciesChange" value="{{speciesPickerIndex}}" range="{{speciesOptions}}">
         <view class="picker">
-          <text>{{species === 1 ? '猫' : species === 2 ? '狗' : '其他'}}</text>
+          <text>{{speciesDisplay}}</text>
         </view>
       </picker>
     </view>

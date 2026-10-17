@@ -106,9 +106,49 @@ page { background: #F5F8FC; }
 .credit-tag { font-size: 20rpx; color: #E08A5A; background: rgba(224,138,90,0.12); padding: 2rpx 10rpx; border-radius: 6rpx; }
 .card { padding: 24rpx; margin-bottom: 16rpx; background: #fff; border-radius: 22rpx; }
 .card-title { display: block; font-size: 28rpx; font-weight: 700; color: #1A1A1A; margin-bottom: 12rpx; }
-.pet-line { display: block; font-size: 26rpx; color: #5A6F62; margin-bottom: 8rpx; }
-.verified { display: block; font-size: 24rpx; color: #4DA7F8; margin-bottom: 8rpx; }
-.link { font-size: 22rpx; color: #4DA7F8; }
+.pet-card {
+  padding-top: 28rpx;
+  padding-bottom: 28rpx;
+}
+
+.pet-headline {
+  display: block;
+  font-size: 40rpx;
+  font-weight: 800;
+  color: #0f2942;
+  line-height: 1.35;
+  margin-bottom: 16rpx;
+}
+
+.pet-breed-line {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 12rpx;
+}
+
+.verified {
+  display: block;
+  font-size: 26rpx;
+  color: #4da7f8;
+  font-weight: 600;
+  margin-bottom: 16rpx;
+}
+
+.pet-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.pet-tag {
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+  color: #1e88e5;
+  background: #e8f4fd;
+}
 .post-title {
   display: block;
   font-size: 32rpx;
@@ -156,6 +196,47 @@ page { background: #F5F8FC; }
   flex-wrap: wrap;
   margin-bottom: 14rpx;
   line-height: 1.45;
+}
+
+.expect.expect-time {
+  position: relative;
+  align-items: center;
+  padding: 12rpx 0;
+}
+
+.expect.expect-time.is-expired .expect-val {
+  color: #b0b0b0;
+  text-decoration: line-through;
+}
+
+.expect-expired-stamp {
+  margin-left: auto;
+  padding: 6rpx 18rpx;
+  font-size: 26rpx;
+  font-weight: 800;
+  color: #d32f2f;
+  border: 4rpx solid #d32f2f;
+  border-radius: 10rpx;
+  transform: rotate(-8deg);
+  letter-spacing: 6rpx;
+  opacity: 0.92;
+  box-shadow: 0 0 0 2rpx rgba(211, 47, 47, 0.15);
+}
+
+.expired-tip {
+  display: block;
+  margin: -4rpx 0 16rpx;
+  padding: 14rpx 18rpx;
+  font-size: 24rpx;
+  line-height: 1.45;
+  color: #8a4b4b;
+  background: #fff0f0;
+  border-radius: 12rpx;
+}
+
+.expired-tip.owner {
+  color: #5a4a8a;
+  background: #f3efff;
 }
 
 .expect-label {

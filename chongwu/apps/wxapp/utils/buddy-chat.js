@@ -3,9 +3,14 @@ const cloudApi = require('./cloud-api');
 const { ensureChatThreadOnCloud } = require('./chat-cloud-sync');
 const { RISK_TIPS } = require('./mock');
 const { requireInteract } = require('./pet-profile-guard');
+const { isBuddyExpectExpired } = require('./buddy-expect-expiry');
 
 function startBuddyChat(buddy) {
   if (!buddy) return;
+  if (isBuddyExpectExpired(buddy)) {
+    wx.showToast({ title: '该搭子已过期，暂不可私聊', icon: 'none' });
+    return;
+  }
   if (!requireInteract()) return;
   wx.showModal({
     title: '线下见面提示',

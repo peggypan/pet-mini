@@ -12,7 +12,7 @@
     "userNickname": { "type": "string", "description": "主人昵称冗余，运营列表用" },
     "ownerPhone": { "type": "string", "description": "主人手机号冗余 users.phone" },
     "name": { "type": "string", "description": "宠物名字" },
-    "species": { "type": "integer", "description": "1 猫 2 狗 3 其他（与 pet-form 一致）" },
+    "species": { "type": "integer", "description": "1 猫 2 狗 3 其他 4 异宠（与 pet-form 一致）" },
     "breedName": { "type": "string", "description": "品种" },
     "gender": { "type": "integer", "description": "0 未知 1 公 2 母", "default": 0 },
     "birthday": { "type": "string", "description": "YYYY-MM-DD" },

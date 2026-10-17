@@ -2,18 +2,21 @@ const {
   MOCK_SOCIAL,
   MOCK_BUDDY,
   MOCK_EVENTS,
-  MOCK_MAP_POINTS,
   MOCK_MERCHANTS,
   MOCK_PET,
 } = require('./mock');
 const store = require('./store');
 const cloudApi = require('./cloud-api');
-const { findHealingPetBuddy, listHealingProfileBuddies } = require('./pet-healing');
+const { findHealingPetBuddy } = require('./pet-healing');
+const { dedupeMediaList } = require('./media-dedupe');
 
 function findSocialPost(id) {
   const sid = String(id);
   const local = store.getSocialPost(sid);
-  if (local) return { ...local };
+  if (local) {
+    const override = store.getSocialOverride(sid) || {};
+    return { ...local, ...override };
+  }
   if (cloudApi.cloudEnabled()) return null;
   const mock = (MOCK_SOCIAL.posts || []).find((p) => String(p.id) === sid);
   if (!mock) return null;
@@ -24,7 +27,10 @@ function findSocialPost(id) {
 function normalizeBuddyMedia(buddy) {
   if (!buddy) return buddy;
   if (Array.isArray(buddy.mediaList) && buddy.mediaList.length) {
-    return buddy;
+    return {
+      ...buddy,
+      mediaList: dedupeMediaList(buddy.mediaList),
+    };
   }
   const images = Array.isArray(buddy.images) ? buddy.images : [];
   if (images.length) {
@@ -105,11 +111,10 @@ function findBuddy(id) {
 
 function listAllBuddies() {
   const fromStore = store.listBuddyPosts();
-  const healing = listHealingProfileBuddies();
   if (cloudApi.cloudEnabled()) {
-    return [...fromStore, ...healing].map(normalizeBuddyMedia);
+    return fromStore.map(normalizeBuddyMedia);
   }
-  return [...fromStore, ...healing, ...MOCK_BUDDY].map(normalizeBuddyMedia);
+  return [...fromStore, ...MOCK_BUDDY].map(normalizeBuddyMedia);
 }
 
 const DEFAULT_EVENT_COVER = '/assets/mock/real_hero.jpg';
@@ -241,7 +246,7 @@ function findMerchant(id) {
 }
 
 function listAllMapPoints() {
-  return [...store.listMapPoints(), ...MOCK_MAP_POINTS];
+  return store.listMapPoints();
 }
 
 function getDefaultPet() {

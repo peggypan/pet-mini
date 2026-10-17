@@ -316,7 +316,7 @@ async function syncChatMessagesForThread(threadId) {
   return page.list || [];
 }
 
-const CHAT_MESSAGE_POLL_MS = 2000;
+const CHAT_MESSAGE_POLL_MS = 1500;
 
 function chatMessagesFingerprint(list) {
   return (list || []).map((m) => `${m && m.id}:${m && m.createdAt || ''}:${m && m.url || ''}`).join('|');
@@ -352,15 +352,28 @@ async function applyChatMessagesToPage(page, threadId, options = {}) {
     const sortedPrev = sortMessagesAsc(prev);
     const last = sortedPrev[sortedPrev.length - 1];
     const since = last && last.createdAt ? last.createdAt : '';
-    const { list: incoming } = since
-      ? await fetchChatMessagePage(threadId, { since, limit: 50 })
-      : { list: [] };
+    let incoming = [];
+    if (since) {
+      const inc = await fetchChatMessagePage(threadId, { since, limit: 50 });
+      incoming = inc.list || [];
+    }
     if (incoming.length) {
       next = sortMessagesAsc(mergeChatMessages(sortedPrev, incoming));
       newCount = next.length - sortedPrev.length;
-      store.setChatMessagesForThread(threadId, next);
+    } else if (sortedPrev.length) {
+      const pageData = await fetchChatMessagePage(threadId, { limit: CHAT_LATEST_FETCH_LIMIT });
+      const merged = sortMessagesAsc(mergeChatMessages(sortedPrev, pageData.list || []));
+      if (merged.length > sortedPrev.length) {
+        next = merged;
+        newCount = merged.length - sortedPrev.length;
+      } else {
+        next = sortedPrev;
+      }
     } else {
       next = sortedPrev;
+    }
+    if (newCount > 0) {
+      store.setChatMessagesForThread(threadId, next);
     }
   }
 
@@ -464,18 +477,42 @@ async function resolveMyAvatarUrl() {
 }
 
 async function lookupPeerAvatarRaw(peerId, fallbacks = []) {
-  const candidates = [...fallbacks].filter(Boolean);
-  if (peerId) {
-    const store = require('./store');
-    const { listAllBuddies } = require('./catalog');
-    const buddies = [...store.listBuddyPosts(), ...listAllBuddies()];
-    const buddy = buddies.find(
-      (b) => String(b.id) === String(peerId)
-        || String(b.openid || b._openid || '') === String(peerId),
-    );
-    if (buddy) candidates.unshift(buddy.avatar || buddy.cover);
+  const fromThreadOrRoute = (fallbacks || [])
+    .map((u) => String(u || '').trim())
+    .find(Boolean);
+  if (fromThreadOrRoute) return fromThreadOrRoute;
+
+  if (!peerId) return '';
+
+  const store = require('./store');
+  const { listAllBuddies } = require('./catalog');
+  const buddies = [...store.listBuddyPosts(), ...listAllBuddies()];
+  const buddy = buddies.find(
+    (b) => String(b.id) === String(peerId)
+      || String(b.openid || b._openid || '') === String(peerId),
+  );
+  if (buddy) {
+    const cover = String(buddy.avatar || buddy.cover || '').trim();
+    if (cover) return cover;
   }
-  return candidates.find((u) => !!String(u || '').trim()) || '';
+  return '';
+}
+
+async function removeChatThreadOnCloud(threadId) {
+  const tid = String(threadId || '');
+  if (!tid) return false;
+  store.removeChatThread(tid);
+  if (!cloudApi.cloudEnabled() || !hasLoginToken()) {
+    return true;
+  }
+  await ensureCloudSession();
+  try {
+    await chatApi('chat_threads', 'remove', { threadId: tid });
+  } catch (e) {
+    console.warn('[chat-cloud-sync] remove thread', e);
+    throw e;
+  }
+  return true;
 }
 
 async function markChatThreadReadOnCloud(threadId) {
@@ -582,10 +619,12 @@ module.exports = {
   stopChatMessagePolling,
   startChatRealtime,
   stopChatRealtime,
+  refreshChatMessagesOnPage: applyChatMessagesToPage,
   resolvePeerAvatarUrl,
   resolveMyAvatarUrl,
   lookupPeerAvatarRaw,
   markChatThreadReadOnCloud,
+  removeChatThreadOnCloud,
   sendChatMessageOnCloud,
   DEFAULT_PEER_AVATAR,
   CHAT_MESSAGE_POLL_MS,

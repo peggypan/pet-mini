@@ -96,13 +96,21 @@ async function saveCommentToCloud(postId, payload, options = {}) {
   return comment;
 }
 
-async function removeCommentFromCloud(commentId, postId) {
+async function removeCommentFromCloud(commentId, postId, options = {}) {
   if (!cloudApi.cloudEnabled()) {
     return false;
   }
-  await commentApi('remove', { id: commentId });
+  const data = await commentApi('remove', { id: commentId });
   store.removePostComment(postId, commentId);
-  return true;
+  const postRef = (data && data.postRef) || options.postRef || 'social_posts';
+  if (data && data.postComments != null) {
+    if (postRef === 'local_posts') {
+      store.updateLocalPost(postId, { comments: data.postComments });
+    } else {
+      store.updateSocialPost(postId, { comments: data.postComments });
+    }
+  }
+  return data || { id: commentId };
 }
 
 module.exports = {

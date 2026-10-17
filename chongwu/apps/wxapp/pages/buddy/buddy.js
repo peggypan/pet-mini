@@ -12,6 +12,7 @@ const { syncPetProfileGate, requireInteract } = require('../../utils/pet-profile
 const { deleteOwnedBuddyPost } = require('../../utils/user-content-delete');
 const { autoLocateCity } = require('../../utils/city-location');
 const { buddyMatchesCity } = require('../../utils/geo-distance');
+const { buddyActiveInFeed } = require('../../utils/buddy-expect-expiry');
 
 Page({
   data: {
@@ -53,6 +54,7 @@ Page({
   filterSourceRows() {
     const city = store.getCity();
     let list = listAllBuddies()
+      .filter((b) => buddyActiveInFeed(b))
       .filter((b) => buddyMatchesCity(b, city))
       .filter((b) => b.zone === this.data.zoneTab);
     if (this.data.filterType !== '全部') {

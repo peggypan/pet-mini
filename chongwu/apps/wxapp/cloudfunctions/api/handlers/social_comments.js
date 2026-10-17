@@ -167,7 +167,19 @@ async function remove(payload, wxContext) {
     const got = await socialComments().doc(id).get();
     const doc = got.data;
     if (!doc || doc.userDeleted === true) return fail(404, '评论不存在');
-    if (doc.openid !== auth.openid && doc._openid !== auth.openid) {
+    const isCommentOwner = doc.openid === auth.openid || doc._openid === auth.openid;
+    let isPostOwner = false;
+    if (doc.postId) {
+      const postRef = normalizePostRef(doc.postRef);
+      try {
+        const postGot = await postsCollection(postRef).doc(doc.postId).get();
+        const post = postGot.data;
+        isPostOwner = !!(post && (post.openid === auth.openid || post._openid === auth.openid));
+      } catch (e) {
+        isPostOwner = false;
+      }
+    }
+    if (!isCommentOwner && !isPostOwner) {
       return fail(403, '无权删除');
     }
     await socialComments().doc(id).update({
@@ -178,6 +190,7 @@ async function remove(payload, wxContext) {
     });
     const _ = getDb().command;
     const postRef = normalizePostRef(doc.postRef);
+    let postComments = null;
     if (doc.postId) {
       await postsCollection(postRef)
         .doc(doc.postId)
@@ -188,8 +201,20 @@ async function remove(payload, wxContext) {
           },
         })
         .catch(() => {});
+      try {
+        const postGot = await postsCollection(postRef).doc(doc.postId).get();
+        const n = Number(postGot.data && postGot.data.comments);
+        postComments = Number.isFinite(n) ? Math.max(0, n) : null;
+        if (postComments === 0 && n < 0) {
+          await postsCollection(postRef).doc(doc.postId).update({
+            data: { comments: 0, updatedAt: now() },
+          });
+        }
+      } catch (e) {
+        // ignore
+      }
     }
-    return ok({ id });
+    return ok({ id, postComments, postRef });
   } catch (e) {
     return fail(404, '评论不存在');
   }

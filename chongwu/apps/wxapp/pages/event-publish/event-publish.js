@@ -45,7 +45,7 @@ Page({
     eventDate: '',
     eventTime: '',
     today: formatToday(),
-    maxPeople: '20',
+    maxPeople: '',
     eventSafetyTip: RISK_TIPS.event,
     deadlineDate: '',
     deadlineTime: '',

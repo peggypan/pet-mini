@@ -403,7 +403,9 @@ Page({
 
   onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({ selected: 4 });
+      const bar = this.getTabBar();
+      bar.setData({ selected: 4 });
+      if (typeof bar.refreshUnread === 'function') bar.refreshUnread();
     }
     if (!this.data.statSheetVisible) {
       this.setTabBarHidden(false);

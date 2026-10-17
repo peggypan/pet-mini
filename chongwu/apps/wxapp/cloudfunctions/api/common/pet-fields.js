@@ -27,7 +27,7 @@ function pickPetPayload(raw) {
 
   return {
     name: trim(p.name),
-    species: species >= 1 && species <= 3 ? species : 2,
+    species: species >= 1 && species <= 4 ? species : 2,
     breedName: trim(p.breedName),
     gender: gender >= 0 && gender <= 2 ? gender : 0,
     birthday: trim(p.birthday),

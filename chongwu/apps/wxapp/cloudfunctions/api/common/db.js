@@ -24,6 +24,10 @@ function socialComments() {
   return getDb().collection('social_comments');
 }
 
+function postLikes() {
+  return getDb().collection('post_likes');
+}
+
 function localPosts() {
   return getDb().collection('local_posts');
 }
@@ -131,6 +135,7 @@ module.exports = {
   buddyPosts,
   socialPosts,
   socialComments,
+  postLikes,
   localPosts,
   events,
   eventSignups,

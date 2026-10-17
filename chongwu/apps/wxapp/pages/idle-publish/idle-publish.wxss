@@ -125,7 +125,6 @@
 
 .upload-icon {
   font-size: 48rpx;
-  color: var(--text-muted);
   line-height: 1;
 }
 

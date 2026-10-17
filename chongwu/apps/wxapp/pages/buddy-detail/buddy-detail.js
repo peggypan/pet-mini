@@ -11,9 +11,22 @@ const { toggleFollowAuthorSynced } = require('../../utils/follow-cloud-sync');
 const { requireInteract } = require('../../utils/pet-profile-guard');
 const { deleteOwnedBuddyPost, finishAfterDelete } = require('../../utils/user-content-delete');
 const { buddyDistanceText } = require('../../utils/geo-distance');
+const { dedupeMediaList } = require('../../utils/media-dedupe');
+const { buildBuddyPetPanel } = require('../../utils/buddy-pet-panel');
+const { attachBuddyExpiryMeta } = require('../../utils/buddy-expect-expiry');
 
 Page({
-  data: { buddy: null, followed: false, collected: false, isOwner: false },
+  data: {
+    buddy: null,
+    followed: false,
+    collected: false,
+    isOwner: false,
+    expectExpired: false,
+    canRenewExpect: false,
+    petHeadline: '',
+    petBreedLine: '',
+    petTags: [],
+  },
 
   onLoad(options) {
     const id = (options && (options.id || options.scene)) || '';
@@ -55,13 +68,26 @@ Page({
   },
 
   applyBuddyState(buddy) {
-    const enriched = decorateBuddyFollow(buddy);
+    const enriched = attachBuddyExpiryMeta(decorateBuddyFollow(buddy));
     const dist = buddyDistanceText(enriched, store.getCityLocation());
+    const petPanel = buildBuddyPetPanel(enriched);
+    const isOwner = enriched.isSelfAuthor;
     this.setData({
       buddy: { ...enriched, distance: dist || '同城' },
       followed: enriched.followed,
       collected: store.isCollected(enriched.id),
-      isOwner: enriched.isSelfAuthor,
+      isOwner,
+      expectExpired: !!enriched.expectExpired,
+      canRenewExpect: isOwner && enriched.expectExpired,
+      ...petPanel,
+    });
+  },
+
+  onRenewExpect() {
+    const buddy = this.data.buddy;
+    if (!buddy || !this.data.isOwner) return;
+    wx.navigateTo({
+      url: `/pages/buddy-publish/buddy-publish?id=${encodeURIComponent(buddy.id)}&renew=1&zone=${encodeURIComponent(buddy.zone || 'normal')}`,
     });
   },
 
@@ -126,10 +152,6 @@ Page({
 
   onOpenPlace() {
     amap.openPlace(this.data.buddy || {});
-  },
-
-  onCert() {
-    wx.navigateTo({ url: '/pages/pet-cert/pet-cert' });
   },
 
   onPreviewMedia(e) {

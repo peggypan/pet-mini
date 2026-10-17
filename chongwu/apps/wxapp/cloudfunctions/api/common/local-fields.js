@@ -76,7 +76,7 @@ function validateLocal(body) {
   return '';
 }
 
-function publicLocal(doc, viewerOpenid) {
+function publicLocal(doc, viewerOpenid, options) {
   if (!doc) return null;
   const { _id, _openid, ...rest } = doc;
   const isMine = viewerOpenid && (doc.openid === viewerOpenid || doc._openid === viewerOpenid);
@@ -88,10 +88,10 @@ function publicLocal(doc, viewerOpenid) {
     userName: isMine ? '我' : rest.userName,
     createdAt: rest.createdAt,
     updatedAt: rest.updatedAt,
-    likes: rest.likes || 0,
+    likes: Math.max(0, Number(rest.likes) || 0),
     comments: rest.comments || 0,
-    shares: rest.shares || 0,
-    liked: !!rest.liked && isMine,
+    shares: Math.max(0, Number(rest.shares) || 0),
+    liked: options && options.likedByViewer === true,
     time,
   };
 }

@@ -2,6 +2,7 @@ const { ok, fail } = require('../common/response');
 const { buddyPosts, now, getDb } = require('../common/db');
 const { requireUser } = require('../common/auth-user');
 const { pickBuddyPayload, validateBuddy, publicBuddy } = require('../common/buddy-fields');
+const { isBuddyExpectExpired } = require('../common/buddy-expect-expiry');
 
 function viewerOpenid(ctx) {
   return (ctx && ctx.OPENID) || '';
@@ -48,6 +49,8 @@ async function listFeed(payload, wxContext) {
     const res = await buddyPosts().where(_.and(parts)).limit(limit).get();
     rows = sortByCreatedDesc(res.data || []).slice(skip, skip + limit);
   }
+
+  rows = rows.filter((d) => !isBuddyExpectExpired({ expectTime: d.expectTime }));
 
   const openid = viewerOpenid(wxContext);
   return ok({

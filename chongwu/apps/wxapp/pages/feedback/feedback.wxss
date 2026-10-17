@@ -147,8 +147,6 @@ page {
 
 .add-icon {
   font-size: 56rpx;
-  color: #1e88e5;
-  font-weight: 300;
 }
 
 .img-empty {

@@ -20,6 +20,7 @@
         { "name": "pet_discover_daily", "desc": "搭搭每日滑动额度" },
         { "name": "social_posts", "desc": "社区动态" },
         { "name": "social_comments", "desc": "评论" },
+        { "name": "post_likes", "desc": "动态/同城帖点赞（每用户每帖一条有效记录）" },
         { "name": "local_posts", "desc": "同城寻宠/领养/救助" },
         { "name": "chat_threads", "desc": "私信会话列表" },
         { "name": "chat_messages", "desc": "私信消息" },

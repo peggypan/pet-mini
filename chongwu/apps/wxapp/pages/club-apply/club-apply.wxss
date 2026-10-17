@@ -268,7 +268,7 @@ page { background: #F5F8FC; }
   box-sizing: border-box;
 }
 
-.cover-icon { font-size: 48rpx; color: #BBBBBB; }
+.cover-icon { font-size: 48rpx; color: var(--primary); }
 .cover-text { margin-top: 8rpx; font-size: 22rpx; color: #999999; }
 
 .rule-box { padding: 24rpx 0; }

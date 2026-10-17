@@ -1,5 +1,6 @@
 const { buddyTypesForZone } = require('../../utils/mock');
 const { getDefaultPet } = require('../../utils/catalog');
+const { speciesLabel } = require('../../utils/pet-species');
 const store = require('../../utils/store');
 const cloudApi = require('../../utils/cloud-api');
 const { saveBuddyToCloud } = require('../../utils/buddy-cloud-sync');
@@ -11,6 +12,12 @@ const {
   syncPetProfileGate,
   requireInteract,
 } = require('../../utils/pet-profile-guard');
+const { loadBuddyDetail } = require('../../utils/buddy-cloud-sync');
+const {
+  parseExpectTimeToForm,
+  isExpectTimeInFuture,
+  isVagueExpectTime,
+} = require('../../utils/buddy-expect-expiry');
 
 Page({
   data: {
@@ -34,12 +41,15 @@ Page({
     mediaSummary: '0/6 图 · 0/3 视频',
     petProfileBlocked: false,
     petHealingEnabled: false,
+    editId: '',
+    renewMode: false,
   },
 
   onLoad(options) {
     if (!blockSubPageWithoutLogin(this)) return;
     blockSubPageWithoutProfile(this);
     const zone = options.zone || 'normal';
+    const renew = options.renew === '1' && options.id;
     const buddyTypes = buddyTypesForZone(zone);
     const pet = getDefaultPet();
     let buddyType = buddyTypes[0];
@@ -56,6 +66,44 @@ Page({
       petHealingEnabled,
       desc: zone === 'healing' && pet.healingIntro ? pet.healingIntro : this.data.desc,
       minDate,
+    });
+    if (renew) {
+      wx.setNavigationBarTitle({ title: '更新期望时间地点' });
+      this.loadRenewForm(options.id, zone);
+    }
+  },
+
+  async loadRenewForm(id, zone) {
+    wx.showLoading({ title: '加载中', mask: true });
+    let raw = null;
+    try {
+      raw = await loadBuddyDetail(id);
+    } finally {
+      wx.hideLoading();
+    }
+    if (!raw || !store.isMyUserContent(raw)) {
+      wx.showToast({ title: '无法编辑该搭子', icon: 'none' });
+      setTimeout(() => wx.navigateBack(), 700);
+      return;
+    }
+    const timeForm = parseExpectTimeToForm(raw.expectTime);
+    this.setData({
+      editId: raw.id,
+      renewMode: true,
+      zone: raw.zone || zone,
+      buddyTypes: buddyTypesForZone(raw.zone || zone),
+      buddyType: raw.buddyType || this.data.buddyType,
+      title: raw.title || '',
+      desc: raw.desc || '',
+      expectPlace: raw.expectPlace || '',
+      expectPlaceAddress: raw.expectPlaceAddress || '',
+      location: raw.location || null,
+      openSignup: raw.openSignup !== false,
+      mediaList: raw.mediaList || [],
+      ...timeForm,
+    }, () => {
+      this.syncExpectTime();
+      this.syncMediaUI(this.data.mediaList);
     });
   },
 
@@ -186,6 +234,22 @@ Page({
       wx.showToast({ title: '请填写描述或上传媒体', icon: 'none' });
       return;
     }
+    const { editId, renewMode, expectDate, expectTimeValue } = this.data;
+    if (renewMode) {
+      if (!expectDate || !expectTimeValue) {
+        wx.showToast({ title: '请选择未来的日期与时间', icon: 'none' });
+        return;
+      }
+      const expectTimeCheck = this.data.expectTime;
+      if (isVagueExpectTime(expectTimeCheck) || !isExpectTimeInFuture(expectTimeCheck)) {
+        wx.showToast({ title: '期望时间须晚于当前时间', icon: 'none' });
+        return;
+      }
+      if (!(expectPlace || '').trim() || expectPlace === '同城') {
+        wx.showToast({ title: '请重新选择期望地点', icon: 'none' });
+        return;
+      }
+    }
     const pet = getDefaultPet();
     const firstImage = mediaList.find((m) => m.type === 'image');
     const firstVideo = mediaList.find((m) => m.type === 'video');
@@ -194,7 +258,8 @@ Page({
       userName: nick || '宠友',
       avatar: pet.avatarUrl || pet.avatar,
       petName: pet.name,
-      breed: pet.breed,
+      petSpecies: speciesLabel(pet.species) || '',
+      breed: (pet.breedName || pet.breed || '').trim(),
       age: pet.age,
       personality: pet.personality,
       verified: !!pet.verified,
@@ -216,11 +281,16 @@ Page({
 
     try {
       if (cloudApi.cloudEnabled()) {
-        await saveBuddyToCloud(payload);
+        await saveBuddyToCloud(payload, editId || undefined);
+      } else if (editId) {
+        store.upsertBuddyPostFromCloud({ ...payload, id: editId, isMine: true });
       } else {
         store.addBuddyPost(payload);
       }
-      wx.showToast({ title: '发布成功', icon: 'success' });
+      wx.showToast({
+        title: editId ? '已更新并重新上线' : '发布成功',
+        icon: 'success',
+      });
       setTimeout(() => wx.navigateBack(), 700);
     } catch (err) {
       wx.showToast({ title: (err && err.message) || '发布失败', icon: 'none' });

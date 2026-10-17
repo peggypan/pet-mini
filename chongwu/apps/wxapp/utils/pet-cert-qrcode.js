@@ -27,6 +27,7 @@ function speciesLabel(species) {
   const n = Number(species);
   if (n === 1) return '猫';
   if (n === 2) return '狗';
+  if (n === 4) return '异宠';
   return '其他';
 }
 

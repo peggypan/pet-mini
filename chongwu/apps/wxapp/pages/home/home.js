@@ -37,7 +37,9 @@ Page({
 
   onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({ selected: 0 });
+      const bar = this.getTabBar();
+      bar.setData({ selected: 0 });
+      if (typeof bar.refreshUnread === 'function') bar.refreshUnread();
     }
     this.paintHomeFromCache();
     autoLocateCity({ silent: true, force: false })
@@ -57,7 +59,9 @@ Page({
   paintHomeFromCache() {
     const loc = store.getCityLocation();
     this._allEventCards = buildEventHomeCards(listAllEvents());
-    this._buddySource = listAllBuddies().filter((b) => b.zone !== 'match');
+    this._buddySource = listAllBuddies().filter(
+      (b) => b.zone !== 'match' && !b.healingPetProfile,
+    );
     const viewer = store.getCityLocation();
     const buddyFeed = resetFeed(this._buddySource, (row) => buildBuddyPlazaCard(row, viewer));
     const cachedBanners = store.listHomeBanners();

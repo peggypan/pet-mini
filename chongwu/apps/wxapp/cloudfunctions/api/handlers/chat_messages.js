@@ -56,23 +56,12 @@ async function listByThread(payload, wxContext) {
     : '';
 
   if (since) {
-    const _ = getDb().command;
-    let rows = [];
-    try {
-      const res = await chatMessages()
-        .where({ threadId, status: 1, createdAt: _.gt(since) })
-        .orderBy('createdAt', 'asc')
-        .limit(50)
-        .get();
-      rows = res.data || [];
-    } catch (e) {
-      const sorted = await fetchThreadSortedAsc({ threadId, status: 1 });
-      const sinceTs = new Date(since).getTime();
-      rows = sorted.filter((d) => {
-        const ts = d.createdAt ? new Date(d.createdAt).getTime() : 0;
-        return ts > sinceTs;
-      }).slice(0, 50);
-    }
+    const sinceTs = new Date(since).getTime();
+    const sorted = await fetchThreadSortedAsc({ threadId, status: 1 });
+    const rows = sorted.filter((d) => {
+      const ts = d.createdAt ? new Date(d.createdAt).getTime() : 0;
+      return !Number.isNaN(sinceTs) && ts > sinceTs;
+    }).slice(-50);
     let list = rows.map((d) => publicMessage(d)).filter(Boolean);
     list = await enrichMessagesWithMediaUrls(list);
     return ok({ list, hasMore: false });

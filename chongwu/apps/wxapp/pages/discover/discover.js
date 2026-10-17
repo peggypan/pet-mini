@@ -42,7 +42,7 @@ Page({
     let list = friends || [];
     if (filterId === 'dog') list = list.filter((f) => f.species === 2);
     if (filterId === 'cat') list = list.filter((f) => f.species === 1);
-    if (filterId === 'other') list = list.filter((f) => f.species === 3);
+    if (filterId === 'other') list = list.filter((f) => f.species === 3 || f.species === 4);
     this.setData({ filter: filterId, friends: list });
   },
 

@@ -10,7 +10,6 @@ const {
   getPetFabLabel,
   PET_FAB_ITEMS,
 } = require('../../utils/map-pet-filter');
-const { collectPetServicePOIs, mergeMapPoints } = require('../../utils/map-pet-poi-collector');
 const { syncPetProfileGate, requireInteract } = require('../../utils/pet-profile-guard');
 const { requireLogin } = require('../../utils/require-login');
 const cloudApi = require('../../utils/cloud-api');
@@ -118,12 +117,8 @@ Page({
 
   async loadMapPreview(city) {
     const raw = listAllMapPoints();
-    let points = await amap.enrichPointsWithCoords(raw, city);
+    const points = await amap.enrichPointsWithCoords(raw, city);
     const loc = store.getCityLocation();
-    const latitude = loc.lat || this.data.mapLatitude;
-    const longitude = loc.lng || this.data.mapLongitude;
-    const collected = await collectPetServicePOIs({ city, latitude, longitude });
-    points = mergeMapPoints(points, collected);
     this._allMapPoints = points;
     this.applyMapPointFilter(this.data.petFilter, points, loc);
   },

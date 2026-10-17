@@ -1,12 +1,21 @@
 const { findSocialPost } = require('../../utils/catalog');
 const store = require('../../utils/store');
-const { MOCK_PET } = require('../../utils/mock');
+const {
+  mergePostDetailEngagement,
+} = require('../../utils/social-post-engagement');
+const {
+  togglePostLikeSynced,
+  bumpPostShareSynced,
+} = require('../../utils/post-engagement-cloud-sync');
+const {
+  decorateCommentsForViewer,
+  canDeleteCommentForViewer,
+  currentCommentAuthorPayload,
+} = require('../../utils/social-comment-display');
 const { openEventPublishEntry } = require('../../utils/event-publish-nav');
 const {
-  chooseLocationPoint,
   pickAaAmount,
   openActivityShare,
-  locationSnippet,
 } = require('../../utils/chat-tool-actions');
 const amap = require('../../utils/amap');
 const { chooseMedia } = require('../../utils/choose-media');
@@ -15,6 +24,7 @@ const { withContentParts } = require('../../utils/social-content-parts');
 const { buildCommentThreads } = require('../../utils/social-post-comments');
 const { openSocialHashtagFilter } = require('../../utils/social-hashtag-nav');
 const { decoratePostFollow, followResultToast } = require('../../utils/pet-follow');
+const { decoratePostAuthorForViewer } = require('../../utils/social-post-author-display');
 const { toggleFollowAuthorSynced } = require('../../utils/follow-cloud-sync');
 const { requireInteract } = require('../../utils/pet-profile-guard');
 const {
@@ -29,8 +39,10 @@ const { REF_LOCAL, findLocalPostForDetail, localPostToDetailView } = require('..
 const {
   refreshPostCommentsFromCloud,
   saveCommentToCloud,
+  removeCommentFromCloud,
 } = require('../../utils/social-comment-cloud-sync');
 const sensitiveWords = require('../../utils/sensitive-words');
+const { resolveCloudFileUrl } = require('../../utils/cloud-media');
 
 const { ZONE_LABEL_MAP, getZoneLabel } = require('../../utils/community-zones');
 
@@ -60,6 +72,23 @@ Page({
     if (this.data.postId) this.loadPost(this.data.postId);
   },
 
+  async resolveCommentAvatars(flat) {
+    const list = flat || [];
+    if (!list.length) return list;
+    const resolved = await Promise.all(
+      list.map(async (c) => {
+        if (!c || !c.avatar) return c;
+        try {
+          const avatar = await resolveCloudFileUrl(c.avatar);
+          return avatar ? { ...c, avatar } : c;
+        } catch (e) {
+          return c;
+        }
+      }),
+    );
+    return resolved;
+  },
+
   findPostViewSync(postId) {
     const { postSource } = this.data;
     if (postSource === 'local') {
@@ -80,14 +109,17 @@ Page({
     const zoneLabel = isLocal
       ? (view.lostType === 'adopt' ? '领养救助' : '同城互助')
       : (getZoneLabel(view.zone) || ZONE_LABEL_MAP[view.zone] || '宠物社区');
+    const merged = mergePostDetailEngagement(postId, view, postSource);
+    const withAuthor = decoratePostAuthorForViewer(merged);
     const enriched = decoratePostFollow(withContentParts({
-      ...view,
-      comments: Math.max(view.comments || 0, comments.length),
+      ...withAuthor,
+      comments: Math.max(withAuthor.comments || 0, (comments || []).length),
     }));
+    const decoratedComments = decorateCommentsForViewer(comments, { post: enriched });
     this.setData({
       post: enriched,
       zoneLabel,
-      commentList: buildCommentThreads(comments),
+      commentList: buildCommentThreads(decoratedComments),
     });
   },
 
@@ -112,9 +144,9 @@ Page({
         const row = await fetchLocalPostFromCloud(postId);
         view = row ? localPostToDetailView(row) : null;
       }
-    } else if (!view) {
+    } else if (cloudApi.cloudEnabled()) {
       const found = await fetchSocialPostFromCloud(postId);
-      view = found ? normalizePostMedia(found) : null;
+      if (found) view = normalizePostMedia(found);
     }
 
     if (!view) {
@@ -130,6 +162,7 @@ Page({
     } catch (e) {
       // keep cache
     }
+    flatComments = await this.resolveCommentAvatars(flatComments);
     this.paintPostDetail(postId, view, flatComments);
   },
 
@@ -185,28 +218,30 @@ Page({
     wx.previewMedia({ sources: [{ url, type: 'video', poster }] });
   },
 
-  onLike() {
+  async onLike() {
     if (!requireInteract()) return;
     const { post, postId, postSource } = this.data;
     if (!post) return;
-    const liked = !post.liked;
-    const likes = liked ? (post.likes || 0) + 1 : Math.max(0, (post.likes || 0) - 1);
-    const patch = { liked, likes };
-    if (postSource === 'local') {
-      store.updateLocalPost(postId, patch);
-    } else {
-      store.updateSocialPost(postId, patch);
-      store.recordPostThumbLike({
-        channel: 'social',
-        postId,
-        liked,
-        title: (post.content || post.topic || '社区动态').slice(0, 32),
-        cover: post.image || (post.images && post.images[0]) || '',
-        userName: post.userName,
-        petName: post.petName,
-      });
+    wx.showLoading({ title: '处理中', mask: true });
+    try {
+      const patch = await togglePostLikeSynced(postId, postSource, post);
+      if (postSource !== 'local') {
+        store.recordPostThumbLike({
+          channel: 'social',
+          postId,
+          liked: patch.liked,
+          title: (post.content || post.topic || '社区动态').slice(0, 32),
+          cover: post.image || (post.images && post.images[0]) || '',
+          userName: post.userName,
+          petName: post.petName,
+        });
+      }
+      this.setData({ post: { ...post, ...patch } });
+    } catch (e) {
+      wx.showToast({ title: (e && e.message) || '点赞失败', icon: 'none' });
+    } finally {
+      wx.hideLoading();
     }
-    this.setData({ post: { ...post, ...patch } });
   },
 
   onComposerInput(e) {
@@ -229,7 +264,6 @@ Page({
       return;
     }
     if (action === 'video') {
-      this.pickMedia('video', ['album', 'camera']);
       return;
     }
     if (action === 'videocall') {
@@ -250,12 +284,6 @@ Page({
       return;
     }
     if (action === 'location') {
-      chooseLocationPoint()
-        .then((loc) => {
-          const snippet = locationSnippet(loc);
-          this.setData({ commentText: `${this.data.commentText || ''}${this.data.commentText ? ' ' : ''}${snippet}` });
-        })
-        .catch(() => {});
       return;
     }
     if (action === 'aa') {
@@ -326,6 +354,79 @@ Page({
     });
   },
 
+  onCommentLongPress(e) {
+    const { id, canDelete } = e.currentTarget.dataset || {};
+    if (!id || String(canDelete) !== '1') return;
+    wx.showActionSheet({
+      itemList: ['删除'],
+      itemColor: '#C45C26',
+      success: (res) => {
+        if (res.tapIndex === 0) this.confirmDeleteComment(id);
+      },
+    });
+  },
+
+  async confirmDeleteComment(commentId) {
+    const { requireLogin } = require('../../utils/require-login');
+    if (!requireLogin()) return;
+    if (!commentId) return;
+    const { postId, post, postSource } = this.data;
+    if (!postId || !post) return;
+
+    const flat = store.listPostComments(postId);
+    const target = flat.find((c) => String(c.id) === String(commentId));
+    if (!target || !canDeleteCommentForViewer(target, post)) {
+      wx.showToast({ title: '无权删除', icon: 'none' });
+      return;
+    }
+
+    const confirm = await wx.showModal({
+      title: '删除评论',
+      content: '确定删除这条评论？',
+      confirmText: '删除',
+      confirmColor: '#C45C26',
+    });
+    if (!confirm.confirm) return;
+
+    const isLocal = postSource === 'local';
+    const commentRef = isLocal ? REF_LOCAL : 'social_posts';
+    wx.showLoading({ title: '删除中…', mask: true });
+    try {
+      if (cloudApi.cloudEnabled()) {
+        await removeCommentFromCloud(commentId, postId, { postRef: commentRef });
+      } else {
+        store.removePostComment(postId, commentId);
+        const count = store.listPostComments(postId).length;
+        if (isLocal) {
+          store.updateLocalPost(postId, { comments: count });
+        } else {
+          store.updateSocialPost(postId, { comments: count });
+        }
+      }
+      const flatComments = decorateCommentsForViewer(
+        store.listPostComments(postId),
+        { post },
+      );
+      const cachedPost = isLocal ? store.getLocalPost(postId) : store.getSocialPost(postId);
+      const comments = Math.max(
+        (cachedPost && cachedPost.comments) || 0,
+        flatComments.length,
+      );
+      this.setData({
+        post: { ...post, comments },
+        commentList: buildCommentThreads(flatComments),
+        replyTarget: this.data.replyTarget && String(this.data.replyTarget.id) === String(commentId)
+          ? null
+          : this.data.replyTarget,
+      });
+      wx.showToast({ title: '已删除', icon: 'success' });
+    } catch (err) {
+      wx.showToast({ title: (err && err.message) || '删除失败', icon: 'none' });
+    } finally {
+      wx.hideLoading();
+    }
+  },
+
   async onComposerSend(e) {
     if (!requireInteract()) return;
     const text = (e.detail.value || this.data.commentText || '').trim();
@@ -343,11 +444,12 @@ Page({
       ? { parentId: replyTarget.id, replyToUserName: replyTarget.userName }
       : {};
 
+    const author = currentCommentAuthorPayload();
     let payload;
     if (pendingMedia) {
       payload = {
-        userName: '我',
-        avatar: MOCK_PET.avatar,
+        ...author,
+        isMine: true,
         type: pendingMedia.type,
         url: pendingMedia.url,
         poster: pendingMedia.poster || '',
@@ -356,8 +458,8 @@ Page({
       };
     } else {
       payload = {
-        userName: '我',
-        avatar: MOCK_PET.avatar,
+        ...author,
+        isMine: true,
         type: 'text',
         content: text,
         ...replyMeta,
@@ -380,20 +482,22 @@ Page({
           store.updateSocialPost(postId, { comments: store.listPostComments(postId).length });
         }
       }
-      const flatComments = store.listPostComments(postId);
       const cachedPost = isLocal ? store.getLocalPost(postId) : store.getSocialPost(postId);
+      const list = store.listPostComments(postId);
       const comments = Math.max(
         (cachedPost && cachedPost.comments) || 0,
         post.comments || 0,
-        flatComments.length,
+        list.length,
       );
+      const enrichedPost = { ...(this.data.post || post), comments };
+      const flatComments = decorateCommentsForViewer(list, { post: enrichedPost });
       this.setData({
         commentText: '',
         pendingMedia: null,
         replyTarget: null,
         commentPlaceholder: '写评论…',
         commentList: buildCommentThreads(flatComments),
-        post: { ...post, comments },
+        post: enrichedPost,
       });
       wx.showToast({ title: '已评论', icon: 'success' });
     } catch (err) {
@@ -406,13 +510,9 @@ Page({
   onShare() {
     const { post, postId, postSource } = this.data;
     if (!post) return;
-    const shares = (post.shares || 0) + 1;
-    if (postSource === 'local') {
-      store.updateLocalPost(postId, { shares });
-    } else {
-      store.updateSocialPost(postId, { shares });
-    }
-    this.setData({ post: { ...post, shares } });
+    bumpPostShareSynced(postId, postSource, post).then((next) => {
+      this.setData({ post: next });
+    });
   },
 
   onOpenPostLocation() {
@@ -421,6 +521,15 @@ Page({
 
   onShareAppMessage() {
     const { post, postId, postSource } = this.data;
+    if (post && postId && !this._shareBumpForPost) {
+      this._shareBumpForPost = String(postId);
+      bumpPostShareSynced(postId, postSource, post).then((next) => {
+        this.setData({ post: next });
+      });
+      setTimeout(() => {
+        this._shareBumpForPost = '';
+      }, 800);
+    }
     const detailQuery = postSource === 'local'
       ? `id=${postId}&source=local`
       : `id=${postId}`;

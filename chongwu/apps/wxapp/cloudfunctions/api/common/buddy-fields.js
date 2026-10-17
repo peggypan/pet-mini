@@ -56,6 +56,7 @@ function pickBuddyPayload(raw) {
     userName: trim(p.userName),
     avatar: trim(p.avatar),
     petName: trim(p.petName),
+    petSpecies: trim(p.petSpecies),
     breed: trim(p.breed),
     age: trim(p.age),
     personality: trim(p.personality),
@@ -92,15 +93,20 @@ function validateBuddy(body) {
   return '';
 }
 
+const { isBuddyExpectExpired } = require('./buddy-expect-expiry');
+
 function publicBuddy(doc, viewerOpenid) {
   if (!doc) return null;
   const { _id, _openid, ...rest } = doc;
   const isMine = viewerOpenid && (doc.openid === viewerOpenid || doc._openid === viewerOpenid);
   const time = formatPublishTime(rest.createdAt || rest.updatedAt);
   const authorOpenid = doc.openid || doc._openid || '';
+  const expectExpired = isBuddyExpectExpired({ expectTime: rest.expectTime });
   return {
     id: _id,
     ...rest,
+    expectExpired,
+    expectActive: !expectExpired,
     isMine: !!isMine,
     userName: isMine ? '我' : rest.userName,
     peerOpenid: isMine ? '' : authorOpenid,

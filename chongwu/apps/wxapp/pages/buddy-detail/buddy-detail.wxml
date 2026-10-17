@@ -21,11 +21,13 @@
     </view>
   </view>
 
-  <view class="card" bindtap="onCert">
-    <text class="card-title">宠物电子宠证</text>
-    <text class="pet-line">{{buddy.petName}} · {{buddy.breed}} · {{buddy.age}}</text>
+  <view class="card pet-card">
+    <text class="pet-headline">{{petHeadline}}</text>
+    <text class="pet-breed-line" wx:if="{{petBreedLine}}">品种：{{petBreedLine}}</text>
     <text class="verified" wx:if="{{buddy.verified}}">疫苗已核验 ✓</text>
-    <text class="link">点击查看详情 ›</text>
+    <view class="pet-tags" wx:if="{{petTags.length}}">
+      <text class="pet-tag" wx:for="{{petTags}}" wx:key="*this">{{item}}</text>
+    </view>
   </view>
 
   <view class="card">
@@ -67,10 +69,13 @@
     </view>
     <text class="post-title" wx:if="{{buddy.title}}">{{buddy.title}}</text>
     <text class="desc">{{buddy.desc}}</text>
-    <view class="expect expect-time">
+    <view class="expect expect-time {{expectExpired ? 'is-expired' : ''}}">
       <text class="expect-label">期望时间：</text>
       <text class="expect-val">{{buddy.expectTime}}</text>
+      <view class="expect-expired-stamp" wx:if="{{expectExpired}}">已过期</view>
     </view>
+    <view class="expired-tip" wx:if="{{expectExpired && !isOwner}}">该找搭子已过期望时间，已从广场下线</view>
+    <view class="expired-tip owner" wx:if="{{canRenewExpect}}">帖子已失效，可修改期望时间与地点后重新展示</view>
     <view class="expect expect-place-row">
       <text class="expect-label">期望地点：</text>
       <view class="map-loc-row" bindtap="onOpenPlace">
@@ -87,9 +92,12 @@
   </view>
 
   <view class="bottom">
-    <button class="btn-secondary btn-danger-text" wx:if="{{isOwner}}" bindtap="onDeleteBuddy">删除</button>
-    <button class="btn-secondary" wx:if="{{!isOwner}}" bindtap="onCollectBuddy">{{collected ? '已收藏' : '收藏搭子'}}</button>
-    <button class="btn-secondary" wx:if="{{!isOwner}}" bindtap="onReport">举报</button>
-    <button class="btn-primary" wx:if="{{!isOwner}}" bindtap="onChat">发起私聊</button>
+    <button class="btn-secondary btn-danger-text" wx:if="{{isOwner && !canRenewExpect}}" bindtap="onDeleteBuddy">删除</button>
+    <button class="btn-primary" wx:if="{{canRenewExpect}}" bindtap="onRenewExpect">修改时间地点</button>
+    <button class="btn-secondary btn-danger-text" wx:if="{{canRenewExpect}}" bindtap="onDeleteBuddy">删除</button>
+    <button class="btn-secondary" wx:if="{{!isOwner && !expectExpired}}" bindtap="onCollectBuddy">{{collected ? '已收藏' : '收藏搭子'}}</button>
+    <button class="btn-secondary" wx:if="{{!isOwner && !expectExpired}}" bindtap="onReport">举报</button>
+    <button class="btn-primary" wx:if="{{!isOwner && !expectExpired}}" bindtap="onChat">发起私聊</button>
+    <button class="btn-secondary disabled" wx:if="{{!isOwner && expectExpired}}" disabled>已过期</button>
   </view>
 </view>

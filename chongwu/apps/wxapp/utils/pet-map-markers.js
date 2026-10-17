@@ -2,6 +2,7 @@
 
 const { pickBuddyLatLng } = require('./geo-distance');
 const { FALLBACK_ICON, hydrateMapMarkerIcons } = require('./map-marker-icon');
+const { buildMarkerLabelStyle, markerLabelForPeer } = require('./buddy-map-species');
 
 function hashSeed(str) {
   let h = 0;
@@ -18,6 +19,8 @@ function buildPetAvatarMarkers(peers, latitude, longitude, idBase = 1) {
     const markerLat = atPeer ? atPeer.lat : lat + ((seed % 17) - 8) * 0.00075;
     const markerLng = atPeer ? atPeer.lng : lng + ((seed % 23) - 11) * 0.00095;
     const postId = peer.postId || peer.buddyId || peer.peerId || peer.id;
+    const speciesMeta = markerLabelForPeer(peer);
+    const speciesTag = speciesMeta.speciesName || speciesMeta.content;
     return {
       id: idBase + index,
       postId,
@@ -33,8 +36,9 @@ function buildPetAvatarMarkers(peers, latitude, longitude, idBase = 1) {
       width: 48,
       height: 48,
       alpha: 0.98,
+      label: buildMarkerLabelStyle(peer),
       callout: {
-        content: `${peer.userName || '宠友'}${peer.petName ? ' · ' + peer.petName : ''}\n查看搭子详情`,
+        content: `${speciesTag}搭子 · ${peer.userName || '宠友'}${peer.petName ? ' · ' + peer.petName : ''}\n查看详情`,
         display: 'BYCLICK',
         padding: 8,
         borderRadius: 8,

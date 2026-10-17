@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "post_likes",
+  "description": "社区/同城帖点赞记录，每用户每帖仅一条 status=1 的有效赞。",
+  "type": "object",
+  "required": ["postId", "postRef", "openid", "status", "createdAt", "updatedAt"],
+  "properties": {
+    "_id": { "type": "string" },
+    "_openid": { "type": "string" },
+    "openid": { "type": "string" },
+    "userId": { "type": "string" },
+    "postId": { "type": "string" },
+    "postRef": {
+      "type": "string",
+      "enum": ["social_posts", "local_posts"]
+    },
+    "status": { "type": "integer", "description": "1 有效赞，0 已取消" },
+    "createdAt": {},
+    "updatedAt": {}
+  }
+}

@@ -3,6 +3,8 @@ const { socialPosts, now, getDb } = require('../common/db');
 const { requireUser } = require('../common/auth-user');
 const { pickSocialPayload, validateSocial, publicSocial } = require('../common/social-fields');
 const { rejectIfSensitive } = require('../common/sensitive-words');
+const { likedIdSet, viewerLikedPost } = require('../common/post-engagement');
+const { enrichPostsWithAuthorProfiles } = require('../common/post-author-profile');
 
 function viewerOpenid(ctx) {
   return (ctx && ctx.OPENID) || '';
@@ -45,9 +47,15 @@ async function listFeed(payload, wxContext) {
     rows = sortByCreatedDesc(res.data || []).slice(skip, skip + limit);
   }
 
+  rows = await enrichPostsWithAuthorProfiles(rows);
   const openid = viewerOpenid(wxContext);
+  const likedSet = await likedIdSet(
+    openid,
+    'social_posts',
+    rows.map((d) => d._id),
+  );
   return ok({
-    list: rows.map((d) => publicSocial(d, openid)),
+    list: rows.map((d) => publicSocial(d, openid, { likedByViewer: likedSet.has(String(d._id)) })),
     skip,
     limit,
   });
@@ -69,7 +77,15 @@ async function listMine(_payload, wxContext) {
   }
 
   rows = rows.filter((d) => d.userDeleted !== true && d.status !== 0);
-  return ok({ list: rows.map((d) => publicSocial(d, auth.openid)) });
+  rows = await enrichPostsWithAuthorProfiles(rows);
+  const likedSet = await likedIdSet(
+    auth.openid,
+    'social_posts',
+    rows.map((d) => d._id),
+  );
+  return ok({
+    list: rows.map((d) => publicSocial(d, auth.openid, { likedByViewer: likedSet.has(String(d._id)) })),
+  });
 }
 
 async function get(payload, wxContext) {
@@ -86,7 +102,9 @@ async function get(payload, wxContext) {
     if (doc.auditStatus !== 'approved' && doc.openid !== openid && doc._openid !== openid) {
       return fail(404, '动态不存在');
     }
-    return ok({ post: publicSocial(doc, openid) });
+    const likedByViewer = openid ? await viewerLikedPost(openid, id, 'social_posts') : false;
+    const enriched = (await enrichPostsWithAuthorProfiles([doc]))[0] || doc;
+    return ok({ post: publicSocial(enriched, openid, { likedByViewer }) });
   } catch (e) {
     return fail(404, '动态不存在');
   }
@@ -105,12 +123,15 @@ async function save(payload, wxContext) {
   const sens = await rejectIfSensitive(body.content);
   if (sens) return fail(400, sens);
 
+  const profileAvatar = String(auth.user.avatarUrl || auth.user.avatar || body.avatar || '').trim();
   const base = {
     ...body,
     openid: auth.openid,
     _openid: auth.openid,
     userId: auth.user._id,
     userName: auth.user.nickname || body.userName || '宠友',
+    avatar: profileAvatar,
+    petName: '',
     auditStatus: 'approved',
     userDeleted: false,
     likes: 0,

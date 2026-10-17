@@ -31,6 +31,44 @@ page {
   color: #888888;
 }
 
+.species-scroll {
+  margin-top: 16rpx;
+  white-space: nowrap;
+}
+
+.species-tab {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 12rpx;
+  padding: 10rpx 22rpx;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+  color: #666;
+  background: #f3f5f8;
+}
+
+.species-tab.on {
+  color: #1e88e5;
+  font-weight: 700;
+  background: #e8f4ff;
+}
+
+.species-tab-count {
+  margin-left: 8rpx;
+  min-width: 28rpx;
+  padding: 0 8rpx;
+  font-size: 20rpx;
+  line-height: 28rpx;
+  text-align: center;
+  border-radius: 14rpx;
+  color: #fff;
+  background: #1e88e5;
+}
+
+.species-tab.on .species-tab-count {
+  background: #1565c0;
+}
+
 .map-wrap {
   flex: 1;
   position: relative;
@@ -72,12 +110,55 @@ page {
   vertical-align: top;
 }
 
-.chat-peer-avatar {
+.chat-peer-avatar-wrap {
+  position: relative;
   width: 88rpx;
   height: 88rpx;
   border-radius: 20rpx;
   border: 4rpx solid rgba(126, 200, 255, 0.5);
+  overflow: hidden;
   background: #f0f0f0;
+}
+
+.chat-peer-avatar-wrap.species-dog {
+  border-color: rgba(74, 144, 226, 0.85);
+}
+
+.chat-peer-avatar-wrap.species-cat {
+  border-color: rgba(255, 159, 67, 0.9);
+}
+
+.chat-peer-avatar-wrap.species-exotic {
+  border-color: rgba(155, 89, 182, 0.9);
+}
+
+.chat-peer-avatar {
+  width: 100%;
+  height: 100%;
+}
+
+.chat-peer-species {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: 2rpx 8rpx;
+  font-size: 18rpx;
+  font-weight: 700;
+  color: #fff;
+  border-top-left-radius: 10rpx;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.chat-peer-avatar-wrap.species-dog .chat-peer-species {
+  background: #4a90e2;
+}
+
+.chat-peer-avatar-wrap.species-cat .chat-peer-species {
+  background: #ff9f43;
+}
+
+.chat-peer-avatar-wrap.species-exotic .chat-peer-species {
+  background: #9b59b6;
 }
 
 .chat-peer-name {

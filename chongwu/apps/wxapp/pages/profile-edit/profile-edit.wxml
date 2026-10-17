@@ -1,8 +1,8 @@
 <view class="page">
   <view class="card">
     <text class="label">头像</text>
-    <view class="avatar-row" bindtap="onChooseAvatar">
-      <image class="avatar" src="{{avatarUrl}}" mode="aspectFill"></image>
+    <view class="avatar-row" catchtap="onChooseAvatar">
+      <image class="avatar" src="{{avatarUrl}}" mode="aspectFill" show-menu-by-longpress="{{false}}"></image>
       <view class="avatar-meta">
         <text class="avatar-tip">点击更换头像</text>
         <text class="avatar-sub">建议使用清晰的宠物或人宠合照</text>

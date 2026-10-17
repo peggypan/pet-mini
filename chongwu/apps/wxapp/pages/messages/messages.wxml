@@ -12,12 +12,22 @@
 
   <view wx:if="{{tab === 'chat'}}">
     <view
+      class="notice-entry-banner"
+      wx:if="{{noticeUnread > 0}}"
+      bindtap="onOpenNoticeTab"
+    >
+      <text class="notice-entry-text">你有 {{noticeUnread}} 条未读通知</text>
+      <text class="notice-entry-action">查看</text>
+    </view>
+    <view
       class="chat-item"
       wx:for="{{chats}}"
       wx:key="dedupeKey"
       bindtap="onChatTap"
+      bindlongpress="onChatLongPress"
       data-peerid="{{item.peerId}}"
       data-threadid="{{item.id}}"
+      data-title="{{item.displayTitle || item.peerName}}"
       data-peeropenid="{{item.peerOpenid}}"
       data-peername="{{item.peerName}}"
       data-petname="{{item.petName}}"
@@ -40,14 +50,22 @@
   </view>
 
   <view wx:if="{{tab === 'notice'}}">
+    <view class="notice-toolbar" wx:if="{{noticeUnread > 0}}">
+      <text class="notice-toolbar-hint">共 {{noticeUnread}} 条未读</text>
+      <text class="notice-toolbar-action" bindtap="onMarkAllNoticesRead">全部已读</text>
+    </view>
     <view
-      class="notice-item {{item.url ? 'notice-tap' : ''}} {{item.read ? '' : 'is-unread'}}"
+      class="notice-item {{item.url ? 'notice-tap' : ''}} {{item.read ? 'is-read' : 'is-unread'}}"
       wx:for="{{notices}}"
       wx:key="id"
       bindtap="onNoticeTap"
+      bindlongpress="onNoticeLongPress"
+      data-id="{{item.id}}"
+      data-title="{{item.title}}"
       data-url="{{item.url}}"
     >
       <view class="notice-title-row">
+        <text class="notice-tag" wx:if="{{!item.read}}">未读</text>
         <text class="notice-title">{{item.title}}</text>
         <view class="notice-dot" wx:if="{{!item.read}}"></view>
       </view>

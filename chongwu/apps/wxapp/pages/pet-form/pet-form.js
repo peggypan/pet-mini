@@ -7,6 +7,12 @@ const { chooseMedia } = require('../../utils/choose-media');
 const amap = require('../../utils/amap');
 const { HEALING_BUDDY_TYPES } = require('../../utils/pet-healing');
 const { RISK_TIPS } = require('../../utils/mock');
+const {
+  SPECIES_OPTIONS,
+  speciesLabel,
+  speciesPickerIndex,
+  speciesFromPickerIndex,
+} = require('../../utils/pet-species');
 const { validatePetProfile, blockSubPageWithoutLogin } = require('../../utils/pet-profile-guard');
 const { requireLogin } = require('../../utils/require-login');
 
@@ -16,9 +22,11 @@ Page({
     petId: null,
     name: '',
     species: 2,
+    speciesOptions: SPECIES_OPTIONS,
+    speciesDisplay: '狗',
     breedName: '',
     gender: 0,
-    birthday: '',
+    speciesPickerIndex: 0,
     weight: '',
     color: '',
     isSterilized: false,
@@ -78,12 +86,21 @@ Page({
     if (local) this.applyPet(local);
   },
 
+  syncSpeciesUi(species) {
+    const n = Number(species) || 2;
+    return {
+      species: n,
+      speciesDisplay: speciesLabel(n) || '狗',
+      speciesPickerIndex: speciesPickerIndex(n),
+    };
+  },
+
   applyPet(pet) {
     this.setData({
       name: pet.name,
-      species: pet.species,
+      ...this.syncSpeciesUi(pet.species),
       breedName: pet.breedName || '',
-      gender: pet.gender || 0,
+      gender: Number(pet.gender) || 0,
       birthday: pet.birthday || '',
       weight: pet.weight || '',
       color: pet.color || '',
@@ -208,7 +225,8 @@ Page({
   },
 
   onSpeciesChange(e) {
-    this.setData({ species: Number(e.detail.value) + 1 });
+    const index = Number(e.detail.value);
+    this.setData(this.syncSpeciesUi(speciesFromPickerIndex(index)));
   },
 
   onGenderChange(e) {
